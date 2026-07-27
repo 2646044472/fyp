@@ -1,0 +1,53 @@
+# Operating system and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local datasets (retain guidance and lightweight manifests)
+data/*
+!data/README.md
+!data/**/*.csv
+!data/**/*.json
+!data/**/*.yaml
+!data/**/*.yml
+
+# Model checkpoints and exports
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.tflite
+*.mlmodel
+*.mlpackage/
+*.engine
+*.plan
+
+# Generated experiment artifacts
+outputs/
+results/
+runs/
+logs/
+profiles/
+*.log
