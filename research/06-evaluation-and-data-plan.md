@@ -89,6 +89,12 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 
 纸张/屏幕二次拍摄不是凭空设想：[2022 palmprint presentation attack study](https://www.jmis.org/archive/view_article_pubreader?pid=jmis-9-2-103) 的方法确实重新拍摄 monitor/paper，并发现显示屏 moire、打印清晰度与纸张弯曲会改变结果。因此本项目不能只保存最终 cropped ROI，必须保存这些 capture metadata。
 
+### CAAP 不是当前的可运行攻击任务
+
+[CAAP 的公开仓库](https://github.com/ryliu68/CAAP) 可以审计其研究设定，但不构成即插即用的 benchmark：默认训练脚本读取作者机器的绝对数据路径，引用仓库外的分类器 checkpoint，并锁定 CUDA 12.4 的 Linux 环境。它也只处理预处理后的灰度 palm ROI，并不代表本采集盒的 RGB/NIR/ToF 或即时随机 challenge。
+
+因此本项目的最小 demo 和 S 层评测不得下载、执行或改写 CAAP 来生成攻击材料。CAAP 只用于建立**高资源白盒攻击存在**这一 threat boundary。任何日后的复现必须先同时满足：老师明确同意、学校伦理/安全要求许可、合法取得其数据与权重、隔离的 GPU 环境、冻结的代码 commit 和只针对获授权测试目标的处置方案。即使全部满足，仍只能作为后置、单列的 stress test；不能用来取代 print/screen PAIS 的黑盒实测，也不能把结果表述为真实世界风险率。
+
 ## 5. 指标与报告表
 
 | 类别 | 指标 | 报告方式 | 解释陷阱 |

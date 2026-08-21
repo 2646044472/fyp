@@ -65,7 +65,7 @@
 
 | 工作 | 年份/来源 | 阅读 | 做的是什么 | 对 FYP 的含义 |
 | --- | --- | --- | --- | --- |
-| [CAAP](https://arxiv.org/abs/2604.06987) | arXiv 2026 | `E1` 威胁模型/物理攻击 | 针对深度掌纹模型的 capture-aware、可重用物理对抗贴片；含 print-and-capture 和跨模型/数据集测试。 | 给出了高级攻击动机，但白盒条件和其相机流程必须与本设备分开报告。 |
+| [CAAP](https://arxiv.org/abs/2604.06987) / [official repository](https://github.com/ryliu68/CAAP) | arXiv 2026 | `E1` 论文范围 + 代码工件审计 | 针对深度掌纹模型的 capture-aware、可重用物理对抗贴片；代码公开，但默认脚本依赖作者机器上的绝对路径数据、未随仓库提供的 classifier checkpoint，以及 CUDA 12.4 Linux 环境。 | 它是高级白盒威胁的研究参照，不是 Pi 可跑 baseline 或本项目默认攻击；任何复现均须先获伦理批准、独立取得数据/权重并明确隔离环境。 |
 | [Yao et al., domain-adversarial palmprint anti-spoofing](https://dblp.org/rec/conf/icip/YaoSZ23) | ICIP 2023 | `E2` 书目信息/作者摘要 | 已提出大型攻击数据与 domain generalization；说明掌纹 anti-spoofing 并非空白。 | FYP 不能以“首次跨域 PAD”表述；需具体限定为传感协议、主动采集或 edge trade-off。 |
 | [DAPANet](https://doi.org/10.1016/j.displa.2024.102871) | Displays 2025 | `E1` 摘要/方法/协议 | 用 XJTU-PalmReplay 的 5 个 display-capture domain，做多源到多目标的 anti-spoofing domain adaptation。 | 留出攻击设备/domain 是已有最低标准；RGB/NIR/ToF 的结果也须把材料/设备完整留出。 |
 | [HFSRA](https://doi.org/10.1049/ipr2.70029) | IET Image Processing 2025 | `E1` 数据/协议 | 也使用 XJTU-PalmReplay；按 display-capture domain 做 cross-domain test。作者认为平面 palm 特征下 depth signal 较弱，这是其 RGB 资料的设计判断。 | 不把“ToF 对掌纹无用”当作结论；只把它视作必须在真实贴片和受限几何上验证的反例。 |
