@@ -8,7 +8,7 @@
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 52 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
 | 证据账本条目 | 51 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 41 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、PPNet code、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的数据与跨域 protocol、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
+| 已查看关键章节的原始/官方资料 | 约 41 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、PPNet code、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的 data/protocol（含 target-adaptation 与 cross-domain 区别）、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
@@ -42,6 +42,7 @@
 | X-Palm 能否作为可立即运行的 Pi/B2/M benchmark | 足够否定，但可申请为 P 层 B0 压力测试 | 数据、EULA、condition metadata、fixed split 与 code 边界完整，仍需批准下载；作者训练环境是 CUDA/RTX A6000，且数据没有 PAIS/ToF/synchronized challenge。它回答 RGB cross-domain，不回答本设备的传感、主动 gate 或 edge trade-off。 |
 | FedPalm 是否让项目可称 privacy-preserving / federated edge | 足够否定 | 其 scope 是 GPU multi-client training；公开 repo 无 data/weights/license，且未见 secure aggregation、DP、update leakage/poisoning 或 transport/client-security implementation。FL 减少 raw training-data flow，不保证 template、model update 或现场认证安全。 |
 | M 的随机光序列是否自动代表 challenge-response | 足够否定 | 不自动代表。没有预定义并验证的 challenge-response relation，它只是动态/多帧采集；即使实现 relation，也尚未对实时 display、真人贴片或 relay 证明安全。 |
+| 近期 cross-domain PAD 数字是否可直接说明本项目对未知攻击有效 | 足够否定 | DAPANet 的 target adaptation 可见未标注目标域，HFSRA 是 RGB display-capture 分类 protocol；均不等于我们的 blind PAIS/session holdout 或 target-match IAPMR。 |
 | 受控维护的“工单 + 本地执行”是否只是空想 | 有具体系统先例，本地价值未解决 | NIST SP 1800-2b 的能源 scenario 用中央授权、时限工单和预置 PACS 在通信故障下继续工作；它证明 architecture pattern，不证明澳门/学校/其他机房的网络或经济需求，更不要求 palm。 |
 | 受控现场是否愿意采用 biometric | 未解决，需访谈 | 不能由“更安全/方便”推断；目的限制、可见性、问责感、资料泄露担忧与公平 fallback 都是应收集的条件。 |
 

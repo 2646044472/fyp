@@ -18,6 +18,7 @@
 | [09-reading-coverage-audit.md](09-reading-coverage-audit.md) | 本轮读到的范围、精读深度和后续阅读优先级 | 每轮研究结束时更新 |
 | [10-story-validation-plan.md](10-story-validation-plan.md) | 将必要性、经济价值和采用条件写成可否定的访谈/流程验证计划 | 场地访谈前与完成后更新 |
 | [11-ai-assisted-research-protocol.md](11-ai-assisted-research-protocol.md) | AI 辅助检索、阅读、反证和写作的可审计流程 | 每次变更检索或证据规则时更新 |
+| [12-pad-protocol-reading-log.md](12-pad-protocol-reading-log.md) | DAPANet/HFSRA 精读、推理变化与 PAD 到最终放行风险的协议边界 | 每轮深读攻击协议后更新 |
 
 ## 当前工作结论
 

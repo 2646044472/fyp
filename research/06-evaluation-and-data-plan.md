@@ -63,6 +63,8 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 
 先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成，并把 `challenge id/seed`、请求的模态/光照顺序、每帧 `frame id`/monotonic timestamp、曝光/增益与**实际**illumination state 写入不可改写的实验日志。先以固定 target 做灯序、掉帧、重排、延迟和 RGB/NIR ROI drift 测试；不能验证实际状态时，随机 seed 只是一条软件日志，不构成 challenge evidence。更重要的是，verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）；若只把随机序列的帧送进普通 fusion/matcher，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
 
+本项目的主结果是 blind holdout：test PAIS/material、output/capture chain 和 test session 的图、标签、quality 分布与 metadata 均不可参与 threshold、response relation、escalation rule 或模型调参。DAPANet 一类使用未标注 target domain 的 adaptation 是另一种有效但不同的任务；若以后采用，必须单列 target data exposure、冻结时点和 per-PAIS 结果，不能同 blind holdout 合并成“unknown attack generalization”。
+
 `MA` 不是新的 fusion 声称。它的测量需加：escalation rate（按 bonafide、impostor、每 PAIS、session 分层）、未升级但最终放行的攻击比例、每 interaction 的 NIR 时间/能耗和 fallback。若 `MA` 以错过攻击为代价换来较低平均成本，则不得称为 edge 优化。
 
 ## 3. 自采数据卡草案
