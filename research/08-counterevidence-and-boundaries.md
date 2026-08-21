@@ -21,6 +21,7 @@
 | “Pi 本地推理就等于隐私保护” | 2024--2025 palmprint template protection 研究已处理可撤销、不可关联、不可逆与密文匹配；这些性质不会由本地推理自动产生。 | 只承诺 raw frame local-only、最小日志、删除期和加密存储；不声称 cryptographic template protection。 |
 | “ToF 距离对齐/智能采集是新的” | 2022 已有 dual-camera + 单点 ToF 的 bimodal alignment；2025 已有 distance/rotation/video registration 的完整 touchless palm sensing 系统。 | 不将 ToF guidance 或 smart sensing 命名为创新；只评估在本硬件、固定协议下它是否值得其重采、延迟和能耗成本。 |
 | “图像不上传云端就不存在采集端隐私风险” | [EMPalm](https://arxiv.org/html/2510.07533) 在其预印本实验中研究 Pi、Jetson、相机与商用 palm device 的 EM leakage，并重建 palm image；这是物理侧信道而不是云端泄露。 | 本 FYP 不复现/防御该攻击，但不将 edge 写成完整隐私或系统安全保证；raw frame local-only 只是较小的数据流承诺。 |
+| “二维码/卡 + 本地掌纹就成为隐私保护、不可转借凭证” | [Garcia-Rodriguez et al. 2024](https://doi.org/10.1016/j.cose.2023.103566) 的真正 privacy-preserving biometric-bound credential 使用属性凭证、加密与零知识机制，并且其适用性受场景限制。 | 当前 FYP 只能做 reader-local `1:1` match 与最小日志。它可测 credential-person binding，不具备 unlinkability、cryptographic non-transferability 或正式 template protection。 |
 
 ## 3. 未找到的同型工作，及其正确含义
 

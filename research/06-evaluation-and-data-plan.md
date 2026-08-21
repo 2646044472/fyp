@@ -6,12 +6,15 @@
 
 | 层 | 数据 | 能回答 | 不能回答 | 通过条件 |
 | --- | --- | --- | --- | --- |
+| P0：公开工程 smoke-test | [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 这类可直接下载、许可明确的单 split 数据 | 下载、预处理、ROI、embedding、score、模板和 Pi runtime 是否能跑通 | identity-disjoint、session/cross-device shift、PAD 或可发布的识别性能结论 | 版本化下载 hash、最小运行脚本和不作泛化宣称的 smoke-test 日志 |
 | P：公开 protocol 层 | PolyU-IITD v3、Tongji，或经许可的 X-Palm 这类 contactless RGB 数据 | B0 识别 pipeline 是否实现正确；session/cross-domain shift 是否被报告；与公开方法是否同量级 | Pi 的真实速度、NIR/ToF 增益、物理攻击和本采集盒泛化 | 开源或经许可数据上的 1:1 ROC/DET、FMR/FNMR、ROI failure 与复现脚本 |
 | S：自采传感层 | 经同意的 RGB、NIR、ToF、光照顺序、距离、session metadata | 主动采集是否改善本设备的 ROI/正常核验/攻击风险；Pi 的 p50/p95 和 memory | 全人群性能、澳门市场需求、生产级低 FAR 认证 | 预注册切分下的 B0/B1/B2/M 对比及不确定性说明 |
 
 公开数据的事实依据：IEEE 数据库目录列出 PolyU-IITD contactless v3 为 600+ subject、12,000+ 图像、两 session；IITD v2 为单 session。IAPR TC4 目录也列出 Tongji 的两 session、12,000 图像。资料入口见 [IEEE Biometrics Council](https://ieee-biometrics.org/resources/biometric-databases/contactless-palmprint/) 和 [IAPR TC4](https://iapr-tc4.org/palmprint-datasets/)。许可、申请和是否允许发布例图应在下载前再次核对。
 
 [X-Palm (2026)](https://github.com/X-Palm/X-Palm-2026) 是更贴近“controlled enrollment -> unconstrained mobile probe”的补充候选：其 6,006 图、103 人/206 手的公开数据卡列出远近、姿态、flash、湿手与表面文字等条件，并提供 identity-disjoint 的 cross-domain split 与 code。数据需签 academic EULA；它没有 PAIS、ToF 或同步 RGB/NIR，因此只用于 B0/domain-shift 对照，不可代替 S 层传感/攻击实验。
+
+P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标为 Apache-2.0、10,528 rows / 1.27 GB，但公开 card 只有一个 `train` split 和极少采集 metadata。它可以让第一周 demo 有可重复的下载与输入，却**不能**被随机重切分后冒充 session/cross-device/PAD benchmark；其论文的 identities、split 和采集条件要在决定引用任何识别数字前再精读。
 
 ## 2. 系统定义
 
@@ -34,6 +37,8 @@
 ### 必须记录的每次呈现字段
 
 `subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、曝光/增益、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
+
+这些 condition tag 不是要把手套/污渍/湿手预设为“系统支持的功能”。它们是公平性与可用性的失败分层：若样本被拒绝、无法取 ROI 或需要 fallback，仍应被计入结果。对于必须戴手套的角色，先由访谈确认是否可在进入前脱下并完成单人核验；若不可以，场景本身不适合裸掌掌纹，不能靠排除该角色来维持指标。
 
 原始帧只用于获同意的研究目的；默认只在加密的研究设备/受控存储中保存。需要保存的最小结果日志为：匿名 session id、版本、成功/失败、quality/gating reason、延迟。不要把真实人名、工单或门禁记录混入研究集。
 

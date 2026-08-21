@@ -11,6 +11,7 @@
 | [Amrouni & Benzaoui, 2024 survey](https://doi.org/10.3390/app14010153) | 摘要、数据集段落 | `E2` | 综述接触/无接触数据集、特征类别和评估问题；列出 PolyU-MS 等多光谱数据。 | 为公开 baseline 数据集筛选提供地图，最终仍需核对许可与 protocol。 |
 | [Gao et al., DL Palmprint Survey, 2025](https://arxiv.org/abs/2501.01166) | 摘要 | `E2`，预印本综述 | 覆盖 ROI、表征以及安全/隐私挑战。 | 作为最新综述入口，需从其参考文献继续追到原始论文。 |
 | [Seyedmohammadi et al., X-Palm, 2026](https://github.com/X-Palm/X-Palm-2026) | 数据卡、split、code、results README | `E1`，预印本 | paired controlled-multispectral 与 unconstrained smartphone 的 6,006 图/103 人数据；code 已写出 closed/open cross-domain split。 | 是 B0 的高价值 domain-shift protocol 候选；数据签 EULA，且不包含 PAIS、ToF 或本相机。 |
+| [Alausa et al., PalmMatchDB, ICPECA 2023](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) | dataset card/API | `E1`，数据卡 | Apache-2.0、10,528 rows 的 on-device contactless corpus；公开 card 只见一个 `train` split。 | 可立即用于 B0 工程 smoke test；没有公开 session/identity/camera/PAIS metadata 时，不可用作正式性能或泛化协议。 |
 
 ## B. 多光谱、NIR 与测量
 

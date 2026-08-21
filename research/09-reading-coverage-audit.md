@@ -7,8 +7,8 @@
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 45 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
-| 证据账本条目 | 34 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 24 | Palm-ID、2010 multispectral system、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA、X-Palm、FedPalm、GenPalm、NIST、ISO、澳门官方资料、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
+| 证据账本条目 | 36 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
+| 已查看关键章节的原始/官方资料 | 约 26 | Palm-ID、2010 multispectral system、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA、X-Palm、FedPalm、GenPalm、NIST、ISO、澳门官方资料、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
@@ -29,7 +29,9 @@
 | 凭证与实际到场者不一致是否可作为全球动机 | 有限支持，澳门未解决 | ASIS 的非代表性设施调查记录 credential sharing，但更多报告尾随/撑门；只支持单人核验点的假设，必须用本地流程验证。 |
 | Pi 上端侧方案是否实际可用 | 未解决，需设备测量 | 不能用模型推理时间代替端到端交互或能耗；已预先写下测量 protocol。 |
 | edge 是否自动保障 biometric privacy | 足够否定 | 否。local inference 只缩小网络/集中留存数据流；template protection 与 EM 侧信道属于不同问题。 |
+| 本项目是否能称 non-transferable / privacy-preserving credential | 足够否定 | 否。真正的 biometric-bound credential 需独立的密码学机制；本项目只测受限场景的 credential-person binding。 |
 | RGB baseline 是否需跨域压力测试 | 已有可用候选，尚未实际运行 | X-Palm 的 identity-disjoint scanner/mobile protocol 比同 session 随机切分更有说服力，但不回答本设备 ToF/NIR/PAD。 |
+| 能否立刻跑通一个许可明确的公开 B0 输入 | 可行，但只限工程 smoke test | PalmMatchDB 可直接下载且许可明确；其公开 card 缺正式切分/条件 metadata，不能拿来写泛化或 PAD 结果。 |
 | 受控现场是否愿意采用 biometric | 未解决，需访谈 | 不能由“更安全/方便”推断；目的限制、可见性、问责感、资料泄露担忧与公平 fallback 都是应收集的条件。 |
 
 ## 3. 仍需优先精读/核对
