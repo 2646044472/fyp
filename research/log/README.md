@@ -22,6 +22,8 @@
 | [`25-pi-palm-vein-prior-art-boundary-log.md`](25-pi-palm-vein-prior-art-boundary-log.md) | Raspberry Pi hand-vein precedent versus reproducible edge-palm evidence |
 | [`26-uaa-iccv2025-repro-boundary-log.md`](26-uaa-iccv2025-repro-boundary-log.md) | ICCV 2025 difficult-sample recognition paper, supplement, and repository availability audit |
 | [`27-palm-payment-acceptance-boundary-log.md`](27-palm-payment-acceptance-boundary-log.md) | Recent palm-payment acceptance evidence and why it cannot establish a Macau use case |
+| [`28-edge-term-and-lightweight-roi-reading-log.md`](28-edge-term-and-lightweight-roi-reading-log.md) | Edge-aware image terminology, lightweight ROI paper, and edge-computing boundary |
+| [`29-open-environment-roi-rdrla-reading-log.md`](29-open-environment-roi-rdrla-reading-log.md) | 2025 TIFS RDRLA: FVP-free adaptive ROI, open-set protocol, and missing Pi evidence |
 
 ## When to write a log
 
