@@ -20,6 +20,7 @@
 | [`23-attack-layer-and-loo-protocol-log.md`](23-attack-layer-and-loo-protocol-log.md) | Attack-layer separation and leave-one-group-out PAD protocol |
 | [`24-authentication-boundary-and-release-metrics-log.md`](24-authentication-boundary-and-release-metrics-log.md) | Claim versus factor boundary, PAD scope, and final-release metrics |
 | [`25-pi-palm-vein-prior-art-boundary-log.md`](25-pi-palm-vein-prior-art-boundary-log.md) | Raspberry Pi hand-vein precedent versus reproducible edge-palm evidence |
+| [`26-uaa-iccv2025-repro-boundary-log.md`](26-uaa-iccv2025-repro-boundary-log.md) | ICCV 2025 difficult-sample recognition paper, supplement, and repository availability audit |
 
 ## When to write a log
 
