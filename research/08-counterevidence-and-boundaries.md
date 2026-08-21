@@ -10,7 +10,7 @@
 
 | 可能的自我宣传 | 反例证据 | 对项目的后果 |
 | --- | --- | --- |
-| “掌纹 PAD 还是空白” | 2018 已有 palmprint verification 的 PAD 研究；ICIP 2023、DAPANet/HFSRA 2025、CAAP 2026 和 HiChrom-MAE 2026 继续推进。 | 不做“第一个 PAD”；问题只能是特定采集策略、威胁 protocol 与 edge trade-off。 |
+| “掌纹 PAD 还是空白” | 2018 的 PALMspoof 已涵盖 104 人、三类 artefact，且测试 print/display、same-device/cross-device；ICIP 2023、DAPANet/HFSRA 2025、CAAP 2026 和 HiChrom-MAE 2026 继续推进。 | 不做“第一个 PAD”；问题只能是特定采集策略、威胁 protocol 与 edge trade-off。 |
 | “屏幕/打印攻击只是理论” | [2022 研究](https://www.jmis.org/archive/view_article_pubreader?pid=jmis-9-2-103) 实际重拍 monitor/paper，并在其识别器与条件下发现泄露原图攻击风险。 | Gate 1 从最简单的 PAIS 开始，但完整记录屏幕、打印、距离、角度和光照。 |
 | “随机 RGB/NIR 2--3 帧等于 liveness” | [challenge-response formalism](https://doi.org/10.1186/s13635-022-00131-y) 只说明 challenge 可带来 freshness；攻击者可用能跟随挑战的高级 artefact。更强的 palm 研究会测脉搏/SpO2。 | 只写 `active quality/risk gate` 或 `freshness check`；不写活体证明。 |
 | “可见光 + NIR 多谱和纸张 anti-spoof 是新的 palm 主张” | [Zhang et al. 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf) 已做低成本四谱在线系统、<1 s 采集和一张 Blue palmprint 纸张攻击；其谱间反射关系被作者提为 liveness 线索。 | B2 必须是静态多谱对照。只有 session-random challenge 能在未见 PAIS 上额外优于 B2，且其随机性真的发生在攻击采集前，才保留主动策略假设。 |
