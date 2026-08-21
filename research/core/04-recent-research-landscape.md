@@ -89,6 +89,7 @@
 | [PKLNet](https://doi.org/10.1109/JSTSP.2023.3241540) / [lightweight ROI](https://doi.org/10.1371/journal.pone.0307822) / [Canny2Palm](https://arxiv.org/abs/2505.04922) | 2023--2025 | `E1`/`E2` | 视觉 edge-aware ROI、轻量 embedded-oriented ROI 与 Canny-conditioned synthetic palm generation 各自已是独立方向。 | `edge-aware`/`Canny edge` 不是 edge computing；真正的 edge 缺口仍是本机 capture-to-decision 的 p95、RAM、热和 energy，以及 cross-session/PAIS protocol。 |
 | [RDRLA](https://doi.org/10.1109/TIFS.2024.3516539) / [official code](https://github.com/godfatherwang2/RDRLA) | 2025 | `E1` | FVP-free adaptive ROI 与 open-set palmprint recognition；使用跨数据集 hand-shape transfer 和内接圆搜索。 | 开放环境 ROI 的方法基线已经很强；作者实验机是 GV100 GPU，future work 仍是 lightweight，故 Pi 端侧测量和采集闭环仍是可验证缺口。 |
 | [Embedded OMAP system](https://doi.org/10.3390/s120201482) | 2012 | `E1` | 实物 ARM/DSP、相机、LED、UI 与 local matcher 的完整嵌入式掌纹系统；受控手位下给出板上 feature/matching timing。 | 端侧掌纹部署有长线硬件先例，不能以 Pi 盒子为创新；反而凸显应测自由手 ROI、全链 p95、RAM/thermal/energy 和 PAIS。 |
+| [Palm-ID](https://arxiv.org/html/2401.08111) | 2024 | `E1` | Galaxy S22 Android app，端上 enrollment、1:1/1:N matching、quality reject、压缩 template 和 time-separated smartphone data。 | 这是 mobile on-device pipeline 的强基线；但模型 76.04M，公开 efficiency 数字来自 AMD EPYC，不等于手机/Pi 的端到端 edge benchmark，也不含 PAD。 |
 | [MobileFaceNet + Circle loss](https://doi.org/10.1016/j.displa.2022.102214) | Displays 2022 | `E2` 摘要 | 早期轻量移动端识别基线。 | 边缘轻量化已有长线工作，FYP 应报告真正 Pi 上的真实 latency/内存，而非仅参数量。 |
 
 ## 8. 对 FYP 的最终收敛
