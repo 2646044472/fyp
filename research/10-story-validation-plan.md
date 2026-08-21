@@ -10,7 +10,7 @@
 
 这样做的前提不是“澳门没有掌纹”，也不是用掌纹判断任何人的法律/劳动资格。外部的非代表性行业调查可支持“credential-person mismatch 值得进一步验证”：705 个设施受访者中 38.30% 报告过 card/credential sharing；但 tailgating/piggybacking（61.42%）和 propped doors（50.21%）更常见。因此系统只应放在原本就可以逐人通过的单人瓶颈，绝不能被说成一般门禁或尾随问题的解法。澳门是否存在同类问题仍是 `Q`。唯一可成立的必要性必须来自以下三个可验证命题之一：
 
-会议纪要提出的机房、临时工地和移动维修只是**候选工作流**，不是已证实需求。现行 [NIST SP 800-171r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/800-171r3/NIST.SP.800-171r3.html) 明确将 maintenance personnel authorization、设施 access list、temporary credential 和 physical access log 作为不同的控制问题，并指出未预先确定的维护人员可依风险评估获一次或极短期临时凭证。NIST 的 OT/制造资料则说明为什么维护访问需区分人、权限、设备和时间，也为什么可靠性/可用性不能被忽略；其 [SP 1800-2b 能源维护例子](https://www.nccoe.nist.gov/publication/1800-2/VolB/index.html) 更具体地采用工单触发、中央授权、现场 PACS 预同步和完工撤销。这些是美国参考控制/架构，不证明本地弱网，不证明澳门市场，也没有指定 palm biometrics。较合适的 test case 是“某项有时限的维护工单在一个本来可逐人核验的点位上被领取或进入”，而不是考勤、支付、城市级通行或劳动资格判断。
+会议纪要提出的机房、临时工地和移动维修只是**候选工作流**，不是已证实需求。现行 [NIST SP 800-171r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/800-171r3/NIST.SP.800-171r3.html) 明确将 maintenance personnel authorization、设施 access list、temporary credential 和 physical access log 作为不同的控制问题，并指出未预先确定的维护人员可依风险评估获一次或极短期临时凭证。NIST 的 OT/制造资料则说明为什么维护访问需区分人、权限、设备和时间，也为什么可靠性/可用性不能被忽略；其 [SP 1800-2b 能源维护例子](https://www.nccoe.nist.gov/publication/1800-2/VolB/index.html) 更具体地采用工单触发、中央授权、现场 PACS 预同步和完工撤销。这些是美国参考控制/架构，不证明本地弱网，不证明澳门市场，也没有指定 palm biometrics。较合适的 test case 是“某项有时限的维护工单在一个本来可逐人核验的点位上被领取或进入”，而不是考勤、支付、城市级通行或劳动资格判断。[Chin et al. 2017](https://doi.org/10.1016/j.proeng.2017.07.204) 的现场访谈/观察还表明，批量出入口的 technology choice 会被 FRR 与 per-person processing time 主导，biometrics 可能慢于 RFID/QR；故即使“临时工地”存在，也不将工人考勤或高峰入口作为候选场景。
 
 | 命题 | 可能的现有损失 | 这个系统真正改变什么 | 不能宣称什么 |
 | --- | --- | --- | --- |
@@ -71,6 +71,7 @@
 | 可用性 | bona fide 的 retry、BPCER、p95 interaction time 在现场预算内，且例外流程可完成 | 低攻击通过率只是靠常规用户不断重采或被锁在外面获得 |
 | 安全 | 在预冻结 protocol 的未见 session/PAIS 中，`M` 较 B2 静态多谱有净 IAPMR/APCER 改善，且不以 BPCER/p95/energy 换取 | 没有简单 PAIS 能通过 B0，或收益只出现在已见材料/随机切分，或 `M` 不优于 B2 |
 | edge | 本地断网行为、恢复和最小日志都能按角色要求实测 | 使用 cloud/后台才能正确决策，或 Pi 长期热/传感故障不可接受 |
+| 吞吐 | 点位是低频、单人、可容忍预先约定 retry/fallback 的核验；系统测得的 p95 与 retry 在现场预算内 | 点位实为高峰考勤/批量入口，或 RFID/QR 已以更低摩擦满足需求；排除 biometric，不以增设终端来合理化 |
 
 ## 5. 对论文叙事的影响
 

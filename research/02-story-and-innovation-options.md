@@ -29,6 +29,8 @@
 
 合适的第一场景是**机房/设施维修的授权进入或关键工具领用**，而不是支付和城市级监控。它自然需要 `1:1 verification`：使用者先出示工单/二维码/卡片得到匿名 claim，设备再核验“声称身份是否真的到场”。这比 `1:N` 搜索更利于延迟和 FYP 数据规模控制。现行 [NIST SP 800-171r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/800-171r3/NIST.SP.800-171r3.html) 把 maintenance personnel authorization、facility access list、temporary credential 和 physical-access log 分开讨论：未预先列为维护人员的 vendor/consultant 可依风险评估获得一次或极短期凭证。这说明“时限维护核验”是可观察的工作流模式，不说明澳门需要掌纹，也不规定用 biometrics。2024 年 privacy-preserving physical access-control 研究也区分了两类环境：在敏感工作区，身份披露可被合理需要；公共交通/活动等场景则应避免可关联性。因此本项目不进入支付/公共通行。外部行业调查虽不适用于澳门总体，但在 705 个设施受访者中记录到 38.30% 的 card/credential sharing；同时 tailgating 和 propped doors 更常见，说明掌纹只适合已有逐人流程的单人瓶颈，不能当作普通门禁或物理通行安全的普适方案。它也有比单纯门锁更清晰的待测价值：离线时仍能把“人、工单、时间、设备/工具”关联成最小审计事件；但这项价值仍须澳门现场访谈确认。
 
+这里还要明确排除高峰人员流和考勤。一个 construction field study 的访谈/现场观察显示，biometric 的姿态调整与 false rejection 会让每人处理时间高于 RFID/QR；其总流程模型将 FRR 与单次处理时间一起影响终端数量。[该研究](https://doi.org/10.1016/j.proeng.2017.07.204) 不适用于澳门或本设备，但足以否定“掌纹总是更方便”的叙事。故候选场景必须是低频、单人、可容忍明确 retry/fallback 的维护或工具节点；不把时间管理、工人考勤或批量入口作为故事。
+
 ## 2. 经济价值链：目前哪些是事实，哪些待验证
 
 | 链条 | 当前证据 | 如何量化 | 仍需验证 |

@@ -12,7 +12,11 @@
 
 与之互补的 [NIST SP 1800-2b utility scenario](https://www.nccoe.nist.gov/publication/1800-2/VolB/index.html) 以工单触发 centralized authorization，预同步到现场 PACS，完工后 de-provision；该 scenario 的通信失败是能源变电站背景下的行业输入。
 
+[Chin, Kim & Choi (2017)](https://doi.org/10.1016/j.proeng.2017.07.204) 则提供了一个反向的采用证据。它以 construction field 的访谈、现场观察和实际使用视频比较 RFID、QR、指纹、静脉、虹膜和人脸；其研究现场发现，姿态调整和 false rejection 使 biometrics 的处理时间高于 RFID/QR，论文的峰值通行模型把 FRR 与每人处理时间共同计入总排队/终端数量。这个结论**不**证明澳门、维护工作或掌纹的具体数字，但足以反对把 biometrics 写成普遍更快或更方便的门禁替代。
+
 这些资料足以支持一件有限的事：**临时、时限、可审计的维护访问是一个真实存在的 access-control workflow pattern。** 它们不证明目标工作流应该用掌纹，不证明澳门存在同样网络/流程问题，也不提供任何经济价值数值。
+
+同样重要的是，这个候选不能扩张为施工考勤、人员统计或高峰入口。若一个点位需要连续处理大量人流，或现有 QR/RFID 已满足吞吐与例外处理，生物核验引入的 pose/retry 成本就是反对部署的证据，而不是再加入更多终端的理由。
 
 ## 2. 因此什么可以成为 demo，什么不能
 
@@ -42,6 +46,7 @@ Pi performs local palm 1:1 only for the presented claim
 | 网络与离线规则 | 何种故障下可用预同步且未过期记录？何种情况必须等待后台/人工？ | 离线功能不成立，删除 offline value claim。 |
 | 真实替代方案 | 现有 card/PIN/guard/商用 palm terminal 为什么不够？ | 没有明确差异，做 B0 measurement demo，不写部署故事。 |
 | 接受度与公平 fallback | 是否允许 biometric？拒绝、手套/伤口、隐私顾虑怎样处理？ | 若无可接受替代路径，停止现场 biometric 主线。 |
+| 吞吐边界 | 该点位是否有高峰多人通行？每次需在多少秒内完成，重采一次的后果是什么？ | 若是考勤/人流入口或 QR/RFID 更快且足够，排除该场景，不以 biometric 替代。 |
 
 ## 4. 这轮反思
 
