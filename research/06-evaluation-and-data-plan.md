@@ -18,6 +18,8 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 [Palm-ID 的 MSU PalmDB](https://biometrics.cse.msu.edu/Publications/Databases/MSU_PalmDB/) 是现代 mobile RGB 的 `P?` 候选，而非直接依赖：官方页要求签署数据协议并经作者批准才给下载链接；所见页面也没有 Palm-ID 的公开模型或代码链接。获批后它可以帮助检查 RGB baseline 的跨时间 protocol，但不能把 paper 的手机/服务器延迟转成 Pi 数据，更不能替代 S 层的 RGB/NIR/ToF/PAIS。
 
+[WebPalm](https://zhongyy.github.io/WebPalm/) / [RegPalm code](https://github.com/zhongyy/RegPalm) **不进入 P0/P/S**。其官方页称 83,145 张互联网图片分别属于 83,145 个 identity，申请条款仅允许非商业研究且把来源权利责任留给使用者；它适合说明 `FAR=1e-9` 需要极大的 impostor bank。可是它没有同人跨 session genuine pairs，不能评估本项目 `1:1` 的 FNMR/TAR、采集质量或 PAIS，代码也未发布 weights 且训练依赖 CUDA。小型 FYP 必须报告实际 impostor pair 数、observed error count 和区间，不能把“未见误放行”改称 `FAR=1e-9`。
+
 ### 公开 PAD 资料的边界
 
 [XJTU-PalmReplay](https://doi.org/10.1049/ipr2.70029) 是当前读到的最贴近掌纹屏幕重放的 protocol 参照：400 个手掌、五个 display-capture domain、总计 96,000 张图，并有 identity-disjoint 和留一 domain 的测试方式。但截至本次检索，未找到官方数据下载、许可或代码入口。因此它不是 `P` 层可立即运行的数据集，只能提供两项设计约束：

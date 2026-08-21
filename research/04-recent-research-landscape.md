@@ -23,7 +23,7 @@
 | [Shao et al., PDFG for unseen-target CDPR](https://doi.org/10.1109/TIFS.2024.3371257) | TIFS 2024 | `E2` 摘要 | 在没有目标域样本时，以 Fourier 增广和特征损失学习适应未知数据集。 | 最终采集盒必须至少做跨 session；若有两种相机，应加跨设备测试。 |
 | [SYEnet](https://doi.org/10.1016/j.ins.2024.120518) | Information Sciences 2024 | `E2` 摘要 | 轻量网络和专用 ROI 网络，面向姿态、低照度、背景和角度变化的无约束移动采集。 | ROI 与采集质量不是前处理细节，而是核心误差来源。 |
 | [Shao et al., noisy-label selection/correction](https://doi.org/10.1109/TIP.2025.3588040) | TIP 2025 | `E1` 摘要 | 以自监督、Fourier 和 prototype 机制分阶段选择/修正噪声标签。 | 自采数据的身份标注、左右手、session metadata 要从一开始受控，否则模型结果难以解释。 |
-| [RegPalm](https://doi.org/10.1109/TIFS.2025.3593352) | TIFS 2025 | `E2` 摘要 | 建立 WebPalm，并在 open-set、极低 FAR 下通过方向统一与配准降低 pattern variance。 | 即使 FYP 做 1:1，也应在低 FAR 报告；不能只报 closed-set rank-1 或普通 accuracy。 |
+| [RegPalm](https://doi.org/10.1109/TIFS.2025.3593352) / [WebPalm](https://zhongyy.github.io/WebPalm/) / [code](https://github.com/zhongyy/RegPalm) | TIFS 2025 | `E2` 论文摘要 + `E1` data/code audit | WebPalm 页面称有 83,145 张、83,145 个 identity 的互联网 contactless palm 图片，申请后用于 non-commercial research；RegPalm code 能计算 `FPR=1e-4` 至 `1e-9`，但仓库没有权重、license 或 dependency lock，训练过程硬编码 CUDA。 | 它说明超低 FAR 需要巨大的 impostor comparison bank，而非小样本“零误放行”；但每 identity 一图，不能代替 cross-session `1:1` bona fide/genuine 测试，也不代表 Pi、NIR/ToF 或 PAIS。FYP 只能报告实际比较次数/区间，不伪称 `FAR=1e-9`。 |
 | [PalmBridge](https://arxiv.org/abs/2601.20351) | arXiv 2026 | `E2` 书目信息 | 2026 仍在研究 open-set palmprint verification 的特征对齐。 | 开放集/域适应仍是活跃缺口，但超出当前 demo 数据规模。 |
 | [X-Palm](https://github.com/X-Palm/X-Palm-2026) | arXiv/code 2026 | `E1` 数据卡、protocol、code | paired scanner/mobile 数据将远近、姿态、flash、湿手、文字/遮挡及 80+ 手机型号放入同一 cross-domain protocol；其基线在 scanner--smartphone 设定明显下降。 | 将本项目的 distance、surface condition 与 cross-session metadata 视为正式压力变量；可借其 B0 protocol，不可拿它证明我们的 NIR/ToF/PAD。 |
 | [MPW-180 / PalmWildNet](https://doi.org/10.3390/app152111368) | Applied Sciences 2025 | `E1` 论文数据/伦理/availability + IAPR/GitHub 核验 | 论文描述 180 人、180 台手机、720 个自由手视频和 flash/ambient 条件；但 IAPR 指向的 GitHub 暂无数据 DOI、代码或下载，且显示 under review。 | 视频自由手/照明 protocol 很适合自采参考；在实际 archive/metadata 可获取前，不把它列为可运行的公开 B0 benchmark，也不引用其 5 ms 或识别数字作 Pi 依据。 |
@@ -102,7 +102,7 @@
 ## 9. 仍未覆盖、下一轮应读的资料
 
 - HiChrom-MAE 全文与附录；
-- RegPalm/WebPalm 的数据许可、数据采集与低 FAR protocol；
+- 获取 RegPalm 正文，补齐其 `1:1`/`1:3` open-set split、weight release 和 WebPalm 的实际下载/metadata；当前已确认其数据/代码入口与限制；
 - DPFed-Palm 与 FedPalm 的 threat model，避免误用“federated = safe”；
 - Diff-Palm/GenPalm 公开代码与合成数据 licence；
 - 掌纹 PAD 的公开 benchmark 和实际攻击采集流程，确认是否可在学校伦理范围内复现。
