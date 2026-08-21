@@ -16,6 +16,8 @@
 
 P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标为 Apache-2.0、10,528 rows / 1.27 GB，但公开 card 只有一个 `train` split 和极少采集 metadata。它可以让第一周 demo 有可重复的下载与输入，却**不能**被随机重切分后冒充 session/cross-device/PAD benchmark；其论文的 identities、split 和采集条件要在决定引用任何识别数字前再精读。
 
+[Palm-ID 的 MSU PalmDB](https://biometrics.cse.msu.edu/Publications/Databases/MSU_PalmDB/) 是现代 mobile RGB 的 `P?` 候选，而非直接依赖：官方页要求签署数据协议并经作者批准才给下载链接；所见页面也没有 Palm-ID 的公开模型或代码链接。获批后它可以帮助检查 RGB baseline 的跨时间 protocol，但不能把 paper 的手机/服务器延迟转成 Pi 数据，更不能替代 S 层的 RGB/NIR/ToF/PAIS。
+
 ### 公开 PAD 资料的边界
 
 [XJTU-PalmReplay](https://doi.org/10.1049/ipr2.70029) 是当前读到的最贴近掌纹屏幕重放的 protocol 参照：400 个手掌、五个 display-capture domain、总计 96,000 张图，并有 identity-disjoint 和留一 domain 的测试方式。但截至本次检索，未找到官方数据下载、许可或代码入口。因此它不是 `P` 层可立即运行的数据集，只能提供两项设计约束：
