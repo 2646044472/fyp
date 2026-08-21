@@ -21,8 +21,8 @@
 | RGB/NIR/深度/掌静脉 fusion 是否本身新颖 | 足够 | 否。已有多模态传感器与 fusion 网络。 |
 | palmprint PAD 是否是空白 | 足够 | 否。已有 display/paper、跨域 anti-spoofing、对抗贴片与近期 PAD 工作。 |
 | 低成本多传感主动短序列是否在本设备有效 | 未解决，需实验 | 这是可测试候选，不可由已有论文替代。 |
-| 随机短序列是否比静态多谱新/有效 | 技术新颖性未成立，效果未解决 | 2010 已有低成本静态多谱和纸张 liveness 线索；M 仅是相对 B2 的条件性假设，必须在未见 PAIS/session 中实测。 |
-| 双光照同步采集或纸张/屏幕纹理 PAD 是否新 | 足够否定 | 否。2020 已有 NIR+UV simultaneous verification，也有 smartphone print/display liveness；关键是跨设备/材料留出和 M 相对 B2 的增益。 |
+| 随机短序列或跨帧差异是否比静态多谱新/有效 | 技术新颖性足够否定，效果未解决 | 2010 已有低成本静态多谱和纸张 liveness 线索；2020 Stanuch 已有掌部随机 NIR/UV 顺序与跨帧差异检查。M 只剩下 actual-state-verified response relation 相对 B2 的条件性假设，必须在未见 PAIS/session 中实测。 |
+| 双光照同步采集或纸张/屏幕纹理 PAD 是否新 | 足够否定 | 否。2020 已有 NIR+UV verification、随机顺序与差异检查，也有 smartphone print/display liveness；关键是跨设备/材料留出和 M 相对 B2 的增益。 |
 | ToF 距离对齐/引导采集是否本身新颖 | 足够否定 | 否。2022 已做 dual-camera + 单点 ToF 对齐，2025 已做 distance/rotation/video sensing；只剩下本硬件真实端到端 trade-off 能构成测量问题。 |
 | 澳门是否没有掌纹 | 足够否定 | 不能这样说；有局部、较新的掌纹/掌静脉支付部署。 |
 | 澳门受控现场是否有明确付费痛点 | 未解决，需访谈 | 目前只是合理场景假设。 |
@@ -44,7 +44,7 @@
 | Diff-Palm/GenPalm 能否解决本项目的小样本、隐私或传感问题 | 足够否定 | Diff-Palm 的 RGB generator 仍训练于 48,000 张互联网图、用 4 V100，公开 code 缺原训练资料和完整评测；GenPalm 是须签 agreement 申请的合成集。两者没有本设备 NIR/ToF、session、PAIS 或 Pi 证据，只能是日后独立的离线增广 arm。 |
 | X-Palm 能否作为可立即运行的 Pi/B2/M benchmark | 足够否定，但可申请为 P 层 B0 压力测试 | 数据、EULA、condition metadata、fixed split 与 code 边界完整，仍需批准下载；作者训练环境是 CUDA/RTX A6000，且数据没有 PAIS/ToF/synchronized challenge。它回答 RGB cross-domain，不回答本设备的传感、主动 gate 或 edge trade-off。 |
 | FedPalm 是否让项目可称 privacy-preserving / federated edge | 足够否定 | 其 scope 是 GPU multi-client training；公开 repo 无 data/weights/license，且未见 secure aggregation、DP、update leakage/poisoning 或 transport/client-security implementation。FL 减少 raw training-data flow，不保证 template、model update 或现场认证安全。 |
-| M 的随机光序列是否自动代表 challenge-response | 足够否定 | 不自动代表。没有预定义并验证的 challenge-response relation，它只是动态/多帧采集；即使实现 relation，也尚未对实时 display、真人贴片或 relay 证明安全。 |
+| M 的随机光序列、两帧差异是否自动代表 challenge-response | 足够否定 | 不代表，且两者都有 2020 掌部近邻先例。没有预定义、actual-state-verified 的 challenge-response relation，它只是动态/多帧采集；即使实现 relation，也尚未对实时 display、真人贴片或 relay 证明安全。 |
 | 文献中的 "dynamic" / "sequence" 能否直接证明设备时序或 active capture 新颖 | 足够否定 | Beyond Static Features 的 dynamic 是特征空间配对生成；SF2Net 的 sequence 是单帧内部空间 token。两者均不是相机连续帧或对命令作出可验证响应的证据，不能支持 M 的 physical freshness 表述。 |
 | 配对主动 illumination 是否可直接写成掌纹创新或 Pi PAD 证据 | 足够否定 | 2026 IWBF 已有 flash/non-flash contactless fingerprint 近邻；它不是掌纹，数据私有，且没有 Pi/随机 challenge/response relation/IAPMR 证据。它使 capture/quality 对照更具体，却不能替代本项目实测。 |
 | 限时维护访问是否足以证明澳门市场、掌纹必要性或离线放行 | 足够否定 | NIST r3/1800-2b 只支持临时维护授权与 local authorization 的参考模式；它们不是澳门数据，也不指定 biometric。目标现场仍需确认授权/撤销责任、弱网规则、例外成本和可接受 fallback。 |

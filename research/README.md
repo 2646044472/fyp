@@ -26,11 +26,12 @@
 | [17-active-illumination-neighbor-log.md](17-active-illumination-neighbor-log.md) | 精读配对 flash/non-flash 指纹近邻工作，界定主动光照在掌纹项目中的可借鉴与不可外推之处 | 每次设计 illumination protocol 或 PAD 对照时更新 |
 | [18-maintenance-story-evidence-log.md](18-maintenance-story-evidence-log.md) | 审计临时维护访问、工单和身份核验的证据，避免将参考架构写成澳门市场事实 | 每次更新应用故事、访谈或经济假设时更新 |
 | [19-sensing-reproducibility-log.md](19-sensing-reproducibility-log.md) | 审计 2025 smart palm sensing 的代码、数据与硬件边界，防止将 ROI 工件误当作 Pi 采集系统 | 每次选择 ToF/ROI/video baseline 时更新 |
+| [20-random-order-boundary-log.md](20-random-order-boundary-log.md) | 精读 2020 NIR/UV 随机灯序与跨帧差异检查，界定它为何不能成为本项目的创新点 | 每次定义 M 的 challenge 或 response relation 时更新 |
 
 ## 当前工作结论
 
 1. 最小 demo 先完成无接触 RGB 掌纹 `1:1 verification`、ROI、阈值和端侧测量；它是仪表盘，不是论文贡献。
-2. 条件性候选主线是：`ToF 固定几何 + claim 后随机 RGB/NIR illumination challenge + verifier 检验的 response relation + 风险门控`。它必须相对静态多谱 B2 在未见 PAIS 与 edge 成本上证明额外价值；没有 response relation 时它只是动态采集，候选安全主张停止。
+2. 条件性候选主线是：`ToF 固定几何 + claim 后实际状态可观测的 RGB/NIR command + 预冻结 response verifier + 风险门控`。随机顺序和帧差已有直接掌部先例；只有 relation 相对静态多谱 B2 在未见 PAIS 与 edge 成本上证明额外价值时，才保留该候选。没有 relation 时它只是动态采集，候选安全主张停止。
 3. 澳门只作为访谈与数据治理约束地点，不作为“没有掌纹”的市场空白；已有局部掌纹/掌静脉支付先例。应验证受控工作现场是否存在尚未被合理满足的离线、隐私和抗伪造需求。
 4. 当前不把“识别非法劳工”作为应用宣称。系统只能确认某人是否匹配授权名册；法律身份和劳动资格仍须由有权系统和人工流程判定。
 5. `edge` 只表示本地 capture/inference 与更小的数据流，不等于完整隐私、模板保护或侧信道安全。

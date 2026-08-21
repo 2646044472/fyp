@@ -58,7 +58,7 @@ CAAP 预印本明确评估了印刷后采集的可复用掌纹对抗贴片，并
 
 ### 步骤 E：在三个方向中收敛
 
-可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索，因此主动多传感不能再直接列为主创新；只有 claim 后随机 illumination challenge **并由 verifier 检验预定义 response relation**，且在未见 PAIS/session 中相对静态多谱 B2 有额外净收益时，才保留为条件性候选。否则项目收敛为 Pi 上的采集质量、攻击边界与端侧 trade-off 测量。
+可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索；2020 年又已有掌部随机 NIR/UV 顺序与跨帧差异检查，因此主动多传感、随机灯序或帧差不能直接列为主创新。只有 claim 后的实际 illumination state 可被记录，且 verifier 检验**预定义 response relation**、在未见 PAIS/session 中相对静态多谱 B2 有额外净收益时，才保留为条件性候选。否则项目收敛为 Pi 上的采集质量、攻击边界与端侧 trade-off 测量。
 
 ## 4. 可证伪的主假设
 

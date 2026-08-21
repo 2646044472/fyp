@@ -25,6 +25,7 @@
 | [Aberni et al., Multispectral Palmprint Review, 2017](https://doi.org/10.1109/TSP.2017.8076097) | 摘要/全文片段 | `E2` | 多光谱掌纹中，NIR 可显现静脉等与可见光互补的信息。 | 不能声称 RGB+NIR fusion 新颖；新意必须在主动采集、安全与边缘测量。 |
 | [Amrouni & Benzaoui, 2024](https://doi.org/10.3390/app14010153) | 数据集段落 | `E2` | PolyU-MS 为 250 位受试者、红绿蓝/NIR、多 session 的受控多光谱数据。 | 可作为光谱 baseline 候选，但其固定采集装置不等于真实 Pi 采集盒。 |
 | [Zhang et al., online multispectral verification, IEEE TIM 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf) | 硬件、采集、anti-spoof、速度和结论全文 | `E1` | 低成本 visible/NIR 四谱系统用 470/525/660/880 nm LED、单色 CCD 和 controller 在 <1 s 采集；用纸张打印攻击，提出 Blue--NIR reflectance difference 为 liveness 线索。 | 固定多谱、低成本采集、纸张 anti-spoof 都不是新；M 必须相对静态 B2、未见 PAIS 与 Pi 成本证明随机 challenge 的额外价值。 |
+| [Stanuch et al., contact-free NIR/UV verification, Sensors 2020](https://doi.org/10.3390/s20195695) | 硬件、random-order capture、跨帧比较、数据与评测全文 | `E1` | 无接触掌静脉/掌纹系统以设备已知但用户未知的随机 NIR/UV 顺序取两帧；作者比较两帧差异，把不充分差异当作 presentation attack 线索，并允许重复该过程。数据为 515 人、10,160 图；识别评估按图像随机划分而非 PAIS/session blind holdout。 | 随机灯序、两模态、跨帧差异检查和“不额外交互”都已有直接掌部先例。M 的待测差异必须是实际观察到且预先冻结的 response verifier，在本硬件、未见 PAIS/session 与 Pi 成本下的净收益；不能把随机次序本身称为新颖或 liveness。 |
 | [GRGIntech PRM-001](https://www.grgintech.com/product/prm-001-palm-print-and-vein-recognition-module/) | 产品规格 | `E3` | 商用模组已公开组合 RGB+IR、距离、QR、补光与 palm print/vein。 | 不能将相同硬件组件/掌纹锁 demo 写成首创；产品性能声明需独立验证。 |
 
 ## C. 物理攻击与 PAD

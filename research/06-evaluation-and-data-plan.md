@@ -27,7 +27,7 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 [XJTU-PalmReplay](https://doi.org/10.1049/ipr2.70029) 是当前读到的最贴近掌纹屏幕重放的 protocol 参照：400 个手掌、五个 display-capture domain、总计 96,000 张图，并有 identity-disjoint 和留一 domain 的测试方式。但截至本次检索，未找到官方数据下载、许可或代码入口。因此它不是 `P` 层可立即运行的数据集，只能提供两项设计约束：
 
 1. 屏幕攻击的 train/test 不能随机混合同一 display-capture 链；至少留一输出端或相机组合。
-2. 该集只覆盖 RGB 屏幕重放。纸张、覆贴材料、NIR/ToF 和 session-random challenge 必须由经同意、文档化的 `S` 层自采补齐，不能被它替代。
+2. 该集只覆盖 RGB 屏幕重放。纸张、覆贴材料、NIR/ToF 和 claim 后的可观测 illumination-response protocol 必须由经同意、文档化的 `S` 层自采补齐，不能被它替代。
 
 若以后获得作者明确许可，仍须保存获准日期、原始文件 hash、每个 domain 的设备表和 exact split；否则不把其数字写入结果比较。这个限制也避免项目在“数据很大”与“可以复现”之间作错误等同。
 
@@ -58,10 +58,10 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 | B0 | 单帧 RGB -> ROI -> embedding -> fixed match threshold | 最小识别 baseline |
 | B1 | B0 + ToF/几何/ROI quality gate | 测量距离控制是否改善正常采集 |
 | B2 | 对齐 RGB + NIR 的固定序列，采用固定的轻量 score/quality fusion；每帧附实际 illumination state 与 frame timestamp | 静态多光谱强对照；复核第二光谱在本硬件的增益，不将其称为新颖 |
-| M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination challenge；verifier 检查实际捕获的 response relation，再加 quality/risk gate | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益，而非“多光谱 PAD”本身 |
+| M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination command；verifier 检查实际捕获、预先定义的 response relation，再加 quality/risk gate | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益；随机灯序和两帧差异已有 2020 掌部先例 |
 | MA | 先取得 ToF + 一帧 RGB；只在预冻结的 quality/score uncertainty rule 触发时才进入 M | 次级 edge 对照：测量按需 NIR 是否保留风险收益而减少等待/能耗 |
 
-先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成，并把 `challenge id/seed`、请求的模态/光照顺序、每帧 `frame id`/monotonic timestamp、曝光/增益与**实际**illumination state 写入不可改写的实验日志。先以固定 target 做灯序、掉帧、重排、延迟和 RGB/NIR ROI drift 测试；不能验证实际状态时，随机 seed 只是一条软件日志，不构成 challenge evidence。更重要的是，verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）；若只把随机序列的帧送进普通 fusion/matcher，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
+先在 development split 设定 match threshold、B2 的固定序列与 M 的 command space/随机生成规则，之后冻结。M 的 command 必须在 claim 后生成，并把 `challenge id/seed`、请求的模态/光照顺序、每帧 `frame id`/monotonic timestamp、曝光/增益与**实际**illumination state 写入不可改写的实验日志。先以固定 target 做灯序、掉帧、重排、延迟和 RGB/NIR ROI drift 测试；不能验证实际状态时，随机 seed 只是一条软件日志，不构成 challenge evidence。2020 年掌部 NIR/UV 系统已采用随机顺序与两帧差异检查，故 M 的差异不能停在这两点；verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）。若只把随机序列的帧送进普通 fusion/matcher，或只做无响应定义的差异检查，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 command 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
 
 本项目的主结果是 blind holdout：test PAIS/material、output/capture chain 和 test session 的图、标签、quality 分布与 metadata 均不可参与 threshold、response relation、escalation rule 或模型调参。DAPANet 一类使用未标注 target domain 的 adaptation 是另一种有效但不同的任务；若以后采用，必须单列 target data exposure、冻结时点和 per-PAIS 结果，不能同 blind holdout 合并成“unknown attack generalization”。
 
@@ -147,7 +147,7 @@ ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST S
 
 ## 6. 结果的继续/退出条件
 
-进入 M 的条件：B0/B2 先完成且 P/S 层均能稳定取 ROI；NIR/ToF 输出在 session 内有可解释、可重复的 metadata；并可证明 M 的随机 challenge 与 B2 固定序列是不同的 capture protocol，而非同一组帧的重新排序。
+进入 M 的条件：B0/B2 先完成且 P/S 层均能稳定取 ROI；NIR/ToF 输出在 session 内有可解释、可重复的 metadata；并可证明 M 的 actual-state-verified response verifier 与 B2 固定序列不同，而非同一组帧的重新排序或仅增加随机灯序/帧差。
 
 继续 M 的条件：M 在至少一个未见 PAIS 或 session 中，相对 **B2 静态多光谱** 进一步降低 IAPMR 或 APCER，同时 BPCER、ROI failure、p95 interaction time 与输入端能量不超过在实验前确定的预算。只胜过 B0/B1 而不胜过 B2，不足以支撑主动 challenge 的论文主张。
 
