@@ -61,7 +61,7 @@ HFSRA 中平面 replay 的 depth 反例使 ToF 的默认角色更保守：先固
 | 未解决项 | 为什么还不能下结论 | 下一步证据 |
 | --- | --- | --- |
 | XJTU-PalmReplay 能否作为 benchmark | 未获得可下载 files、license、identity/split/PAIS metadata 或 code/weights。 | 仅在取得作者/机构明确入口、许可和完整 metadata 后再做 artifact audit。 |
-| HiChrom-MAE 的真实 protocol | 已取得 ACM metadata/abstract：其称 seven-domain cross-medium PAD、high-frequency residual reconstruction 与 chromaticity alignment；仍未得到正文。 | 取得正式全文后核对 domain/PAIS、split、APCER/BPCER、资源和 artifact；不从 abstract 推断其对 Pi/M 的效果。 |
+| HiChrom-MAE 的真实 protocol | 已取得 ACM metadata/abstract：其称 seven-domain cross-medium PAD、high-frequency residual reconstruction 与 chromaticity alignment；2026-08-21 复核 DBLP 所述 CVF open-access PDF 路径为 404，其他作者/题名检索也未得到正文、数据或代码。 | 取得正式全文后核对 domain/PAIS、split、APCER/BPCER、资源和 artifact；不从 abstract 推断其对 Pi/M 的效果。当前入口不可用不作为“从未公开”的结论。 |
 | 主动 M 是否胜过 B2 | 文献不能代替本设备的实际光学、攻击和 edge 测量。 | 完成 Gate 0，再以冻结 B0/B2/M 和 PAIS/session holdout 测 IAPMR/APCER/BPCER/ROI/p95/energy。 |
 | 目标工作流是否值得采用 biometrics | PAD 文献不提供澳门运营成本或接受度。 | 按 [10-story-validation-plan.md](10-story-validation-plan.md) 完成访谈与流程计时；需求闸门失败则不讲经济故事。 |
 
