@@ -57,11 +57,11 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 | --- | --- | --- |
 | B0 | 单帧 RGB -> ROI -> embedding -> fixed match threshold | 最小识别 baseline |
 | B1 | B0 + ToF/几何/ROI quality gate | 测量距离控制是否改善正常采集 |
-| B2 | 对齐 RGB + NIR 的固定序列，采用固定的轻量 score/quality fusion | 静态多光谱强对照；复核第二光谱在本硬件的增益，不将其称为新颖 |
-| M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination challenge；加 quality/risk gate 后再核验 | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益，而非“多光谱 PAD”本身 |
+| B2 | 对齐 RGB + NIR 的固定序列，采用固定的轻量 score/quality fusion；每帧附实际 illumination state 与 frame timestamp | 静态多光谱强对照；复核第二光谱在本硬件的增益，不将其称为新颖 |
+| M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination challenge；verifier 检查实际捕获的 response relation，再加 quality/risk gate | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益，而非“多光谱 PAD”本身 |
 | MA | 先取得 ToF + 一帧 RGB；只在预冻结的 quality/score uncertainty rule 触发时才进入 M | 次级 edge 对照：测量按需 NIR 是否保留风险收益而减少等待/能耗 |
 
-先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成，并把 `challenge id/seed`、模态/光照帧顺序和每帧时间戳写入不可改写的实验日志。更重要的是，verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）；若只把随机序列的帧送进普通 fusion/matcher，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
+先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成，并把 `challenge id/seed`、请求的模态/光照顺序、每帧 `frame id`/monotonic timestamp、曝光/增益与**实际**illumination state 写入不可改写的实验日志。先以固定 target 做灯序、掉帧、重排、延迟和 RGB/NIR ROI drift 测试；不能验证实际状态时，随机 seed 只是一条软件日志，不构成 challenge evidence。更重要的是，verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）；若只把随机序列的帧送进普通 fusion/matcher，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
 
 `MA` 不是新的 fusion 声称。它的测量需加：escalation rate（按 bonafide、impostor、每 PAIS、session 分层）、未升级但最终放行的攻击比例、每 interaction 的 NIR 时间/能耗和 fallback。若 `MA` 以错过攻击为代价换来较低平均成本，则不得称为 edge 优化。
 
@@ -69,7 +69,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 
 ### 必须记录的每次呈现字段
 
-`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、曝光/增益、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
+`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、每帧请求和实际 illumination state、frame id/monotonic timestamp、曝光/增益、掉帧/timeout、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
 
 这些 condition tag 不是要把手套/污渍/湿手预设为“系统支持的功能”。它们是公平性与可用性的失败分层：若样本被拒绝、无法取 ROI 或需要 fallback，仍应被计入结果。对于必须戴手套的角色，先由访谈确认是否可在进入前脱下并完成单人核验；若不可以，场景本身不适合裸掌掌纹，不能靠排除该角色来维持指标。
 

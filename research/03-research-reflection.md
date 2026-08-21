@@ -69,9 +69,20 @@
 
 ### Gate 0：设备是否值得做多传感研究
 
-在写 PAD 模型前，必须记录：相机型号、NIR LED 波长、是否存在 IR-cut filter、曝光/增益能否锁定、RGB 与 NIR 是否硬件同步、ToF 量程/方差、遮光条件和每种采集的时间戳。没有这份表，不能解释性能变化来自传感器还是模型。
+在写 PAD 模型前，必须记录：相机型号与 raw pixel format/bit-depth、NIR LED 波长及电流/PWM、是否存在 IR-cut filter、曝光/增益能否锁定、ToF 量程/方差、遮光条件和每种采集的时间戳。`sweet` 的经验尤其重要：受控多光源、多相机仍需把相机触发、LED 实际状态、标定和掉帧当作测量对象；“程序请求某个灯序”不等于该帧真的在该光照下被拍到。
 
-**停止条件：** 无法独立取到稳定 NIR 原始帧或同步采集。此时只做 RGB/ToF baseline，或者更换传感器。
+Gate 0 的最小验收不是买更多传感器，而是留下以下可复查记录：
+
+| 验收项 | 最小记录/测试 | 失败后的含义 |
+| --- | --- | --- |
+| 光谱输入 | RGB 是否为可见光、NIR 是否有原始稳定帧；波长、IR-cut、曝光/增益、LED current/PWM 及暗帧/饱和帧样本 | 不能解释 RGB/NIR 差异，停止 B2/M，只保留 RGB/ToF。 |
+| 实际灯序与帧序 | 对固定 target 连续执行已知 RGB/NIR 序列，记录 command、相机 frame id/monotonic timestamp、曝光和实际 illumination state；检查掉帧、重排、超时和 LED 切换延迟 | 不把“随机序列”称作 challenge，也不合成跨帧 response relation。 |
+| 几何与对齐 | 在工作距离/角度范围内记录 ToF、ROI 成功率；若融合 RGB/NIR，使用明确的 calibration target 或可重复对应点记录 ROI drift | 不将模态差异归因于皮肤/攻击材料；B2 退回各模态独立质量对照。 |
+| 重复性 | 同一静态 target、同一呈现者与重新摆放后的 session 都重复采集，保留环境光、warm-up、sensor timeout 和 blank-frame 记录 | 不能把单次演示的好图或模型分数当作稳定信号。 |
+
+这是从 `sweet` 的工程细节得到的研究纪律，不是照抄其硬件：该平台使用全局快门 NIR 相机、可编程多光源和专用 trigger controller，仍报告了同步脉冲缺失，并以采集开头/结尾的视觉标记校正序列。我们的 Pi 原型若没有同等级触发能力，应诚实将 sequential capture 的不确定性计入实验，而不是暗示硬件同步。
+
+**停止条件：** 无法独立取到稳定 NIR 原始帧，或无法证明每帧对应的实际 illumination/几何状态。此时只做 RGB/ToF baseline，或者更换传感器；不要把软件请求序列包装成主动安全机制。
 
 ### Gate 1：是否有值得防护的物理攻击
 
