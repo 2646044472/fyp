@@ -37,6 +37,8 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 应用为带 claim 的 `1:1 verification`：二维码/工单/卡片先指向一个已注册模板；系统只判断 probe 是否匹配该模板，不进行 1:N 人群搜索。
 
+**授权边界先于 biometric。** 工单/授权服务是唯一的 allow source of truth；Pi 不能由历史成功记录自行推导新权限。若测试离线连续性，Pi 只可使用事前同步的 authorization record，并记录其版本、人员 pseudonym、受限资源、开始/结束时间和 expiry。record 未过期才可本地作 `claim -> palm` 比对；过期、版本冲突、需要即时撤销或无法读取 record 时，决策为 retry/人工 fallback，而不是离线放行。这个模式借鉴 [NIST SP 1800-2b 的能源维护 use case](https://www.nccoe.nist.gov/publication/1800-2/VolB/index.html)，不是对目标场所网络或业务规则的假定。
+
 ### B0 不是复制旧 Pi 环境
 
 PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Raspberry Pi 4B 的 32 位 Buster、Python 3.7 和预发布 ARMv7 PyTorch wheels。它不能作为今天的默认安装方案，也不应因“能跑”而成为长期部署依赖。先执行 Gate 0 的设备/OS/runtime 清点，再选择当前硬件能维护的 inference runtime；B0 的不变量只有：固定版本的 RGB ROI、embedding、注册模板、`1:1` score 和 development-set 冻结阈值。
