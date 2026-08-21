@@ -15,6 +15,7 @@
 | “随机 RGB/NIR 2--3 帧等于 liveness” | [challenge-response formalism](https://doi.org/10.1186/s13635-022-00131-y) 只说明 challenge 可带来 freshness；攻击者可用能跟随挑战的高级 artefact。更强的 palm 研究会测脉搏/SpO2。 | 只写 `active quality/risk gate` 或 `freshness check`；不写活体证明。 |
 | “ToF 一定能拆穿假掌纹” | XJTU-PalmReplay 的 2025 RGB anti-spoofing 研究认为平面 palm 场景中 depth 可能不是主要线索；真实手掌上贴片又可能具有正常深度。 | ToF 首先是距离/几何/ROI 控制；只有未见 PAIS 的结果证明后，才称为 attack signal。 |
 | “RGB+NIR 多传感已足够新” | `sweet`、HDC-Net、双波长脉搏/SpO2 palm studies 都有多模态/多波长方案。 | 多传感只能作为控制变量，不能作为贡献名称。 |
+| “RGB/IR + 距离 + QR 的掌纹终端还没有产品” | GRGIntech 的 PRM-001 规格已公开列出 RGB+IR camera、5--12 cm distance sensor、QR、补光、palm print/vein 和 ARM/NPU。 | 不把硬件堆叠或掌纹锁 demo 写成创新；供应商数字未经独立验证，但足以否定“首个一体终端”。 |
 | “Pi 本地推理就等于隐私保护” | 2024--2025 palmprint template protection 研究已处理可撤销、不可关联、不可逆与密文匹配；这些性质不会由本地推理自动产生。 | 只承诺 raw frame local-only、最小日志、删除期和加密存储；不声称 cryptographic template protection。 |
 
 ## 3. 未找到的同型工作，及其正确含义

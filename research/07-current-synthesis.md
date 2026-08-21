@@ -21,6 +21,7 @@
 
 - 只做单帧 RGB recognition，然后以高 accuracy 宣称创新；
 - 把 RGB+NIR fusion 或 Raspberry Pi 部署本身作为新颖点；
+- 把 RGB/IR、距离提示、QR 与掌纹/掌静脉的一体终端当成新产品类别；已有商用模组公开这类组合，且供应商数字必须独立验证；
 - 用随机切分和 pooled attack accuracy 宣称 liveness/PAD；
 - 以“澳门没有掌纹”“非法劳工”或没有来源的 ROI 金额作为动机；
 - 把本地推理写成模板不可逆、不可关联或全面安全。

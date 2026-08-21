@@ -25,6 +25,7 @@
 | [Shao et al., noisy-label selection/correction](https://doi.org/10.1109/TIP.2025.3588040) | TIP 2025 | `E1` 摘要 | 以自监督、Fourier 和 prototype 机制分阶段选择/修正噪声标签。 | 自采数据的身份标注、左右手、session metadata 要从一开始受控，否则模型结果难以解释。 |
 | [RegPalm](https://doi.org/10.1109/TIFS.2025.3593352) | TIFS 2025 | `E2` 摘要 | 建立 WebPalm，并在 open-set、极低 FAR 下通过方向统一与配准降低 pattern variance。 | 即使 FYP 做 1:1，也应在低 FAR 报告；不能只报 closed-set rank-1 或普通 accuracy。 |
 | [PalmBridge](https://arxiv.org/abs/2601.20351) | arXiv 2026 | `E2` 书目信息 | 2026 仍在研究 open-set palmprint verification 的特征对齐。 | 开放集/域适应仍是活跃缺口，但超出当前 demo 数据规模。 |
+| [X-Palm](https://github.com/X-Palm/X-Palm-2026) | arXiv/code 2026 | `E1` 数据卡、protocol、code | paired scanner/mobile 数据将远近、姿态、flash、湿手、文字/遮挡及 80+ 手机型号放入同一 cross-domain protocol；其基线在 scanner--smartphone 设定明显下降。 | 将本项目的 distance、surface condition 与 cross-session metadata 视为正式压力变量；可借其 B0 protocol，不可拿它证明我们的 NIR/ToF/PAD。 |
 
 **反思：** 把距离传感器只解释成“活体检测”太窄。更基础也更可信的贡献，是让设备主动控制几何，从而降低 ROI 和跨 session 变化；这与近期对未约束采集和 pattern variance 的关注一致。
 

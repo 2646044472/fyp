@@ -10,6 +10,7 @@
 | [Liu et al., BEST, Pattern Recognition, 2023](https://doi.org/10.1016/j.patcog.2023.109422) | 摘要/方法定位 | `E2` | 做了 within-, cross-database 和 cross-sensor 的无接触掌纹评测。 | 证明跨传感器必须单独测；本项目不应只随机分割同一采集 session。 |
 | [Amrouni & Benzaoui, 2024 survey](https://doi.org/10.3390/app14010153) | 摘要、数据集段落 | `E2` | 综述接触/无接触数据集、特征类别和评估问题；列出 PolyU-MS 等多光谱数据。 | 为公开 baseline 数据集筛选提供地图，最终仍需核对许可与 protocol。 |
 | [Gao et al., DL Palmprint Survey, 2025](https://arxiv.org/abs/2501.01166) | 摘要 | `E2`，预印本综述 | 覆盖 ROI、表征以及安全/隐私挑战。 | 作为最新综述入口，需从其参考文献继续追到原始论文。 |
+| [Seyedmohammadi et al., X-Palm, 2026](https://github.com/X-Palm/X-Palm-2026) | 数据卡、split、code、results README | `E1`，预印本 | paired controlled-multispectral 与 unconstrained smartphone 的 6,006 图/103 人数据；code 已写出 closed/open cross-domain split。 | 是 B0 的高价值 domain-shift protocol 候选；数据签 EULA，且不包含 PAIS、ToF 或本相机。 |
 
 ## B. 多光谱、NIR 与测量
 
@@ -18,6 +19,7 @@
 | [Aberni et al., Multispectral Palmprint Review, 2017](https://doi.org/10.1109/TSP.2017.8076097) | 摘要/全文片段 | `E2` | 多光谱掌纹中，NIR 可显现静脉等与可见光互补的信息。 | 不能声称 RGB+NIR fusion 新颖；新意必须在主动采集、安全与边缘测量。 |
 | [Amrouni & Benzaoui, 2024](https://doi.org/10.3390/app14010153) | 数据集段落 | `E2` | PolyU-MS 为 250 位受试者、红绿蓝/NIR、多 session 的受控多光谱数据。 | 可作为光谱 baseline 候选，但其固定采集装置不等于真实 Pi 采集盒。 |
 | [Zhang et al., online multispectral verification, 2009](https://research.polyu.edu.hk/en/publications/an-online-system-of-multispectral-palmprint-verification/) | 摘要 | `E2` | 四种光照的采集设备已能在少于 1 秒采集。 | 硬件快速多光谱并非新；低成本 Pi、物理攻击和 edge trade-off 才是潜在差异。 |
+| [GRGIntech PRM-001](https://www.grgintech.com/product/prm-001-palm-print-and-vein-recognition-module/) | 产品规格 | `E3` | 商用模组已公开组合 RGB+IR、距离、QR、补光与 palm print/vein。 | 不能将相同硬件组件/掌纹锁 demo 写成首创；产品性能声明需独立验证。 |
 
 ## C. 物理攻击与 PAD
 
