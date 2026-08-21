@@ -55,7 +55,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 | M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination challenge；加 quality/risk gate 后再核验 | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益，而非“多光谱 PAD”本身 |
 | MA | 先取得 ToF + 一帧 RGB；只在预冻结的 quality/score uncertainty rule 触发时才进入 M | 次级 edge 对照：测量按需 NIR 是否保留风险收益而减少等待/能耗 |
 
-先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成并写入不可改写的实验日志；攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
+先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成，并把 `challenge id/seed`、模态/光照帧顺序和每帧时间戳写入不可改写的实验日志。更重要的是，verifier 须预先定义并检验“所选 illumination 与本次跨帧观测的 response relation”（例如受控曝光下的反射/quality consistency）；若只把随机序列的帧送进普通 fusion/matcher，M 只是动态采集，**不能称 freshness 或 replay-resistant**。攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
 
 `MA` 不是新的 fusion 声称。它的测量需加：escalation rate（按 bonafide、impostor、每 PAIS、session 分层）、未升级但最终放行的攻击比例、每 interaction 的 NIR 时间/能耗和 fallback。若 `MA` 以错过攻击为代价换来较低平均成本，则不得称为 edge 优化。
 
@@ -89,6 +89,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 | 屏幕 replay | 是 | 显示屏纹理/闪烁/深度与随机采集顺序 | 屏幕型号、刷新率、亮度、显示比例、距离、角度 |
 | 非对抗性纹理贴片 | 需老师/伦理批准 | 真实手掌几何下的局部材料变化 | 材料、面积、位置、是否覆盖真实 ROI |
 | 白盒优化贴片（CAAP 风格） | 后置且需批准 | 高资源攻击的敏感性，不做生产风险估计 | 代码版本、攻击知识、训练材料、打印/捕获参数 |
+| 实时驱动 screen/relay replay | 不在最小 demo；仅在批准后作为高能力 attack | 攻击者能否针对本次 illumination sequence 产生响应 | attacker latency、challenge knowledge、display/sensor path；没有实测不得说 M 抗此类攻击 |
 | 数字注入、模板库篡改、强迫呈现 | 不在此实验 | 光学 gate 无法保护的攻击面 | 单列为系统安全范围外 |
 
 纸张/屏幕二次拍摄不是凭空设想：[2022 palmprint presentation attack study](https://www.jmis.org/archive/view_article_pubreader?pid=jmis-9-2-103) 的方法确实重新拍摄 monitor/paper，并发现显示屏 moire、打印清晰度与纸张弯曲会改变结果。因此本项目不能只保存最终 cropped ROI，必须保存这些 capture metadata。
