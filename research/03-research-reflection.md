@@ -36,6 +36,12 @@
 
 还要避免把它与生理活体混同：已有 palm biometrics 工作通过同步双波长和较长的动态信号提取脉搏/SpO2 来提升 anti-spoofing。若现有设备没有足够帧率、光学稳定性和经验证的 signal pipeline，`2--3` 帧短序列只能研究 freshness/quality，不可声称检测生命体征。
 
+### 不把“自适应开启 NIR”误写成新的 fusion 理论
+
+质量感知、成本敏感的多模态 fusion 早已有研究，因此“先看质量、再开更多传感器”不是独立创新。它可以是一个有价值的**edge 对照策略**：先取得 ToF 和一帧 RGB；仅当 development split 冻结的质量/匹配不确定区间触发时，才要求 RGB/NIR 主动短序列。该策略必须同时和“始终 RGB”及“始终短序列”比较，并报告每次核验的 NIR 开启率、输入端增量能量、p95 interaction time、IAPMR、BPCER 和 retry。
+
+若策略只是把容易通过的样本直接 accept，导致攻击也不进入 NIR，则它会降低成本却提高最终风险。因此它不能只按 accuracy 或平均 latency 选择，且 escalation rule、阈值和训练数据必须在 PAIS/session test 前冻结。若没有总风险与成本的 Pareto 改善，保留固定短序列，或彻底舍弃该变体。
+
 ## 3. 威胁模型必须分层
 
 | 攻击族 | 低成本实验样本 | ToF / RGB-NIR 短序列可能检查什么 | 不能保证什么 | 最终指标 |

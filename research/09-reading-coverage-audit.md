@@ -7,8 +7,8 @@
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 43 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
-| 证据账本条目 | 23 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 14 | Palm-ID、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA 资料页、FedPalm、GenPalm、NIST、ISO、澳门官方资料与 MLPerf 规则等。部分为预印本。 |
+| 证据账本条目 | 24 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
+| 已查看关键章节的原始/官方资料 | 约 15 | Palm-ID、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA 资料页、FedPalm、GenPalm、NIST、ISO、澳门官方资料、MLPerf 规则与 adaptive-biometric review 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。

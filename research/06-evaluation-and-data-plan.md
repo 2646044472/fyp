@@ -21,8 +21,11 @@
 | B1 | B0 + ToF/几何/ROI quality gate | 测量距离控制是否改善正常采集 |
 | B2 | 对齐 RGB + NIR 单次采集，采用固定的轻量 score/quality fusion | 测量第二光谱在不加时序挑战下的增益 |
 | M | 按设备随机指令顺序获得 2--3 帧 RGB/NIR，加 quality/risk gate 后再核验 | 主候选：测量主动短序列的净收益 |
+| MA | 先取得 ToF + 一帧 RGB；只在预冻结的 quality/score uncertainty rule 触发时才进入 M | 次级 edge 对照：测量按需 NIR 是否保留风险收益而减少等待/能耗 |
 
 先在 development split 设定 match threshold 与 gate 规则，之后冻结。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
+
+`MA` 不是新的 fusion 声称。它的测量需加：escalation rate（按 bonafide、impostor、每 PAIS、session 分层）、未升级但最终放行的攻击比例、每 interaction 的 NIR 时间/能耗和 fallback。若 `MA` 以错过攻击为代价换来较低平均成本，则不得称为 edge 优化。
 
 ## 3. 自采数据卡草案
 
