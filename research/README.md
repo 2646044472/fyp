@@ -22,6 +22,7 @@
 | [13-b0-reproducibility-log.md](13-b0-reproducibility-log.md) | Tongji、PalmMatchDB、PPNet 工件审计与最小 B0 的三阶段落地路径 | 每次选择数据或运行时后更新 |
 | [14-formal-survey-reading-log.md](14-formal-survey-reading-log.md) | 2026 正式掌纹深度学习综述精读，以及它如何收紧 edge/PAD 研究主张 | 每次完成综述或研究边界复核后更新 |
 | [15-vis-nir-boundary-log.md](15-vis-nir-boundary-log.md) | VIS-NIR 异构掌纹匹配的精读边界，防止将跨光谱识别误写为 PAD | 每次研究多光谱/主动采集时更新 |
+| [16-dynamic-terms-boundary-log.md](16-dynamic-terms-boundary-log.md) | 审计文献中 "dynamic" 与 "sequence" 的真实含义，防止将生成配对或空间 token 误写成物理时序/活体 | 每次研究主动采集或序列模型时更新 |
 
 ## 当前工作结论
 
