@@ -14,9 +14,13 @@
 
 [Chin, Kim & Choi (2017)](https://doi.org/10.1016/j.proeng.2017.07.204) 则提供了一个反向的采用证据。它以 construction field 的访谈、现场观察和实际使用视频比较 RFID、QR、指纹、静脉、虹膜和人脸；其研究现场发现，姿态调整和 false rejection 使 biometrics 的处理时间高于 RFID/QR，论文的峰值通行模型把 FRR 与每人处理时间共同计入总排队/终端数量。这个结论**不**证明澳门、维护工作或掌纹的具体数字，但足以反对把 biometrics 写成普遍更快或更方便的门禁替代。
 
+[Yamasaki et al. 的 door-key management model](https://www.researchgate.net/publication/31910237_Modeling_Costs_of_Access_Control_with_Various_Key_Management_Systems) 还有一个不同层面的提醒：它将 door 视为 resource、key 视为 credential，把 smart card、biometric、metal key 与 password 放入同一 policy-change/issue/collect/revoke 的抽象，再计算改变授权关系的管理操作成本。它不是实地调查，也没有设备采购、使用者等待、攻击或澳门数据；但它说明比较方案时不能只看一次识别，而要把授权、撤销、补发、登记和维护流程逐项记入 `C_deploy/C_operate/C_existing/C_switch`。
+
 这些资料足以支持一件有限的事：**临时、时限、可审计的维护访问是一个真实存在的 access-control workflow pattern。** 它们不证明目标工作流应该用掌纹，不证明澳门存在同样网络/流程问题，也不提供任何经济价值数值。
 
 同样重要的是，这个候选不能扩张为施工考勤、人员统计或高峰入口。若一个点位需要连续处理大量人流，或现有 QR/RFID 已满足吞吐与例外处理，生物核验引入的 pose/retry 成本就是反对部署的证据，而不是再加入更多终端的理由。
+
+即使场景是关键工具或实体钥匙领取，也不能假定掌纹有优势。先问现有台账、钥匙柜、卡/QR 或人工流程在“授予、撤销、借出、归还、遗失、审计”各步骤的实际成本；没有明确差异时，保持为 B0 测量 demo，而不是把 resource custody 当经济故事。
 
 ## 2. 因此什么可以成为 demo，什么不能
 
