@@ -18,6 +18,7 @@
 | [`21-pvasd-reproducibility-log.md`](21-pvasd-reproducibility-log.md) | Palm-vein PAD data, code, and deployment limits |
 | [`22-palmrss-reproducibility-log.md`](22-palmrss-reproducibility-log.md) | Cross-domain palmprint baseline artifact audit |
 | [`23-attack-layer-and-loo-protocol-log.md`](23-attack-layer-and-loo-protocol-log.md) | Attack-layer separation and leave-one-group-out PAD protocol |
+| [`24-authentication-boundary-and-release-metrics-log.md`](24-authentication-boundary-and-release-metrics-log.md) | Claim versus factor boundary, PAD scope, and final-release metrics |
 
 ## When to write a log
 

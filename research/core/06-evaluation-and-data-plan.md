@@ -43,7 +43,7 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 ## 2. 系统定义
 
-应用为带 claim 的 `1:1 verification`：二维码/工单/卡片先指向一个已注册模板；系统只判断 probe 是否匹配该模板，不进行 1:N 人群搜索。
+应用为带 claim 的 `1:1 verification`：二维码/工单/卡片先指向一个已注册模板；系统只判断 probe 是否匹配该模板，不进行 1:N 人群搜索。除非未来另行实现受保护、不可转交的持有凭证及其验证路径，QR/工单在本项目中只是已授权的 identity claim lookup，**不能**被写成 possession factor、two-factor 或 MFA；见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。
 
 **授权边界先于 biometric。** 工单/授权服务是唯一的 allow source of truth；Pi 不能由历史成功记录自行推导新权限。若测试离线连续性，Pi 只可使用事前同步的 authorization record，并记录其版本、人员 pseudonym、受限资源、开始/结束时间和 expiry。record 未过期才可本地作 `claim -> palm` 比对；过期、版本冲突、需要即时撤销或无法读取 record 时，决策为 retry/人工 fallback，而不是离线放行。这个模式借鉴 [NIST SP 1800-2b 的能源维护 use case](https://www.nccoe.nist.gov/publication/1800-2/VolB/index.html)，不是对目标场所网络或业务规则的假定。
 
@@ -118,7 +118,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 | 采集 | ROI failure、重采次数、quality reject | 按距离、模态、session 和 bonafide/attack 分层 | 以高拒绝率换取“安全”不可接受 |
 | edge | interaction p50/p95、每阶段耗时、peak RSS、模型/模板大小、功耗或能耗代理 | 在同一 Pi、相同热状态和固定运行模式测量 | 手机/GPU延迟不能代替 Pi 测量 |
 
-ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST SOFA 明确区分 APCER 与 IAPMR。故结论要写成“在本设备、这些 PAIS、该阈值和该测试集下”，不写成“证明活体”或“系统全面安全”。
+ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST 的当前 biometric guidance 同样区分 FMR/FNMR、attack acceptance、sensor/endpoint integrity 和 local comparison。故结论要写成“在本设备、这些 PAIS、该阈值和该测试集下”，不写成“证明活体”“抗注入/relay”或“系统全面安全”。`IAPMR` 仍只是本流程的 capture-side gate/PAD 加 claimed-template match；Pi OS compromise、camera injection/sensor emulation、relay、template store 和 tailgating 均是残余风险，不在本 FYP 测试范围。详见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。
 
 质量 gate 需要透明处理。HGAIQA 在其协议中显示手部几何、平坦度、亮度和清晰度会影响 contactless palmprint performance；但本项目不能通过事后丢弃失败样本来提高数字。任何 quality reject 都是用户可见结果，须纳入重采次数、BPCER 和 interaction time。
 

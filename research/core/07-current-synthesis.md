@@ -40,7 +40,7 @@
 
 ## 4. 最可信的应用故事
 
-把系统定位为一个**受控、低频、有明确授权和人工 fallback 的内部核验器**：某项有时限的维护工单需要进入受限机房或领取关键工具时，工单/QR 先提出一个身份 claim，掌纹只做本地 `1:1` 确认。最小审计事件仅关联匿名人员 ID、工单/工具 ID、时间、结果和设备状态。更具体地，NIST SP 1800-2 的变电站维护 use case 采用“工单触发中央授权，再预置到现场 PACS”的模式；它在通信失败时仍执行**未过期的已同步授权**，完工后撤销。我们的 Pi 只能模拟这一执行边界，绝不能把断网当成自行推断权限或无限期放行的理由。该 NIST 例子不是澳门调查、也不指定 biometrics，因此具体场所仍须访谈验证。ASIS 的非代表性行业调查可作为外部动机：705 个设施受访者中 38.30% 报告 credential sharing；但 tailgating 和 propped doors 更常见，因而本项目只能针对原本能逐人通过的单人核验点，不能声称解决一般物理门禁或尾随。
+把系统定位为一个**受控、低频、有明确授权和人工 fallback 的内部核验器**：某项有时限的维护工单需要进入受限机房或领取关键工具时，工单/QR 先提出一个身份 claim，掌纹只做本地 `1:1` 确认。这里的工单/QR 是 upstream authorization lookup，并不自动构成 possession factor，故不称 MFA/two-factor。最小审计事件仅关联匿名人员 ID、工单/工具 ID、时间、结果和设备状态。更具体地，NIST SP 1800-2 的变电站维护 use case 采用“工单触发中央授权，再预置到现场 PACS”的模式；它在通信失败时仍执行**未过期的已同步授权**，完工后撤销。我们的 Pi 只能模拟这一执行边界，绝不能把断网当成自行推断权限或无限期放行的理由。该 NIST 例子不是澳门调查、也不指定 biometrics，因此具体场所仍须访谈验证。capture-side PAD 的 `IAPMR` 也不覆盖 camera injection、sensor emulation、relay、Pi/模板库被篡改或 tailgating，不能把原型称为完整安全门禁。ASIS 的非代表性行业调查可作为外部动机：705 个设施受访者中 38.30% 报告 credential sharing；但 tailgating 和 propped doors 更常见，因而本项目只能针对原本能逐人通过的单人核验点，不能声称解决一般物理门禁或尾随。完整边界见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。
 
 它的价值机制不是“掌纹比一切都先进”，而是待验证的三项运营假设：
 

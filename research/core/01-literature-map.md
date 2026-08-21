@@ -43,6 +43,7 @@
 | [Garcia et al., challenge-response formalism, 2022](https://doi.org/10.1186/s13635-022-00131-y) | PAD、challenge-response 形式化段落 | `E1` | 把“是不是某人”与“是否为真实呈现”统一为阈值决策；challenge-response 给生物呈现加入 freshness。 | 主动短序列可以有明确安全动机，但并不自动证明某种掌纹 challenge 有效。 |
 | [ISO/IEC 30107-3:2023](https://www.iso.org/standard/79520.html) | 范围与评测/报告要求 | `E1`，标准元数据 | 定义 PAD 性能评估和已知攻击分类，范围限于采集装置处的 presentation attack。 | 项目需把 sensor-level PAD 与模板库、通信、门锁控制等其他攻击面分开。 |
 | [NIST SOFA biometrics draft](https://pages.nist.gov/SOFA/SOFA.html) | PAD 与 system-level 指标段落 | `E1`，草案 | 区分 PAD 的 APCER 与最终“攻击呈现被匹配为目标用户”的 IAPMR。 | 最终 demo 不能只报 PAD accuracy，要报告攻击是否真的获得通过。 |
+| [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html) / [ISO/IEC 30107-3:2023](https://www.iso.org/standard/79520.html) / [NIST SP 800-116r1](https://csrc.nist.gov/pubs/sp/800/116/r1/final) | current biometric/PAD/endpoint sections；official standard/facility-access scopes | `E1`，官方资料 | NIST 将 biometric comparison、PAD、sensor/endpoint integrity、fallback 与 physical authenticator 分开；ISO PAD 只管 capture-side presentation attack；facility access 是风险化 PACS/credential system。 | QR/work order 在本项目中只是 authorized claim lookup，不能自动叫 possession factor/MFA；IAPMR 仍不覆盖 injection、relay、tampering、tailgating 或授权策略。详见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。 |
 
 ## D. 隐私、模板与端侧部署
 
