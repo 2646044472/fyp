@@ -13,6 +13,7 @@
 | [Seyedmohammadi et al., X-Palm, 2026](https://github.com/X-Palm/X-Palm-2026) | 数据卡、split、code、results README | `E1`，预印本 | paired controlled-multispectral 与 unconstrained smartphone 的 6,006 图/103 人数据；code 已写出 closed/open cross-domain split。 | 是 B0 的高价值 domain-shift protocol 候选；数据签 EULA，且不包含 PAIS、ToF 或本相机。 |
 | [Alausa et al., PalmMatchDB, ICPECA 2023](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) | dataset card/API | `E1`，数据卡 | Apache-2.0、10,528 rows 的 on-device contactless corpus；公开 card 只见一个 `train` split。 | 可立即用于 B0 工程 smoke test；没有公开 session/identity/camera/PAIS metadata 时，不可用作正式性能或泛化协议。 |
 | [Jia et al., EEPNet, PRL 2022](https://doi.org/10.1016/j.patrec.2022.05.015) | 出版 metadata/abstract；作者/题名/GitHub 工件检索 | `E2` | MobileNetV3-based lightweight palmprint route；摘要称在七个库比较 precision、speed、parameter count 与 FLOPs。未找到作者公开 code、weight、export、licence 或 Pi benchmark。 | “lightweight”不等于当前可部署。只作 architecture reading reference；B0 不依赖它，直到公开工件、数据条款和目标 Pi runtime 可被逐项核对。 |
+| [Fei et al., FFLNet VIS-NIR, TIFS 2024](https://doi.org/10.1109/TIFS.2024.3441945) | 正式 metadata/abstract；artifact search | `E2` | 以 Fourier feature learning 缩小 VIS/NIR heterogeneous palmprint matching 的 modality gap；摘要称在三个 heterogeneous database 评估。未找到可核验 code、weight、data/license、export 或 Pi artifact。 | 跨光谱 recognition 是已有路线，和 PAD/freshness 是不同任务。B2/M 必须把 spectrum metadata、cross-spectral matching 与 PAIS/IAPMR 分开报告。 |
 
 ## B. 多光谱、NIR 与测量
 
