@@ -16,6 +16,7 @@
 | [07-current-synthesis.md](07-current-synthesis.md) | 近期文献、场景、反思与当前决策树的汇总 | 与老师讨论前更新 |
 | [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md) | 主候选方向的反例检索、竞争路线与不可宣称事项 | 每次定位方法时更新 |
 | [09-reading-coverage-audit.md](09-reading-coverage-audit.md) | 本轮读到的范围、精读深度和后续阅读优先级 | 每轮研究结束时更新 |
+| [10-story-validation-plan.md](10-story-validation-plan.md) | 将必要性、经济价值和采用条件写成可否定的访谈/流程验证计划 | 场地访谈前与完成后更新 |
 
 ## 当前工作结论
 
