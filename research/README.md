@@ -23,6 +23,7 @@
 | [14-formal-survey-reading-log.md](14-formal-survey-reading-log.md) | 2026 正式掌纹深度学习综述精读，以及它如何收紧 edge/PAD 研究主张 | 每次完成综述或研究边界复核后更新 |
 | [15-vis-nir-boundary-log.md](15-vis-nir-boundary-log.md) | VIS-NIR 异构掌纹匹配的精读边界，防止将跨光谱识别误写为 PAD | 每次研究多光谱/主动采集时更新 |
 | [16-dynamic-terms-boundary-log.md](16-dynamic-terms-boundary-log.md) | 审计文献中 "dynamic" 与 "sequence" 的真实含义，防止将生成配对或空间 token 误写成物理时序/活体 | 每次研究主动采集或序列模型时更新 |
+| [17-active-illumination-neighbor-log.md](17-active-illumination-neighbor-log.md) | 精读配对 flash/non-flash 指纹近邻工作，界定主动光照在掌纹项目中的可借鉴与不可外推之处 | 每次设计 illumination protocol 或 PAD 对照时更新 |
 
 ## 当前工作结论
 

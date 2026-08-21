@@ -11,7 +11,7 @@
 3. **合成与隐私。** GenPalm、Diff-Palm、FedPalm、去标识化等工作表示数据规模、跨客户端训练和资料保护都在快速发展。FedPalm 的公开训练代码本身未给 secure aggregation、DP 或 update-leakage 测试，说明“联邦”也不能被缩写为完整隐私保护；2025 的 EMPalm 又提示图像采集链路可存在 EM 侧信道。因此本项目只能说 edge 减少网络传输和集中原始帧留存，不能把 local inference 错误升级为完整隐私/安全保护。
 4. **PAD 从分类走向未知域与物理呈现。** ICIP 2023、XJTU-PalmReplay 上的 2025 工作、CAAP 与 2026 HiChrom-MAE 表明 palmprint PAD 已是活跃方向。未知 display/camera/material，才是有效协议的一部分。
 5. **传感器与采集控制不是免费信息，也不是空白。** 2010 年已有低成本可见光/NIR 四谱掌纹系统，2020 已有无接触 NIR+UV 同次 palm verification，2022 已有 dual-camera + 单点 ToF 的距离对齐，2025 又有距离/旋转/video registration 的完整 sensing 研究；`sweet` 和 HDC-Net 也表明 RGB/NIR/深度/掌静脉融合早有研究。`sweet` 的更具体教训是：即使有专用 trigger 和可编程灯光，仍要检查 frame 同步、实际灯序、光场和 registration，不能将软件请求序列当成传感事实。故固定多谱、ToF 对齐或智能采集本身都不是贡献；同步、标定、光学质量、对齐、数据需求和资源成本仍是必须实测的系统组成部分。
-6. **更强的活体路径已存在。** 同步双波长的 palm biometrics 已尝试用脉搏/SpO2 等动态信号提高 anti-spoofing。它提示我们把 `2--3` 帧主动短序列如实定位为低开销 risk gate，而非生理活体证明。
+6. **主动光照也不是空白。** 2026 IWBF 的指纹近邻工作已以连续 flash/non-flash pair 做 preliminary contactless PAD；它使用私有、较小的 print/display 数据，也明确受 pose/distance/temporal misalignment 与高保真 PAIS 限制。同步双波长的 palm biometrics 还已尝试用脉搏/SpO2 等动态信号提高 anti-spoofing。它们共同要求我们把 `2--3` 帧主动短序列如实定位为低开销、待测的 risk gate，而非生理活体证明或全新采集范式。
 
 完整的反例与不可宣称事项见 [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md)。
 
@@ -34,7 +34,7 @@
 
 这个命题的贡献可以是正结果，也可以是可靠的负结果。后者同样能回答：在这个硬件等级和攻击范围里，第二模态或主动序列是否值得其复杂度。
 
-**当前最大风险：** 2010 年已存在低成本静态可见光/NIR 多谱、<1 秒采集和纸张 anti-spoof 先例。因而在没有 `M > B2` 的未见 PAIS 结果前，项目不应使用“主动多传感掌纹防伪”作为创新摘要；老师讨论时应先展示这项反例及新的退出条件。
+**当前最大风险：** 2010 年已存在低成本静态可见光/NIR 多谱、<1 秒采集和纸张 anti-spoof 先例；2026 又已有 flash/non-flash 的无接触**指纹**主动照明近邻。因而在没有 `M > B2` 的未见 PAIS 结果前，项目不应使用“主动多传感掌纹防伪”作为创新摘要；老师讨论时应先展示这些反例及新的退出条件。
 
 **第二个风险：** ToF 距离对齐（2022）和距离/旋转/video registration（2025）同样已有直接先例。因此即使 `M` 失败，项目也不能退回去把“ToF 引导采集”重命名为创新；可成立的成果将是已冻结硬件上的端到端 trade-off 测量，或一个被数据推翻的工程假设。
 
