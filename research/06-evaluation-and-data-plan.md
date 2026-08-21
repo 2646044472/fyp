@@ -16,6 +16,15 @@
 
 P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标为 Apache-2.0、10,528 rows / 1.27 GB，但公开 card 只有一个 `train` split 和极少采集 metadata。它可以让第一周 demo 有可重复的下载与输入，却**不能**被随机重切分后冒充 session/cross-device/PAD benchmark；其论文的 identities、split 和采集条件要在决定引用任何识别数字前再精读。
 
+### 公开 PAD 资料的边界
+
+[XJTU-PalmReplay](https://doi.org/10.1049/ipr2.70029) 是当前读到的最贴近掌纹屏幕重放的 protocol 参照：400 个手掌、五个 display-capture domain、总计 96,000 张图，并有 identity-disjoint 和留一 domain 的测试方式。但截至本次检索，未找到官方数据下载、许可或代码入口。因此它不是 `P` 层可立即运行的数据集，只能提供两项设计约束：
+
+1. 屏幕攻击的 train/test 不能随机混合同一 display-capture 链；至少留一输出端或相机组合。
+2. 该集只覆盖 RGB 屏幕重放。纸张、覆贴材料、NIR/ToF 和 session-random challenge 必须由经同意、文档化的 `S` 层自采补齐，不能被它替代。
+
+若以后获得作者明确许可，仍须保存获准日期、原始文件 hash、每个 domain 的设备表和 exact split；否则不把其数字写入结果比较。这个限制也避免项目在“数据很大”与“可以复现”之间作错误等同。
+
 ## 2. 系统定义
 
 应用为带 claim 的 `1:1 verification`：二维码/工单/卡片先指向一个已注册模板；系统只判断 probe 是否匹配该模板，不进行 1:N 人群搜索。
