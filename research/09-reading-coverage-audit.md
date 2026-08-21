@@ -6,7 +6,7 @@
 
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
-| 文献图谱和近期图谱的带链接条目 | 51 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
+| 文献图谱和近期图谱的带链接条目 | 52 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
 | 证据账本条目 | 46 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
 | 已查看关键章节的原始/官方资料 | 约 36 | Palm-ID 论文/MSU PalmDB、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、PPNet code、MPW-180 paper/repository、CAAP repository、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA 的数据与跨域 protocol、X-Palm、FedPalm、GenPalm、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
