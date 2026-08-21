@@ -56,10 +56,10 @@
 | 工作 | 年份/来源 | 阅读 | 做的是什么 | 对 FYP 的含义 |
 | --- | --- | --- | --- | --- |
 | [Federated metric learning for palmprint](https://ieeexplore.ieee.org/document/10295483/) | 2023 | `E2` 书目信息 | 用联邦度量学习处理掌纹识别中的集中资料风险。 | “edge + 掌纹”已有隐私路线；若不做联邦，必须清楚限定为 local inference/data minimization，而不是泛称 privacy-preserving。 |
-| [FedPalm](https://arxiv.org/abs/2503.04837) | arXiv 2025 | `E1` 摘要 | 给 closed- 和 open-set palm verification 建 FL benchmark，以个性化/共享 texture experts 处理客户端异质性。 | 可撤销模板 + 跨设备 + 联邦一起做会远超 FYP；本项目只记录模板生命周期和本地存储边界。 |
+| [FedPalm](https://arxiv.org/abs/2503.04837) / [code](https://github.com/Zi-YuanYang/FedPalm) | TIFS 2026 | `E1` 论文/README + code audit | 为 closed/open-set palm verification 模拟多 client training，并以 local/global texture experts 处理 non-IID；repo 有训练与 EER scripts、但无 license、data、weights、secure aggregation 或 DP，默认八 client 且以 `.cuda()` 训练。 | 联邦优化的是**训练时**不集中原始图，不是现场认证/模板保护/攻击检测；可撤销模板、跨设备、联邦一起做会远超 FYP。项目只记录模板生命周期和本地存储边界。 |
 | [DPFed-Palm](https://doi.org/10.1109/TIP.2025.3590524) | TIP 2025 | `E2` 书目信息 | 动态个性化联邦学习处理 cross-spectral palmprint 的 non-IID 与资料隐私。 | RGB/NIR 多光谱还伴随 non-IID 训练问题；不要先承诺一套模型自然适配所有设备。 |
 
-**反思：** 端侧推理不是完整隐私方案。它减少原始帧传输，却不自动给模板带来可撤销、不可关联或抗模型反演性质。论文中必须诚实地把“local-only raw capture”写成系统设计，而不是密码学证明。
+**反思：** 端侧推理不是完整隐私方案。它减少原始帧传输，却不自动给模板带来可撤销、不可关联或抗模型反演性质。联邦训练也只改变 training data flow；若没有清楚的 client authentication、secure aggregation、model-update leakage/poisoning、DP 和 server trust model，它也不能叫完整 privacy protection。论文中必须诚实地把“local-only raw capture”写成系统设计，而不是密码学证明。
 
 ## 6. 主题五：攻击、PAD 与系统安全
 
@@ -103,6 +103,6 @@
 
 - HiChrom-MAE 全文与附录；
 - 获取 RegPalm 正文，补齐其 `1:1`/`1:3` open-set split、weight release 和 WebPalm 的实际下载/metadata；当前已确认其数据/代码入口与限制；
-- DPFed-Palm 与 FedPalm 的 threat model，避免误用“federated = safe”；
+- DPFed-Palm 正文、代码与 explicit privacy threat model；FedPalm 已完成工件审计，不能从“FL”推断 secure aggregation/DP/template safety；
 - 只有老师决定把 synthetic augmentation 纳入 scope 时，才申请 GenPalm 并审计其 agreement、生成器训练源与 exact split；当前 Diff-Palm/GenPalm 都不进入 B0/P0/S；
 - 掌纹 PAD 的公开 benchmark 和实际攻击采集流程，确认是否可在学校伦理范围内复现。
