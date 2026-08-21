@@ -27,6 +27,7 @@
 | [18-maintenance-story-evidence-log.md](18-maintenance-story-evidence-log.md) | 审计临时维护访问、工单和身份核验的证据，避免将参考架构写成澳门市场事实 | 每次更新应用故事、访谈或经济假设时更新 |
 | [19-sensing-reproducibility-log.md](19-sensing-reproducibility-log.md) | 审计 2025 smart palm sensing 的代码、数据与硬件边界，防止将 ROI 工件误当作 Pi 采集系统 | 每次选择 ToF/ROI/video baseline 时更新 |
 | [20-random-order-boundary-log.md](20-random-order-boundary-log.md) | 精读 2020 NIR/UV 随机灯序与跨帧差异检查，界定它为何不能成为本项目的创新点 | 每次定义 M 的 challenge 或 response relation 时更新 |
+| [21-pvasd-reproducibility-log.md](21-pvasd-reproducibility-log.md) | 审计 2026 palm-vein PAD 数据、代码和部署边界，避免将其误当掌纹 Pi benchmark | 每次考虑 NIR/静脉 PAD 数据或 baseline 时更新 |
 
 ## 当前工作结论
 
