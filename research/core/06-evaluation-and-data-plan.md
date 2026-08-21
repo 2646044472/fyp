@@ -71,7 +71,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 
 ### 必须记录的每次呈现字段
 
-`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、每帧请求和实际 illumination state、frame id/monotonic timestamp、曝光/增益、掉帧/timeout、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
+`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、每帧请求和实际 illumination state、frame id/monotonic timestamp、曝光/增益、掉帧/timeout、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、**PAI specimen id、material family、攻击材料、制作/输出设备与重拍链**、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
 
 这些 condition tag 不是要把手套/污渍/湿手预设为“系统支持的功能”。它们是公平性与可用性的失败分层：若样本被拒绝、无法取 ROI 或需要 fallback，仍应被计入结果。对于必须戴手套的角色，先由访谈确认是否可在进入前脱下并完成单人核验；若不可以，场景本身不适合裸掌掌纹，不能靠排除该角色来维持指标。
 
@@ -81,7 +81,7 @@ PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Ras
 
 1. **身份层：** 同一人的 registration 与 probe 可以构成 genuine pair；不同人形成 zero-effort impostor pair。
 2. **时间层：** 至少两次不同日期/重新摆放设备的 session；development 和 test 不共享同一 session 条件。
-3. **攻击层：** 至少一种 PAIS/材料完全不进入 development；测试时按 PAIS 分开报告，而不是把帧随机混合。
+3. **攻击层：** 至少一种预定义的 PAIS/material family 完全不进入 development；若现实样本不足以形成 family，至少保留完整 PAI specimen，并只称 specimen/output/session holdout。测试时按 specimen、material family、输出/重拍链与 PAIS 分开报告，而不是把帧随机混合。
 4. **人员层：** 负责制作某一攻击样本或调整装置的人，其攻击捕获条件也尽量与 development 分开。
 5. **相机层（可选但优先）：** 若可获得第二种 RGB 相机或更换镜头，在未参与开发的相机上再测 B0/B1。若没有，不声称 cross-device generalization。
 

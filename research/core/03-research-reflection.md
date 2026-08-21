@@ -26,7 +26,7 @@
 
 不成立。NIST 的维护场景只说明时限授权、预同步和事后撤销是一种真实的 access-control workflow pattern，不指定 palm，也不提供澳门现场的频率、采购价格或人工成本。Chin et al. 的实地研究反而说明：当存在高峰人流时，biometric 的姿态调整和重采成本可能使它输给 RFID/QR。Yamasaki et al. 的形式化模型则提醒，比较不同凭证时成本不只是一次开门/匹配，而包括授权、撤销、发放、收回等权限变更操作。
 
-**因此：** 机房维护或关键工具领取只能作为可被推翻的访谈假设。若现场没有足够的临时授权/交接、现有 QR/card/人工已能低成本处理、或无法提供公平 fallback，结论应是“不部署 biometric”。在获得流程数据前，不写 ROI 金额，也不把“离线”或“少传原始帧”当作客户已确认愿付费的价值。具体的访谈字段和停止条件见 `10-story-validation-plan.md` 与 `18-maintenance-story-evidence-log.md`。
+**因此：** 机房维护或关键工具领取只能作为可被推翻的访谈假设。若现场没有足够的临时授权/交接、现有 QR/card/人工已能低成本处理、或无法提供公平 fallback，结论应是“不部署 biometric”。在获得流程数据前，不写 ROI 金额，也不把“离线”或“少传原始帧”当作客户已确认愿付费的价值。具体的访谈字段和停止条件见 [`10-story-validation-plan.md`](10-story-validation-plan.md) 与 [`18-maintenance-story-evidence-log.md`](../log/18-maintenance-story-evidence-log.md)。
 
 ## 2. 当前可 defend 的最小研究主张
 
