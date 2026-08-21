@@ -31,6 +31,8 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 若以后获得作者明确许可，仍须保存获准日期、原始文件 hash、每个 domain 的设备表和 exact split；否则不把其数字写入结果比较。这个限制也避免项目在“数据很大”与“可以复现”之间作错误等同。
 
+[Yao et al. 的 ICIP 2023 palmprint anti-spoofing work](https://doi.org/10.1109/ICIP49359.2023.10223182) 同样**不进入 P0/P/S**。官方 poster 摘要只确认他们构建大规模攻击数据并做 unseen-domain generalization；经作者、题名与 dataset 的公开检索，未找到可核验的 data license、download、code、weights 或 split。因此不从摘要猜测 PAIS/样本量/指标，也不把它列为可运行的 PAD benchmark；它只加强一个 protocol 要求：攻击 train/test 要按实际 device/material/domain 留出。
+
 ### 新近 mobile 数据的可得性检查：MPW-180
 
 [MPW-180](https://doi.org/10.3390/app152111368) 的论文很有价值：180 人、180 台手机、720 段视频，按左右手与 flash/ambient 分成四种条件，且刻意记录自由手距离、姿态、焦点和背景变化。它适合作为我们的 `S` 层采集卡参考，也本应是 B0 跨照明/ROI 的 `P` 候选。
