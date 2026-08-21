@@ -85,6 +85,7 @@
 | --- | --- | --- | --- | --- |
 | [Palm-ID](https://arxiv.org/abs/2401.08111) / [MSU PalmDB](https://biometrics.cse.msu.edu/Publications/Databases/MSU_PalmDB/) | TIFS 2024 | `E1` 方法/效率 + artifact audit | 手机端完整无接触掌纹 pipeline，含 ROI、质量、压缩 embedding 和端侧应用；相关数据须签协议后向作者申请。 | 最重要 conceptual baseline，但作者公开页面未见对应源码/模型下载；Pi 不能直接照搬其手机或服务器数字，必须设备实测。 |
 | [sweet sensor platform](https://arxiv.org/abs/2404.09376) / [CandyFV protocol](https://publications.idiap.ch/attachments/papers/2024/Bhattacharjee_ICPR_2024.pdf) | 2024--2025 | `E1` 传感平台与 PAD protocol | RGB、850/950 nm NIR、stereo 和 photometric stereo 的模块化无接触手部平台；其 trigger、LED 控制与标定流程表明多模态 capture 本身要处理同步、掉帧、光场和对齐。CandyFV 的实验是**finger-vein**，以四帧不同入射角重建 surface normal，并对 14 种 PAI 测 PAD。 | 采集盒的首要任务是可控光学与重复采集；日志必须证明每帧的实际光照状态、frame order 和几何/ROI 对齐。它是 protocol 参照，不是 Pi 或 palmprint PAD 性能基线。 |
+| [Pi palm-vein prototypes (2017/2019)](https://ijaas.iaescore.com/index.php/IJAAS/article/download/9470/7878) / [NoIR example](https://ijsrd.com/articles/IJSRDV7I40667.pdf) | 2017/2019 | `E1` 全文 | 已将 Raspberry Pi、NIR/NoIR、IR LED、ROI 和 local palm-vein matcher 做成低成本、受控盒式 prototype。 | edge hardware box 已有长线先例。它们缺 modern/reproducible ARM artifact、palmprint `1:1` protocol、PAIS/PAD 和 end-to-end resource profile，不能成为 B0 performance comparison。 |
 | [MobileFaceNet + Circle loss](https://doi.org/10.1016/j.displa.2022.102214) | Displays 2022 | `E2` 摘要 | 早期轻量移动端识别基线。 | 边缘轻量化已有长线工作，FYP 应报告真正 Pi 上的真实 latency/内存，而非仅参数量。 |
 
 ## 8. 对 FYP 的最终收敛

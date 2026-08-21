@@ -21,6 +21,7 @@
 
 - 只做单帧 RGB recognition，然后以高 accuracy 宣称创新；
 - 把 RGB+NIR fusion 或 Raspberry Pi 部署本身作为新颖点；
+- 把 Raspberry Pi + NoIR/NIR、IR LED、ROI 与手部静脉 matcher 的采集盒当成首创；2017--2019 年已经有 palm-vein 原型，虽其数据、协议和资源报告不足以作性能比较，但足以否定硬件组合的新颖性；
 - 把 RGB/IR、距离提示、QR 与掌纹/掌静脉的一体终端当成新产品类别；已有商用模组公开这类组合，且供应商数字必须独立验证；
 - 用随机切分和 pooled attack accuracy 宣称 liveness/PAD；
 - 以“澳门没有掌纹”“非法劳工”或没有来源的 ROI 金额作为动机；
