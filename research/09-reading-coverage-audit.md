@@ -8,7 +8,7 @@
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 52 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
 | 证据账本条目 | 51 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 41 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、PPNet code、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的 data/protocol（含 target-adaptation 与 cross-domain 区别）、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
+| 已查看关键章节的原始/官方资料 | 约 42 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、HiChrom-MAE ACM metadata/abstract、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、PPNet code、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的 data/protocol（含 target-adaptation 与 cross-domain 区别）、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
@@ -48,7 +48,7 @@
 
 ## 3. 仍需优先精读/核对
 
-1. **HiChrom-MAE 全文与补充材料。** 目前只有书目信息；需确认数据、PAIS、protocol、资源和是否真正重叠。
+1. **HiChrom-MAE 全文与补充材料。** 已核对 ACM metadata/abstract（七 domain、frequency/chromaticity 表征），仍需确认数据、PAIS、protocol、资源和是否真正重叠。
 2. **只在老师选择 synthetic augmentation 时才升级合成数据审计。** Diff-Palm/GenPalm 的论文、代码/申请边界和不适用范围已核验；仍需在获批后取得实际 artifact、准确 licence/协议和冻结 generator version，才可能运行。
 3. **RegPalm 正文与实际下载 metadata。** 当前已核验 dataset/code 边界；如未来需要比较其数值，仍须拿到正文 split、预训练权重和获批数据，而不是只依赖 README。
 4. **template protection 的原始 security analysis。** 只有在放弃 PAD、转向可撤销模板时才升级为主读。
