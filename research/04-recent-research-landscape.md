@@ -35,11 +35,11 @@
 | 工作 | 年份/来源 | 阅读 | 做的是什么 | 对 FYP 的含义 |
 | --- | --- | --- | --- | --- |
 | [GenPalm](https://arxiv.org/abs/2406.00287) | arXiv 2024 | `E1` 方法/数据/实验 | Stable Diffusion + ControlNet 生成身份与类内变化；用约 7,873 个真实身份训练，报告合成数据可改善跨库/时间分离测试。 | 公开数据少是现实瓶颈；合成数据适合 recognition 预训练，不可直接替代真实攻击或 NIR/ToF 数据。 |
-| [Diff-Palm](https://doi.org/10.1109/CVPR52734.2025.02455) | CVPR 2025 | `E1` 摘要/实验表 | 用多项式掌纹线和可控 diffusion 处理“身份一致 vs 类内变化”的生成权衡；声称纯合成训练能超过其真实数据训练对照。 | 2025 顶会已把“合成掌纹数据”做到主线；不要把它作为小规模 FYP 的主要创新，除非研究攻击数据生成且有严格风险控制。 |
+| [Diff-Palm](https://openaccess.thecvf.com/content/CVPR2025/papers/Jin_Diff-Palm_Realistic_Palmprint_Generation_with_Polynomial_Creases_and_Intra-Class_Variation_CVPR_2025_paper.pdf) / [code](https://github.com/Ukuer/Diff-Palm) | CVPR 2025 | `E1` 全文 + artifact audit | 多项式掌纹线与可控 diffusion 处理“身份一致 vs 类内变化”；生成器训练用 48,000 张匿名互联网 RGB 图，识别测试在七个公开 RGB 数据集作 identity-disjoint open-set split。官方 Apache-2.0 code 有生成权重下载入口和 1,000-step diffusion script，但训练仍需自备真 ROI；作者训练用四张 V100 GPU。 | 合成 RGB 可作为未来的离线 pre-training/augmentation 对照，但不代表 Pi inference、NIR/ToF、跨 session 采集或物理 PAIS；不可把 synthetic identity 当作真实生物资料或隐私问题的解决方案。 |
 | [Palmprint de-identification via diffusion](https://arxiv.org/abs/2504.08272) | arXiv 2025 | `E2` 书目信息 | 用 diffusion 做掌纹去标识化，服务数据共享/隐私。 | 与其承诺完整可撤销模板，不如在项目里先落实原始帧不出设备、最小日志和删除策略。 |
 | [PD-GAN](https://doi.org/10.1109/TCE.2025.3620834) | TCE 2025 | `E2` 摘要 | 以 GAN 去除可识别掌纹信息，同时保留某些效用。 | 说明“发布掌纹数据”本身已经成为隐私研究主题；演示数据不能随意公开。 |
 
-**反思：** 新工作正在把训练数据扩至几千或上万身份，通常使用 GPU 大规模训练。对于 Pi 项目，合理策略是采用已训练/公开 baseline，或只用合成数据做离线增广对照；不要把训练成本误写成 edge 部署能力。
+**反思：** 新工作正在把训练数据扩至几千或上万身份，通常使用 GPU 大规模训练。对于 Pi 项目，合理策略是采用已训练/公开 baseline，或只用合成数据做离线增广对照；不要把训练成本误写成 edge 部署能力。若以后启用合成数据，必须把它固定为一个独立的 offline training arm，并以真实、未参与生成器训练的 session/PAIS 测试；不让合成帧进入最终攻击或 edge 能耗结论。
 
 ## 4. 主题三：鲁棒表征与增强
 
@@ -104,5 +104,5 @@
 - HiChrom-MAE 全文与附录；
 - 获取 RegPalm 正文，补齐其 `1:1`/`1:3` open-set split、weight release 和 WebPalm 的实际下载/metadata；当前已确认其数据/代码入口与限制；
 - DPFed-Palm 与 FedPalm 的 threat model，避免误用“federated = safe”；
-- Diff-Palm/GenPalm 公开代码与合成数据 licence；
+- 只有老师决定把 synthetic augmentation 纳入 scope 时，才申请 GenPalm 并审计其 agreement、生成器训练源与 exact split；当前 Diff-Palm/GenPalm 都不进入 B0/P0/S；
 - 掌纹 PAD 的公开 benchmark 和实际攻击采集流程，确认是否可在学校伦理范围内复现。

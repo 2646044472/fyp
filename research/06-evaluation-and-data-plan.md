@@ -20,6 +20,8 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 [WebPalm](https://zhongyy.github.io/WebPalm/) / [RegPalm code](https://github.com/zhongyy/RegPalm) **不进入 P0/P/S**。其官方页称 83,145 张互联网图片分别属于 83,145 个 identity，申请条款仅允许非商业研究且把来源权利责任留给使用者；它适合说明 `FAR=1e-9` 需要极大的 impostor bank。可是它没有同人跨 session genuine pairs，不能评估本项目 `1:1` 的 FNMR/TAR、采集质量或 PAIS，代码也未发布 weights 且训练依赖 CUDA。小型 FYP 必须报告实际 impostor pair 数、observed error count 和区间，不能把“未见误放行”改称 `FAR=1e-9`。
 
+**合成数据也不自动成为 P0/P/S。** [Diff-Palm](https://openaccess.thecvf.com/content/CVPR2025/papers/Jin_Diff-Palm_Realistic_Palmprint_Generation_with_Polynomial_Creases_and_Intra-Class_Variation_CVPR_2025_paper.pdf) 及 [MSU GenPalm](https://biometrics.cse.msu.edu/Publications/Databases/MSU_GenPalm/) 说明 synthetic RGB 可用于离线 recognition pre-training/augmentation，但前者的 generator 训练仍使用 48,000 张互联网图、需 GPU，后者也须签 agreement 申请。它们不提供本设备的 NIR/ToF/synchronized challenge/PAIS 或真正的跨 session capture。当前一律不纳入最小 demo；若以后批准合成 augmentation，另设 frozen-generator training arm，仅在独立、真实 held-out identity/session/PAIS 上对比 B0，且不把合成帧算入 edge latency/energy 或 PAD 结果。
+
 ### 公开 PAD 资料的边界
 
 [XJTU-PalmReplay](https://doi.org/10.1049/ipr2.70029) 是当前读到的最贴近掌纹屏幕重放的 protocol 参照：400 个手掌、五个 display-capture domain、总计 96,000 张图，并有 identity-disjoint 和留一 domain 的测试方式。但截至本次检索，未找到官方数据下载、许可或代码入口。因此它不是 `P` 层可立即运行的数据集，只能提供两项设计约束：
