@@ -26,6 +26,7 @@
 | [`29-open-environment-roi-rdrla-reading-log.md`](29-open-environment-roi-rdrla-reading-log.md) | 2025 TIFS RDRLA: FVP-free adaptive ROI, open-set protocol, and missing Pi evidence |
 | [`30-embedded-palmprint-system-prior-art-log.md`](30-embedded-palmprint-system-prior-art-log.md) | 2012 ARM/DSP palmprint device: real embedded precedent, constrained capture, and non-transferable timing |
 | [`31-palm-id-mobile-system-reading-log.md`](31-palm-id-mobile-system-reading-log.md) | Palm-ID 2024 mobile app, time-separated protocol, model size, and non-transferable desktop timing |
+| [`32-edge-computing-palmprint-system-reading-log.md`](32-edge-computing-palmprint-system-reading-log.md) | 2022 edge-server/offloading palmprint architecture and what its abstract does not measure |
 
 ## When to write a log
 
