@@ -51,3 +51,20 @@
 - 目标工作流是否接受生物特征及 fallback。
 
 这些未知量不应被“先做 demo”跳过。它们决定 demo 是可信的测量起点，还是不可交代的演示。
+
+## 7. 再审计一个“轻量”路线：EEPNet 与 runtime 不是同一件事
+
+综述提到的 [EEPNet](https://doi.org/10.1016/j.patrec.2022.05.015) 是 2022 年 Pattern Recognition Letters 的 MobileNetV3-based palmprint network。论文摘要称它以压缩层数、较大卷积核和若干训练策略追求效率，并在七个掌纹库比较 precision、speed、parameter count 与 FLOPs。
+
+这说明轻量 backbone 已是已有研究路线，却没有给当前 B0 一个可直接部署的 artifact：本轮按完整题名、作者和 GitHub 检索，未找到作者发布的 official code、weight、ONNX/TFLite export、licence 或 Pi benchmark。未找到公开工件不等于作者从未提供；但在能核对出处前，它不能成为本项目的 default dependency，也不能以论文里的效率比较代替 Pi 数字。
+
+相对地，[ONNX Runtime 的官方 Python 文档](https://onnxruntime.ai/docs/get-started/with-python.html) 明确把 CPU package 列为 Arm CPU 路线，并有 [Raspberry Pi camera-to-inference tutorial](https://onnxruntime.ai/docs/tutorials/iot-edge/rasp-pi-cv.html)。这只支持把 ONNX Runtime 放入 **candidate runtime**，不代表任意 palm model 都能在任意 Pi 上安装或跑得足够快。
+
+因此 B0 的 runtime gate 是：
+
+1. 在 Pi 上记录 `uname -m`、OS release、Python version、RAM、camera driver 和 CPU governor；不可用开发机推测。
+2. 对已获合法权重的 frozen model，在目标架构创建干净环境，记录 `pip`/wheel version、provider、threads 和 model SHA-256；先跑 deterministic test input，再接 camera。
+3. 若 `aarch64` 的 CPU runtime 可安装，测试 ONNX Runtime；若为 ARM32 或 wheel/算子不兼容，则记录失败原因并在**同一已冻结模型**上改走可维护 runtime 或 descriptor P0，不编造跨 runtime 可比性。
+4. runtime 能启动并不通过 Gate 0：仍须实测 `T_capture`、`T_ROI`、`T_embedding`、`T_match`、p95 interaction、RSS/peak memory、thermal/throttle 和 input energy。
+
+结论：B0 的第一项贡献是可复现实验链和失败日志，不是指定 EEPNet、PPNet 或 ONNX Runtime 为“最终系统”。

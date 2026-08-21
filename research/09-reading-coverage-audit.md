@@ -6,9 +6,9 @@
 
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
-| 文献图谱和近期图谱的带链接条目 | 52 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
-| 证据账本条目 | 52 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 44 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、HiChrom-MAE ACM metadata/abstract、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、Tongji data page、PPNet code/releases、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的 data/protocol（含 target-adaptation 与 cross-domain 区别）、Gao et al. 2026 formal survey 的 publication record + 可访问 v2、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
+| 文献图谱和近期图谱的带链接条目 | 53 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
+| 证据账本条目 | 53 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
+| 已查看关键章节的原始/官方资料 | 约 45 | Palm-ID 论文/MSU PalmDB、RegPalm/WebPalm code and data terms、Diff-Palm paper/code、MSU GenPalm terms、X-Palm paper/code/EULA、FedPalm paper/code、ICIP 2023 PAD record/artifact search、HiChrom-MAE ACM metadata/abstract、challenge-response formalism、2010 multispectral system、2018 PALMspoof、2020 smartphone liveness、2020 NIR/UV verification、2025 smart palm sensing、EMPalm、ASIS access-control survey、privacy-preserving physical access control、PalmMatchDB card、Tongji data page、PPNet code/releases、EEPNet publication/artifact search、ONNX Runtime ARM/Pi docs、MPW-180 paper/repository、CAAP repository、sweet 与 CandyFV 的硬件/PAI/access records、BEST、2022 presentation attack、DAPANet/HFSRA 的 data/protocol（含 target-adaptation 与 cross-domain 区别）、Gao et al. 2026 formal survey 的 publication record + 可访问 v2、NIST OT/manufacturing and utility IdAM, ISO、澳门官方资料与 biometric authorization、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | Gao et al. 的正式版已核对书目信息（IEEE TSMC-S 2026）；实际逐段阅读的是 arXiv v2 的任务、security/privacy、cross-domain、lightweight、datasets 和 outlook。未把它误写成逐页取得 IEEE 最终 PDF。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
@@ -33,6 +33,7 @@
 | RGB baseline 是否需跨域压力测试 | 已有可用候选，尚未实际运行 | X-Palm 的 identity-disjoint scanner/mobile protocol 比同 session 随机切分更有说服力，但不回答本设备 ToF/NIR/PAD。 |
 | 能否立刻跑通一个许可明确的公开 B0 输入 | 可行，但只限工程 smoke test | PalmMatchDB 可直接下载且许可明确；其公开 card 缺正式切分/条件 metadata，不能拿来写泛化或 PAD 结果。 |
 | Tongji/PPNet 能否直接构成当前 Pi demo | 暂不可以，但可分别作为 P 层 protocol 和 score-script 参照 | Tongji 有两 session/filename/download 边界但未见明确 license；PPNet code 可读/有 CPU path，却缺发布权重、现代 ARM runtime 和端到端测量。须先核对条款/工件并实测自己的 Pi。 |
+| EEPNet 或 ONNX Runtime 能否直接解决 Pi B0 | 足够否定 | EEPNet 是轻量论文但本轮未找到公开 code/weight/export/licence/Pi benchmark；ONNX Runtime 有 Arm CPU/Pi 官方路线，却取决于具体 arch、OS、Python、wheel、算子与合法 frozen model。它们只能组成 runtime gate，不能替代本机实测。 |
 | 是否已有可立即下载、可复现的 palmprint 屏幕 PAD benchmark | 尚未确认 | XJTU-PalmReplay 有明确五域 protocol，但本轮未找到官方下载、许可或代码入口。它只能约束我们的切分；纸张/贴片/主动 RGB-NIR 的 S 层数据仍需经同意自采或另获许可。 |
 | ICIP 2023 的 large-scale palm attack dataset 是否可用 | 暂不可以 | 官方摘要只确认存在并做 unseen-domain study；未找到 author/institution dataset page、license、download、code、weights 或 split。它不能作为 P0/P/S 输入或数值比较，只能支持“跨域 PAD 已有先例”。 |
 | MPW-180 能否作为公开 mobile B0 benchmark | 暂不可以 | 论文、IAPR 目录和 GitHub 互相指向，但 GitHub 的 DOI/link/代码/数据均缺，Aperta 无可核验 record。它是高质量自采 protocol 参考，不是当前可复现输入。 |

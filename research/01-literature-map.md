@@ -12,6 +12,7 @@
 | [Gao et al., DL Palmprint Survey, IEEE TSMC-S 2026](https://doi.org/10.1109/TSMC.2025.3649416) / [arXiv v2](https://arxiv.org/html/2501.01166) | 正式 metadata；v2 的任务、security/privacy、cross-domain、lightweight、datasets 与 outlook | `E1`，正式书目信息 + 可访问 preprint；最终 PDF 未逐页核对 | 将 ROI、open/cross-domain、跨光谱/多模态、轻量部署、数据与安全/隐私放入同一系统图；强调数据 metadata 和跨域泛化挑战。 | 支持把 capture/ROI、identity/session/PAIS holdout 与实测 Pi resource 作为系统证据；不从综述推出本设备 liveness、部署价值或任何性能数字。 |
 | [Seyedmohammadi et al., X-Palm, 2026](https://github.com/X-Palm/X-Palm-2026) | 数据卡、split、code、results README | `E1`，预印本 | paired controlled-multispectral 与 unconstrained smartphone 的 6,006 图/103 人数据；code 已写出 closed/open cross-domain split。 | 是 B0 的高价值 domain-shift protocol 候选；数据签 EULA，且不包含 PAIS、ToF 或本相机。 |
 | [Alausa et al., PalmMatchDB, ICPECA 2023](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) | dataset card/API | `E1`，数据卡 | Apache-2.0、10,528 rows 的 on-device contactless corpus；公开 card 只见一个 `train` split。 | 可立即用于 B0 工程 smoke test；没有公开 session/identity/camera/PAIS metadata 时，不可用作正式性能或泛化协议。 |
+| [Jia et al., EEPNet, PRL 2022](https://doi.org/10.1016/j.patrec.2022.05.015) | 出版 metadata/abstract；作者/题名/GitHub 工件检索 | `E2` | MobileNetV3-based lightweight palmprint route；摘要称在七个库比较 precision、speed、parameter count 与 FLOPs。未找到作者公开 code、weight、export、licence 或 Pi benchmark。 | “lightweight”不等于当前可部署。只作 architecture reading reference；B0 不依赖它，直到公开工件、数据条款和目标 Pi runtime 可被逐项核对。 |
 
 ## B. 多光谱、NIR 与测量
 
