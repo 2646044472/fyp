@@ -26,6 +26,7 @@
 | [RegPalm](https://doi.org/10.1109/TIFS.2025.3593352) | TIFS 2025 | `E2` 摘要 | 建立 WebPalm，并在 open-set、极低 FAR 下通过方向统一与配准降低 pattern variance。 | 即使 FYP 做 1:1，也应在低 FAR 报告；不能只报 closed-set rank-1 或普通 accuracy。 |
 | [PalmBridge](https://arxiv.org/abs/2601.20351) | arXiv 2026 | `E2` 书目信息 | 2026 仍在研究 open-set palmprint verification 的特征对齐。 | 开放集/域适应仍是活跃缺口，但超出当前 demo 数据规模。 |
 | [X-Palm](https://github.com/X-Palm/X-Palm-2026) | arXiv/code 2026 | `E1` 数据卡、protocol、code | paired scanner/mobile 数据将远近、姿态、flash、湿手、文字/遮挡及 80+ 手机型号放入同一 cross-domain protocol；其基线在 scanner--smartphone 设定明显下降。 | 将本项目的 distance、surface condition 与 cross-session metadata 视为正式压力变量；可借其 B0 protocol，不可拿它证明我们的 NIR/ToF/PAD。 |
+| [MPW-180 / PalmWildNet](https://doi.org/10.3390/app152111368) | Applied Sciences 2025 | `E1` 论文数据/伦理/availability + IAPR/GitHub 核验 | 论文描述 180 人、180 台手机、720 个自由手视频和 flash/ambient 条件；但 IAPR 指向的 GitHub 暂无数据 DOI、代码或下载，且显示 under review。 | 视频自由手/照明 protocol 很适合自采参考；在实际 archive/metadata 可获取前，不把它列为可运行的公开 B0 benchmark，也不引用其 5 ms 或识别数字作 Pi 依据。 |
 
 **反思：** 把距离传感器只解释成“活体检测”太窄。更基础也更可信的贡献，是让设备主动控制几何，从而降低 ROI 和跨 session 变化；这与近期对未约束采集和 pattern variance 的关注一致。
 

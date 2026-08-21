@@ -25,9 +25,23 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 若以后获得作者明确许可，仍须保存获准日期、原始文件 hash、每个 domain 的设备表和 exact split；否则不把其数字写入结果比较。这个限制也避免项目在“数据很大”与“可以复现”之间作错误等同。
 
+### 新近 mobile 数据的可得性检查：MPW-180
+
+[MPW-180](https://doi.org/10.3390/app152111368) 的论文很有价值：180 人、180 台手机、720 段视频，按左右手与 flash/ambient 分成四种条件，且刻意记录自由手距离、姿态、焦点和背景变化。它适合作为我们的 `S` 层采集卡参考，也本应是 B0 跨照明/ROI 的 `P` 候选。
+
+但可运行性未获证实。IAPR TC4 目录目前把它链接至 [PalmWildNet GitHub](https://github.com/bingolo/PalmWildNet)，而该仓库现只有 README、图和 license；README 的 `Dataset DOI / Link` 为空，并称研究仍在 review。论文说数据位于 Aperta，但本轮不能找到可核验的 Aperta record。因此在拿到实际文件、明确许可、完整 identity/condition metadata 和作者 split 前，**不得下载或引用 MPW-180 的性能数字，也不得列为本项目可复现实验的数据来源**。
+
+这不是否定该论文，而是采纳它提出的两条设计纪律：视频相邻帧高度相关，不能被随机拆入 train/test；ROI quality exclusion、motion blur 和 illumination artefact 必须记录为结果，而非在汇总前无痕删除。
+
 ## 2. 系统定义
 
 应用为带 claim 的 `1:1 verification`：二维码/工单/卡片先指向一个已注册模板；系统只判断 probe 是否匹配该模板，不进行 1:N 人群搜索。
+
+### B0 不是复制旧 Pi 环境
+
+PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Raspberry Pi 4B 的 32 位 Buster、Python 3.7 和预发布 ARMv7 PyTorch wheels。它不能作为今天的默认安装方案，也不应因“能跑”而成为长期部署依赖。先执行 Gate 0 的设备/OS/runtime 清点，再选择当前硬件能维护的 inference runtime；B0 的不变量只有：固定版本的 RGB ROI、embedding、注册模板、`1:1` score 和 development-set 冻结阈值。
+
+因此最小 demo 的通过条件应是可重复地保存：设备/OS/architecture、runtime/model hash、enrollment 与 probe 的匿名 ID、score、阈值、accept/reject、ROI failure 及 capture-to-decision timestamp。它不以迁移某个旧 PyTorch wheel 或复现作者机器上的数字为通过条件。
 
 | 版本 | 输入与决策 | 目的 |
 | --- | --- | --- |
