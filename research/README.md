@@ -17,6 +17,7 @@
 | [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md) | 主候选方向的反例检索、竞争路线与不可宣称事项 | 每次定位方法时更新 |
 | [09-reading-coverage-audit.md](09-reading-coverage-audit.md) | 本轮读到的范围、精读深度和后续阅读优先级 | 每轮研究结束时更新 |
 | [10-story-validation-plan.md](10-story-validation-plan.md) | 将必要性、经济价值和采用条件写成可否定的访谈/流程验证计划 | 场地访谈前与完成后更新 |
+| [11-ai-assisted-research-protocol.md](11-ai-assisted-research-protocol.md) | AI 辅助检索、阅读、反证和写作的可审计流程 | 每次变更检索或证据规则时更新 |
 
 ## 当前工作结论
 
@@ -24,6 +25,7 @@
 2. 条件性候选主线是：`ToF 固定几何 + claim 后随机 RGB/NIR illumination challenge + 风险门控`，但它必须相对静态多谱 B2 在未见 PAIS 与 edge 成本上证明额外价值；否则只保留采集质量/测量研究。
 3. 当前不能主张“澳门没有掌纹系统”。澳门官方入境资料已列出掌纹；应改为验证受控工作现场是否存在尚未被合理满足的离线、隐私和抗伪造需求。
 4. 当前不把“识别非法劳工”作为应用宣称。系统只能确认某人是否匹配授权名册；法律身份和劳动资格仍须由有权系统和人工流程判定。
+5. `edge` 只表示本地 capture/inference 与更小的数据流，不等于完整隐私、模板保护或侧信道安全。
 
 ## 接下来最有价值的证据
 

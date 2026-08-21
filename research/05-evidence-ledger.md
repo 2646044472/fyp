@@ -36,19 +36,22 @@
 | E-26 | [GRGIntech PRM-001 palm print/vein module](https://www.grgintech.com/product/prm-001-palm-print-and-vein-recognition-module/)，产品规格页 | 供应商公开宣称一个 ARM/NPU 模组已组合 RGB+IR camera、内置距离检测、QR、补光与 palm print/vein recognition，面向门禁/考勤等场景。 | 供应商给出的 FAR/FRR、抗伪造、速度、环境与适用性未见独立评测；它不证明市场采用或项目硬件完全相同。 | 不以 RGB/IR/distance/QR 一体化或“做掌纹锁”作为创新；与商用品的差别只能是透明可复现实验、明确 PAIS/边界与低成本硬件 trade-off。 | `E3`，供应商资料 |
 | E-27 | [Carpenter et al., employee privacy concerns, Information Systems Frontiers 2018](https://doi.org/10.1007/s10796-016-9667-5)，摘要、研究情境与量表说明 | 在一个为人员安全而部署 biometric assignment tracking 的组织中，作者考察 perceived accountability、vulnerability、organizational distrust；摘要报告 accountability 与 vulnerability 是工作场所使用态度的重要预测变量。 | 这是特定组织、指纹与工作任务跟踪情境，不能推出澳门员工或掌纹用户的态度比例，也不能替代本项目的访谈/同意程序。 | 访谈不仅问效率与安全，也问目的限制、谁可看何种日志、是否担心被追责/二次用途、以及不使用 biometric 的人是否被公平对待；坚持低频受控核验而非持续考勤/监控故事。 | `E1`，同行评审摘要/研究页 |
 | E-28 | [Zhang et al., Online System of Multispectral Palmprint Verification, IEEE TIM 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf)，硬件、采集、anti-spoof、速度和结论全文 | 已有 low-cost online multispectral palmprint 系统：470/525/660/880 nm LED、单色 CCD 与 light controller，四谱帧小于 1 秒，250 人数据库；论文用一张 Blue palmprint 的纸张打印物攻击，发现单谱可能通过，而多谱距离及 Blue--NIR 关系可区分该纸张材料，并将其称为可用于 liveness。 | 其掌托/pegs、单色相机、四谱静态采集、纸张单例、旧 PC 和未按 ISO 报告的 anti-spoof 测试不能外推为 Pi/ToF/NIR、未知 PAIS 或强 PAD 结论；也没有验证 session-random challenge 的额外安全性。 | B2 必须作为静态多光谱强对照；不再把“RGB/NIR 短序列挡纸张/做 liveness”视为创新。M 只有在预冻结、session-random challenge 比 B2 在未见 PAIS 的 IAPMR/APCER 且 BPCER/p95/energy 可接受时才可作为研究候选。 | `E1`，同行评审全文 |
+| E-29 | [Liang et al., Innovative Contactless Palmprint Recognition System Based on Dual-Camera Alignment, IEEE TSMC 2022](https://doi.org/10.1109/TSMC.2022.3146777)，摘要与书目页 | 已有低成本 dual-camera + 单点 ToF 的无接触掌纹/掌静脉采集装置；作者以 271 palms、不同距离/光强采集 DCPD，并用成像/ranging model 从手掌距离估计可见光与红外 ROI 的平移关系。 | 公开摘要中的 0.15 s、EER 和 rank-1 属于其网络、数据、标定与设备，不能转移到本实验室 Pi；也没有给出我们所需的重采、功耗、未见 PAIS 或实际运营结果。 | 删除“把 ToF 用于双模态距离对齐”这一新颖性说法。若保留 ToF，只测它在本硬件上相对图像-only 质量 gate 的 ROI failure、重采、跨 session 表现和成本。 | `E2`，同行评审摘要 |
+| E-30 | [Fan et al., Smart touchless palm sensing via palm adjustment and dynamic registration, Nature Communications 2025](https://www.nature.com/articles/s41467-025-58213-7)，全文的背景、方法、数据与限制 | 近期完整系统已把 capture distance、亮度/清晰度、旋转和 video-based registration 放进同一无接触 palm sensing 问题；其 CUHKSZ 数据在 6--14 cm、NIR/visible、开放环境采集 2,000 palms / 12,000 images。论文也明确承认 palm curling 与多手复杂背景仍会失败。 | 文中的 simulation、ROI/EER 和多样本注册结果不是 Pi/ToF 的实证；作者研究重点是软件 sensing/ROI alignment，不是 edge 能耗、真人交互 p95、unknown PAIS 或本地场景采用。其“仍未解决”的文献判断不能被夸大为绝对研究空白。 | 不再把“距离/旋转下的智能无接触采集”称为创新。改为透明复现实验：固定相机、光源和 ToF 后，报告硬件实际的距离-质量曲线、failure taxonomy、用户重采及输入端 energy。 | `E1`，同行评审全文 |
+| E-31 | [EMPalm: Exfiltrating Palm Biometric Data via Electromagnetic Side-Channel (2025 preprint / SenSys 2026 metadata)](https://arxiv.org/html/2510.07533)，全文的威胁模型、硬件、评估与限制 | 作者在 Raspberry Pi 3B+/5、Jetson Nano、多种 visible/NIR camera、一个双模态模块及商用设备上研究相机传输的 EM leakage；其作者实验以 25 名受试者、SDR/天线/放大器重建 palm image，并报告对其四个目标模型的平均 spoof success rate。 | 这是复杂的物理侧信道与作者设定的恢复/匹配评估，不是对本原型已发生泄露的证明；本 FYP 不具备 SDR、EMC、屏蔽或攻击复现条件，也不能从该文得出任何实际风险概率。 | `local inference` 仅能减少网络传输与集中原始帧留存，不能被写作完整 biometric privacy/security。EM leakage 不纳入本期性能宣称；后续硬件版本至少记录 camera bus、线缆与 enclosure，若要声称抗侧信道必须另立测量计划。 | `E3`，预印本全文 |
 
 ## 2. 跨论文综合，而不是拼接结论
 
 ### 2.1 已有共识
 
-1. ROI、采集质量、距离/姿态变化及 session shift 会影响无接触掌纹表现。Palm-ID、UAA 与近期 ROI 研究都把它们作为主要问题。`E1`
+1. ROI、采集质量、距离/姿态变化及 session shift 会影响无接触掌纹表现；而双相机 ToF 对齐和 video-based registration 均已有明确先例。Palm-ID、UAA、Liang et al. 与近期 ROI 研究都把它们作为主要问题。`E1/E2`
 2. 多光谱/掌纹-掌静脉融合早已是研究主题；采集平台可做到多光源、多相机及 3D 控制。`E1`
 3. 物理攻击评估必须按攻击材料与采集条件测试，单个二元分类 accuracy 不是最终门禁风险。`E1`
-4. 多模态与边缘部署会增加同步、光学、对齐和资源成本，不能只报 accuracy。`E1`
+4. 多模态与边缘部署会增加同步、光学、对齐和资源成本，也可能增加硬件攻击面；不能只报 accuracy，更不能将 local inference 等同完整资料保护。`E1/E3`
 
 ### 2.2 仍是空白或只是假设
 
-1. 本轮没有找到一个公开 benchmark 同时包含低成本 Pi 级 RGB/NIR/ToF、随机主动采集、掌纹 `1:1` 核验和未见物理攻击。这个观察是检索结果，不是“绝对不存在”的证明。`E3`
+1. 本轮没有找到一个公开 benchmark 同时包含低成本 Pi 级 RGB/NIR/ToF、随机主动采集、掌纹 `1:1` 核验、未见物理攻击、端到端重采和输入端能耗。这个观察是检索结果，不是“绝对不存在”的证明。`E3`
 2. 低成本反射式 NIR 加 ToF 是否能识别打印、屏幕或贴片，必须取决于实际模块的光谱响应、几何和攻击制作，不能从血管识别或 RGB 融合论文推断。`Q`
 3. 澳门哪个现场为此付费、离线是否为痛点、现有卡/QR/人工流程造成多少损失，现有资料没有证明。`Q`
 

@@ -8,9 +8,9 @@
 
 1. **采集不受控与跨域。** 研究将手机、相机、姿态、照度、session 变化视为独立问题，常做 cross-sensor/cross-dataset，而不是随机切分。[BEST](https://web.comp.polyu.edu.hk/csajaykr/myhome/papers/PR2023.pdf) 与 [smartphone CycleGAN work](https://doi.org/10.1109/TIFS.2023.3301729) 是明确例子。
 2. **大规模与极低 FAR。** RegPalm/WebPalm 等将 1:1/1:N open-set 及极低 FAR 带入目标，但这类数据和算力规模不是 Pi FYP 可直接竞争的对象。
-3. **合成与隐私。** GenPalm、Diff-Palm、FedPalm、去标识化等工作表示数据规模、跨客户端训练和资料保护都在快速发展；本项目不应把“edge inference”错误升级为完整隐私保护。
+3. **合成与隐私。** GenPalm、Diff-Palm、FedPalm、去标识化等工作表示数据规模、跨客户端训练和资料保护都在快速发展；2025 的 EMPalm 又提示图像采集链路可存在 EM 侧信道。因此本项目只能说 edge 减少网络传输和集中原始帧留存，不能把 local inference 错误升级为完整隐私/安全保护。
 4. **PAD 从分类走向未知域与物理呈现。** ICIP 2023、XJTU-PalmReplay 上的 2025 工作、CAAP 与 2026 HiChrom-MAE 表明 palmprint PAD 已是活跃方向。未知 display/camera/material，才是有效协议的一部分。
-5. **传感器不是免费信息。** 2010 年已有低成本可见光/NIR 四谱掌纹系统，且以纸张攻击与谱间反射讨论 anti-spoof；`sweet` 和 HDC-Net 又表明 RGB/NIR/深度/掌静脉融合早有研究。故固定多谱采集是 baseline，不是贡献；同步、标定、光学质量、对齐、数据需求和资源成本仍是系统组成部分。
+5. **传感器与采集控制不是免费信息，也不是空白。** 2010 年已有低成本可见光/NIR 四谱掌纹系统，2022 已有 dual-camera + 单点 ToF 的距离对齐，2025 又有距离/旋转/video registration 的完整 sensing 研究；`sweet` 和 HDC-Net 也表明 RGB/NIR/深度/掌静脉融合早有研究。故固定多谱、ToF 对齐或智能采集本身都不是贡献；同步、标定、光学质量、对齐、数据需求和资源成本仍是必须实测的系统组成部分。
 6. **更强的活体路径已存在。** 同步双波长的 palm biometrics 已尝试用脉搏/SpO2 等动态信号提高 anti-spoofing。它提示我们把 `2--3` 帧主动短序列如实定位为低开销 risk gate，而非生理活体证明。
 
 完整的反例与不可宣称事项见 [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md)。
@@ -35,6 +35,8 @@
 这个命题的贡献可以是正结果，也可以是可靠的负结果。后者同样能回答：在这个硬件等级和攻击范围里，第二模态或主动序列是否值得其复杂度。
 
 **当前最大风险：** 2010 年已存在低成本静态可见光/NIR 多谱、<1 秒采集和纸张 anti-spoof 先例。因而在没有 `M > B2` 的未见 PAIS 结果前，项目不应使用“主动多传感掌纹防伪”作为创新摘要；老师讨论时应先展示这项反例及新的退出条件。
+
+**第二个风险：** ToF 距离对齐（2022）和距离/旋转/video registration（2025）同样已有直接先例。因此即使 `M` 失败，项目也不能退回去把“ToF 引导采集”重命名为创新；可成立的成果将是已冻结硬件上的端到端 trade-off 测量，或一个被数据推翻的工程假设。
 
 ## 4. 最可信的应用故事
 

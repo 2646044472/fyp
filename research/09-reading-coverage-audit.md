@@ -7,8 +7,8 @@
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 45 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录与澳门资料；包含 `E1`--`E3`，不能一律等价看待。 |
-| 证据账本条目 | 28 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
-| 已查看关键章节的原始/官方资料 | 约 19 | Palm-ID、2010 multispectral system、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA、X-Palm、FedPalm、GenPalm、NIST、ISO、澳门官方资料、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
+| 证据账本条目 | 31 | 只收入会改变题目、协议、指标或范围的资料，并说明不可外推之处。 |
+| 已查看关键章节的原始/官方资料 | 约 21 | Palm-ID、2010 multispectral system、2025 smart palm sensing、EMPalm、sweet、CAAP、BEST、2022 presentation attack、DAPANet/HFSRA、X-Palm、FedPalm、GenPalm、NIST、ISO、澳门官方资料、MLPerf 规则、adaptive-biometric review 与 workplace-privacy study 等。部分为预印本。 |
 | 已精读的综述 | 1 | 2025 palmprint DL survey 的任务、security/privacy、cross-domain 和 outlook 章节；其版本状态在正式论文中需再核。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
@@ -22,9 +22,11 @@
 | palmprint PAD 是否是空白 | 足够 | 否。已有 display/paper、跨域 anti-spoofing、对抗贴片与近期 PAD 工作。 |
 | 低成本多传感主动短序列是否在本设备有效 | 未解决，需实验 | 这是可测试候选，不可由已有论文替代。 |
 | 随机短序列是否比静态多谱新/有效 | 技术新颖性未成立，效果未解决 | 2010 已有低成本静态多谱和纸张 liveness 线索；M 仅是相对 B2 的条件性假设，必须在未见 PAIS/session 中实测。 |
+| ToF 距离对齐/引导采集是否本身新颖 | 足够否定 | 否。2022 已做 dual-camera + 单点 ToF 对齐，2025 已做 distance/rotation/video sensing；只剩下本硬件真实端到端 trade-off 能构成测量问题。 |
 | 澳门是否没有掌纹 | 足够否定 | 不能这样说；有局部、较新的掌纹/掌静脉支付部署。 |
 | 澳门受控现场是否有明确付费痛点 | 未解决，需访谈 | 目前只是合理场景假设。 |
 | Pi 上端侧方案是否实际可用 | 未解决，需设备测量 | 不能用模型推理时间代替端到端交互或能耗；已预先写下测量 protocol。 |
+| edge 是否自动保障 biometric privacy | 足够否定 | 否。local inference 只缩小网络/集中留存数据流；template protection 与 EM 侧信道属于不同问题。 |
 | RGB baseline 是否需跨域压力测试 | 已有可用候选，尚未实际运行 | X-Palm 的 identity-disjoint scanner/mobile protocol 比同 session 随机切分更有说服力，但不回答本设备 ToF/NIR/PAD。 |
 | 受控现场是否愿意采用 biometric | 未解决，需访谈 | 不能由“更安全/方便”推断；目的限制、可见性、问责感、资料泄露担忧与公平 fallback 都是应收集的条件。 |
 
