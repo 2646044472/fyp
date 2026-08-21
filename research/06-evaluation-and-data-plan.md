@@ -12,7 +12,7 @@
 
 公开数据的事实依据：IEEE 数据库目录列出 PolyU-IITD contactless v3 为 600+ subject、12,000+ 图像、两 session；IITD v2 为单 session。IAPR TC4 目录也列出 Tongji 的两 session、12,000 图像。资料入口见 [IEEE Biometrics Council](https://ieee-biometrics.org/resources/biometric-databases/contactless-palmprint/) 和 [IAPR TC4](https://iapr-tc4.org/palmprint-datasets/)。许可、申请和是否允许发布例图应在下载前再次核对。
 
-[X-Palm (2026)](https://github.com/X-Palm/X-Palm-2026) 是更贴近“controlled enrollment -> unconstrained mobile probe”的补充候选：其 6,006 图、103 人/206 手的公开数据卡列出远近、姿态、flash、湿手与表面文字等条件，并提供 identity-disjoint 的 cross-domain split 与 code。数据需签 academic EULA；它没有 PAIS、ToF 或同步 RGB/NIR，因此只用于 B0/domain-shift 对照，不可代替 S 层传感/攻击实验。
+[X-Palm (2026)](https://github.com/X-Palm/X-Palm-2026) 是更贴近“controlled enrollment -> unconstrained mobile probe”的补充候选：其 6,006 图、103 人/206 手的数据卡列出 scanner 六谱、80+ 手机及远近、姿态、flash、湿手与表面文字等条件，并提供 identity-disjoint open-set cross-domain split、固定 split JSON 和 benchmark code。数据需签 non-commercial academic EULA，训练脚本以 CUDA/RTX A6000 为环境；它没有 PAIS、ToF 或同步 RGB/NIR，且 gallery/probe 的 sample split 不等于跨日 session。因此仅在获批后作为 `P` 层 B0/domain-shift 对照，保留作者 split，不可代替 S 层传感/攻击实验或 Pi benchmark。
 
 P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标为 Apache-2.0、10,528 rows / 1.27 GB，但公开 card 只有一个 `train` split 和极少采集 metadata。它可以让第一周 demo 有可重复的下载与输入，却**不能**被随机重切分后冒充 session/cross-device/PAD benchmark；其论文的 identities、split 和采集条件要在决定引用任何识别数字前再精读。
 
