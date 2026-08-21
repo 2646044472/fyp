@@ -28,7 +28,7 @@
 | [X-Palm](https://arxiv.org/abs/2606.08437) / [data and code](https://github.com/X-Palm/X-Palm-2026) | arXiv/code 2026 | `E1` 论文、data card、protocol、code audit | 6,006 图、103 位/206 手；受控 scanner 的六谱 enrollment 与 80+ 手机、远近、姿态、flash、湿手、文字/遮挡等 smartphone probe 配对。repo 有固定 seed 的 cross-dataset/closed-set/open-set split 和 12 个 baseline scripts；原图需签 non-commercial EULA，作者训练用 RTX A6000。 | 将 distance、surface condition 和 domain shift 视为正式压力变量；经批准后可作 B0 的 RGB cross-domain protocol，但不拿它证明 Pi、同步 RGB/NIR challenge、ToF 或 PAIS，也不把其训练环境当部署方案。 |
 | [MPW-180 / PalmWildNet](https://doi.org/10.3390/app152111368) | Applied Sciences 2025 | `E1` 论文数据/伦理/availability + IAPR/GitHub 核验 | 论文描述 180 人、180 台手机、720 个自由手视频和 flash/ambient 条件；但 IAPR 指向的 GitHub 暂无数据 DOI、代码或下载，且显示 under review。 | 视频自由手/照明 protocol 很适合自采参考；在实际 archive/metadata 可获取前，不把它列为可运行的公开 B0 benchmark，也不引用其 5 ms 或识别数字作 Pi 依据。 |
 
-**反思：** 把距离传感器只解释成“活体检测”太窄。更基础也更可信的贡献，是让设备主动控制几何，从而降低 ROI 和跨 session 变化；这与近期对未约束采集和 pattern variance 的关注一致。
+**反思：** 把距离传感器只解释成“活体检测”太窄。更基础也更可信的贡献，是让设备主动控制几何，从而降低 ROI 和跨 session 变化；这与近期对未约束采集和 pattern variance 的关注一致。2025 smart sensing 已公开 ERAlign ROI 工件，但它不含相机服务、Pi profile 或当前可得的 CUHKSZ 数据（原始数据在 2027 confidentiality period 后才可申请），所以只能作 algorithm/measurement reference，不能当作现成部署基线。
 
 ## 3. 主题二：生成式数据与数据规模
 

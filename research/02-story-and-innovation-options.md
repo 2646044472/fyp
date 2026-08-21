@@ -33,7 +33,6 @@
 
 | 链条 | 当前证据 | 如何量化 | 仍需验证 |
 | --- | --- | --- | --- |
-| 澳门有较大的非本地雇员和现场服务行业 | 劳工局 2025 Q4：非本地雇员 155,068；酒店餐饮 53,888、建筑 25,721、房地产/商业活动 23,993。`E1` | 潜在场景数、访谈覆盖 | 这些行业是否愿意采用掌纹、是否存在核验痛点。`Q` |
 | 临时/受限现场可采用时限维护授权，但是否有人-凭证不一致风险未知 | NIST SP 800-171r3 讨论 maintenance authorization 和一次/极短期 temporary credential；ASIS 2023 的非代表性设施调查有 credential sharing 先例；两者均不适用于澳门。`E1 + Q` | 等待时间、人工工时、每次单人领取/授权点的例外/争议 | 澳门现场是否有同类流程；尾随/撑门不可由掌纹解决。`Q` |
 | 离线模板核验可少传输原始图像 | 可由本系统架构保证。`E1`（设计能力） | 原始图上传次数=0；模板大小；离线成功率 | 这是否产生客户愿付费价值；不等于 privacy-preserving / non-transferable credential。`Q` |
 | 降低未授权进入风险可有经济价值 | 合理但需要具体业务模型。`Q` | 安保巡检工时、停工时间、审计覆盖 | 不能先假定能减少事故、损失或非法用工。 |
@@ -92,5 +91,4 @@
 
 - [澳门出入境 FAQ：生物识别资料包括指纹或掌纹](https://www.gov.mo/zh-hant/services/ps-1474/faqs/)
 - [澳门 GPDP：员工指纹/人脸身份建立](https://www.dspdp.gov.mo/en/abstract_detail_copy/article/l13avrww.html)
-- [澳门劳工局：2025 Q4 非本地雇员统计 PDF](https://www.dsal.gov.mo/download/pdf_en/statistic/nrworker/A5/A5_2025_12.pdf)
 - [ASIS 2023 access-control survey：方法与 Q34 设施事件](https://www.asisonline.org/globalassets/publications-and-resources/security-issues-research/2023-24/access-control/asis-2023-access-control-research-report.pdf)

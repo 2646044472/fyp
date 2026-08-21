@@ -25,6 +25,7 @@
 | [16-dynamic-terms-boundary-log.md](16-dynamic-terms-boundary-log.md) | 审计文献中 "dynamic" 与 "sequence" 的真实含义，防止将生成配对或空间 token 误写成物理时序/活体 | 每次研究主动采集或序列模型时更新 |
 | [17-active-illumination-neighbor-log.md](17-active-illumination-neighbor-log.md) | 精读配对 flash/non-flash 指纹近邻工作，界定主动光照在掌纹项目中的可借鉴与不可外推之处 | 每次设计 illumination protocol 或 PAD 对照时更新 |
 | [18-maintenance-story-evidence-log.md](18-maintenance-story-evidence-log.md) | 审计临时维护访问、工单和身份核验的证据，避免将参考架构写成澳门市场事实 | 每次更新应用故事、访谈或经济假设时更新 |
+| [19-sensing-reproducibility-log.md](19-sensing-reproducibility-log.md) | 审计 2025 smart palm sensing 的代码、数据与硬件边界，防止将 ROI 工件误当作 Pi 采集系统 | 每次选择 ToF/ROI/video baseline 时更新 |
 
 ## 当前工作结论
 
