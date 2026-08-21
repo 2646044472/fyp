@@ -10,7 +10,7 @@
 | P：公开 protocol 层 | PolyU-IITD v3、Tongji，或经许可的 X-Palm 这类 contactless RGB 数据 | B0 识别 pipeline 是否实现正确；session/cross-domain shift 是否被报告；与公开方法是否同量级 | Pi 的真实速度、NIR/ToF 增益、物理攻击和本采集盒泛化 | 开源或经许可数据上的 1:1 ROC/DET、FMR/FNMR、ROI failure 与复现脚本 |
 | S：自采传感层 | 经同意的 RGB、NIR、ToF、光照顺序、距离、session metadata | 主动采集是否改善本设备的 ROI/正常核验/攻击风险；Pi 的 p50/p95 和 memory | 全人群性能、澳门市场需求、生产级低 FAR 认证 | 预注册切分下的 B0/B1/B2/M 对比及不确定性说明 |
 
-公开数据的事实依据：IEEE 数据库目录列出 PolyU-IITD contactless v3 为 600+ subject、12,000+ 图像、两 session；IITD v2 为单 session。IAPR TC4 目录也列出 Tongji 的两 session、12,000 图像。资料入口见 [IEEE Biometrics Council](https://ieee-biometrics.org/resources/biometric-databases/contactless-palmprint/) 和 [IAPR TC4](https://iapr-tc4.org/palmprint-datasets/)。许可、申请和是否允许发布例图应在下载前再次核对。
+公开数据的事实依据：IEEE 数据库目录列出 PolyU-IITD contactless v3 为 600+ subject、12,000+ 图像、两 session；IITD v2 为单 session。Tongji [官方页](https://cslinzhang.github.io/ContactlessPalm/) 进一步说明 600 palms、两 session、每 session 每 palm 10 图、平均相隔约 61 天，且同名跨 session 文件属于同一 palm。资料入口见 [IEEE Biometrics Council](https://ieee-biometrics.org/resources/biometric-databases/contactless-palmprint/) 和 [IAPR TC4](https://iapr-tc4.org/palmprint-datasets/)。Tongji 页面虽给出 download link，但本轮未见明确 license/redistribution 条款；许可、申请和是否允许发布例图必须在下载前再次核对。
 
 [X-Palm (2026)](https://github.com/X-Palm/X-Palm-2026) 是更贴近“controlled enrollment -> unconstrained mobile probe”的补充候选：其 6,006 图、103 人/206 手的数据卡列出 scanner 六谱、80+ 手机及远近、姿态、flash、湿手与表面文字等条件，并提供 identity-disjoint open-set cross-domain split、固定 split JSON 和 benchmark code。数据需签 non-commercial academic EULA，训练脚本以 CUDA/RTX A6000 为环境；它没有 PAIS、ToF 或同步 RGB/NIR，且 gallery/probe 的 sample split 不等于跨日 session。因此仅在获批后作为 `P` 层 B0/domain-shift 对照，保留作者 split，不可代替 S 层传感/攻击实验或 Pi benchmark。
 
@@ -49,7 +49,7 @@ P0 的 [PalmMatchDB](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) 标�
 
 ### B0 不是复制旧 Pi 环境
 
-PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Raspberry Pi 4B 的 32 位 Buster、Python 3.7 和预发布 ARMv7 PyTorch wheels。它不能作为今天的默认安装方案，也不应因“能跑”而成为长期部署依赖。先执行 Gate 0 的设备/OS/runtime 清点，再选择当前硬件能维护的 inference runtime；B0 的不变量只有：固定版本的 RGB ROI、embedding、注册模板、`1:1` score 和 development-set 冻结阈值。
+PPNet 的代码与 metrics 可帮助定义 B0，但其公开 Pi guide 基于 Raspberry Pi 4B 的 32 位 Buster、Python 3.7 和预发布 ARMv7 PyTorch wheels。当前 repo 虽可在 CUDA 不可用时走 CPU、产生 512-D feature/L2 score 和 session file list，预训练 weights 却只指向外部网盘，GitHub release 无模型 asset，且 `torch.load` 没有 CPU `map_location`。它不能作为今天的默认安装方案，也不应因“能跑”而成为长期部署依赖。先执行 Gate 0 的设备/OS/runtime 清点，再选择当前硬件能维护的 inference runtime；B0 的不变量只有：固定版本的 RGB ROI、embedding、注册模板、`1:1` score 和 development-set 冻结阈值。
 
 因此最小 demo 的通过条件应是可重复地保存：设备/OS/architecture、runtime/model hash、enrollment 与 probe 的匿名 ID、score、阈值、accept/reject、ROI failure 及 capture-to-decision timestamp。它不以迁移某个旧 PyTorch wheel 或复现作者机器上的数字为通过条件。
 

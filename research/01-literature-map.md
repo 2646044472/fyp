@@ -29,7 +29,7 @@
 | [Liu et al., CAAP, 2026](https://arxiv.org/abs/2604.06987) | 威胁模型、物理攻击、消融、结论 | `E1`，预印本 | 提出考虑打印和采集变化的可复用、十字形物理对抗贴片；在 Tongji、IITD、AISEC 和多个识别器上测白盒攻击、迁移与 print-and-capture。 | 最接近的攻击动机与高级攻击基线。先复现低风险物理攻击；不要直接套用其 ASR 或宣称 NIR 可防御。 |
 | [Shaheed et al., PAD systematic review, 2024](https://doi.org/10.1016/j.engappai.2023.107569) | 摘要 | `E2` | 总结深度 PAD，强调跨攻击、材料、传感器的泛化困难。 | PAD 必须报告 APCER/BPCER 与未知攻击条件，不能只报 accuracy。 |
 | [Li & Ramachandra, fingerprint PAD survey, 2023](https://arxiv.org/abs/2305.17522) | 摘要 | `E2`，预印本综述 | 总结接触、无接触、手机指纹 PAD 的攻击材料、数据和方法。 | 用来学习 PAD protocol，不用于把指纹数字外推到掌纹。 |
-| [Xiong et al., HiChrom-MAE, ICMR 2026](https://dblp.org/rec/conf/mir/XiongHCLF26) | 书目信息与标题 | `E2` | 2026 已出现专门的 palmprint PAD 会议论文。全文尚待取得并精读。 | “做一个掌纹 PAD 分类器”本身已不新；需要在传感、协议、威胁模型或边缘测量上区分。 |
+| [Xiong et al., HiChrom-MAE, ICMR 2026](https://doi.org/10.1145/3805622.3810599) | 正式 metadata/abstract | `E2` | 摘要称在七个 domain 上以 high-frequency residual 与 chromaticity alignment 做 cross-medium palmprint PAD；正文/工件仍待取得。 | “做一个 frequency/chromaticity PAD 分类器”本身也不新；需要在传感、协议、威胁模型或边缘测量上区分。 |
 | [Geissbuhler et al., sweet, 2024](https://arxiv.org/abs/2404.09376) | 传感与限制段落 | `E1`，预印本 | 开放模块化无接触手部平台覆盖 multi-NIR、RGB、立体视觉和 photometric stereo；反射式 NIR 可无接触但信号较弱、环境敏感。 | 3D 盒子/RGB+NIR 的存在不是贡献；先确认本实验室 NIR 的光学质量与同步方式。 |
 | [Garcia et al., challenge-response formalism, 2022](https://doi.org/10.1186/s13635-022-00131-y) | PAD、challenge-response 形式化段落 | `E1` | 把“是不是某人”与“是否为真实呈现”统一为阈值决策；challenge-response 给生物呈现加入 freshness。 | 主动短序列可以有明确安全动机，但并不自动证明某种掌纹 challenge 有效。 |
 | [ISO/IEC 30107-3:2023](https://www.iso.org/standard/79520.html) | 范围与评测/报告要求 | `E1`，标准元数据 | 定义 PAD 性能评估和已知攻击分类，范围限于采集装置处的 presentation attack。 | 项目需把 sensor-level PAD 与模板库、通信、门锁控制等其他攻击面分开。 |
