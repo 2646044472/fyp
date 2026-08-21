@@ -70,6 +70,29 @@ ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST S
 
 质量 gate 需要透明处理。HGAIQA 在其协议中显示手部几何、平坦度、亮度和清晰度会影响 contactless palmprint performance；但本项目不能通过事后丢弃失败样本来提高数字。任何 quality reject 都是用户可见结果，须纳入重采次数、BPCER 和 interaction time。
 
+### 5.1 Edge 测量 protocol：不要把模型推理当成完整开门交互
+
+本项目不宣称符合 MLPerf。这里借用其可复现原则：在同一质量/同一版本下分开报告 accuracy、latency 与 energy；完整硬件和软件栈必须可辨认；性能模式不能换成一套不同于准确率实验的代码。见 [MLPerf Tiny rules](https://github.com/mlcommons/tiny/blob/master/benchmark/MLPerfTiny_Rules.adoc) 与 [MLPerf Tiny 测量说明](https://mlcommons.org/2026/07/mlperf-tiny-v1-4-results/)。
+
+| 测量 | 起止点 | 样本与报告 | 它回答什么 | 不可替代为 |
+| --- | --- | --- | --- | --- |
+| `T_model` | 已载入 model 后，embedding runtime 调用前后 | warm-up 后，对同一 frozen ROI 重复至少 100 次；p50/p95/min/max | matcher 的纯 runtime 成本 | 真实用户等待时间 |
+| `T_pipeline` | 收到已存在的 RGB/NIR/ToF frame 到产生 decision | 以同一组真实 capture 对 B0/B1/B2/M 重放；每阶段 monotonic timestamp | pre-process、ROI、gate、matcher 的软件成本 | 相机、光源、ToF 的等待 |
+| `T_interaction` | 设备发出“请呈现”指令到给出 success/failure/retry | bona fide 成功、quality reject、match reject 和每一 PAIS 都分层；报告 p50/p95、重采次数及分位数置信区间 | 人真正等待的端到端时间 | 只有 model 的 FPS |
+| `T_startup` | 进程/服务启动到可接受首次呈现 | 冷启动至少重复 10 次，单列报告 | 断电恢复或 watchdog 后的体验 | steady-state interaction latency |
+
+**一次实验前固定和公开的环境。** 记录 Pi 型号/RAM、OS image/kernel、CPU governor、GPU/NPU delegate、runtime 与版本、线程数、模型 hash/精度、相机/ToF driver、RGB/NIR resolution/fps/exposure/gain、NIR 波长/电流、IR-cut 状态、供电器、散热器/风扇、室温与设备温度。每轮先 warm-up；轮次随机交错 B0--M，而不是把较重版本总放在最后。开始/结束时记录 CPU 温度与 throttling 标志。遇到 thermal throttle、掉帧、sensor timeout 或重启，保留为失败记录，不从分位数样本中静默删除。
+
+**时间和内存。** 同一程序在准确率与性能测量中运行；日志使用 monotonic clock，至少写出 `capture request`、各模态 ready、ROI、gate、embedding、matching、decision、UI/relay signal 的 timestamp。分别报告 stage latency 与 `T_interaction`，并说明 capture 是否同步。peak RSS 测主进程及其子进程的峰值，而不只看 Python/TFLite 的一段；另列模型文件、加载后常驻 RAM 与一人模板大小。若需要关闭磁盘 debug log 才能稳定运行，应报告该 operational mode，不能同时宣称它是 production audit configuration。
+
+**能耗。** 有外接、校准或说明精度的 5 V 输入端功率计时，先量至少 5 分钟 idle，再对每个版本连续运行固定数量 `N` 次、至少三批，并记录总能量 `E_batch` 与时长 `T_batch`。在同一 idle 配置下计算：
+
+`E_incremental_per_interaction = (E_batch - P_idle * T_batch) / N`
+
+同时报告 idle W、batch average W、总输入能量/interaction 和上述增量值，明确这是**整机输入端**能量，不是模型的“J/inference”。批处理可以降低廉价仪表的分辨率误差，但不能消除相机、NIR、ToF、风扇和 UI 的真实成本。没有外接仪表时，只报告 time、temperature 和 memory；CPU utilization 或额定功耗不可改名为能耗结果。DeepEdgeBench 也将 idle power 与持续 inference 的能量分开，因此不同工作负载下的“更省电”不能只由 model latency 推断。见 [DeepEdgeBench](https://arxiv.org/abs/2108.09457)。
+
+**最低可复现实验包。** 保存版本锁定文件、模型 hash、每轮原始 timestamp CSV、sensor configuration、功率计型号/照片/采样率、失败记录、生成汇总表的脚本和不包含生物帧的 example log。绝不在日志中出现真实姓名、掌纹图、模板或门禁记录。
+
 ## 6. 结果的继续/退出条件
 
 进入 M 的条件：B0 先完成且 P/S 层均能稳定取 ROI；NIR/ToF 输出在 session 内有可解释、可重复的 metadata。
