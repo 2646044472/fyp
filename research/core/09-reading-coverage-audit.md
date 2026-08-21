@@ -63,6 +63,7 @@
 3. **RegPalm 正文与实际下载 metadata。** 当前已核验 dataset/code 边界；如未来需要比较其数值，仍须拿到正文 split、预训练权重和获批数据，而不是只依赖 README。
 4. **template protection 的原始 security analysis。** 只有在放弃 PAD、转向可撤销模板时才升级为主读。
 5. **实验室实际 hardware manual/driver。** 这是最优先的非文献资料：NIR 是否原始可控、IR-cut、ToF 精度、同步、帧率和耗电将决定研究能否成立。
+6. **端侧 ROI 实测。** RDRLA、PKLNet 和轻量 ROI 已足以否定“自动 ROI/edge-aware ROI 无人做”；剩余问题是同一套 ROI baseline 在实验室真实 RGB/NIR/ToF 输入上的失败率、`T_ROI`、重采次数和 Pi 资源曲线。
 
 ## 4. 本轮的研究纪律
 

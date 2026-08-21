@@ -12,6 +12,7 @@
 4. **PAD 从分类走向未知域与物理呈现。** ICIP 2023、XJTU-PalmReplay 上的 2025 工作、CAAP 与 2026 HiChrom-MAE 表明 palmprint PAD 已是活跃方向；2026 PVASD 又在**掌静脉**提供大规模 2D/3D PA、数据与 benchmark 近邻。未知 display/camera/material，才是有效协议的一部分；但不能把 palm-vein 二分类数字误当成 palmprint `1:1` 的 IAPMR 或本机 NIR 结论。
 5. **传感器与采集控制不是免费信息，也不是空白。** 2010 年已有低成本可见光/NIR 四谱掌纹系统，2020 已有无接触 NIR+UV 同次 palm verification，2022 已有 dual-camera + 单点 ToF 的距离对齐，2025 又有距离/旋转/video registration 的完整 sensing 研究；`sweet` 和 HDC-Net 也表明 RGB/NIR/深度/掌静脉融合早有研究。`sweet` 的更具体教训是：即使有专用 trigger 和可编程灯光，仍要检查 frame 同步、实际灯序、光场和 registration，不能将软件请求序列当成传感事实。故固定多谱、ToF 对齐或智能采集本身都不是贡献；同步、标定、光学质量、对齐、数据需求和资源成本仍是必须实测的系统组成部分。
 6. **主动光照也不是空白。** 2020 年已有掌部 NIR/UV 系统随机化两帧顺序、比较其差异并建议重复采集；2026 IWBF 的指纹近邻又以连续 flash/non-flash pair 做 preliminary contactless PAD。前者未给 PAIS/IAPMR 协议，后者使用私有、较小的 print/display 数据，并明确受 pose/distance/temporal misalignment 与高保真 PAIS 限制。同步双波长的 palm biometrics 还已尝试用脉搏/SpO2 等动态信号提高 anti-spoofing。它们共同要求我们把 `2--3` 帧主动短序列如实定位为低开销、待测的 risk gate；随机顺序或帧差本身都不是创新，更不是生理活体证明。
+7. **“edge”必须先消歧。** PKLNet 的 `edge-aware regression`、Canny2Palm 的 `Canny edge` 和 RDRLA 的开放环境 ROI 都属于视觉边缘、ROI 或离线识别方法，不是 edge computing。RDRLA 已用 FVP-free adaptive ROI 处理复杂背景和自由姿态，但实验仍在 GV100 GPU，未报告 Pi/ARM、端到端 p95、RAM、热或能耗；因此我们的 edge 贡献只能由本机 capture-to-decision 测量和协议证明。详见 [`28-edge-term-and-lightweight-roi-reading-log.md`](../log/28-edge-term-and-lightweight-roi-reading-log.md) 与 [`29-open-environment-roi-rdrla-reading-log.md`](../log/29-open-environment-roi-rdrla-reading-log.md)。
 
 完整的反例与不可宣称事项见 [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md)。
 
