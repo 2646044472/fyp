@@ -21,11 +21,11 @@
 | --- | --- | --- |
 | B0 | 单帧 RGB -> ROI -> embedding -> fixed match threshold | 最小识别 baseline |
 | B1 | B0 + ToF/几何/ROI quality gate | 测量距离控制是否改善正常采集 |
-| B2 | 对齐 RGB + NIR 单次采集，采用固定的轻量 score/quality fusion | 测量第二光谱在不加时序挑战下的增益 |
-| M | 按设备随机指令顺序获得 2--3 帧 RGB/NIR，加 quality/risk gate 后再核验 | 主候选：测量主动短序列的净收益 |
+| B2 | 对齐 RGB + NIR 的固定序列，采用固定的轻量 score/quality fusion | 静态多光谱强对照；复核第二光谱在本硬件的增益，不将其称为新颖 |
+| M | 在身份 claim 后由设备即时选择、记录的 2--3 帧 RGB/NIR illumination challenge；加 quality/risk gate 后再核验 | **条件性候选**：只测其相对 B2 的额外 freshness/risk 收益，而非“多光谱 PAD”本身 |
 | MA | 先取得 ToF + 一帧 RGB；只在预冻结的 quality/score uncertainty rule 触发时才进入 M | 次级 edge 对照：测量按需 NIR 是否保留风险收益而减少等待/能耗 |
 
-先在 development split 设定 match threshold 与 gate 规则，之后冻结。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
+先在 development split 设定 match threshold、B2 的固定序列与 M 的 challenge space/随机生成规则，之后冻结。M 的 challenge 必须在 claim 后生成并写入不可改写的实验日志；攻击样本需要按确实面对的 challenge 分层，不能把同一静态多谱样本冒充为应答。所有版本尽可能共享同一 ROI/identity matcher；否则无法区分“采集策略”与“换模型”的影响。
 
 `MA` 不是新的 fusion 声称。它的测量需加：escalation rate（按 bonafide、impostor、每 PAIS、session 分层）、未升级但最终放行的攻击比例、每 interaction 的 NIR 时间/能耗和 fallback。若 `MA` 以错过攻击为代价换来较低平均成本，则不得称为 edge 优化。
 
@@ -100,8 +100,8 @@ ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST S
 
 ## 6. 结果的继续/退出条件
 
-进入 M 的条件：B0 先完成且 P/S 层均能稳定取 ROI；NIR/ToF 输出在 session 内有可解释、可重复的 metadata。
+进入 M 的条件：B0/B2 先完成且 P/S 层均能稳定取 ROI；NIR/ToF 输出在 session 内有可解释、可重复的 metadata；并可证明 M 的随机 challenge 与 B2 固定序列是不同的 capture protocol，而非同一组帧的重新排序。
 
-继续主线的条件：M 在至少一个未见 PAIS 或 session 中，较 B0/B1 降低 IAPMR 或 APCER，同时 BPCER、ROI failure 与 p95 interaction time 不超过在实验前确定的预算。
+继续 M 的条件：M 在至少一个未见 PAIS 或 session 中，相对 **B2 静态多光谱** 进一步降低 IAPMR 或 APCER，同时 BPCER、ROI failure、p95 interaction time 与输入端能量不超过在实验前确定的预算。只胜过 B0/B1 而不胜过 B2，不足以支撑主动 challenge 的论文主张。
 
 退出主线的条件：增益只来自已见材料、只靠增加 bona fide 重采得到，或硬件不能同步/稳定提供所宣称的模态。退出并非失败：结果应收敛为 Pi 上的采集质量与部署 trade-off 报告。

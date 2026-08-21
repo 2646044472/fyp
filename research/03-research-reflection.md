@@ -20,7 +20,7 @@
 
 不成立。ICIP 2023 已研究掌纹 anti-spoofing 的跨域泛化，2025 的 DAPANet/HFSRA 又以 XJTU-PalmReplay 的 display-capture domain 测未知域；CAAP 则将可复用、print-and-capture 的对抗贴片作为攻击问题，2026 ICMR 还有专门的 palmprint PAD 论文。更广的 PAD 文献也一直把未知材料、未知传感器和未知环境的泛化作为难点。
 
-**因此：** 若最终只训练一个 `bonafide / attack` 分类器并在随机切分上报 accuracy，应视为失败的研究定位。真正要证明的是，在预先写清的未知攻击条件下，采集策略是否降低最终放行风险，并且代价可接受。
+**因此：** 若最终只训练一个 `bonafide / attack` 分类器并在随机切分上报 accuracy，应视为失败的研究定位。更重要的是，2010 年的 online multispectral palmprint system 已用 visible/NIR 固定多谱采集和纸张攻击讨论 antispoof/liveness；故“RGB/NIR 短序列能挡打印”也不能作为本项目的创新。真正要证明的是，预冻结的随机 challenge 是否相对**静态多谱 B2**在未知攻击条件下进一步降低最终放行风险，并且代价可接受。
 
 ## 2. 当前可 defend 的最小研究主张
 
@@ -30,9 +30,9 @@
 
 而是：
 
-> 在由 Raspberry Pi 级采集盒约束几何的无接触掌纹 `1:1` 核验中，一个轻量的、随机化 RGB/NIR 主动采集与质量风险 gate，是否能相较单帧 RGB，降低指定攻击族在**最终核验通过**中的成功率；这种增益是否仍能在未见材料/未见采集 session 中保留，并且不造成不可接受的真人误拒与时延？
+> 在由 Raspberry Pi 级采集盒约束几何的无接触掌纹 `1:1` 核验中，一个轻量的、session-random RGB/NIR illumination challenge 与质量风险 gate，是否能相较**固定 RGB/NIR 多谱采集**，降低指定攻击族在**最终核验通过**中的成功率；这种增益是否仍能在未见材料/未见采集 session 中保留，并且不造成不可接受的真人误拒、时延与能耗？
 
-这里“随机化”只指每次采集所要求的光照/帧次序由设备即时选择。它可能给二维重放制造 freshness 检查，但攻击者若使用真实手或能随光照变化的高级假体，仍可能通过。故它是一个**可测风险控制**，不是密码学保证，也不是普遍 liveness proof。
+这里“随机化”只指每次采集所要求的光照/帧次序由设备在 claim 后即时选择并记录。它与早期静态多谱系统不同的可能性是对**预先录制的静态/固定序列重放**加入 freshness 检查；但这仍只是待测假设，攻击者若使用真实手、能随光照变化的高级假体或能实时驱动显示的攻击装置，仍可能通过。故它是一个**可测风险控制**，不是密码学保证，也不是普遍 liveness proof。
 
 还要避免把它与生理活体混同：已有 palm biometrics 工作通过同步双波长和较长的动态信号提取脉搏/SpO2 来提升 anti-spoofing。若现有设备没有足够帧率、光学稳定性和经验证的 signal pipeline，`2--3` 帧短序列只能研究 freshness/quality，不可声称检测生命体征。
 

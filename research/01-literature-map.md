@@ -18,7 +18,7 @@
 | --- | --- | --- | --- | --- |
 | [Aberni et al., Multispectral Palmprint Review, 2017](https://doi.org/10.1109/TSP.2017.8076097) | 摘要/全文片段 | `E2` | 多光谱掌纹中，NIR 可显现静脉等与可见光互补的信息。 | 不能声称 RGB+NIR fusion 新颖；新意必须在主动采集、安全与边缘测量。 |
 | [Amrouni & Benzaoui, 2024](https://doi.org/10.3390/app14010153) | 数据集段落 | `E2` | PolyU-MS 为 250 位受试者、红绿蓝/NIR、多 session 的受控多光谱数据。 | 可作为光谱 baseline 候选，但其固定采集装置不等于真实 Pi 采集盒。 |
-| [Zhang et al., online multispectral verification, 2009](https://research.polyu.edu.hk/en/publications/an-online-system-of-multispectral-palmprint-verification/) | 摘要 | `E2` | 四种光照的采集设备已能在少于 1 秒采集。 | 硬件快速多光谱并非新；低成本 Pi、物理攻击和 edge trade-off 才是潜在差异。 |
+| [Zhang et al., online multispectral verification, IEEE TIM 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf) | 硬件、采集、anti-spoof、速度和结论全文 | `E1` | 低成本 visible/NIR 四谱系统用 470/525/660/880 nm LED、单色 CCD 和 controller 在 <1 s 采集；用纸张打印攻击，提出 Blue--NIR reflectance difference 为 liveness 线索。 | 固定多谱、低成本采集、纸张 anti-spoof 都不是新；M 必须相对静态 B2、未见 PAIS 与 Pi 成本证明随机 challenge 的额外价值。 |
 | [GRGIntech PRM-001](https://www.grgintech.com/product/prm-001-palm-print-and-vein-recognition-module/) | 产品规格 | `E3` | 商用模组已公开组合 RGB+IR、距离、QR、补光与 palm print/vein。 | 不能将相同硬件组件/掌纹锁 demo 写成首创；产品性能声明需独立验证。 |
 
 ## C. 物理攻击与 PAD
