@@ -53,7 +53,7 @@
 | 方向 | 核心问题 | 最小 demo | 创新需要证明什么 | 风险 | 当前决定 |
 | --- | --- | --- | --- | --- | --- |
 | A. 可撤销跨设备模板 | 同一人跨设备通过，但泄露模板可换、不同点位不可关联 | 两设备注册/验证 + key rotation | 跨设备 TAR、重发后旧模板失效、不可关联/不可逆分析 | 密码学与跨域数据工作量都大 | 备选 |
-| B. 随机 illumination challenge gate | 固定多谱已能处理部分纸张攻击后，claim 后随机 RGB/NIR challenge + ToF/quality 是否还能降低重放/贴片误放行 | 采集盒指引距离；`B2 静态多谱`、`M 随机 challenge`、正常/打印/屏幕/普通贴片的 through/reject 对照 | 未见攻击材料上相对 B2 的 IAPMR/APCER、BPCER、p95 与输入端能耗 | 随机短序列可能无额外增益；缺公开数据，要合规自采 | **条件性候选** |
+| B. 随机 illumination challenge gate | 固定多谱已能处理部分纸张攻击后，claim 后随机 RGB/NIR challenge + ToF/quality，且 verifier 能检验预定义 response relation，是否还能降低重放/贴片误放行 | 采集盒指引距离；`B2 静态多谱`、`M 随机 challenge + relation check`、正常/打印/屏幕/普通贴片的 through/reject 对照 | 未见攻击材料上相对 B2 的 IAPMR/APCER、BPCER、p95 与输入端能耗 | 短序列可能无可验证 relation 或无额外增益；缺公开数据，要合规自采 | **条件性候选** |
 | C. Edge measurement/quality orchestration | 在 Pi 级设备上，何种采集质量与模型预算给出最佳可用性 | B0 + ToF 重采 + latency dashboard | ROI failure、TAR/FAR、p50/p95、内存/功耗与使用时间的 Pareto 前沿 | 容易变成工程报告而非新方法 | 必做 baseline / 作为 B 的支撑 |
 
 ## 5. 推荐论文题目草案
@@ -75,7 +75,7 @@
 
 ### 阶段 1：决定是否继续方向 B
 
-对照必须包含：`RGB 单帧`、`RGB + ToF quality gate`、`RGB/NIR 单帧`、`RGB/NIR 短序列 gate`。攻击从打印、屏幕重放和非对抗性纹理开始；每类材料、攻击者、距离、角度、光照和 session 分开。未知材料/未知 session 必须留在测试集。
+对照必须包含：`RGB 单帧`、`RGB + ToF quality gate`、`RGB/NIR 单帧`、`RGB/NIR 短序列 gate`，其中 M 还必须记录并检验每次 challenge 的 response relation；做不到时不得把它当 freshness/security 对照。攻击从打印、屏幕重放和非对抗性纹理开始；每类材料、攻击者、距离、角度、光照和 session 分开。未知材料/未知 session 必须留在测试集。
 
 继续 B 的最低条件：相对 B2 静态多谱，正常用户体验没有明显恶化，并出现可量化、未见 PAIS/session 上的攻击/质量净增益。否则保留 C 为清晰的嵌入式测量项目，或与老师讨论改为 A。
 

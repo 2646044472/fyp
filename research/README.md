@@ -22,7 +22,7 @@
 ## 当前工作结论
 
 1. 最小 demo 先完成无接触 RGB 掌纹 `1:1 verification`、ROI、阈值和端侧测量；它是仪表盘，不是论文贡献。
-2. 条件性候选主线是：`ToF 固定几何 + claim 后随机 RGB/NIR illumination challenge + 风险门控`，但它必须相对静态多谱 B2 在未见 PAIS 与 edge 成本上证明额外价值；否则只保留采集质量/测量研究。
+2. 条件性候选主线是：`ToF 固定几何 + claim 后随机 RGB/NIR illumination challenge + verifier 检验的 response relation + 风险门控`。它必须相对静态多谱 B2 在未见 PAIS 与 edge 成本上证明额外价值；没有 response relation 时它只是动态采集，候选安全主张停止。
 3. 澳门只作为访谈与数据治理约束地点，不作为“没有掌纹”的市场空白；已有局部掌纹/掌静脉支付先例。应验证受控工作现场是否存在尚未被合理满足的离线、隐私和抗伪造需求。
 4. 当前不把“识别非法劳工”作为应用宣称。系统只能确认某人是否匹配授权名册；法律身份和劳动资格仍须由有权系统和人工流程判定。
 5. `edge` 只表示本地 capture/inference 与更小的数据流，不等于完整隐私、模板保护或侧信道安全。

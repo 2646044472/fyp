@@ -58,16 +58,17 @@ CAAP 预印本明确评估了印刷后采集的可复用掌纹对抗贴片，并
 
 ### 步骤 E：在三个方向中收敛
 
-可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索，因此主动多传感不能再直接列为主创新；只有 claim 后随机 illumination challenge 在未见 PAIS/session 中相对静态多谱 B2 有额外净收益时，才保留为条件性候选。否则项目收敛为 Pi 上的采集质量、攻击边界与端侧 trade-off 测量。
+可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索，因此主动多传感不能再直接列为主创新；只有 claim 后随机 illumination challenge **并由 verifier 检验预定义 response relation**，且在未见 PAIS/session 中相对静态多谱 B2 有额外净收益时，才保留为条件性候选。否则项目收敛为 Pi 上的采集质量、攻击边界与端侧 trade-off 测量。
 
 ## 4. 可证伪的主假设
 
-> 在固定采集几何的 Raspberry Pi 级无接触掌纹终端中，`ToF 距离门控 + RGB/NIR 2--3 帧主动短序列` 是否能在相同身份核验 FAR 下，降低攻击误放行和 ROI 失败，同时把端到端 p95 延迟保持在可交互范围？
+> 在固定采集几何的 Raspberry Pi 级无接触掌纹终端中，`ToF 距离门控 + RGB/NIR 2--3 帧主动短序列` 若能检验预定义的 illumination-response relation，是否能在相同身份核验 FAR 下，降低攻击误放行和 ROI 失败，同时把端到端 p95 延迟保持在可交互范围？
 
 它会被以下结果推翻：
 
 - ToF 不能显著降低 ROI failure rate 或反而造成很多正常重采；
 - NIR/短序列对未见攻击材料没有超过 RGB 单帧，或只在随机切分时有效；
+- 硬件无法输出可重复、可验证的 response relation；此时短序列只保留为动态采集，停止 freshness/security 主张；
 - 攻击拦截提升需要不可接受的真人 BPCER、时延、功耗或采集盒成本；
 - 访谈显示真实现场并不需要此类离线身份核验。
 

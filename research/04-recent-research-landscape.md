@@ -95,7 +95,7 @@
 
 ### 仍值得验证的候选贡献
 
-> 为 Pi 级、受限几何的 RGB/NIR/ToF 无接触掌纹 `1:1` 核验建立一个**主动采集风险门控协议**：用固定的真实身份阈值，在材料和 session 留出的物理攻击条件下，量化短序列策略对 `IAPMR / APCER / BPCER / ROI failure / p95 interaction time / memory` 的影响。
+> 为 Pi 级、受限几何的 RGB/NIR/ToF 无接触掌纹 `1:1` 核验建立一个**主动采集风险门控协议**：在 claim 后产生挑战，并检验预定义 response relation；用固定的真实身份阈值，在材料和 session 留出的物理攻击条件下，量化该策略对 `IAPMR / APCER / BPCER / ROI failure / p95 interaction time / memory` 的影响。
 
 这不是预先声称方法有效。它的研究价值来自严格的负结果也有信息量：若多传感策略只提高误拒或仅适用于已见材料，便说明该低成本 edge 设定不值得部署复杂 PAD。
 
