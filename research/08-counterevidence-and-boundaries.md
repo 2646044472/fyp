@@ -14,6 +14,7 @@
 | “屏幕/打印攻击只是理论” | [2022 研究](https://www.jmis.org/archive/view_article_pubreader?pid=jmis-9-2-103) 实际重拍 monitor/paper，并在其识别器与条件下发现泄露原图攻击风险。 | Gate 1 从最简单的 PAIS 开始，但完整记录屏幕、打印、距离、角度和光照。 |
 | “随机 RGB/NIR 2--3 帧等于 liveness” | [challenge-response formalism](https://doi.org/10.1186/s13635-022-00131-y) 只说明 challenge 可带来 freshness；攻击者可用能跟随挑战的高级 artefact。更强的 palm 研究会测脉搏/SpO2。 | 只写 `active quality/risk gate` 或 `freshness check`；不写活体证明。 |
 | “可见光 + NIR 多谱和纸张 anti-spoof 是新的 palm 主张” | [Zhang et al. 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf) 已做低成本四谱在线系统、<1 s 采集和一张 Blue palmprint 纸张攻击；其谱间反射关系被作者提为 liveness 线索。 | B2 必须是静态多谱对照。只有 session-random challenge 能在未见 PAIS 上额外优于 B2，且其随机性真的发生在攻击采集前，才保留主动策略假设。 |
+| “多谱同步采集且没有额外交互是新的” | [Stanuch et al. 2020](https://doi.org/10.3390/s20195695) 已做 contact-free NIR + UV 同次 palm verification；2020 也已有 smartphone palmprint print/display liveness 工作。 | M 的唯一待测差异应是 claim 后的随机 challenge 及其相对静态 B2 的净收益；不能把 two-light capture 或重拍纹理 PAD 命名为贡献。 |
 | “ToF 一定能拆穿假掌纹” | XJTU-PalmReplay 的 2025 RGB anti-spoofing 研究认为平面 palm 场景中 depth 可能不是主要线索；真实手掌上贴片又可能具有正常深度。 | ToF 首先是距离/几何/ROI 控制；只有未见 PAIS 的结果证明后，才称为 attack signal。 |
 | “RGB+NIR 多传感已足够新” | `sweet`、HDC-Net、双波长脉搏/SpO2 palm studies 都有多模态/多波长方案。 | 多传感只能作为控制变量，不能作为贡献名称。 |
 | “RGB/IR + 距离 + QR 的掌纹终端还没有产品” | GRGIntech 的 PRM-001 规格已公开列出 RGB+IR camera、5--12 cm distance sensor、QR、补光、palm print/vein 和 ARM/NPU。 | 不把硬件堆叠或掌纹锁 demo 写成创新；供应商数字未经独立验证，但足以否定“首个一体终端”。 |

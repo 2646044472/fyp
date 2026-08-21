@@ -83,7 +83,7 @@
 
 比较 `B0 RGB 单帧`、`B1 RGB + ToF quality gate`、`B2 RGB/NIR 单次`、`M RGB/NIR 随机 2--3 帧 gate`。阈值只在 development set 固定；测试按攻击材料和 session 留出。
 
-**继续条件：** M 相对 B0/B1 在至少一个未见攻击设定中降低 IAPMR 或 APCER，且 BPCER、ROI failure 和 p95 interaction time 保持在预先同意的预算内。
+**继续条件：** M 相对 **B2 静态 RGB/NIR 多谱** 在至少一个未见攻击设定中降低 IAPMR 或 APCER，且 BPCER、ROI failure、p95 interaction time 与输入端能耗保持在预先同意的预算内。仅优于 B0/B1 不足以支持主动安全主张。
 
 **暂停条件：** 增益只来自已见攻击材料、靠提高 BPCER 换取，或 Pi 的端到端交互时延不可用。
 
