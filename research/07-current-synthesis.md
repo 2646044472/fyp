@@ -66,4 +66,4 @@
 1. 用 [06-evaluation-and-data-plan.md](06-evaluation-and-data-plan.md) 的字段核对实验室硬件，完成 Gate 0。
 2. 下载或申请两 session contactless 数据，先跑 RGB B0；同时设计经同意的小样本自采表。
 3. 在老师批准的范围内做 print/screen Gate 1，并冻结 B0 阈值。
-4. 完成 5--10 个面向设施/物业/承办商的半结构访谈；若故事不成立，及时把项目写成 biometric measurement benchmark，而不是硬凑经济价值。
+4. 完成 5--10 个面向设施/物业/承办商的半结构访谈，询问手套、污渍、伤口、重采和 fallback 是否影响流程；若故事不成立，及时把项目写成 biometric measurement benchmark，而不是硬凑经济价值。

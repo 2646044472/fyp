@@ -28,7 +28,7 @@
 
 ### 必须记录的每次呈现字段
 
-`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、曝光/增益、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。
+`subject pseudonym`、左右手、session id、日期/时间、设备与软件版本、相机型号、镜头、RGB/NIR 模态、NIR 波长/电流、ToF 距离及方差、曝光/增益、光照顺序、环境光条件、手掌距离/角度、ROI success/failure、quality score、操作者、attack class/PAIS、攻击材料与制作条件、是否用于 train/dev/test。另标记可见的 glove/污渍/水分/贴布或伤口、遮挡和无法完成标准姿势的情况；不记录不必要的健康诊断。
 
 原始帧只用于获同意的研究目的；默认只在加密的研究设备/受控存储中保存。需要保存的最小结果日志为：匿名 session id、版本、成功/失败、quality/gating reason、延迟。不要把真实人名、工单或门禁记录混入研究集。
 
@@ -67,6 +67,8 @@
 | edge | interaction p50/p95、每阶段耗时、peak RSS、模型/模板大小、功耗或能耗代理 | 在同一 Pi、相同热状态和固定运行模式测量 | 手机/GPU延迟不能代替 Pi 测量 |
 
 ISO/IEC 30107-3 的范围是采集处 PAD，不覆盖整体系统安全；NIST SOFA 明确区分 APCER 与 IAPMR。故结论要写成“在本设备、这些 PAIS、该阈值和该测试集下”，不写成“证明活体”或“系统全面安全”。
+
+质量 gate 需要透明处理。HGAIQA 在其协议中显示手部几何、平坦度、亮度和清晰度会影响 contactless palmprint performance；但本项目不能通过事后丢弃失败样本来提高数字。任何 quality reject 都是用户可见结果，须纳入重采次数、BPCER 和 interaction time。
 
 ## 6. 结果的继续/退出条件
 
