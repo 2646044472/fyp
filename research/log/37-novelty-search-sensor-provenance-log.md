@@ -20,6 +20,12 @@
 3. 将 **sensor health**、**environment/target limitation**、**task confidence**、**residual observability** 分开标注或评估；
 4. 用继续/fallback/reacquire/recalibrate/abstain 等动作改变最终风险，并报告 recovery/energy/latency。
 
+### 新增近邻：不能忽略“已有动作闭环”
+
+检索又找到 [Sensing the Action](https://www.mdpi.com/1424-8220/26/11/3541)（2026）：该综述已经从 sensor-to-action 角度讨论 RGB-D 反射、同步、缺失、可靠性加权、延迟和安全评测；更早的 [Liu et al. 2017](https://arxiv.org/abs/1705.10422) 已在 TORCS 仿真里用 sensor dropout 和 policy switching 处理部分故障。它们排除了“传感器坏了就切换策略”这种泛泛表述。
+
+但两者都没有同时提供：低成本 RGB/NIR/ToF 真实采集事件、物理/同步故障的可核验根因、健康但任务不可观测的 hard-negative、Pi 端风险与恢复成本。因此候选题目必须使用这些限定词；否则应降级为已有 sensor-failure policy 的应用复现。
+
 这不是“没有任何相关研究”的证明。它只是截至 2026-08-27、按上述关键词和直接近邻论文反向检查得到的范围限定结论。
 
 ## 关键反证与为何仍保留

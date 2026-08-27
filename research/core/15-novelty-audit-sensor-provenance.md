@@ -24,8 +24,9 @@
 | [Zhiwei](https://pmc.ncbi.nlm.nih.gov/articles/PMC13418726/) | Pi 上 reference-free 多污染物传感器自诊断、离线 fallback。 | 是环境数值传感器而非 RGB/NIR/ToF 视觉；没有视觉几何/同步、下游视觉任务或剩余可观测性评测。 |
 | [GSHI camera monitor](https://arxiv.org/abs/2605.05439) | 单 RGB 相机、12 类退化、health index 和早期预警。 | 不是多模态、没有跨模态 root-cause isolation/动作闭环；为 KITTI-derived corruption 预印本。 |
 | [2026 autonomous-vehicle systematic review](https://www.mdpi.com/1424-8220/26/16/5316) | 明确区分 sensor health、task confidence、residual observability；建议未来开放 benchmark 同时标注物理退化、环境状态、perception 输出和响应。 | 是对自动驾驶文献的综合与议程，不是 RGB/NIR/ToF/Pi 实证；它支持问题重要性，不自动证明本项目首创。 |
+| [Sensing the Action VLA perspective](https://www.mdpi.com/1424-8220/26/11/3541) / [2017 multimodal sensor policy](https://arxiv.org/abs/1705.10422) | 已讨论 RGB-D 反射/同步/缺失、可靠性加权、sensor-to-action latency，以及仿真中 sensor dropout 后的 policy switching。 | 不是低成本 RGB/NIR/ToF 真实采集、故障根因/健康但不可观测区分，也没有本项目的 Pi 风险-恢复协议。 |
 
-因此可防守的最小主张是：**本轮检索未找到将这四层同时固定的直接工作：低成本 RGB/NIR/ToF 真实事件日志、根因/环境/任务可观测性分离、动作策略、edge 风险和恢复成本。**
+因此可防守的最小主张是：**本轮检索未找到将这四层同时固定的直接工作：低成本 RGB/NIR/ToF 真实事件日志、根因/环境/任务可观测性分离、动作策略、edge 风险和恢复成本。** 这不是“故障切换”或“多模态闭环”的首创声明，而是一个设备/标签/协议范围声明。
 
 ## 最小可证伪协议
 
