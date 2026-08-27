@@ -15,6 +15,7 @@ An agent should read these files in this order before adding a claim or proposin
 7. [`core/13-fyp-direction-shortlist.md`](core/13-fyp-direction-shortlist.md): one palmprint direction and three non-palmprint candidates with decision gates.
 8. [`core/14-research-synthesis-2026-08-27.md`](core/14-research-synthesis-2026-08-27.md): the shortest current summary after the second deep-reading round.
 9. [`core/15-novelty-audit-sensor-provenance.md`](core/15-novelty-audit-sensor-provenance.md): the current novelty audit and the evidence that would invalidate it.
+10. [`core/16-research-first-direction-set.md`](core/16-research-first-direction-set.md): the current research-first direction set, which supersedes the system-demo shortlist.
 
 The short rule is: **`core/` states what the project may currently claim; `log/` records how that conclusion was reached.** A detailed log alone is not sufficient evidence for a new project claim.
 

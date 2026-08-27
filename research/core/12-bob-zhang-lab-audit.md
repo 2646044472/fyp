@@ -24,7 +24,9 @@ Bob Zhang 在澳门大学 PAMI 组的工作并不是只有掌纹：它形成了�
 
 这给 FYP 的启发是：可以把掌纹换掉，仍然研究“**传感器不完美时，edge AI 如何可靠地融合、适应和降级**”。
 
-## 推荐方向排序（第二轮精读后解释）
+## 历史的系统优先排序（第二轮精读后解释）
+
+下表保留“为什么单纯做传感器闭环不够研究”的证据。它不再是当前推荐排序；用户提出该问题过于像 demo 后，当前的一掌纹加三非掌纹研究问题以 [`16-research-first-direction-set.md`](16-research-first-direction-set.md) 为准，并有 [`../log/38-research-first-candidates-log.md`](../log/38-research-first-candidates-log.md) 的近邻审计。
 
 | 排名 | 方向 | 为什么值得做 | 主要风险 |
 | ---: | --- | --- | --- |

@@ -22,6 +22,7 @@
 | [`13-fyp-direction-shortlist.md`](13-fyp-direction-shortlist.md) | One palmprint direction plus three non-palmprint candidates, with experiments and decision gates |
 | [`14-research-synthesis-2026-08-27.md`](14-research-synthesis-2026-08-27.md) | One-page current synthesis after the second deep-reading round |
 | [`15-novelty-audit-sensor-provenance.md`](15-novelty-audit-sensor-provenance.md) | Scope-limited novelty claim, direct-neighbor comparison, and falsification criteria |
+| [`16-research-first-direction-set.md`](16-research-first-direction-set.md) | Current one-palmprint plus three non-palmprint directions, each framed as a falsifiable research question |
 
 ## Update rules
 
