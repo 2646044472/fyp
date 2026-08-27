@@ -28,6 +28,7 @@
 | [`31-palm-id-mobile-system-reading-log.md`](31-palm-id-mobile-system-reading-log.md) | Palm-ID 2024 mobile app, time-separated protocol, model size, and non-transferable desktop timing |
 | [`32-edge-computing-palmprint-system-reading-log.md`](32-edge-computing-palmprint-system-reading-log.md) | 2022 edge-server/offloading palmprint architecture and what its abstract does not measure |
 | [`33-bob-zhang-pami-lab-audit-log.md`](33-bob-zhang-pami-lab-audit-log.md) | Full public publication map for Bob Zhang/PAMI, representative-paper reading, and non-palmprint FYP directions |
+| [`34-fyp-direction-deep-dive-log.md`](34-fyp-direction-deep-dive-log.md) | Deep-dive evidence, dataset/licence checks, and the four-direction shortlist |
 
 ## When to write a log
 

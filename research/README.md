@@ -12,6 +12,7 @@ An agent should read these files in this order before adding a claim or proposin
 4. [`core/06-evaluation-and-data-plan.md`](core/06-evaluation-and-data-plan.md): the proposed experiment, split rules, and metrics.
 5. [`core/05-evidence-ledger.md`](core/05-evidence-ledger.md): the source-level boundary before relying on a technical or market claim.
 6. [`core/12-bob-zhang-lab-audit.md`](core/12-bob-zhang-lab-audit.md): the Bob Zhang/PAMI research map and non-palmprint FYP shortlist.
+7. [`core/13-fyp-direction-shortlist.md`](core/13-fyp-direction-shortlist.md): one palmprint direction and three non-palmprint candidates with decision gates.
 
 The short rule is: **`core/` states what the project may currently claim; `log/` records how that conclusion was reached.** A detailed log alone is not sufficient evidence for a new project claim.
 
@@ -24,7 +25,7 @@ The short rule is: **`core/` states what the project may currently claim; `log/`
 
 ## Working loop
 
-1. Start with the five files above and state the decision being investigated.
+1. Start with the seven files above and state the decision being investigated.
 2. Search for primary sources, then classify each source as `E1` (full primary paper/data/code), `E2` (partial primary material), `E3` (publisher/vendor/secondary material), or `Q` (question to verify).
 3. Add a source-level row to [`core/05-evidence-ledger.md`](core/05-evidence-ledger.md). Update the map or landscape only when it changes the decision.
 4. Create or extend a file in [`log/`](log/README.md) for an intensive paper reading, artifact audit, or protocol argument. Record what was inspected, what was not accessible, and exactly what cannot be inferred.

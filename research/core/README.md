@@ -19,6 +19,7 @@
 | [`10-story-validation-plan.md`](10-story-validation-plan.md) | Interviews and observations needed to validate the story |
 | [`11-ai-assisted-research-protocol.md`](11-ai-assisted-research-protocol.md) | Auditable AI research workflow and citation discipline |
 | [`12-bob-zhang-lab-audit.md`](12-bob-zhang-lab-audit.md) | Bob Zhang/PAMI publication map and non-palmprint FYP direction decision |
+| [`13-fyp-direction-shortlist.md`](13-fyp-direction-shortlist.md) | One palmprint direction plus three non-palmprint candidates, with experiments and decision gates |
 
 ## Update rules
 
