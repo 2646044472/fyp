@@ -13,6 +13,7 @@ An agent should read these files in this order before adding a claim or proposin
 5. [`core/05-evidence-ledger.md`](core/05-evidence-ledger.md): the source-level boundary before relying on a technical or market claim.
 6. [`core/12-bob-zhang-lab-audit.md`](core/12-bob-zhang-lab-audit.md): the Bob Zhang/PAMI research map and non-palmprint FYP shortlist.
 7. [`core/13-fyp-direction-shortlist.md`](core/13-fyp-direction-shortlist.md): one palmprint direction and three non-palmprint candidates with decision gates.
+8. [`core/14-research-synthesis-2026-08-27.md`](core/14-research-synthesis-2026-08-27.md): the shortest current summary after the second deep-reading round.
 
 The short rule is: **`core/` states what the project may currently claim; `log/` records how that conclusion was reached.** A detailed log alone is not sufficient evidence for a new project claim.
 

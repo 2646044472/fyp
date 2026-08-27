@@ -7,9 +7,9 @@
 | 项目 | 数量 | 含义 |
 | --- | ---: | --- |
 | 文献图谱和近期图谱的带链接条目 | 71 | 覆盖 2023--2026 趋势、较早基础工作、标准、数据集目录、澳门资料和 Bob Zhang/PAMI 全量发表地图；包含 `E1`--`E3`，不能一律等价看待。 |
-| 证据账本条目 | 82 | 只收入会改变题目、协议、指标或范围的资料；本轮新增 RGB-D、MVTec AD、VisA 和 OpenOOD 的数据/许可/评测边界。 |
-| 已查看关键章节的原始/官方资料 | 约 82 | 在原有掌纹/PAD/edge/标准资料基础上，新增 PAMI 官方研究线与完整发表列表、OFTTA 全文与官方代码、PhenoProfiler Nature Communications 全文/Zenodo 入口、fatty-liver missing-view、QFormer、ODS-SAM、UPformer、Voice-AttentionNet，以及 RGB-D/工业异常/OOD 的官方资料。部分只能取得摘要/官方元数据；未把 GPU/医疗私有数据/研究组网页描述当作当前 FYP 实证。 |
-| 已精读的综述 | 1 | Gao et al. 的正式版已核对书目信息（IEEE TSMC-S 2026）；实际逐段阅读的是 arXiv v2 的任务、security/privacy、cross-domain、lightweight、datasets 和 outlook。未把它误写成逐页取得 IEEE 最终 PDF。 |
+| 证据账本条目 | 91 | 只收入会改变题目、协议、指标或范围的资料；本轮新增缺失模态综述、CVPR sensor-failure benchmark、CAFuser/MoME、EfficientAD、Real-IAD、BoTTA、OD-TTA、ELaTTA 和连续 TTA survey 边界。 |
+| 已查看关键章节的原始/官方资料 | 约 91 | 在原有掌纹/PAD/edge/标准资料基础上，逐段查看缺失模态综述的 taxonomy/open issues、传感器失败 benchmark 与代码 README、CAFuser 方法/消融、Real-IAD 数据/协议、EfficientAD 方法/效率/限制、CMF/Source-restoration/IST/BoTTA/OD-TTA/ELaTTA 的 TTA 机制和设备约束，以及掌纹综述的 open-set/data/security outlook。部分只能取得摘要/官方元数据；未把 GPU/医疗私有数据/研究组网页描述当作当前 FYP 实证。 |
+| 已精读的综述 | 2 | Gao et al. 的正式版已核对书目信息（IEEE TSMC-S 2026），实际逐段阅读 arXiv v2 的任务、security/privacy、cross-domain、lightweight、datasets 和 outlook；Wu et al. 的 missing-modality survey 已读到 taxonomy、应用、效率、streaming 和 open issues。未把任何预印本统计写成绝对的 novelty proof。 |
 
 “查看关键章节”不是从头到尾逐字阅读，也不意味着可复现论文；它足以判断研究问题和评测边界。每项技术声称仍需回到相应原文和代码/数据许可复核。
 
