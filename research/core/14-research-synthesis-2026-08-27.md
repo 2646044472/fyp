@@ -36,7 +36,7 @@ sensor/event log -> quality/uncertainty -> action policy -> task risk + recovery
 | 方向 | 结论 | 启动实验 |
 | --- | --- | --- |
 | 掌纹 P | 保留；以 `1:1` verifier 为 case study，研究质量感知采集、重采/拒答和攻击风险/资源 trade-off。 | RGB、RGB+ToF、静态 RGB/NIR、条件短序列四组；冻结阈值，留出 PAIS/session。 |
-| 多模态 A | 首选；算法新颖性中等，真实设备闭环交集最有机会。 | TUM/NYU RGB-D 先做完整、固定 fallback、质量加权、拒答四组，再接 Pi 故障日志。 |
+| 多模态 A | 首选；以故障溯源、剩余可观测性和 action policy 构成范围限定的新交集。 | TUM/NYU RGB-D 先做完整、固定 fallback、quality/router、溯源+动作四组，再接 Pi 故障日志。 |
 | TTA T | 第二；必须升级为视觉多模态流上的漂移检测、污染防护和安全冻结/回滚。 | 照度/相机/温度按时间注入突变和渐变，测最坏窗口、恢复时间、内存/能耗。 |
 | 异常 O | 第三；重点是未知缺陷留出、校准拒答和端侧成本，不是 MVTec 最高 AUROC。 | MVTec/VisA/Real-IAD 交叉训练，未知缺陷和样本级 risk-coverage，再测 Pi。 |
 

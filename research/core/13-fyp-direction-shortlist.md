@@ -6,7 +6,7 @@
 
 建议先把方向按下面顺序推进：
 
-1. **首选非掌纹：真实传感器失效下的多模态 edge vision 闭环**
+1. **首选非掌纹：低成本多传感器的故障溯源与安全降级**
 2. **掌纹保留方向：低成本多传感掌纹验证的条件式采集与安全拒答**
 3. **第二非掌纹：无标签测试时适应 + 安全回滚**
 4. **第三非掌纹：开放世界工业异常检测与不确定性拒答**
@@ -49,15 +49,17 @@
 
 需要实验室硬件能导出原始 RGB/NIR/ToF、曝光、灯控、距离和掉帧记录；若硬件不可控，先退回公开 RGB-D 数据并明确不宣称真实传感器结论。
 
-## 方向 A：缺失模态/质量感知的多模态 edge vision（首选）
+## 方向 A：传感器故障溯源、剩余可观测性与安全降级（首选）
 
 ### 工作题目
 
-> 面向低成本 RGB-D 设备的缺失模态感知视觉推理与安全降级
+> 面向低成本 RGB/NIR/ToF edge 设备的传感器故障溯源与安全降级
 
 ### 为什么值得做
 
-它把 Bob Zhang 的 incomplete multi-view、quality-aware representation、medical missing-view 和 edge reliability 汇成一个通用问题，而且不绑定生物识别。RGB、深度、红外或热成像在实际设备上会以**相关方式**缺失：反光导致深度失败、弱光导致 RGB 退化、遮挡导致局部模态失效。随机把一张图置零不能代表这个问题。第二轮也确认该算法领域已有专门 benchmark，因此 A 的创新性来自真实采集闭环和成本/风险联合协议，而不是重新提出 fusion。
+它把 Bob Zhang 的 incomplete multi-view、quality-aware representation、medical missing-view 和 edge reliability 汇成一个通用问题，而且不绑定生物识别。RGB、深度、红外或热成像在实际设备上会以**相关方式**缺失：反光导致深度失败、弱光导致 RGB 退化、遮挡导致局部模态失效。随机把一张图置零不能代表这个问题。
+
+更重要的是，低 confidence 不等于传感器坏了：可能是硬件/同步/标定故障，也可能是设备健康而目标本来不可见。A 的研究变量是能否分开这两种状态，判断剩余模态是否足够完成当前任务，再选择继续、fallback、重采、重新标定或拒答。2026 的 sensor-health review 已将这种 health/task-confidence/residual-observability 区分列为尚需实证的 benchmark 需求；目前未找到将它与 Pi 级 RGB/NIR/ToF、真实事件日志和 action-cost 同时评估的直接近邻。该表述是范围限定的检索结论，不是“世界上无人做过”。
 
 ### 可用数据与原型
 
@@ -65,15 +67,15 @@
 
 ### 最小可证伪问题
 
-质量感知融合是否比完整融合、固定单模态 fallback 在**相关缺失 + 未见设备/照度**下具有更低 selective risk，同时保持 edge 预算？
+在同一低 confidence episode 中，故障溯源策略能否比完整融合、固定 fallback 和 quality/router baseline 更准确地区分“sensor fault”与“healthy but insufficient”，并在**相关缺失 + 未见设备/照度**下以更低 accepted-task risk 完成正确动作，同时保持 edge 预算？
 
 ### 最小实验与指标
 
-任务先选一个可标注的小任务，例如物体类别/姿态/深度质量分级，不做“大而全”的多任务。比较完整融合、固定 fallback、质量加权、拒答/重采四组；按缺失机制和设备留出切分；报告 accuracy/mIoU 或深度误差、coverage-risk 曲线、校准误差、最坏故障窗口、p95、RAM、温度和能耗。
+任务先选一个可标注的小任务，例如物体类别/姿态/深度质量分级，不做“大而全”的多任务。每个 episode 保存 LED/state、frame id/timestamp、ToF return/variance、环境/目标状态和动作结果；比较完整融合、固定 fallback、quality/router、故障溯源 + action 四组；按故障机制和设备留出切分；报告 root-cause macro-F1、误报警/检测延迟、accuracy/mIoU 或深度误差、accepted-task risk/coverage、校准误差、重采成功/恢复时间、p95、RAM、温度和能耗。
 
 ### 创新边界与风险
 
-“缺失模态补全”已有论文，所以不能只训练一个 completion network。真正的变量应是故障检测、策略选择和最终任务风险。风险最低：公开数据易取得、无需生物伦理；主要风险是模拟故障与真实设备故障不一致，必须把二者分开报告。
+“缺失模态补全”、health score 和 quality-aware router 都已有论文，所以不能只训练一个 completion network 或换一个 router。真正的变量是**故障根因/任务不充分的分离、策略选择和最终任务风险**。风险最低：公开数据易取得、无需生物伦理；主要风险是模拟故障与真实设备故障不一致，必须把二者分开报告。新颖性边界和推翻条件见 [`15-novelty-audit-sensor-provenance.md`](15-novelty-audit-sensor-provenance.md)。
 
 ## 方向 T：无标签测试时适应 + 安全回滚
 
@@ -118,7 +120,7 @@ OFTTA 已在跨人传感器 HAR 上展示无梯度、低资源 test-time adaptat
 | 方向 | 新颖性潜力 | FYP 可行性 | 数据/伦理 | 硬件依赖 | 主要不可声称 |
 | --- | ---: | ---: | --- | --- | --- |
 | P 掌纹条件式采集 | 中高（系统协议交集） | 中 | 掌纹/攻击材料需审批 | 高 | 不是首个 edge 掌纹，也不是天然防伪 |
-| A 真实传感器失效闭环 | 中高（算法中等、系统交集高） | 高 | 公开 RGB-D，伦理低 | 中，后期可接 Pi | 模拟缺失不等于真实故障 |
+| A 故障溯源 + 安全降级 | 中高（系统协议交集） | 高 | 公开 RGB-D，伦理低 | 中，后期可接 Pi | 不能声称根因正确，除非有 event labels |
 | T TTA + 回滚 | 中高 | 中高 | 公开数据，伦理低 | 中 | 不是直接复现 OFTTA 的视觉版 |
 | O 异常检测 + 拒答 | 中高 | 中 | MVTec/VisA 许可要遵守 | 低到中 | 不是临床/工业全面安全保证 |
 

@@ -28,7 +28,7 @@ Bob Zhang 在澳门大学 PAMI 组的工作并不是只有掌纹：它形成了�
 
 | 排名 | 方向 | 为什么值得做 | 主要风险 |
 | ---: | --- | --- | --- |
-| 1 | **真实传感器失效下的多模态 edge vision 闭环** | 直接继承 PAMI 的 incomplete multi-view、quality-aware fusion 和 edge 系统问题；可用公开 RGB-D/多视图数据，之后再接实验室 RGB/NIR/ToF 设备。 | 2025 已有 sensor-failure benchmark、CAFuser 和 MoME；置零一个模态或再做 router 不够新，必须测真实相关失效、动作选择、拒答/重采、恢复和能耗。 |
+| 1 | **传感器故障溯源、剩余可观测性与安全降级** | 直接继承 PAMI 的 incomplete multi-view、quality-aware fusion 和 edge 系统问题；可用公开 RGB-D/多视图数据，之后再接实验室 RGB/NIR/ToF 设备。 | 2025 已有 sensor-failure benchmark、CAFuser 和 MoME；置零一个模态或再做 router 不够新，必须分离 sensor fault/healthy-but-insufficient、测动作选择、拒答/重采、恢复和能耗。 |
 | 2 | **无标签测试时适应 + 安全回滚** | OFTTA、BoTTA、OD-TTA 和 ELaTTA 已覆盖 edge 适应、周期性/按需触发、Pi 资源和无梯度单实例方法；剩余问题是具体视觉传感器流中的污染监控、最坏时间窗口、冻结/回滚和恢复成本。 | 适应可能越适应越错；需要严格 streaming protocol 和事件时间戳。 |
 | 3 | **任务感知的低照度/噪声复原** | 能利用 QFormer/频域/自监督去噪线，把“图像变漂亮”改成“下游任务是否更可靠且成本可接受”。 | 去噪算法竞争拥挤；若只报 PSNR，研究问题太弱。 |
 | 4 | **开放世界异常检测与不确定性拒答** | ODS-SAM、evidential/prototype anomaly 线提供强方法背景；工业公开数据可避免生物隐私。 | SAM/VLM 太重；需做轻量化和可解释评估。 |
