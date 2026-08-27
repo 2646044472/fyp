@@ -91,3 +91,9 @@ physical / timing sensor state
 ## 7. 结论
 
 S 不是“再造一个门锁”的理由，也不是 `sensor health score` 的创新。它是一个关于**信息何时足以支持哪种动作**的可反驳假设。相对 R，它与现有硬件的 observables 更匹配，且研究空隙能被近期综合审计表述得更清楚。因此当前非掌纹三候选排序应为：`S`（首选）、`T`（异步时间不确定性）、`O`（normal/shift/defect 三态）；R 保留为被否定后的备用问题，而非主候选。
+
+## 8. 与 Bob Zhang / PAMI 的关系：继承问题，不复制算法
+
+这一方向与实验室的关联是可解释的，但不能夸大：[TIMVC-IGC](https://ojs.aaai.org/index.php/AAAI/article/view/26340) 处理离线 incomplete multi-view clustering；[FADNet](https://ojs.aaai.org/index.php/AAAI/article/view/20088) 处理相机/ISP real-noise 的 input-conditioned denoising；[OFTTA](https://arxiv.org/abs/2310.18562) 则在跨人传感器 HAR 中处理资源受限的无标签 test-time adaptation。这三条线共同说明 PAMI 长期关心“输入不完整、失真或漂移时，表示如何仍可用”。
+
+它们**没有**提供 S 的主张：TIMVC-IGC 没有实时采集和动作；FADNet 以 reconstruction fidelity 为终点；OFTTA 没有 RGB/NIR/ToF 的物理故障、scene observability、重采或 action cost。故 S 不应把任一网络直接搬到 Pi 后称为实验室延续，而应以它们作为方法对照/设计灵感，贡献放在可复现的事件协议和被 baseline 推翻的 risk-cost 结果上。更早的团队审计与原文边界见 [`36-professor-other-directions-deep-read-log.md`](36-professor-other-directions-deep-read-log.md) 与 [`33-bob-zhang-pami-lab-audit-log.md`](33-bob-zhang-pami-lab-audit-log.md)。
