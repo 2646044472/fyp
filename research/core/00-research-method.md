@@ -2,7 +2,7 @@
 
 ## 0. 这次研究要回答什么
 
-方向已经固定为 `palmprint + edge`。本研究不从“能否训练一个更高 accuracy 的模型”开始，而依次回答：
+最初约束是 `palmprint + edge`，但在审计后，掌纹只保留为一个条件性方向，而不是不可质疑的前提。当前主短名单是掌纹 `P` 与非掌纹 `S/T/O`，见 [`16-research-first-direction-set.md`](16-research-first-direction-set.md)。本研究不从“能否训练一个更高 accuracy 的模型”开始，而依次回答：
 
 1. **需求：** 谁在什么工作流中因何付出成本，现有卡片、人脸或云端方案哪里不够？
 2. **技术：** 现有移动/端侧掌纹已经做到什么，现有 RGB/NIR/距离硬件还能带来什么增量？
@@ -11,17 +11,20 @@
 
 ## 1. 检索与筛选方法
 
-本轮检索时间：2026-08-21。使用的关键词分五类：
+本轮检索起于 2026-08-21，并持续更新至 2026-08-27。关键词从最初五类扩展到问题驱动的 direct-neighbor 检索：
 
 - `contactless palmprint mobile edge`, `Palm-ID`, `cross-sensor palmprint`；
 - `palmprint recognition survey`, `deep learning palmprint`；
 - `palmprint presentation attack`, `liveness`, `adversarial patch`；
 - `multispectral palmprint`, `NIR RGB palm vein`；
 - `Macao biometric data`, `Macao non-resident workers`, `biometric attendance`。
+- `palm PAD domain generalization`, `GBU-Palm`, `IAPMR matcher protocol`；
+- `biometric injection attack detection`, `virtual camera detection`, `physical visual challenge attestation`；
+- `restoration hallucination measurement consistency`, `sensor health task confidence residual observability`, `partial sensor fault action policy`。
 
 筛选优先级：同行评审综述/原始论文 > 作者或期刊的开放版本 > arXiv 预印本 > 官方澳门政府资料 > 供应商或媒体。预印本只用来形成待复验的研究假设，不作为定论。未找到可公开核实的澳门私营掌纹部署普及率，因此不把“澳门没有掌纹系统”写成事实。
 
-本轮实际精读/逐段核对：Palm-ID 的方法、数据和效率部分；CAAP 的威胁模型、物理攻击和消融部分；澳门劳工局第四季非本地雇员统计。其余资料按摘要或官方页面筛选并明确标注。完整条目见 [01-literature-map.md](01-literature-map.md)。
+本轮实际精读/逐段核对包括：Palm-ID、CAAP、GBU-Palm 全文、CEN/TS 18099 IAD 标准、virtual-camera detection、physical visual challenge attestation、restoration hallucination 的原始/官方材料，以及 sensor-health 系统综述与 MAMMOTH 全文。其余资料按摘要或官方页面筛选并明确标注。完整条目见 [01-literature-map.md](01-literature-map.md)，阅读边界见 [`09-reading-coverage-audit.md`](09-reading-coverage-audit.md)。
 
 ## 2. AI 怎样参与，怎样不参与
 
@@ -58,25 +61,46 @@ CAAP 预印本明确评估了印刷后采集的可复用掌纹对抗贴片，并
 
 ### 步骤 E：在三个方向中收敛
 
-可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索；2020 年又已有掌部随机 NIR/UV 顺序与跨帧差异检查，因此主动多传感、随机灯序或帧差不能直接列为主创新。只有 claim 后的实际 illumination state 可被记录，且 verifier 检验**预定义 response relation**、在未见 PAIS/session 中相对静态多谱 B2 有额外净收益时，才保留为条件性候选。否则项目收敛为 Pi 上的采集质量、攻击边界与端侧 trade-off 测量。
+可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索；2020 年又已有掌部随机 NIR/UV 顺序与跨帧差异检查，因此主动多传感、随机灯序或帧差不能直接列为主创新。
 
-## 4. 可证伪的主假设
+后续反证又否定了两条看似合理的扩展：IAD/virtual-camera detection/physical visual challenge 已有标准与直接工作，不能借“capture provenance”制造第五题；restoration hallucination 已有 measurement consistency、FDA assessment 与 data-consistent reconstruction，不能以“复原会编细节”作为 R 的一般创新。详细过程见 [`41-capture-provenance-and-restoration-audit.md`](../log/41-capture-provenance-and-restoration-audit.md)。
 
-> 在固定采集几何的 Raspberry Pi 级无接触掌纹终端中，`ToF 距离门控 + RGB/NIR 2--3 帧主动短序列` 若能检验预定义的 illumination-response relation，是否能在相同身份核验 FAR 下，降低攻击误放行和 ROI 失败，同时把端到端 p95 延迟保持在可交互范围？
+因此当前非掌纹首选是 S：把 `sensor health`、`environment/target observability`、`task confidence` 和 `residual observability` 分开记录，并评估由此选择的 action 是否降低最终任务风险。它不声称发明 fault diagnosis 或 fusion；其待验证空隙是 joint event labels、partial real faults、action-cost 与低成本 edge telemetry 的组合。详细审计见 [`42-sensor-state-action-audit.md`](../log/42-sensor-state-action-audit.md)。
+
+## 4. 当前可证伪假设
+
+### P：掌纹（条件性）
+
+> 在固定采集几何的 Raspberry Pi 级无接触掌纹终端中，若将 PAD 与冻结的 `1:1` matcher 串成系统，并按未见 PAIS material 和未见 capture device 双轴留出，device-conditioned accept/reject rule 是否能在固定 BPCER 和 edge budget 下控制系统级 IAPMR？
+
+这不是“RGB/NIR 主动短序列一定有用”的假设；GBU-Palm 数据的可得性、是否含 identity-preserving attack source、以及实验室是否有两个采集链，都是先决 Gate。
+
+### S：非掌纹（当前首选）
+
+> 在低成本 RGB/NIR/ToF edge 设备的受控真实事件中，显式分离 sensor state、environmental/target observability 与 task state，是否比 always-fuse、fixed fallback 和 quality router 更能在固定人工重试、延迟和能耗预算下减少高风险自动动作？
 
 它会被以下结果推翻：
 
-- ToF 不能显著降低 ROI failure rate 或反而造成很多正常重采；
-- NIR/短序列对未见攻击材料没有超过 RGB 单帧，或只在随机切分时有效；
-- 硬件无法输出可重复、可验证的 response relation；此时短序列只保留为动态采集，停止 freshness/security 主张；
-- 攻击拦截提升需要不可接受的真人 BPCER、时延、功耗或采集盒成本；
-- 访谈显示真实现场并不需要此类离线身份核验。
+- 对 P：GBU-Palm 或其他工作覆盖 frozen matcher/IAPMR/edge protocol；或没有 cross-device/PAIS 留出和合法攻击材料；
+- 对 S：只有 random whole-modality masks，而没有 partial physical fault、healthy-but-unobservable hard negative 或 telemetry；
+- 对 S：state-separated action 在预冻结预算下不优于 fixed fallback/router 的 risk-cost Pareto；
+- 对任一方向：硬件不能导出其必须的 raw/telemetry 字段，或数据/访谈不支持问题的实际边界。
 
 ## 5. 下一轮研究与实验记录模板
 
 每新增论文记录：问题、传感器、数据集与切分、威胁模型、指标、设备、核心结果、作者承认的限制、与本项目关系、证据等级。
 
 每新增实验记录：硬件版本、光源/距离、参与者与同意版本、数据切分、阈值从哪里定、正常与攻击样本、TAR/FAR/EER、APCER/BPCER、ROI failure、p50/p95、失败视频编号和结论。
+
+### 每个候选都必须经过的 AI 辅助研究循环
+
+1. 写成一个能被 baseline 推翻的句子，同时写下**什么证据会迫使我们放弃**。
+2. 先检索同任务、同输入、同 evaluation 的 direct neighbor；不能只搜支持自己的关键词。
+3. 回到论文全文/官方标准/数据卡，抽取 input、split、threat model、metric、hardware、限制和 artifact 状态；搜索摘要只可作为线索。
+4. 将证据写入 ledger，并把结论分为 `retain`、`narrow`、`abandon` 或 `Q`，不可只留下“相关论文列表”。
+5. 若仍保留，先审数据与 telemetry 是否能回答该问题，再写模型；实验报告必须同时含成功、失败、资源与反例。
+
+本轮的 IAD/provenance、R 与 S 重审就是这个循环的实际样例。[官方 OpenAI Docs 的 research decision memo 工作流](https://learn.chatgpt.com/codex/use-cases)将 AI 研究整理为 evidence、trade-off 和 open questions；在本项目中，这对应 `core/` 的当前决策页、`log/` 的推理过程和 `05-evidence-ledger.md` 的逐条来源，而不是把模型输出当作事实。
 
 ## 参考：AI 辅助研究的使用原则
 

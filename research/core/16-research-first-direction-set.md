@@ -1,6 +1,6 @@
 # 四个研究优先的 FYP 方向
 
-最后更新：2026-08-27。此页取代“先有一个可用设备，再找应用”的思路。每个方向先有一个可证伪的研究假设，demo 只是验证它的工具。第二轮问题驱动审计见 [`../log/39-problem-driven-second-audit.md`](../log/39-problem-driven-second-audit.md)。这里的“未找到直接工作”均指截至本轮检索日的范围限定结论，不是全球不存在证明。
+最后更新：2026-08-27。此页取代“先有一个可用设备，再找应用”的思路。每个方向先有一个可证伪的研究假设，demo 只是验证它的工具。第二轮问题驱动审计见 [`../log/39-problem-driven-second-audit.md`](../log/39-problem-driven-second-audit.md)，本轮的 candidate replacement 见 [`../log/41-capture-provenance-and-restoration-audit.md`](../log/41-capture-provenance-and-restoration-audit.md) 和 [`../log/42-sensor-state-action-audit.md`](../log/42-sensor-state-action-audit.md)。这里的“未找到直接工作”均指截至本轮检索日的范围限定结论，不是全球不存在证明。
 
 ## 什么才算研究，而不是 demo
 
@@ -35,29 +35,29 @@
 
 需要合法的攻击材料、受试者同意和至少两个采集链；没有 cross-device/PAIS 留出时，不能保留该题。
 
-## R：非掌纹方向一
+## S：非掌纹方向一
 
 ### 题目
 
-> **证据约束的跨模态图像复原：阻止 restoration 在 edge 视觉质检中伪造或抹除任务关键细节**
+> **从传感器状态到安全动作：低成本多模态 edge 视觉中的残余可观测性协议**
 
 ### 研究假设
 
-未知退化下的复原模型可产生视觉可信但事实错误的细节。若 RGB 的复原高频结构没有 NIR/ToF/raw-frame 的对应支持，系统应将该区域标为 unsupported，而不是交给下游 defect/recognition 模型。跨模态物理一致性能否比单图 uncertainty 更可靠地定位这种 hallucination，并降低 downstream false pass/false defect？
+系统的低置信度既可能来自故障/同步/标定问题，也可能来自传感器健康但场景或目标本身不可观测。若显式分离 `sensor health`、`environment/target observability`、`task confidence` 和 `residual observability`，再选择继续、固定 fallback、重采、重标定或 abstain，能否在固定 latency/energy/human-retry budget 下，降低最终任务的 false pass/高风险自动动作？
 
 ### 最接近工作与尚未找到的交集
 
-- UniRestore、OPIR 等已经做 task-aware/uncertainty-aware all-in-one restoration；QFormer/FADNet 是 PAMI 的复原基础。
-- HalluGen（CVPR 2026）和 sFRC 已将 medical restoration hallucination 的生成/评价推进很远。
-- CMDIAD、RADAR、MISDD-MM 等已覆盖工业缺模态检测，HalluciDet、ReCoFuse、UMFNet 已覆盖 privileged modality、复原式融合和 uncertainty gating。因此 R 只能保留为更窄的“原始 companion modality certificate 触发 veto/abstain”，不能再声称一般缺模态或 hallucination detection 新。
+- sensor health monitor、fault recovery、missing-modality fusion 与 active perception 已有长期研究；不能把 root-cause diagnosis、重采或 graceful degradation 单独作为创新。
+- MAMMOTH（2026）已在真实机器人上融合 RGB/thermal/point cloud，按整路 modality dropout 训练端到端 navigation policy，并报告 collision、success 和 manual takeover。因此“真实多模态 action policy 抗缺失”不是空白。
+- 最新自动驾驶系统综述明确区分 sensor health、task confidence 和 residual observability；其 65 项 primary studies 仅少数连接到 operational response，并指出联合 physical degradation、environment state、perception output、response 的开放 benchmark 仍缺。尚未找到将这些联合标签、**partial real fault** 和 risk/action-cost 放在低成本 RGB/NIR/ToF edge 设备上的 direct neighbor。
 
 ### 可做的贡献
 
-提出 support map/certificate：只有被跨模态对应、几何或时序约束支持的重建细节可影响下游模型；其余区域触发原图 fallback 或 abstain。关键终点是未见退化下的 false pass、false defect、hallucination localization 和 edge cost，不是 PSNR。
+不是提出一个新 fusion backbone，而是定义可复现 episode：raw sensor/timing telemetry、physical fault、healthy-but-unobservable scene、task outcome、chosen action 和 cost 同步记录。比较 `always fuse`、`fixed fallback`、quality/router 与 state-separated action policy；关键终点是 accepted-task risk、false warning、detection delay、recovery success、coverage 和 edge cost。
 
 ### 风险
 
-需要良好对齐的 RGB/NIR/ToF 或 RGB-D 数据及真实缺陷/目标；若各模态不可对齐，只能研究普通 restoration，题目失去关键新意。
+需要实验室硬件导出 actual illumination、frame/timestamp、ToF status、温度和功耗，且能制造并独立标注 partial physical faults 与 healthy-but-unobservable hard negatives。若只有随机 mask 或无法记录 telemetry，S 退化成已有 missing-modality demo；若 B1/B2 已有相同 risk-cost，则复杂策略应报告负结果。
 
 ## T：非掌纹方向二
 
@@ -108,6 +108,6 @@
 
 ## 当前建议
 
-若必须掌纹，仍只把 **P** 作为条件性候选：先确认 GBU-Palm 数据/协议是否已覆盖系统级 matcher 与端侧成本；不能确认前，不把它写成新方法。若可不做掌纹，当前 R/T/O 也都已有强近邻，必须先完成各自的全文 novelty gate；不应为了“有四个方向”强行保留一个看似新但没有数据或机制空隙的题目。
+若必须掌纹，仍只把 **P** 作为条件性候选：先确认 GBU-Palm 数据/协议是否已覆盖系统级 matcher 与端侧成本；不能确认前，不把它写成新方法。若可不做掌纹，当前优先顺序是 **S/T/O**。S 有最匹配现有硬件、且由近期系统综述支持的 protocol gap，但仍必须在开始前完成 telemetry Gate 0 和 direct-neighbor novelty gate；T/O 也都有强近邻。被淘汰的 R（复原幻觉/证据 certificate）保留在日志中，不应为了“有四个方向”硬留在主短名单。
 
 选定一个后，下一轮只围绕该题跑完整 novelty gate：Boolean queries、近五年引用链、代码/数据审计、按“是否同任务/同输入/同评估”的排除表，而不是同时推进四个。

@@ -29,6 +29,8 @@
 | [`32-edge-computing-palmprint-system-reading-log.md`](32-edge-computing-palmprint-system-reading-log.md) | 2022 edge-server/offloading palmprint architecture and what its abstract does not measure |
 | [`33-bob-zhang-pami-lab-audit-log.md`](33-bob-zhang-pami-lab-audit-log.md) | Full public publication map for Bob Zhang/PAMI, representative-paper reading, and non-palmprint FYP directions |
 | [`34-fyp-direction-deep-dive-log.md`](34-fyp-direction-deep-dive-log.md) | Deep-dive evidence, dataset/licence checks, and the four-direction shortlist |
+| [`41-capture-provenance-and-restoration-audit.md`](41-capture-provenance-and-restoration-audit.md) | Negative audit of capture provenance / injection and the narrowed restoration-hallucination question |
+| [`42-sensor-state-action-audit.md`](42-sensor-state-action-audit.md) | Reassessment of sensor-state versus task-state and why it replaces restoration as a live non-palm candidate |
 
 ## When to write a log
 
