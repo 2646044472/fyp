@@ -1,6 +1,6 @@
 # 四个研究优先的 FYP 方向
 
-最后更新：2026-08-27。此页取代“先有一个可用设备，再找应用”的思路。每个方向先有一个可证伪的研究假设，demo 只是验证它的工具。这里的“未找到直接工作”均指截至本轮检索日的范围限定结论，不是全球不存在证明。
+最后更新：2026-08-27。此页取代“先有一个可用设备，再找应用”的思路。每个方向先有一个可证伪的研究假设，demo 只是验证它的工具。第二轮问题驱动审计见 [`../log/39-problem-driven-second-audit.md`](../log/39-problem-driven-second-audit.md)。这里的“未找到直接工作”均指截至本轮检索日的范围限定结论，不是全球不存在证明。
 
 ## 什么才算研究，而不是 demo
 
@@ -23,12 +23,13 @@
 ### 最接近工作与尚未找到的交集
 
 - PALMspoof/2018 已报告 palmprint verification 的 display/print attack 及 IAPMR；FIDO/NIST 也明确 IAPMR 是 PAD 加 matcher 后的系统指标。
-- DAPANet（2025）已做 multi-source 到 unlabeled target 的 palmprint PAD domain adaptation。
-- 未找到一项 palmprint 研究同时冻结 matcher、按 attack material 和 capture device 做双轴 leave-one-out、以 calibration 后的 IAPMR budget 为主要终点，并明确拒答覆盖率。
+- DAPANet（2025）已做 multi-source 到 unlabeled target 的 palmprint PAD domain adaptation；2023 也已有 palmprint anti-spoofing domain generalization，故“跨域”本身不能作为新颖性。
+- GBU-Palm（2026-08-14 预印本）已经把原生多模态视频、六环境、攻击 lineage、跨环境、光谱/时序干预放进掌纹 PAD benchmark；因此这些内容不能再作为 P 的贡献。
+- 尚未在 GBU-Palm 的公开正文中看到将 PAD 输出接到冻结的 1:1 palm matcher、按攻击材料和采集设备计算系统级 IAPMR，并同时报告 Pi capture-to-decision/energy 的协议。这个交集仍未确认，而且 GBU 数据尚未正式可下载。
 
 ### 可做的贡献
 
-不是再造 PAD backbone，而是提出 `device-conditioned bona-fide nonconformity + risk-controlling accept/reject rule`，并给出双轴开放集协议。若该规则在未见 PAIS/device 上不能优于 DAPANet-style/one-class/energy baselines，结论就是它不成立。
+不是再造 PAD backbone，而是把 PAD 与冻结 matcher、攻击 lineage 和端侧成本连接起来，提出 `device-conditioned bona-fide nonconformity + risk-controlling accept/reject rule`。若 GBU-Palm 后续版本或其他工作已覆盖这个系统级协议，P 应放弃方法主张，只保留复现实验或测量报告。
 
 ### 风险
 
@@ -48,7 +49,7 @@
 
 - UniRestore、OPIR 等已经做 task-aware/uncertainty-aware all-in-one restoration；QFormer/FADNet 是 PAMI 的复原基础。
 - HalluGen（CVPR 2026）和 sFRC 已将 medical restoration hallucination 的生成/评价推进很远。
-- 未找到将**第二个原始物理传感模态**当作 restoration evidence certificate，并用它控制低成本 edge 视觉质检最终决策的直接工作。
+- CMDIAD、RADAR、MISDD-MM 等已覆盖工业缺模态检测，HalluciDet、ReCoFuse、UMFNet 已覆盖 privileged modality、复原式融合和 uncertainty gating。因此 R 只能保留为更窄的“原始 companion modality certificate 触发 veto/abstain”，不能再声称一般缺模态或 hallucination detection 新。
 
 ### 可做的贡献
 
@@ -70,9 +71,9 @@
 
 ### 最接近工作与尚未找到的交集
 
-- 2026 TSP 已研究异步 sensor network 的未知 temporal misalignment，并估计 offset 做目标跟踪。
+- 2026 TSP 已研究异步 sensor network 的未知 temporal misalignment，并估计 offset 做目标跟踪；UAMF-Net 还联合 asynchronous alignment、uncertainty、calibration 和 risk-coverage。
 - 近期 multimodal tracking/robotics 文献已承认 temporal missingness、同步和 action latency 问题。
-- 未找到针对 Pi 级 RGB/NIR/ToF 小型视觉设备，把 actual illumination/frame timing uncertainty、跨模态 correspondence 和 selective task risk 联合评估的直接工作。
+- T 只能保留为硬件条件式问题：Pi 设备必须能观测 actual exposure/LED/ToF-return timing，并把 offset posterior 传播到视觉任务的 calibrated reject；否则只是已有异步融合方法的设备替换。
 
 ### 可做的贡献
 
@@ -95,7 +96,7 @@
 ### 最接近工作与尚未找到的交集
 
 - ICCV 2023 已研究 anomaly detection under distribution shift；2026 工业 stream 工作已区分 failure 与 healthy domain shift；conformal industrial anomaly 也已有。
-- 未找到以**视觉 normal-only training**、未见缺陷、未见正常性漂移和三态动作成本为同一协议的直接工业 edge 研究。
+- 相关 shift-aware、conformal、unseen-anomaly 和三态谨慎决策已有近邻；O 只能保留为同一现场协议下的 normal-only、未见 shift、未见 defect 和 action-cost 联合评测。没有独立采集标签时应放弃。
 
 ### 可做的贡献
 
@@ -107,6 +108,6 @@
 
 ## 当前建议
 
-若必须掌纹，选 **P**，因为它把成熟识别领域转成仍未被充分解决的开放世界安全评估/校准问题。若可不做掌纹，优先约谈 **R**：它继承 PAMI 的复原线，但问题是“何时不应相信复原结果”，比再提高 PSNR 或在 Pi 跑模型更像研究。**T** 的理论味最强但严重依赖硬件时序；**O** 的公开数据最容易获得，但必须做出三态 normal/shift/defect 才不落回普通 anomaly detection。
+若必须掌纹，仍只把 **P** 作为条件性候选：先确认 GBU-Palm 数据/协议是否已覆盖系统级 matcher 与端侧成本；不能确认前，不把它写成新方法。若可不做掌纹，当前 R/T/O 也都已有强近邻，必须先完成各自的全文 novelty gate；不应为了“有四个方向”强行保留一个看似新但没有数据或机制空隙的题目。
 
 选定一个后，下一轮只围绕该题跑完整 novelty gate：Boolean queries、近五年引用链、代码/数据审计、按“是否同任务/同输入/同评估”的排除表，而不是同时推进四个。
