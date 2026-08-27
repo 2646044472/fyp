@@ -27,6 +27,7 @@
 | [`30-embedded-palmprint-system-prior-art-log.md`](30-embedded-palmprint-system-prior-art-log.md) | 2012 ARM/DSP palmprint device: real embedded precedent, constrained capture, and non-transferable timing |
 | [`31-palm-id-mobile-system-reading-log.md`](31-palm-id-mobile-system-reading-log.md) | Palm-ID 2024 mobile app, time-separated protocol, model size, and non-transferable desktop timing |
 | [`32-edge-computing-palmprint-system-reading-log.md`](32-edge-computing-palmprint-system-reading-log.md) | 2022 edge-server/offloading palmprint architecture and what its abstract does not measure |
+| [`33-bob-zhang-pami-lab-audit-log.md`](33-bob-zhang-pami-lab-audit-log.md) | Full public publication map for Bob Zhang/PAMI, representative-paper reading, and non-palmprint FYP directions |
 
 ## When to write a log
 

@@ -16,6 +16,7 @@
 8. **edge 设备也不是空白。** 2012 已有 Blue LED + CMOS + ARM/DSP 的完整嵌入式掌纹终端，且报告板上 extraction/matching 时间；它依赖固定手位的定位柱和传统 G-LBP/DSP，并不回答 Pi、自由手 ROI、PAD 或全链能耗。与 RDRLA 合看，项目不能因“本地盒子”或“自动 ROI”本身立题，只能以同一硬件上的 raw capture-to-decision trade-off 与严格攻击/会话协议立题。详见 [`30-embedded-palmprint-system-prior-art-log.md`](../log/30-embedded-palmprint-system-prior-art-log.md)。
 9. **移动端也已有完整强基线。** Palm-ID 在 Galaxy S22 上实现端侧 enrollment、1:1/1:N、quality reject 和 5--13 个月 time-separated protocol；但其 76M 参数模型的效率数字来自 AMD EPYC 桌面 CPU，不能当 Pi/mobile 端到端结果。它把本项目的可迁移重点进一步收窄到：低成本硬件的真实资源、采集质量/ROI 失败、主动光学与 PAIS，而不是“把掌纹网络放到设备上”。详见 [`31-palm-id-mobile-system-reading-log.md`](../log/31-palm-id-mobile-system-reading-log.md)。
 10. **edge computing 叙事本身也已有直接先例。** Liu 等 2022 论文已把终端 ROI、边缘服务器匹配和云端日志/模型更新组合成掌纹系统；其 edge 是 offloading，不是本项目设想的 Pi 本地、断网 capture-to-decision。故题目不能只靠“掌纹 + edge”四个字成立，必须用真实设备资源、断网授权生命周期、采集质量和 PAIS/session 协议做区分。详见 [`32-edge-computing-palmprint-system-reading-log.md`](../log/32-edge-computing-palmprint-system-reading-log.md)。
+11. **Bob Zhang/PAMI 最可迁移的不是掌纹网络，而是“失效输入下的可靠推理”。** 组内的 incomplete multi-view、质量/不确定性、OFTTA 测试时适应、QFormer/复原和开放世界 anomaly work 共同处理模态缺失、设备/人群漂移、噪声和拒答。这支持一个不必绑定掌纹的新候选：在低成本多传感器 edge 设备上，系统能否识别哪一路不可信，选择融合、降级、重采或拒答，并在资源预算内保持可审计风险。详细筛选见 [`12-bob-zhang-lab-audit.md`](12-bob-zhang-lab-audit.md) 与 [`33-bob-zhang-pami-lab-audit-log.md`](../log/33-bob-zhang-pami-lab-audit-log.md)。
 
 完整的反例与不可宣称事项见 [08-counterevidence-and-boundaries.md](08-counterevidence-and-boundaries.md)。
 

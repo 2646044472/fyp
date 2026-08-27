@@ -1,6 +1,6 @@
 # Edge Palm FYP Research
 
-This is the research workspace for the edge palm-recognition FYP. It is not the final thesis and it does not replace the meeting record in [`../minutes/`](../minutes/).
+This is the research workspace for the edge palm-recognition FYP and possible non-palmprint directions. It is not the final thesis and it does not replace the meeting record in [`../minutes/`](../minutes/).
 
 ## Start here
 
@@ -11,6 +11,7 @@ An agent should read these files in this order before adding a claim or proposin
 3. [`core/02-story-and-innovation-options.md`](core/02-story-and-innovation-options.md): the application story and its testable economic assumptions.
 4. [`core/06-evaluation-and-data-plan.md`](core/06-evaluation-and-data-plan.md): the proposed experiment, split rules, and metrics.
 5. [`core/05-evidence-ledger.md`](core/05-evidence-ledger.md): the source-level boundary before relying on a technical or market claim.
+6. [`core/12-bob-zhang-lab-audit.md`](core/12-bob-zhang-lab-audit.md): the Bob Zhang/PAMI research map and non-palmprint FYP shortlist.
 
 The short rule is: **`core/` states what the project may currently claim; `log/` records how that conclusion was reached.** A detailed log alone is not sufficient evidence for a new project claim.
 
@@ -38,4 +39,4 @@ The short rule is: **`core/` states what the project may currently claim; `log/`
 
 ## Current direction in one paragraph
 
-The minimum demo is contactless RGB palm `1:1` verification with ROI, thresholds, and edge measurements. The only retained research candidate is conditional: a low-frequency, user-initiated, time-bounded internal maintenance workflow, where a work-order claim is already authorized and the device verifies a locally enrolled palm. The technical candidate is `ToF`-constrained geometry plus an observable RGB/NIR command-response relation and risk gate. It survives only if it improves the frozen B2 static multispectral baseline on a blind, PAIS-aware evaluation while keeping retries, latency, energy, and operator burden acceptable.
+The minimum demo remains contactless RGB palm `1:1` verification with ROI, thresholds, and edge measurements. After auditing Bob Zhang/PAMI, a non-palmprint alternative is now explicitly retained: quality-aware missing-modality or test-time-adaptive edge vision, evaluated under real or simulated sensor failure with uncertainty, safe degradation, resource, and recovery metrics. The palm-specific active-light candidate remains conditional and must beat the frozen B2 baseline on blind PAIS-aware evaluation before it is treated as a research contribution.

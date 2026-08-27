@@ -18,6 +18,7 @@
 | [`09-reading-coverage-audit.md`](09-reading-coverage-audit.md) | Reading depth, coverage, and the next evidence to acquire |
 | [`10-story-validation-plan.md`](10-story-validation-plan.md) | Interviews and observations needed to validate the story |
 | [`11-ai-assisted-research-protocol.md`](11-ai-assisted-research-protocol.md) | Auditable AI research workflow and citation discipline |
+| [`12-bob-zhang-lab-audit.md`](12-bob-zhang-lab-audit.md) | Bob Zhang/PAMI publication map and non-palmprint FYP direction decision |
 
 ## Update rules
 
