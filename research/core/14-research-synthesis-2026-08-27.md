@@ -17,6 +17,8 @@
 3. 掌纹闭集 benchmark 很强，但 open-set、cross-device、攻击材料留出、采集失败和端到端资源仍存在 protocol gap；不能据此宣称行业已完全解决，也不能据此宣称我们的基本系统新颖。
 4. 澳门市场价值和具体付费场景仍是待访谈问题，不由论文或个人体感自动推出。
 
+掌纹也不是默认前提。PAMI 的公开研究线还包括 incomplete multi-view、图像复原、工业/医疗 anomaly 和计算生物学；补充精读表明，前两者和 anomaly 可以转成 edge reliability 问题，临床/Cell Painting 则受数据、算力和伦理限制。详见 [`../log/36-professor-other-directions-deep-read-log.md`](../log/36-professor-other-directions-deep-read-log.md)。
+
 ## 当前真正可防守的研究交集
 
 > 当视觉传感器不完整、质量下降或发生分布漂移时，edge 系统能否估计可信度，并选择继续融合、固定降级、重采、适应、冻结或拒答；这些动作是否降低最终任务风险，同时满足延迟、内存、能耗和人工交互预算？
