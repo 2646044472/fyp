@@ -1,4 +1,4 @@
-# Pi 5 Minimal Palm Demo
+# Raspberry Pi Minimal Palm Demo
 
 This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry Pi 5. It supports separate RGB and NoIR-plus-IR-light capture profiles. It proves only that the local pipeline can acquire a frame, create a template, compare a probe and log the result. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
 
@@ -27,6 +27,8 @@ This password is stored here only for the private direct USB-C lab link. Change 
 ## What is included
 
 - `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
+- `palm_roi.py`: two-stage palm detection plus OpenCV Zoo 21-point hand-pose refinement, temporal gating and perspective ROI normalization.
+- `mp_handpose.py`: Apache-2.0 OpenCV Zoo hand-pose adapter.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
 - `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
 - `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
@@ -60,7 +62,7 @@ rpicam-hello -t 0
 
 If you want to prepare everything on a USB first, use `install_usb_offline.sh` on the Pi instead of `install_pi.sh`. The USB package includes NumPy/SciPy/Pillow wheels and the baseline source. Picamera2/libcamera remains a Raspberry Pi OS system component; install it once with `sudo apt install -y python3-picamera2` if it is not already present.
 
-Use `rpicam-hello --list` to identify the camera index, then preview each camera separately, for example `rpicam-hello --camera 0 -t 0`. Keep the palm centred and parallel to the camera, with consistent light. The default crop assumes that physical setup; adjust `--crop left,top,right,bottom` after checking a local debug crop.
+Use `rpicam-hello --list` to identify the camera index, then preview each camera separately, for example `rpicam-hello --camera 0 -t 0`. Keep the palm visible with consistent light. The browser debug UI uses the dynamic palm ROI by default; the standalone `palm_demo.py` command still uses its fixed crop unless its capture path is replaced with the debug UI snapshot path.
 
 For the research camera capability gate, run `tools/camera_capability_preflight.sh` on the Pi. It writes a timestamped manifest and sample files; inspect the help/output logs before treating RAW or RAW/JPEG pairing as available.
 
@@ -86,6 +88,14 @@ python3 palm_demo.py users
 ```
 
 For NoIR+IR, use a separate identifier and profile, for example `--camera 1 --capture-profile noir-ir --user demo-noir`.
+
+## Dynamic ROI debug UI
+
+The Pi service uses a two-stage OpenCV DNN pipeline: the MediaPipe palm detector proposes a hand candidate, then the OpenCV Zoo hand-pose model refines it to 21 landmarks. The ROI is built from the refined landmarks, temporally gated, and perspective-warped to the fixed `128×128` Fast-CC input. There is no foreground/background fallback, so walls and computer edges are not treated as palms.
+
+Open `http://10.12.194.1:8080` from the development PC. Wait until the green quadrilateral follows the hand, then re-enroll `demo-noir`; templates created by the old fixed-ROI service are intentionally rejected until re-enrolled.
+
+The detector model is downloaded by `install_pi.sh` from the [OpenCV palm detector model card](https://huggingface.co/opencv/palm_detection_mediapipe). The runtime uses OpenCV DNN because the generic MediaPipe ARM64 wheel currently requires CPU instructions unavailable on the Pi 4 Cortex-A72.
 
 `ACCEPT`/`REJECT` is reported with the Fast-CC distance, threshold and local pipeline time. An exit status of `2` means a normal rejection. The default threshold is deliberately labelled provisional. It exists for a same-stand smoke test only.
 

@@ -220,6 +220,7 @@ class HandLandmarkTracker:
     def __init__(
         self,
         model_path: Path,
+        hand_pose_model_path: Path | None = None,
         *,
         input_size: tuple[int, int] = (640, 360),
         stale_after_ms: float = 500.0,
@@ -230,6 +231,8 @@ class HandLandmarkTracker:
     ) -> None:
         if not model_path.is_file():
             raise RuntimeError(f"Palm detector model not found: {model_path}")
+        if hand_pose_model_path is None or not hand_pose_model_path.is_file():
+            raise RuntimeError(f"Hand pose model not found: {hand_pose_model_path}")
         if not (0.0 < smoothing_alpha <= 1.0):
             raise ValueError("smoothing_alpha must be in (0, 1]")
 
@@ -258,6 +261,13 @@ class HandLandmarkTracker:
         self._last_error: str | None = None
         self._background_gray: np.ndarray | None = None
         self._detector = self._cv.dnn.readNet(str(model_path))
+        from mp_handpose import MPHandPose
+        self._handpose = MPHandPose(
+            str(hand_pose_model_path),
+            confThreshold=0.75,
+            backendId=self._cv.dnn.DNN_BACKEND_OPENCV,
+            targetId=self._cv.dnn.DNN_TARGET_CPU,
+        )
         self._detector.setPreferableBackend(self._cv.dnn.DNN_BACKEND_OPENCV)
         self._detector.setPreferableTarget(self._cv.dnn.DNN_TARGET_CPU)
         self._anchors = self._load_anchors()
@@ -277,7 +287,7 @@ class HandLandmarkTracker:
                 anchors.extend([center] * 6)
         return np.asarray(anchors, dtype=np.float32)
 
-    def _infer(self, image: np.ndarray) -> tuple[np.ndarray, float] | None:
+    def _infer(self, image: np.ndarray) -> tuple[np.ndarray, float, np.ndarray] | None:
         """Run the palm detector and return seven points in source pixels."""
 
         cv = self._cv
@@ -332,7 +342,7 @@ class HandLandmarkTracker:
         points /= ratio
         if not np.isfinite(points).all():
             return None
-        return points.astype(np.float32), score
+        return points.astype(np.float32), score, _box.astype(np.float32)
 
     def _is_stable_candidate(self, points: np.ndarray, source: str) -> bool:
         """Reject detector jumps instead of drawing a new random ROI."""
@@ -343,14 +353,14 @@ class HandLandmarkTracker:
         if previous is None or previous_source != source:
             return True
         try:
-            previous_quad = palm_detection_to_palm_quad(
+            previous_quad = landmarks_to_palm_quad(
                 previous,
                 self._input_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
                 height_scale=RUNTIME_ROI_HEIGHT_SCALE,
                 fit_to_frame=True,
             )
-            candidate_quad = palm_detection_to_palm_quad(
+            candidate_quad = landmarks_to_palm_quad(
                 points,
                 self._input_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
@@ -396,14 +406,24 @@ class HandLandmarkTracker:
             score: float | None = None
             source: str | None = None
             if detected is not None:
-                detected_points, detected_score = detected
-                detected_points = detected_points / np.asarray(self._input_size, dtype=np.float32)
-                try:
-                    palm_detection_to_palm_quad(detected_points, self._input_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
-                except PalmROIError:
-                    pass
-                else:
-                    points, score, source = detected_points, detected_score, "dnn"
+                detected_points, detected_score, palm_box = detected
+                palm = np.concatenate((palm_box, detected_points.reshape(-1)))
+                hand = self._handpose.infer(bgr, palm)
+                if hand is not None:
+                    pose_landmarks = hand[4:67].reshape(21, 3)[:, :2]
+                    pose_landmarks = pose_landmarks / np.asarray(self._input_size, dtype=np.float32)
+                    try:
+                        landmarks_to_palm_quad(
+                            pose_landmarks,
+                            self._input_size,
+                            width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                            height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                            fit_to_frame=True,
+                        )
+                    except PalmROIError:
+                        pass
+                    else:
+                        points, score, source = pose_landmarks, float(hand[-1]), "handpose"
             with self._lock:
                 if points is None:
                     self._last_error = None
@@ -434,7 +454,7 @@ class HandLandmarkTracker:
         if age_ms is None or age_ms > self._stale_after_ms:
             return ROIStatus(None, "tracking_lost", hand_score=hand_score, age_ms=age_ms)
         try:
-            quad = palm_detection_to_palm_quad(landmarks, image_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
+            quad = landmarks_to_palm_quad(landmarks, image_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
         except PalmROIError:
             return ROIStatus(None, "bad_geometry", hand_score=hand_score, age_ms=age_ms)
         status = "tracking" if age_ms <= 150.0 else "tracking_stale"
