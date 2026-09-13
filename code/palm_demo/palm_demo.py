@@ -25,6 +25,7 @@ from camera import capture_image as _capture_image
 from gallery import Gallery, load_policy
 from roi import AutomaticPalmROI, normalize_crop
 from templates import TemplateStore, safe_user_id
+import palm_roi
 
 
 ROOT = Path(__file__).resolve().parent
@@ -51,8 +52,23 @@ def parse_crop(value: str) -> tuple[float, float, float, float]:
     return crop
 
 
-def crop_and_normalize(image: Image.Image, crop: tuple[float, float, float, float]) -> tuple[np.ndarray, dict[str, float]]:
-    return normalize_crop(image, crop)
+def crop_and_normalize(
+    image: Image.Image,
+    crop: tuple[float, float, float, float] = DEFAULT_CROP,
+    roi_quad: np.ndarray | None = None,
+) -> tuple[np.ndarray, dict[str, float]]:
+    if roi_quad is None:
+        return normalize_crop(image, crop)
+    roi = palm_roi.warp_palm_roi(image.convert("L"), roi_quad)
+    array = np.asarray(roi, dtype=np.float32)
+    contrast = float(array.std())
+    gradient = np.hypot(*np.gradient(array))
+    sharpness = float(gradient.var())
+    low, high = np.percentile(array, (1, 99))
+    if high - low < 1:
+        raise RuntimeError("Frame has no usable intensity range. Reposition the hand and light.")
+    normalized = np.clip((array - low) * 255.0 / (high - low), 0, 255).astype(np.uint8)
+    return normalized, {"contrast": contrast, "sharpness": sharpness}
 
 
 def capture_image(args: argparse.Namespace) -> Image.Image:

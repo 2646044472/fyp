@@ -225,7 +225,7 @@ class HandLandmarkTracker:
         input_size: tuple[int, int] = (640, 360),
         stale_after_ms: float = 500.0,
         smoothing_alpha: float = 0.18,
-        min_hand_detection_confidence: float = 0.5,
+        min_hand_detection_confidence: float = 0.42,
         min_hand_presence_confidence: float = 0.5,
         min_tracking_confidence: float = 0.5,
     ) -> None:
@@ -264,7 +264,7 @@ class HandLandmarkTracker:
         from mp_handpose import MPHandPose
         self._handpose = MPHandPose(
             str(hand_pose_model_path),
-            confThreshold=0.75,
+            confThreshold=0.62,
             backendId=self._cv.dnn.DNN_BACKEND_OPENCV,
             targetId=self._cv.dnn.DNN_TARGET_CPU,
         )
@@ -287,15 +287,33 @@ class HandLandmarkTracker:
                 anchors.extend([center] * 6)
         return np.asarray(anchors, dtype=np.float32)
 
-    def _infer(self, image: np.ndarray) -> tuple[np.ndarray, float, np.ndarray] | None:
-        """Run the palm detector and return seven points in source pixels."""
+    def _infer(self, image: np.ndarray, detector_scale: float = 1.0) -> tuple[np.ndarray, float, np.ndarray] | None:
+        """Run the palm detector and return seven points in source pixels.
+
+        A second, smaller view is used only during recovery. It makes a close
+        hand occupy a detector-friendly scale without changing the camera view.
+        """
 
         cv = self._cv
         height, width = image.shape[:2]
+        if not (0.5 <= detector_scale <= 1.0):
+            raise ValueError("detector_scale must be between 0.5 and 1.0")
+        working = image
+        offset = np.zeros(2, dtype=np.float32)
+        if detector_scale < 0.999:
+            scaled_width = max(2, int(round(width * detector_scale)))
+            scaled_height = max(2, int(round(height * detector_scale)))
+            scaled = cv.resize(image, (scaled_width, scaled_height), interpolation=cv.INTER_AREA)
+            working = np.zeros_like(image)
+            left = (width - scaled_width) // 2
+            top = (height - scaled_height) // 2
+            working[top:top + scaled_height, left:left + scaled_width] = scaled
+            offset = np.asarray((left, top), dtype=np.float32)
+
         model_width, model_height = PALM_DETECTOR_INPUT_SIZE
         ratio = min(model_height / height, model_width / width)
         resized_shape = (np.asarray((height, width), dtype=np.float32) * ratio).astype(np.int32)
-        resized = cv.resize(image, (int(resized_shape[1]), int(resized_shape[0])))
+        resized = cv.resize(working, (int(resized_shape[1]), int(resized_shape[0])))
         pad_h = model_height - int(resized_shape[0])
         pad_w = model_width - int(resized_shape[1])
         left = pad_w // 2
@@ -323,14 +341,10 @@ class HandLandmarkTracker:
         box_delta = outputs[0][0, :, 0:4]
         landmark_delta = outputs[0][0, :, 4:]
         input_size = np.asarray(PALM_DETECTOR_INPUT_SIZE, dtype=np.float32)
-        # This model uses the same max-dimension scale for boxes and landmarks.
-        # Keep that convention, then undo the letterbox padding in source pixels.
         scale = float(max(width, height))
         center_delta = box_delta[:, :2] / input_size
         size_delta = box_delta[:, 2:] / input_size
-        # Decode the box as well. This keeps the model output interpretation
-        # explicit and makes it easy to add a box sanity check later.
-        _box = np.concatenate(
+        box = np.concatenate(
             (
                 (center_delta[best] - size_delta[best] / 2.0 + self._anchors[best]) * scale,
                 (center_delta[best] + size_delta[best] / 2.0 + self._anchors[best]) * scale,
@@ -340,18 +354,21 @@ class HandLandmarkTracker:
         points = (points + self._anchors[best]) * scale
         pad_bias = np.asarray((left, top), dtype=np.float32) / ratio
         points -= pad_bias
-        _box -= np.asarray((pad_bias[0], pad_bias[1], pad_bias[0], pad_bias[1]), dtype=np.float32)
-        if not np.isfinite(points).all() or not np.isfinite(_box).all():
+        box -= np.asarray((pad_bias[0], pad_bias[1], pad_bias[0], pad_bias[1]), dtype=np.float32)
+        if detector_scale < 0.999:
+            points = (points - offset) / detector_scale
+            box = (box - np.asarray((offset[0], offset[1], offset[0], offset[1]), dtype=np.float32)) / detector_scale
+        if not np.isfinite(points).all() or not np.isfinite(box).all():
             return None
-        return points.astype(np.float32), score, _box.astype(np.float32)
+        return points.astype(np.float32), score, box.astype(np.float32)
 
     def _is_stable_candidate(self, points: np.ndarray, source: str) -> bool:
         """Reject detector jumps instead of drawing a new random ROI."""
 
+        del source
         with self._lock:
             previous = None if self._landmarks is None else self._landmarks.copy()
-            previous_source = self._tracking_source
-        if previous is None or previous_source != source:
+        if previous is None:
             return True
         try:
             previous_quad = landmarks_to_palm_quad(
@@ -385,10 +402,11 @@ class HandLandmarkTracker:
         return (
             center_delta <= self._max_center_jump
             and self._min_area_ratio <= area_ratio <= self._max_area_ratio
-            and axis_similarity >= 0.75
+            and axis_similarity >= 0.70
         )
+
     def submit(self, image: Image.Image, timestamp_ms: int) -> None:
-        """Run detection on a downscaled RGB frame, throttled to the camera rate."""
+        """Run detection on a downscaled RGB frame, with close-range recovery."""
 
         del timestamp_ms
         now = time.monotonic()
@@ -402,12 +420,21 @@ class HandLandmarkTracker:
             resized = image.resize(self._input_size, Image.Resampling.BILINEAR)
             rgb = np.asarray(resized.convert("RGB"), dtype=np.uint8)
             bgr = self._cv.cvtColor(rgb, self._cv.COLOR_RGB2BGR)
-            detected = self._infer(bgr)
+            detections: list[tuple[np.ndarray, float, np.ndarray]] = []
+            first = self._infer(bgr)
+            if first is not None:
+                detections.append(first)
+            # Close hands can be too large for the tiny palm detector. Retry
+            # with a centered reduced view only when the normal pass is weak.
+            if first is None:
+                recovered = self._infer(bgr, detector_scale=0.72)
+                if recovered is not None:
+                    detections.append(recovered)
+
             points: np.ndarray | None = None
             score: float | None = None
             source: str | None = None
-            if detected is not None:
-                detected_points, detected_score, palm_box = detected
+            for detected_points, detected_score, palm_box in detections:
                 palm = np.concatenate((palm_box, detected_points.reshape(-1)))
                 hand = self._handpose.infer(bgr, palm)
                 if hand is not None:
@@ -422,14 +449,36 @@ class HandLandmarkTracker:
                             fit_to_frame=True,
                         )
                     except PalmROIError:
-                        pass
-                    else:
-                        points, score, source = pose_landmarks, float(hand[-1]), "handpose"
+                        continue
+                    points, score, source = pose_landmarks, float(hand[-1]), "handpose"
+                    break
+                # The palm detector has reliable MCP geometry even when the
+                # heavier 21-point pose model misses a close or clipped hand.
+                detector_landmarks = np.zeros((21, 2), dtype=np.float32)
+                detector_landmarks[[WRIST, INDEX_MCP, MIDDLE_MCP, 13, PINKY_MCP]] = (
+                    detected_points[:5] / np.asarray(self._input_size, dtype=np.float32)
+                )
+                try:
+                    landmarks_to_palm_quad(
+                        detector_landmarks,
+                        self._input_size,
+                        width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                        height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                        fit_to_frame=True,
+                    )
+                except PalmROIError:
+                    continue
+                points, score, source = detector_landmarks, detected_score, "palm_detector"
+                break
+
             with self._lock:
                 if points is None:
                     self._last_error = None
                     return
-                if self._landmarks is None or source != self._tracking_source:
+                if not self._is_stable_candidate(points, source or "unknown"):
+                    self._last_error = "candidate_jump_rejected"
+                    return
+                if self._landmarks is None:
                     self._landmarks = points
                 else:
                     alpha = self._smoothing_alpha
