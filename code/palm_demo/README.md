@@ -1,6 +1,6 @@
 # Raspberry Pi Minimal Palm Demo
 
-This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry Pi 5. It supports separate RGB and NoIR-plus-IR-light capture profiles. It proves only that the local pipeline can acquire a frame, create a template, compare a probe and log the result. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
+This is a local-only Raspberry Pi 5 palm-payment Phase 1 demo. It supports separate RGB and NoIR-plus-IR-light capture profiles, open-set `1:N` identification, unknown-user rejection, simulated integer-cent balance updates, deterministic deletion and stage-level JSONL timing logs. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
 
 Read [Pi 5 Safety Checklist](PI5_SAFETY_CHECKLIST.md) before powering the board or connecting the camera ribbon.
 
@@ -29,6 +29,8 @@ This password is stored here only for the private direct USB-C lab link. Change 
 - `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
 - `palm_roi.py`: two-stage palm detection plus OpenCV Zoo 21-point hand-pose refinement, temporal gating and perspective ROI normalization.
 - `mp_handpose.py`: Apache-2.0 OpenCV Zoo hand-pose adapter.
+- `palm_payment_ui.py`: local browser demo with `/admin` administration routes and simulated MOP payments.
+- `models.py`, `camera.py`, `roi.py`, `biometric.py`, `templates.py`, `gallery.py`, `payment.py`, `workflow.py`: reusable Phase 1 services.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
 - `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
 - `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
