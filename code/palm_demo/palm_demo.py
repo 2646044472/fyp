@@ -20,6 +20,12 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
+from biometric import extract_feature, load_fastcc as _load_fastcc
+from camera import capture_image as _capture_image
+from gallery import Gallery, load_policy
+from roi import AutomaticPalmROI, normalize_crop
+from templates import TemplateStore, safe_user_id
+
 
 ROOT = Path(__file__).resolve().parent
 RUNTIME = ROOT / "runtime"
@@ -32,16 +38,7 @@ def utc_now() -> str:
 
 
 def load_fastcc(baseline_path: Path) -> Any:
-    """Load the pinned third-party Fast-CC implementation without installing it."""
-    if not baseline_path.is_dir():
-        raise RuntimeError(
-            f"Baseline not found at {baseline_path}. Run ./install_pi.sh first, "
-            "or pass --baseline-path to a checked-out baseline."
-        )
-    sys.path.insert(0, str(baseline_path))
-    from palmprint.algorithms.fastcc import FastCCAlgorithm
-
-    return FastCCAlgorithm()
+    return _load_fastcc(baseline_path)
 
 
 def parse_crop(value: str) -> tuple[float, float, float, float]:
@@ -55,48 +52,28 @@ def parse_crop(value: str) -> tuple[float, float, float, float]:
 
 
 def crop_and_normalize(image: Image.Image, crop: tuple[float, float, float, float]) -> tuple[np.ndarray, dict[str, float]]:
-    gray = image.convert("L")
-    width, height = gray.size
-    box = (round(crop[0] * width), round(crop[1] * height), round(crop[2] * width), round(crop[3] * height))
-    roi = gray.crop(box).resize((128, 128), Image.Resampling.LANCZOS)
-    array = np.asarray(roi, dtype=np.float32)
-    contrast = float(array.std())
-    gradient = np.hypot(*np.gradient(array))
-    sharpness = float(gradient.var())
-    low, high = np.percentile(array, (1, 99))
-    if high - low < 1:
-        raise RuntimeError("Frame has no usable intensity range. Reposition the hand and light.")
-    normalized = np.clip((array - low) * 255.0 / (high - low), 0, 255).astype(np.uint8)
-    return normalized, {"contrast": contrast, "sharpness": sharpness}
+    return normalize_crop(image, crop)
 
 
 def capture_image(args: argparse.Namespace) -> Image.Image:
     if args.image:
         return Image.open(args.image).copy()
-    try:
-        from picamera2 import Picamera2
-    except ImportError as error:
-        raise RuntimeError("Picamera2 is unavailable. Install it with install_pi.sh or use --image.") from error
-
-    camera = Picamera2(args.camera)
-    config = camera.create_still_configuration(main={"size": (args.width, args.height), "format": "RGB888"})
-    camera.configure(config)
-    camera.start()
-    try:
-        time.sleep(args.warmup)
-        return Image.fromarray(camera.capture_array("main"))
-    finally:
-        camera.stop()
-        camera.close()
+    return _capture_image(args.camera, args.width, args.height, args.warmup)
 
 
 def capture_feature(args: argparse.Namespace, algorithm: Any) -> tuple[np.ndarray, dict[str, float], float]:
     started = time.perf_counter()
     image = capture_image(args)
-    roi, quality = crop_and_normalize(image, args.crop)
+    if getattr(args, "roi_mode", "fixed") == "auto":
+        roi_result = AutomaticPalmROI(min_contrast=args.min_contrast).extract(image)
+        if roi_result.status != "OK" or roi_result.roi is None:
+            raise RuntimeError(roi_result.reason or "ROI extraction failed")
+        roi, quality = roi_result.roi, roi_result.quality
+    else:
+        roi, quality = crop_and_normalize(image, args.crop)
     if quality["contrast"] < args.min_contrast:
         raise RuntimeError(f"Low contrast ({quality['contrast']:.1f} < {args.min_contrast:.1f}); improve lighting or hand position.")
-    feature = algorithm.extract(roi)
+    feature = extract_feature(algorithm, roi).astype(bool)
     duration_ms = (time.perf_counter() - started) * 1000
     if args.save_crop:
         Path(args.save_crop).parent.mkdir(parents=True, exist_ok=True)
@@ -105,11 +82,7 @@ def capture_feature(args: argparse.Namespace, algorithm: Any) -> tuple[np.ndarra
 
 
 def template_paths(user: str) -> tuple[Path, Path]:
-    safe_user = "".join(char for char in user if char.isalnum() or char in "-_" )
-    if not safe_user:
-        raise ValueError("user must contain a letter or number")
-    templates = RUNTIME / "templates"
-    return templates / f"{safe_user}.npz", templates / f"{safe_user}.json"
+    return TemplateStore(RUNTIME / "templates").paths(user)
 
 
 def write_log(event: dict[str, Any]) -> None:
@@ -217,10 +190,22 @@ def verify(args: argparse.Namespace) -> int:
 
 
 def list_users(_: argparse.Namespace) -> int:
-    directory = RUNTIME / "templates"
-    users = sorted(path.stem for path in directory.glob("*.npz")) if directory.exists() else []
+    users = TemplateStore(RUNTIME / "templates").list_users()
     print("\n".join(users) if users else "No enrolled users.")
     return 0
+
+
+def identify(args: argparse.Namespace) -> int:
+    if args.image is None and not args.authorized_local_biometric:
+        raise RuntimeError("Camera identification requires --authorized-local-biometric after institutional approval and participant consent.")
+    policy = load_policy(args.policy_path)
+    algorithm = load_fastcc(args.baseline_path)
+    gallery = Gallery(TemplateStore(RUNTIME / "templates"), algorithm, policy["threshold"], policy["min_margin"])
+    feature, quality, pipeline_ms = capture_feature(args, algorithm)
+    result = gallery.identify(feature, args.capture_profile)
+    write_log({"event": "identify", "result": result.status, "user_id": result.user_id, "score": result.score, "second_score": result.second_score, "gallery_size": gallery.size, "capture_profile": args.capture_profile, "quality": quality, "pipeline_ms": pipeline_ms, "search_ms": result.search_ms})
+    print(f"{result.status}: user={result.user_id or 'none'} distance={result.score if result.score is not None else 'n/a'} search={result.search_ms:.1f} ms")
+    return 0 if result.status == "MATCH" else 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -240,6 +225,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--crop", type=parse_crop, default=DEFAULT_CROP)
     parser.add_argument("--min-contrast", type=float, default=12.0)
     parser.add_argument("--save-crop", type=Path, help="Optional local debug ROI; never enable for released data")
+    parser.add_argument("--roi-mode", choices=("fixed", "auto"), default="fixed")
+    parser.add_argument("--policy-path", type=Path, default=RUNTIME / "identification_policy.json")
     parser.add_argument(
         "--authorized-local-biometric",
         action="store_true",
@@ -259,6 +246,8 @@ def build_parser() -> argparse.ArgumentParser:
     verify_parser.set_defaults(func=verify)
     users_parser = commands.add_parser("users", help="List local template identifiers")
     users_parser.set_defaults(func=list_users)
+    identify_parser = commands.add_parser("identify", help="Identify a palm against the local 1:N gallery")
+    identify_parser.set_defaults(func=identify)
     return parser
 
 
