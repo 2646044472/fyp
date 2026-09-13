@@ -323,23 +323,23 @@ class HandLandmarkTracker:
         box_delta = outputs[0][0, :, 0:4]
         landmark_delta = outputs[0][0, :, 4:]
         input_size = np.asarray(PALM_DETECTOR_INPUT_SIZE, dtype=np.float32)
-        # Decode in square model pixels, then undo letterbox padding and resize
-        # independently for x/y. A scalar max(width, height) stretches y on
-        # 16:9 frames and rejects valid detections as bad geometry.
+        # This model uses the same max-dimension scale for boxes and landmarks.
+        # Keep that convention, then undo the letterbox padding in source pixels.
+        scale = float(max(width, height))
         center_delta = box_delta[:, :2] / input_size
         size_delta = box_delta[:, 2:] / input_size
         # Decode the box as well. This keeps the model output interpretation
         # explicit and makes it easy to add a box sanity check later.
         _box = np.concatenate(
             (
-                (center_delta[best] - size_delta[best] / 2.0 + self._anchors[best]) * input_size,
-                (center_delta[best] + size_delta[best] / 2.0 + self._anchors[best]) * input_size,
+                (center_delta[best] - size_delta[best] / 2.0 + self._anchors[best]) * scale,
+                (center_delta[best] + size_delta[best] / 2.0 + self._anchors[best]) * scale,
             )
         )
         points = landmark_delta[best].reshape(7, 2) / input_size
-        points = (points + self._anchors[best]) * input_size
-        points -= np.asarray((left, top), dtype=np.float32)
-        points /= ratio
+        points = (points + self._anchors[best]) * scale
+        pad_bias = np.asarray((left, top), dtype=np.float32) / ratio
+        points -= pad_bias
         if not np.isfinite(points).all():
             return None
         return points.astype(np.float32), score, _box.astype(np.float32)
