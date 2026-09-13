@@ -340,7 +340,8 @@ class HandLandmarkTracker:
         points = (points + self._anchors[best]) * scale
         pad_bias = np.asarray((left, top), dtype=np.float32) / ratio
         points -= pad_bias
-        if not np.isfinite(points).all():
+        _box -= np.asarray((pad_bias[0], pad_bias[1], pad_bias[0], pad_bias[1]), dtype=np.float32)
+        if not np.isfinite(points).all() or not np.isfinite(_box).all():
             return None
         return points.astype(np.float32), score, _box.astype(np.float32)
 
