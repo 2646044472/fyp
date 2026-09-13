@@ -1,6 +1,6 @@
 # Pi 5 Minimal Palm Demo
 
-This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry Pi 5. It supports separate RGB and NoIR-plus-IR-light capture profiles. It proves only that the local pipeline can acquire a frame, create a template, compare a probe and log the result. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
+This is a local-only Raspberry Pi 5 palm-payment Phase 1 demo. It supports separate RGB and NoIR-plus-IR-light capture profiles, open-set `1:N` identification, unknown-user rejection, simulated integer-cent balance updates, deterministic deletion and stage-level JSONL timing logs. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
 
 Read [Pi 5 Safety Checklist](PI5_SAFETY_CHECKLIST.md) before powering the board or connecting the camera ribbon.
 
@@ -13,7 +13,7 @@ Verified on 2026-09-13 over the direct USB-C network link:
 ```text
 Host:     rasp4 (10.12.194.1)
 Username: fyp
-Password: fypfypum
+Authentication: local credentials configured on device
 ```
 
 Connect from this development PC with:
@@ -22,11 +22,13 @@ Connect from this development PC with:
 ssh fyp@10.12.194.1
 ```
 
-This password is stored here only for the private direct USB-C lab link. Change it before exposing the Pi to Wi-Fi or any other LAN.
+The device credential is configured locally on the Pi and is not stored in this repository.
 
 ## What is included
 
-- `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
+- `palm_demo.py`: enrollment, 1:1 verification, 1:N identification and local JSONL timing logs.
+- `palm_payment_ui.py`: local browser demo with `/admin` administration routes and simulated MOP payments.
+- `models.py`, `camera.py`, `roi.py`, `biometric.py`, `templates.py`, `gallery.py`, `payment.py`, `workflow.py`: reusable Phase 1 services.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
 - `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
 - `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
@@ -35,7 +37,15 @@ This password is stored here only for the private direct USB-C lab link. Change 
 - `tools/prepare_palmbigdata.py`: makes a small development subset from the supplied `../data/PalmBigDataBase.zip` without redistributing it.
 - `tools/calibrate_palmbigdata.py`: calculates a development-only threshold and pair-count record.
 
-The demo stores compressed Fast-CC template samples under `runtime/templates/`; it does not store camera frames unless `--save-crop` is explicitly used for local debugging. Delete a user by deleting that user's `.npz` and `.json` files together.
+The demo stores compressed Fast-CC template samples under `runtime/templates/`; it does not store camera frames unless `--save-crop` is explicitly used for local debugging. The system-level policy is loaded from `runtime/identification_policy.json` when present and defaults to the provisional Fast-CC RGB threshold `0.28` until development calibration freezes it. Delete a user through the admin API so template, account and simulated transaction state are removed together.
+
+Run the browser demo on the Pi after installing the declared dependencies and the pinned Fast-CC baseline:
+
+```bash
+python palm_payment_ui.py --roi-mode auto
+```
+
+Use `--roi-mode fixed` for the engineering guide-ROI fallback. The payment screen never asks the payer for an identity; user IDs are accepted only on `/admin`.
 
 ## Pi setup
 

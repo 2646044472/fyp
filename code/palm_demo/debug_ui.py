@@ -22,6 +22,7 @@ import numpy as np
 from PIL import Image
 
 import palm_demo
+from camera import CameraFeed as SharedCameraFeed
 
 
 HTML = """<!doctype html>
@@ -46,7 +47,7 @@ async function loadUsers(){const r=await fetch('/api/users');const d=await r.jso
 </script></body></html>"""
 
 
-class CameraFeed:
+class _LegacyCameraFeed:
     def __init__(self, index: int, width: int, height: int) -> None:
         from picamera2 import Picamera2
 
@@ -127,6 +128,9 @@ class CameraFeed:
         self.thread.join(timeout=2)
         self.camera.stop()
         self.camera.close()
+
+
+CameraFeed = SharedCameraFeed
 
 
 class App:
