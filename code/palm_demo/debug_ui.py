@@ -80,6 +80,7 @@ class CameraFeed:
         self.camera.configure(config)
         self.camera.start()
         self.lock = threading.Lock()
+        self.frame_condition = threading.Condition(self.lock)
         self.roi_mode = roi_mode
         self.hand_model = hand_model
         self.tracker = palm_roi.HandLandmarkTracker(hand_model, hand_pose_model) if roi_mode == "dynamic" else None
@@ -93,20 +94,53 @@ class CameraFeed:
             "roi_status": "starting",
         }
         self.running = True
-        self.thread = threading.Thread(target=self._capture_loop, daemon=True)
-        self.thread.start()
+        self.pending_image: Image.Image | None = None
+        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
+        self.capture_thread.start()
+        self.processing_thread.start()
 
     def _capture_loop(self) -> None:
+        """Capture continuously so a slow inference pass cannot freeze video."""
         while self.running:
             try:
                 image = Image.fromarray(self.camera.capture_array("main"), mode="RGB")
+                with self.frame_condition:
+                    self.latest = image
+                    self.pending_image = image
+                    quad = None if self.latest_roi_quad is None else self.latest_roi_quad.copy()
+                    status = dict(self.latest_roi_status)
+                    self.jpeg = self._encode_preview(image, quad, status)
+                    self.frame_condition.notify()
+            except Exception as error:
+                with self.lock:
+                    self.latest_roi_status = {
+                        "roi_mode": self.roi_mode,
+                        "roi_geometry": palm_roi.ROI_GEOMETRY_VERSION if self.roi_mode == "dynamic" else "fixed-fraction-v1",
+                        "roi_status": "camera_error",
+                        "error": str(error),
+                    }
+                time.sleep(0.2)
+
+    def _processing_loop(self) -> None:
+        """Process the newest frame independently of the live camera stream."""
+        while self.running:
+            with self.frame_condition:
+                while self.running and self.pending_image is None:
+                    self.frame_condition.wait(timeout=0.2)
+                if not self.running:
+                    return
+                image = self.pending_image
+                self.pending_image = None
+            if image is None:
+                continue
+            try:
                 roi_quad: np.ndarray | None = None
                 if self.tracker is not None:
                     self.tracker.submit(image, time.monotonic_ns() // 1_000_000)
                     tracker_status = self.tracker.roi_status(image.size)
                     roi_quad = tracker_status.quad
                     roi_status = tracker_status.as_dict()
-                    preview = self._annotate_roi(image, roi_quad, roi_status)
                     if roi_quad is not None:
                         roi, _ = palm_demo.crop_and_normalize(image, roi_quad=roi_quad)
                     else:
@@ -117,21 +151,35 @@ class CameraFeed:
                         "roi_geometry": "fixed-fraction-v1",
                         "roi_status": "fixed",
                     }
-                    preview = self._annotate_roi(image, None, roi_status)
                     roi, _ = palm_demo.crop_and_normalize(image)
-                output = io.BytesIO()
-                preview.save(output, format="JPEG", quality=82)
                 roi_image = Image.fromarray(roi, mode="L").resize((384, 384), Image.Resampling.NEAREST).convert("RGB")
                 roi_output = io.BytesIO()
                 roi_image.save(roi_output, format="JPEG", quality=88)
                 with self.lock:
-                    self.latest = image
-                    self.jpeg = output.getvalue()
                     self.roi_jpeg = roi_output.getvalue()
                     self.latest_roi_quad = None if roi_quad is None else roi_quad.copy()
                     self.latest_roi_status = roi_status
-            except Exception:
-                time.sleep(0.2)
+                    self.jpeg = self._encode_preview(image, roi_quad, roi_status)
+            except Exception as error:
+                with self.lock:
+                    self.latest_roi_quad = None
+                    self.latest_roi_status = {
+                        "roi_mode": self.roi_mode,
+                        "roi_geometry": palm_roi.ROI_GEOMETRY_VERSION if self.roi_mode == "dynamic" else "fixed-fraction-v1",
+                        "roi_status": "tracker_error",
+                        "error": str(error),
+                    }
+
+    @classmethod
+    def _encode_preview(
+        cls,
+        image: Image.Image,
+        roi_quad: np.ndarray | None,
+        roi_status: dict[str, Any],
+    ) -> bytes:
+        output = io.BytesIO()
+        cls._annotate_roi(image, roi_quad, roi_status).save(output, format="JPEG", quality=82)
+        return output.getvalue()
 
     @staticmethod
     def _annotate_roi(
@@ -190,7 +238,10 @@ class CameraFeed:
 
     def close(self) -> None:
         self.running = False
-        self.thread.join(timeout=2)
+        with self.frame_condition:
+            self.frame_condition.notify_all()
+        self.capture_thread.join(timeout=2)
+        self.processing_thread.join(timeout=2)
         if self.tracker is not None:
             self.tracker.close()
         self.camera.stop()
