@@ -1,0 +1,1054 @@
+Benchmarking Multi-modal Semantic Segmentation under Sensor Failures:
+Missing and Noisy Modality Robustness
+Chenfei Liao1,* Kaiyu Lei2,* Xu Zheng1,3,† Junha Moon1 Zhixiong Wang1
+Yixuan Wang1 Danda Pani Paudel3 Luc V an Gool3 Xuming Hu1,4‡
+1HKUST(GZ) 2XJTU 3INSAIT, Soﬁa University “St. Kliment Ohridski”, 4CSE, HKUST
+Abstract
+Multi-modal semantic segmentation (MMSS) addresses
+the limitations of single-modality data by integrating com-
+plementary information across modalities. Despite notable
+progress, a signiﬁcant gap persists between research and
+real-world deployment due to variability and uncertainty
+in multi-modal data quality. Robustness has thus become
+essential for practical MMSS applications. However , the
+absence of standardized benchmarks for evaluating robust-
+ness hinders further advancement. To address this, we ﬁrst
+survey existing MMSS literature and categorize representa-
+tive methods to provide a structured overview. We then in-
+troduce a robustness benchmark that evaluates MMSS mod-
+els under three scenarios: Entire-Missing Modality (EMM),
+Random-Missing Modality (RMM), and Noisy Modality
+(NM). From a probabilistic standpoint, we model modal-
+ity failure under two conditions: (1) all damaged combi-
+nations are equally probable; (2) each modality fails in-
+dependently following a Bernoulli distribution. Based on
+these, we propose four metrics—mIoU Avg
+EMM , mIoU E
+EMM ,
+mIoU Avg
+RM M, and mIoU E
+RM M—to assess model robustness
+under EMM and RMM. This work provides the ﬁrst ded-
+icated benchmark for MMSS robustness, offering new in-
+sights and tools to advance the ﬁeld. Source code is
+available at https://github.com/Chenfei-Liao/Multi-Modal-
+Semantic-Segmentation-Robustness-Benchmark.
+1. Introduction
+Multi-modal semantic segmentation has emerged as a crit-
+ical task in computer vision, leveraging diverse sensor in-
+puts to produce more accurate and reliable pixel-wise clas-
+siﬁcation results [ 20, 43]. By fusing information from
+complementary modalities such as RGB, depth, LiDAR,
+*These authors have equal contributions.
+†Project lead.
+‡Corresponding author.
+Figure 1. History of MMSS methods.
+thermal, and event, multi-modal systems are capable of
+overcoming the limitations inherent to single-modality ap-
+proaches [ 9, 26, 27, 45]. Such integration is particularly
+beneﬁcial in autonomous driving, robotics, and surveillance
+applications, where harsh environmental challenges like
+low-light and adverse weather conditions may severely de-
+grade the performance of individual sensors [17, 19, 29, 42].
+Despite these advantages, deploying multi-modal sys-
+tems in real-world environments presents critical robust-
+ness challenges that are often underexplored in existing re-
+search [ 41]. In practice, sensor data may be incomplete,
+degraded, or entirely unavailable. For example, RGB cam-
+eras may struggle in low-light or foggy conditions; LiDAR
+sensors can produce sparse or noisy point clouds in heavy
+rain; thermal cameras are sensitive to ambient tempera-
+ture variations; and event cameras may fail in low-contrast
+This CVPR Workshop paper is the Open Access version, provided by the Computer Vision Foundation.
+Except for this watermark, it is identical to the accepted version;
+the final published version of the proceedings is available on IEEE Xplore.
+1576
+\nscenes [6, 12, 14, 31, 32, 35, 39]. These scenarios illustrate
+the pressing need to evaluate and improve the robustness of
+multi-modal semantic segmentation (MMSS) models under
+real-world conditions.
+To systematically address these issues, robustness in
+MMSS can be classiﬁed into three representative failure
+scenarios. First, Entire-Missing Modality (EMM) refers
+to the complete loss of a sensor’s input, requiring the
+model to perform without that modality [ 18, 46, 47]. Sec-
+ond, Random-Missing Modality (RMM) captures intermit-
+tent or partial sensor failures that cause unpredictable data
+absence. Third, Noisy Modality (NM) describes cases
+where sensors continue to provide input, but the data is de-
+graded or corrupted due to environmental or hardware fac-
+tors [48, 51]. While some studies have explored EMM and
+NM, RMM—despite its high practical relevance—remains
+largely underexamined in the current literature.
+In this paper, we present a comprehensive benchmark
+to systematically evaluate modality robustness in Multi-
+Modal Semantic Segmentation (MMSS). Our study begins
+by surveying and categorizing existing MMSS methods ac-
+cording to their architectural design principles and fusion
+strategies [ 40, 43]. We identify three primary approaches:
+(1) RGB-centric methods that use other modalities as sup-
+plementary information [ 40]; (2) Equal-contribution meth-
+ods that treat all modalities with uniform importance [ 15];
+(3) Adaptive-selection methods that dynamically deter-
+mine modality contributions [ 13, 48]. We then evaluate
+these methods under our three robustness scenarios (EMM,
+RMM, and NM) using the DELIVER dataset [ 40], which
+provides multi-modal acquired data under diverse envi-
+ronmental conditions. Our systematic evaluation reveals
+strengths and weaknesses in current approaches and illumi-
+nates promising directions for more robust systems.
+Our contributions can be concluded as follows: (I) We
+comprehensively collect the works related to the multi-
+model semantic segmentation task and categorize them sys-
+tematically. (II) We build a robust benchmark for the multi-
+model semantic segmentation task, including 3 scenarios:
+EMM, RMM, and NM. (III) From a statistical point of view,
+we propose new metrics to evaluate the performance of the
+model in both EMM and RMM cases.
+2. Related work
+2.1. Related Surveys and Benchmarks
+The development of intelligent vision sensors has sparked
+extensive research on multi-modal semantic segmentation,
+resulting in several surveys and benchmarks in this ﬁeld.
+The Surveys on multi-modal semantic segmentation pro-
+vide a comprehensive summary of existing methods, cover-
+ing both bi-modal semantic segmentation and multi-modal
+semantic segmentation. For instance, [ 26, 27, 45] focus
+Table 1. Comparison of modality robustness across MMSS meth-
+ods. RMM: Random-Missing Modality; EMM: Entire-Missing
+Modality; NM: Noisy Modality.
+Work Publication RMM EMM NM
+MCubesNet [15] CVPR2022   
+TokenFusion [30] CVPR2022   
+CMXNeXt [40] CVPR2023   
+GeminiFusion [10] ICML2024   
+MAGIC [48] ECCV2024   
+Any2Seg [47] ECCV2024   
+FPT [18] IV2024   
+MAGIC++ [46] Arxiv2024   
+MLE-SAM [51] Arxiv2024   
+AnySeg [49] Arxiv2024   
+StitchFusion [13] Arxiv2024   
+CAFuser [2] RAL2025   
+MemorySAM [16] Arxiv2025   
+on the various modality combinations such as RGB-Depth,
+RGB-Thermal, RGB-Event, and so on. As to the multi-
+modal semantic segmentation, [ 43] offers an in-depth re-
+view of fusion strategies for handling multi-modal data.
+Moreover, [9] concentrates on autonomous driving scenar-
+ios, providing insights from the perspective of real-world
+applications. The Benchmarks offer a fair comparison of
+advanced methods, providing effective performance mea-
+surements. Currently, DELIVER [ 40], MUSES [ 1], and
+MCubes [15] are the most common benchmarks for multi-
+modal semantic segmentation, enabling researchers to test
+their methods under various modality combinations.
+The relevant surveys and benchmarks lay their empha-
+sis on the accuracy of semantic segmentation models with
+multi-modal settings. While, in real-world applications, the
+multi-sensor systems will not permanently be as perfect as
+assumed. Besides accuracy, the robustness of multi-modal
+semantic segmentation models also plays a crucial role to
+the entire system, especially when sensors are disturbed or
+malfunctioning. However, building a robustness bench-
+mark of multi-modal semantic segmentation for multi-
+sensor systems remains a research gap. Our work is the
+ﬁrst attempt to address this gap, hoping to bring new in-
+sights to the multi-modal semantic segmentation task.
+2.2. Multi-modal Semantic Segmentation
+As a vital task in the computer vision ﬁeld, semantic seg-
+mentation aims to allocate a class for each pixel [20]. Due to
+the lack of multi-modal datasets, previous research mainly
+focuses on the uni-modality [ 8, 11, 21–24, 28, 33, 37, 38]
+or bi-modality such as RGB-Depth [ 3–5, 25, 36], RGB-
+Thermal [ 6, 14, 31, 44, 50], RGB-Event [ 12, 32, 35, 39],
+1577
+\nand so on. With the development of vision sensor tech-
+niques and relevant multi-modal datasets, several multi-
+modal semantic segmentation models [ 13, 15, 40, 48]
+are proposed to better cope with real-world requirements.
+which is shown in Fig. 1. From the perspective of modal-
+ity contribution, existing multi-modal semantic segmenta-
+tion models can be classiﬁed into 3 types. 1© Take RGB
+as the main contributor [ 40]. CMXNet [ 40] designs a
+Self-Query Hub to choose informative features from other
+modalities, which serve as supplements to the primary RGB
+information. 2© Take all modalities as equal contribu-
+tors [ 2, 10, 13, 30, 51, 51].MCubeSNet [ 15] fuses multi-
+level features of different modalities in a concatenation way.
+3© Find the main contributor adaptively [ 16, 46–49]. Most
+representatively, MAGIC [48] determines the main contrib-
+utor based on the similarity between each modality’s fea-
+tures and the aggregated features. From these three design
+paradigms, several initial conjectures can be given. Firstly,
+Type 1© is supposed to be more sensitive to the RGB modal-
+ity. Its robustness relies on the stability of the RGB cam-
+era, which means the vulnerability of the model to RGB-
+in-friendly environments such as at night, cloudy, and so
+on. Secondly, Type 2© is supposed to be moderately robust.
+Such models will not be greatly degraded by the interfer-
+ence or absence of a certain modality. Thirdly, Type 3© is
+supposed to be equipped with the best modality robustness.
+The adaptive selection of the main contributor decreases the
+inﬂuence of the bad modality on the entire model. The ex-
+periments and further discussions are shown in Section 4.2
+and Section 4.3.
+2.3. Modality Robustness
+Research endeavors have focused on designing robust
+multi-modal frameworks to handle the modality-incomplete
+data [ 18, 46–49, 51]. Current works mainly focus on the
+entire-missing modality (EMM) condition and noisy modal-
+ity (NM) condition as shown in Table 1, which clearly
+compares how different methods emphasize modality ro-
+bustness. In more detail, Any2Seg [ 47] attempts to uti-
+lize knowledge distillation from MVLMs to solve modality-
+agnostic segmentation. MAGIC [ 48] and MAGIC++ [ 46]
+attempt to evaluate each modality’s contribution to facilitate
+efﬁcient cross-modal fusion, especially when faced with
+EMM and NM. However, as in Table 1, each study targets
+different aspects of modality robustness. Thus, we hope to
+establish a benchmark that evaluates how existing methods
+perform when dealing with the modality robustness prob-
+lem. In addition, while most current methods focus on
+EMM and NM, they often skip random-missing modality
+(RMM) scenarios, which are closer to the real-world appli-
+cation. Our proposed benchmark will include RMM, EMM,
+and NM conditions along with all the existing open-source
+multi-modal semantic segmentation methods, attempting to
+bring new insights for future works.
+3. Our Benchmarks
+3.1. Evaluation Datasets
+In this research, we use the DELIVER [ 40] multi-modal
+dataset to evaluate semantic segmentation models. The
+dataset includes Depth, LiDAR, Multiple Views, Events,
+and RGB images, captured under ﬁve weather condi-
+tions (cloudy, foggy, night-time, rainy, and sunny). Each
+weather condition also includes ﬁve corner cases: Motion
+Blur (MB), Over-Exposure (OE), Under-Exposure (UE),
+LiDAR-Jitter (LJ), and Event Low-resolution (EL), which
+reﬂect real-world sensor performance challenges.
+The DELIVER [ 40] dataset was generated using the
+CARLA simulator [ 7], a widely used open-source platform
+for autonomous driving research. It is speciﬁcally designed
+to simulate diverse and dynamic urban driving environ-
+ments, ensuring that models can be evaluated under a wide
+range of practical, real-world conditions. The dataset pro-
+vides six views per sample, each containing four modalities
+and two types of labels (semantic and instance segmenta-
+tion), creating a rich multi-sensor setup. This makes the
+dataset ideal for evaluating model robustness under the con-
+text of autonomous driving, where conditions such as vary-
+ing weather, sensor degradation, and complex environments
+are common. With 25 semantic classes, the DELIVER[ 40]
+dataset enables a comprehensive evaluation of model per-
+formance across diverse segmentation tasks. Its carefully
+curated collection of data, encompassing diverse environ-
+mental challenges, serves as a valuable benchmark for as-
+sessing how well segmentation models generalize to real-
+world autonomous driving scenarios. The dataset’s unique
+combination of multi-modal data and real-world simula-
+tions makes it particularly well-suited for evaluating the
+performance and robustness of models under conditions that
+closely resemble those encountered in actual deployments.
+3.2. Evaluation Methods
+3.2.1. Entire-Missing Modality
+In real-world applications, multi-modal systems often face
+sensor damage. The most severe case is a complete fail-
+ure of the sensors, which means that the corresponding
+modal data is entirely zeroed out. For instance, when the
+depth camera is entirely broken in an intelligent vehicle, all
+depth data becomes unavailable. To simulate this situation,
+we set the missing modalities’ data to zero and then make
+the entire data go through the trained model based on the
+full modality combination. Let the complete modality set
+as M = {m1,m 2,m 3,...,m n} and represent the miss-
+ing modality combinations as {M′
+1,M ′
+2,...,M ′
+N}⊆ M ,
+where each M′
+i is a combination obtained by removing cer-
+tain modalities from the complete modality combination
+1578
+\nEntire-Missing Modality
+Noise
+(Eq. 7)
+Noisy ModalityRandom-Missing Modality
+Entirely
+Zero
+Randomly
+Zero
+Entire/Random-
+Missing Input
+Model 
+Output࢏ࡹࢁ࢕ࡵ࢓
+ᇲ
+࢐ࡹࢁ࢕ࡵ࢓
+ᇲᇲ
+Noisy Input
+Model 
+Outputࢁ࢕ࡵ࢓
+Condition 1 Condition 2
+ࡹࡹࡱࢁ࢕ࡵ࢓
+ࡹࡹࡾࢁ࢕ࡵ࢓ 
+ࢍ࢜࡭
+ࡹࡹࡱࢁ࢕ࡵ࢓
+ࡹࡹࡾࢁ࢕ࡵ࢓ 
+ࡱ
+ࡹࡺࢁ࢕ࡵ࢓
+Eq. 1,3)
+(Eq. 4,5)
+૚
+૛
+ࡺࡹ
+ᇱᇱ ሽ
+gy
+l
+૚
+૛
+ࡺࡹ
+ᇱ ሽࡺࡹ
+Ground Truth
+Condition 1
+Assuming that the damage of each 
+modality follows a Bernoulli distribution.
+Assuming that each damaged modality 
+combination has the same probability.
+Model Trained from complete multi-modal data.
+Zeroed Pixel
+Normal Pixel
+Pixel with Gaussian noise
+Pixel with sault noise
+Pixel with pepper noise
+Ground Truth
+Condition 2
+Figure 2. Framework of our multi-modal semantic segmentation robustness benchmark.
+M , and N denotes the number of different M′.
+To evaluate the model’s performance under missing
+modalities, we ﬁrst deﬁne mIoUEMM as the mean inter-
+section over union (IoU) for the missing modality com-
+binations, as shown in Eq. 1, where mIoU Avg
+M′
+i
+represents
+the validation mIoU for the corresponding missing modal-
+ity combination M′
+i , using the model weights trained on the
+complete modality combination.
+mIoU Avg
+EMM = 1
+N
+N∑
+i=1
+mIoUM′
+i
+. (1)
+Furthermore, to consider the case of equal damage prob-
+abilities across all modalities, we further deﬁnemIoU E
+EMM
+as the expected mIoU under the assumption of equal dam-
+age probabilities for each individual modality. Assuming
+that the damage of each modality follows a Bernoulli distri-
+bution with a probability p, we can represent the expected
+mIoU for all combinations of missing modalities. The prob-
+ability of a speciﬁc combination of k modalities being dam-
+aged while the remaining n−k modalities are not damaged
+can be expressed using the binomial distribution. Speciﬁ-
+cally, for a combinationM′
+i that includesk damaged modal-
+ities, the probabilityP (M
+′k
+i ) is given by Eq. 2. mIoU E
+EMM
+can then be calculated as Eq. 3, where M
+′k
+i is a combina-
+tion obtained by removing k modalities from the complete
+modality combination M , and
+(n
+k
+)
+denotes the number of
+ways to choose k modalities from n. The example of the
+R-D-E-L modality combination is shown in Table 2.
+Pp(M
+′k
+i )= pk · (1−p)n−k, (2)
+mIoU E
+EMM (p)=
+n−1∑
+k=0
+(
+n
+k)∑
+i=1
+Pp(M
+′k
+i )·mIoUM′
+i
+. (3)
+Table 2. All combinations of missing modalities and their proba-
+bilities under the R-D-E-L modality combination.
+Modality Combination ProbabilityP
+RGB-Depth-Event-LiDAR (1−p)4
+RGB-Depth-Event p(1−p)3
+RGB-Depth-LiDAR p(1−p)3
+RGB-Event-LiDAR p(1−p)3
+Depth-Event-LiDAR p(1−p)3
+RGB-Depth p2(1−p)2
+RGB-Event p2(1−p)2
+RGB-LiDAR p2(1−p)2
+Depth-Event p2(1−p)2
+Depth-LiDAR p2(1−p)2
+Event-LiDAR p2(1−p)2
+RGB p3(1−p)
+Depth p3(1−p)
+Event p3(1−p)
+LiDAR p3(1−p)
+3.2.2. Random-Missing Modality
+Except for sensor damage, in real-world applications, sen-
+sor data can be partially missing due to temporary obstruc-
+tions, noise, or other random factors. In this scenario, a cer-
+tain proportion of each modality’s data is zeroed out, rather
+than completely missing a modality. Such a condition rea-
+sonably models the unpredictability of sensor failures.
+To evaluate the model’s performance under random
+missing modalities, similar to Section 3.2.1, we deﬁne
+mIoU Avg
+RM M and mIoU E
+RM M to measure the model’s abil-
+ity with random missing modality. For each modality mi,
+a proportion r of the data is randomly set to zero, where
+r reﬂects the proportion of missing data for modality mi.
+We deﬁne the random-missing modality combinations as
+{M′′
+1 ,M ′′
+2 ,...,M ′′
+N}⊆ M , where each M′′
+j is a com-
+bination that is made up of the modalities partly zeroed.
+1579
+\nTable 3. Comparison of MMSS methods under EMM condition of different missing modality combinations (RD means RGB and Depth
+are the normal modalities).
+Model Backbone R D E L RD RE RL DE DL EL RDE RDL REL DEL RDEL
+CMNeXt [40] MiT-B2 22.50 50.59 3.16 2.86 66.33 22.92 22.50 50.80 50.83 3.15 66.27 66.38 22.92 50.98 66.33
+GeminiFusion [10] MiT-B2 15.89 54.73 1.70 1.70 66.93 16.24 15.8 54.83 54.76 1.7 66.92 66.93 16.18 54.86 66.92
+MAGIC [48] MiT-B2 42.72 58.39 1.90 1.62 66.10 42.79 42.72 58.44 58.39 1.90 66.11 66.10 42.80 58.44 66.10
+MAGIC++ [46] MiT-B2 41.10 58.12 2.14 1.64 67.33 41.13 41.13 58.32 58.12 2.15 67.35 67.33 41.17 58.31 67.34
+StitchFusion [13] MiT-B2 30.93 55.44 1.87 1.59 68.22 31.03 33.55 55.76 55.41 1.87 68.23 68.21 33.66 55.71 68.20
+Table 4. Comparison of MMSS methods under RMM condition of different missing modality combinations ( r =0 .75)(RD means RGB
+and Depth are the normal modalities).
+Model Backbone R D E L RD RE RL DE DL EL RDE RDL REL DEL RDEL
+CMNeXt [40] MiT-B2 30.05 56.34 7.04 7.16 66.26 29.98 30.12 56.54 56.39 7.07 66.28 66.32 30.06 56.61 66.33
+GeminiFusion [10] MiT-B2 22.56 58.1 2.34 2.34 66.99 22.27 22.57 58.05 58.08 2.34 66.98 66.94 22.25 58.03 66.92
+MAGIC [48] MiT-B2 42.77 58.70 3.03 2.83 66.10 42.85 42.77 58.76 58.70 3.02 66.10 66.10 42.86 58.76 66.10
+MAGIC++ [46] MiT-B2 41.22 59.97 10.52 10.30 67.33 41.20 41.25 60.15 59.97 10.59 67.34 67.33 41.23 60.15 67.34
+StitchFusion [13] MiT-B2 37.18 57.79 6.71 7.18 68.24 37.26 38.51 58.01 57.91 7.27 68.23 68.21 38.57 58.12 68.21
+Table 5. Comparison of MMSS methods under RMM condition of different missing modality combinations ( r =0 .5).
+Model Backbone R D E L RD RE RL DE DL EL RDE RDL REL DEL RDEL
+CMNeXt [40] MiT-B2 38.26 58.94 19.26 19.32 66.29 38.26 38.26 59.03 59.09 19.32 66.30 66.32 38.26 59.04 66.33
+GeminiFusion [10] MiT-B2 29.33 59.48 4.38 4.41 67.01 29.22 29.37 59.53 59.55 4.35 66.98 66.93 29.21 59.48 66.92
+MAGIC [48] MiT-B2 42.90 60.55 14.87 14.78 66.10 42.94 42.91 60.58 60.53 14.81 66.10 66.10 42.95 60.57 66.10
+MAGIC++ [46] MiT-B2 42.13 61.54 18.46 18.51 67.33 42.1 42.17 61.63 61.52 18.45 67.34 67.33 42.13 61.60 67.34
+StitchFusion [13] MiT-B2 41.21 59.46 15.78 15.80 68.22 41.28 41.96 59.62 59.52 15.89 68.21 68.20 41.97 59.60 68.19
+Table 6. Comparison of MMSS methods under RMM condition of different missing modality combinations ( r =0 .25)
+Model Backbone R D E L RD RE RL DE DL EL RDE RDL REL DEL RDEL
+CMNeXt [40] MiT-B2 47.71 60.92 34.61 34.67 66.31 47.78 47.75 60.94 61.01 34.73 66.31 66.32 47.77 60.98 66.33
+GeminiFusion [10] MiT-B2 44.45 61.2 18.61 18.66 66.98 44.41 44.42 61.28 61.21 18.46 66.98 66.93 44.41 61.24 66.92
+MAGIC [48] MiT-B2 43.96 61.98 28.62 28.62 66.10 43.97 43.96 62.04 61.99 28.68 66.10 66.10 43.96 62.01 66.10
+MAGIC++ [46] MiT-B2 47.06 62.83 33.23 33.16 67.33 47.06 47.07 62.88 62.83 33.30 67.34 67.33 47.10 62.89 67.34
+StitchFusion [13] MiT-B2 47.19 61.47 29.26 29.44 68.24 47.13 47.38 61.53 61.55 29.48 68.24 68.25 47.45 61.61 68.25
+mIoU Avg
+RM M and mIoU E
+RM M are calculated as Eq. 4 and 5.
+mIoUM′′
+j
+(rj ) represents the validation mIoU for modality
+combination M′′
+j with r proportion of its data missing, us-
+ing model weights derived from training with the complete
+modality combination. When validating, the modality that
+is not included in M′′
+j remains unchanged. In Eq. 5,p refers
+to the probability of each modality for random-missing,
+which also follows a Bernoulli distribution as Eq. 2.
+mIoU Avg
+RM M = 1
+N
+N∑
+j=1
+mIoUM′′
+j
+(r), (4)
+mIoU E
+RM M(p)=
+n−1∑
+k=0
+(
+n
+k)∑
+j=1
+Pp(M
+′′k
+j )·mIoUM′′
+j
+. (5)
+3.2.3. Noisy Modality
+In real-world applications, noise interference is inevitable.
+Thus, evaluating model robustness under noisy conditions is
+essential, which can help to ensure its reliability in practical
+applications. To simulate the real world, we introduce 2
+common noises: Gaussian noise and salt-and-pepper noise.
+Gaussian noise NG is used to simulate electronic sensor
+noise (e.g., CMOS thermal noise) and random disturbances
+during transmission. Because it is global, continuous, and
+smooth, Gaussian noise provides a realistic approximation
+of noise in real-world images evenly distributed across all
+pixels of the image, resulting in a smooth degradation of
+image quality. The probability density function of NG is
+shown in Eq. 6, which is determined by σ andμ.
+f (x)= 1
+σ
+√
+2πe− (x−μ)2
+2σ2 . (6)
+Salt-And-Pepper noise NSP is used to simulate scenar-
+ios such as sensor dead pixels, data transmission errors, and
+dust occlusion. Unlike Gaussian noise, salt-And-Pepper
+noise is local, discrete, and sharp, effectively reﬂecting the
+impact of these issues on the image. NSP is characterized
+by random extreme pixels appearing in the image, usually
+black (pepper) and white (salt), which makes the image vi-
+sually distorted. In validation, the noisy density of NSP
+1580
+\nTable 7. EMM evaluation results.
+Model mIoU Avg
+EMM
+mIoU E
+EMM
+(p =0 .2)
+mIoU E
+EMM
+(p =0 .1)
+mIoU E
+EMM
+(p =0 .05)
+CMNeXt [40] 37.90 54.46 60.41 63.38
+GeminiFusion [10] 37.07 54.33 60.62 63.77
+MAGIC [48] 44.97 58.66 62.68 64.47
+MAGIC++ [46] 44.85 59.18 63.52 65.50
+StitchFusion [13] 41.98 58.02 63.29 65.80
+Table 8. RMM evaluation results ( r =0 .75).
+Model mIoU Avg
+RM M
+mIoU E
+RM M
+(p =0 .2)
+mIoU E
+RM M
+(p =0 .1)
+mIoU E
+RM M
+(p =0 .05)
+CMNeXt [40] 42.17 56.66 61.60 63.99
+GeminiFusion [10] 39.78 55.88 61.47 64.22
+MAGIC [48] 45.30 58.77 62.72 64.49
+MAGIC++ [46] 47.06 59.81 63.78 65.62
+StitchFusion [13] 45.16 59.44 64.02 66.17
+Table 9. RMM evaluation results ( r =0 .5).
+Model mIoU Avg
+RM M
+mIoU E
+RM M
+(p =0 .2)
+mIoU E
+RM M
+(p =0 .1)
+mIoU E
+RM M
+(p =0 .05)
+CMNeXt [40] 47.49 58.85 62.68 64.53
+GeminiFusion [10] 42.41 57.30 62.25 64.62
+MAGIC [48] 48.19 59.53 63.01 64.61
+MAGIC++ [46] 49.31 60.50 64.07 65.75
+StitchFusion [13] 48.33 60.58 64.53 66.41
+Table 10. RMM evaluation results ( r =0 .25).
+Model mIoU Avg
+RM M
+mIoU E
+RM M
+(p =0 .2)
+mIoU E
+RM M
+(p =0 .1)
+mIoU E
+RM M
+(p =0 .05)
+CMNeXt [40] 53.61 61.28 63.86 65.11
+GeminiFusion [10] 49.74 60.55 63.91 65.46
+MAGIC [48] 51.61 60.46 60.37 64.76
+MAGIC++ [46] 53.92 62.07 64.78 66.08
+StitchFusion [13] 53.10 62.34 65.39 66.85
+is deﬁned as D. During validation, some adjustments are
+applied to better simulate the real world: 1. Considering
+that the event stream is asynchronous, there will be no NG
+in the event data in practical applications. Thus, to event
+data, NG is not applied. 2. Considering that the commonly
+used deﬁnition of NSP noise is based on RGB data, the
+black and white values in NSP are deﬁned as the maxi-
+mum and minimum values for the data of other modalities.
+We deﬁne mIoUNM to evaluate the model’s ability under
+noisy modalities, which is the validation mIoU with model
+weights derived from training using the noise-free modal-
+ity. With the origin input as X, the noisy input XN for
+mIoUNM is deﬁned as Eq. 7.
+XN = X +NG(σ,μ )+ NSP (D). (7)
+4. Experiments
+4.1. Experimental Details
+All experiments are conducted on 1 A800 GPU with a batch
+size of 4. Same as [ 40], we validate the models with the
+image size set 1024 × 1024. To verify the conjectures in
+Section 2.2 and ensure the comprehensiveness of the ex-
+periment, we select the representative methods of the three
+types of MMSS methods mentioned in Section 2.2 for vali-
+dation. In more detail, we choose CMNeXt [40] for Type 1© ,
+MAGIC [48], MAGIC++ [ 46] for Type 2© , and GeminiFu-
+sion [10], StitchFusion [ 13] for Type 3© . For a fair compar-
+ison, MiT-B2 [34] is selected as the backbone.
+For the Entire-Missing Modality (EMM) condition, we
+ﬁrst validate the mIoU of each possible combination for
+the subsequent calculations. The calculation of mIoU Avg
+EMM
+follows Eq. 1.F o rmIoU E
+EMM , we set p to 3 different val-
+ues: 0.2, 0.1, and 0.05, representing the different frequen-
+cies at which the damage occurs. For the Random-Missing
+Modality (RMM) condition, the experimental settings are
+the same as EMM, with p′set to the same values as p.
+However, when validating in the RMM condition, another
+hyper-parameter r exists, which reﬂects the proportion of
+data missing. For the sake of experimental completeness,
+we set up three degrees of data missing based on the value
+of r. In more detail, r =0 .75 refers to a high level of data
+missing, r =0 .5 refers to a middle level of data missing,
+and r =0 .25 refers to a low level of data missing. For the
+Noisy Modality (NM) condition, we validate the model on
+the RGB-Depth-Event-LiDAR modality combination. Sim-
+ilar to RMM, we set up three degrees of data noise based on
+the values of D and σ. D =0 .2,σ =0 .5 refers to a high
+level of data missing, D =0 .1,σ =0 .2 refers to a middle
+level of data missing, and D =0 .05,σ =0 .1 refers to a
+low level of data missing. The μ is set to 0. Expected val-
+ues are additionally normalized at the end to achieve a fair
+comparison of indicators.
+4.2. Experimental Results
+4.2.1. Entire-Missing Modality
+The results of EMM validation are shown in Table 3, 7
+and Fig. 3. In the EMM condition, some of modalities
+are dropped, allowing a direct validation of each modal-
+ity’s contribution and models’ robustness. Firstly, as shown
+in Table 3, the CMNeXt meets a huge decrease when the
+RGB modality is gone. For example, when it comes to
+DE, DL, and DEL combinations, the mIoU goes down by
+15.53%, 15.50%, and 15.35%, which are the most signif-
+icant decreases among the 5 models. Such results prove
+that Type 1© models rely too much on the RGB modal-
+ity, which causes the potential risk when RGB cameras
+are broken or disturbed. Thus, the ﬁrst conjecture in Sec-
+tion 2.2 can be initially proved. Secondly, even if the
+MAGIC and MAGIC++ don’t achieve the greatest mIoU
+under the RDEL combination, these 2 Type 3© models show
+a surprising robustness in the EMM condition. MAGIC++
+achieves the best mIoU Avg
+EMM , mIoU E
+EMM (p =0 .2), and
+mIoU E
+EMM (p =0 .1), while MAGIC achieves the second
+1581
+\nTable 11. NM evaluation results.
+Class CMNeXt [40] GeminiFusion [ 10] MAGIC [ 48] MAGIC++ [ 46] StitchFusion [ 13]
+Low Mid. High Low Mid. High Low Mid. High Low Mid. High Low Mid. High
+Building 54.46 6.39 0 0 0 0 45.88 28.22 9.58 59.04 41.54 16.42 51.72 26.35 3.84
+Fence 12.11 4.88 1.27 0.21 0 0 13.60 4.55 0.03 5.85 1.53 0.75 12.48 7.90 1.91
+Other 0 0 0 000000000000
+Pedestrian 32.85 14.10 0.07 0.14 0 0 16.38 6.99 0.12 24.32 16.54 6.15 17.38 9.43 2.17
+Pole 45.34 24.70 4.29 6.74 0.21 0 12.60 2.70 0.02 26.05 13.46 5.06 14.84 6.17 1.32
+RoadLine 43.74 18.88 1.25 0.01 0 0 54.38 37.39 15.12 62.53 48.58 30.57 48.90 35.49 22.21
+Road 87.94 56.83 3.00 2.54 0 0 75.74 61.59 49.11 91.85 78.38 68.66 79.10 68.19 51.83
+SideWalk 52.54 27.61 5.11 0.23 0 0 39.26 14.25 0.11 47.56 32.43 8.09 35.57 24.91 10.31
+V egetation 34.46 10.34 5.60 8.96 8.27 7.48 16.91 12.77 1.21 31.23 9.89 10.73 43.20 32.35 16.84
+Cars 51.99 26.13 0.14 0.04 0 0 48.73 31.42 1.00 53.99 26.65 14.37 41.69 31.69 21.36
+Wall 4.72 0.15 0.01 0 0 0 21.49 8.69 0.25 21.52 7.54 1.00 10.83 4.80 2.42
+Trafﬁcsign 27.39 6.22 0.04 0.01 0 0 9.94 5.90 2.31 15.88 6.84 0.60 10.31 4.33 0.70
+Sky 95.43 47.66 7.81 97.65 94.17 74.96 41.01 17.97 10.22 75.31 9.84 1.18 89.21 76.61 40.11
+Ground 2.17 0.39 0000 1.75 0.80 0.00 0.64 1.21 0.69 0.74 0.76 0.21
+Bridge 4.03 0.23 0000 10.24 2.37 0.01 36.19 24.40 1.70 11.07 2.50 2.15
+RailTrack 20.78 0.39 0000 0.78 0.41 0.21 24.51 6.80 0.40 10.81 3.36 1.47
+GroundRail 9.39 2.08 0.13 0.04 0 0 8.52 2.67 0.07 13.28 7.88 4.26 9.26 4.01 0.88
+TrafﬁcLight 48.61 25.85 2.93 3.42 0.01 0 25.87 8.20 0.90 46.87 24.93 3.52 27.99 9.90 1.60
+Static 14.51 1.94 0.01 0 0 0 8.58 2.58 0.05 12.3 5.47 2.02 8.35 3.72 1.16
+Dynamic 5.71 0.64 0000 2.96 0.94 0 5.55 2.30 0.15 3.87 0.94 0
+Water 33.43 19.92 2.13 6.35 0 0 5.14 2.97 0.34 3.90 1.79 0.49 0.05 0.01 0
+Terrain 48.80 26.52 13.12 10.06 0.88 0 29.26 17.43 2.64 42.75 22.17 6.88 33.76 20.54 5.45
+TwoWheeler 17.54 5.40 0000 17.22 5.93 0 14.00 6.86 2.16 16.78 10.82 1.49
+Bus 60.42 32.25 0.39 0.18 0 0 37.79 28.11 5.93 53.28 31.44 20.52 36.69 38.30 38.37
+Truck 72.42 49.64 10.45 1.49 0 0 56.60 27.94 0.30 59.52 29.19 11.01 8.20 4.76 3.40
+mIoUNM 35.23 16.37 2.31 5.52 4.14 3.30 24.03 13.31 3.98 33.12 18.31 8.70 24.91 17.11 9.25
+bestmIoU Avg
+EMM andmIoU E
+EMM (p =0 .2). Thus, it can be
+proved that the adaptive selection methods in Type 3© mod-
+els effectively compress the fail modality’s inﬂuence on the
+entire model, which is the third conjecture in Section 2.2.
+Thirdly, as to the Type 2© models, GeminiFusion achieves
+a similar ability to CMNeXt while StitchFusion surpasses
+CMNeXt but still falls behind MAGIC and MAGIC++. The
+fusion strategy of Type 2© models is effective in avoiding too
+much reliance on some speciﬁc modalities, while it works
+little to help restrain the failed modality’s inﬂuence, which
+is the same as the second conjecture in Section 2.2.
+4.2.2. Random-Missing Modality
+The results of RMM validation are shown in Table 4, 5, 6, 8,
+9, and 10. As shown in Table 4, 5, and 6, StitchFusion per-
+forms better in certain modality combinations, especially
+consistently outperforming MAGIC in RD combinations,
+indicating that it has an advantage in dealing with speciﬁc
+modality combinations. Meanwhile, MAGIC++ is stable in
+most modality combinations. As the proportion of missing
+Figure 3. Visualization of EMM validation results. The scale of
+the radar chart is set to 5.
+decreases, the performance of both methods improves sig-
+niﬁcantly, especially in the case of combinations including
+more modalities. StitchFusion has certain advantages when
+dealing with more modalities, and may be more suitable for
+1582
+\nFigure 4. Visualization of RMM validation results with r =0 .25.
+The scale of the radar chart is set to 2.
+scenarios where modality is less lost. MAGIC++ shows an
+advantage when the modality is severely lost.
+As shown in Table 8, 9, 10, and Fig. 4, mIoU Avg
+RM M of
+MAGIC++ is slightly higher than that of StitchFusion at all
+proportions of data missing, showing its superiority in the
+case of RMM. As the p value decreases, the mIoU E
+RM M
+of both models shows an upward trend. StitchFusion’s
+mIoU growth is slightly larger at low p values, especially
+when p =0 .05, StitchFusion’s mIoU slightly outperforms
+MAGIC++.
+4.2.3. Noisy Modality
+As shown in Table 11, the NM validation results differ sig-
+niﬁcantly between different models. CMNeXt’s mIoUNM
+ranks ﬁrst when the noisy level is low, achieving 35.23%.
+However, when the noisy level goes up, mIoUNM goes
+through the most signiﬁcant decrease, with 16.37% at the
+middle level and 2.31% at the high level. Such a phe-
+nomenon is most likely due to CMNeXt’s over-reliance
+on RGB modality. The RGB modality is a relatively
+information-intensive and robust modality. Thus, when the
+noise keeps a low level, the RGB modality is able to cor-
+rect noise in other modalities. When the RGB modality
+collapses due to noise, the entire model quickly collapses
+with it. Meanwhile, GeminiFusion shows surprisingly poor
+performance. We believe that this is due to the excessive
+inter-modal information exchange in the model architec-
+ture, which leads to the continuous propagation of noise
+in the model, thus expanding the inﬂuence of noise on the
+modality. In addition, the MAGIC++ shows a relatively sta-
+ble and leading performance in the NM condition. Such a
+ﬁnding once again proves the excellent ability of the Type 3©
+model in terms of MMSS robustness.
+4.3. More Discussions
+As shown in Table 3, 4, 5, and 6, Event and LiDAR modal-
+ities appear to be relatively redundant. For example, in Ta-
+ble 3, the mIoU of RD, RDE, RDL, and RDEL are almost
+the same. For CMNeXt, the mIoU of REDL is 66.33%,
+while the mIoU of RDL is 0.05% higher. For StitchFusion,
+the mIoU of RDEL is 68.20%, while the mIoU of RD is
+0.02% higher. Moreover, the contributions of Depth and
+LiDAR modalities seem highly similar. For example, in
+Table 3, the mIoU of RE and RL, RDE, and RDL are al-
+most the same across all models. Such ﬁndings suggest
+that the MMSS model can be optimized by reducing the
+redundancy between Event and LiDAR modalities. This
+can be achieved through feature fusion or attention mecha-
+nisms, emphasizing the unique contribution of each modal-
+ity while minimizing overlap. In addition, understanding
+the redundancy between Event and LiDAR can guide sen-
+sor deployment decisions in real-world applications, poten-
+tially reducing costs by selectively using one modality over
+the other without signiﬁcant performance loss.
+5. Conclusion
+In this study, we create a comprehensive benchmark of ro-
+bustness in Multi-Modal Semantic Segmentation (MMSS),
+which is essential for the related models’ successful de-
+ployment in real-world scenarios characterized by uncer-
+tain data quality. This benchmark evaluates models un-
+der three challenging scenarios: Entire-Missing Modal-
+ity (EMM), Random-Missing Modality (RMM), and Noisy
+Modality (NM). To further enhance the robustness eval-
+uation, we model modality failure events from a proba-
+bilistic perspective, considering two key conditions: equal
+probability for each damaged modality combination and
+modality damage following a Bernoulli distribution. Based
+on these assumptions, we have developed four met-
+rics ( mIoU Avg
+EMM ,mIoU E
+EMM ,mIoU Avg
+RM M,mIoU E
+RM M)
+to provide a more reasonable assessment of model perfor-
+mance in EMM and RMM scenarios. Our work represents
+a pioneering effort to establish a robustness benchmark for
+MMSS, offering valuable insights and a foundation for fu-
+ture research in this ﬁeld. By bridging the gap between the-
+ory and application, we aim to facilitate the development of
+more resilient MMSS models that can effectively handle the
+complexities of real-world multi-modal systems.
+Acknowledgement
+This work was supported by the Guangdong
+Provincial Department of Education Project (Grant
+No.2024KQNCX028); CAAI-Ant Group Research Fund;
+Scientiﬁc Research Projects for the Higher-educational
+Institutions (Grant No.2024312096), Education Bureau of
+Guangzhou Municipality; Guangzhou-HKUST(GZ) Joint
+Funding Program (Grant No.2025A03J3957), Education
+Bureau of Guangzhou Municipality.
+1583
+\nReferences
+[1] Tim Br ¨odermann, David Bruggemann, Christos Sakaridis,
+Kevin Ta, Odysseas Liagouris, Jason Corkill, and Luc
+V an Gool. Muses: The multi-sensor semantic perception
+dataset for driving under uncertainty. In European Confer-
+ence on Computer Vision, pages 21–38. Springer, 2025. 2
+[2] Tim Br ¨odermann, Christos Sakaridis, Y uqian Fu, and Luc
+V an Gool. Cafuser: Condition-aware multimodal fusion for
+robust semantic perception of driving scenes. IEEE Robotics
+and Automation Letters, 2025. 2, 3
+[3] Jinming Cao, Hanchao Leng, Dani Lischinski, Daniel
+Cohen-Or, Changhe Tu, and Y angyan Li. Shapeconv: Shape-
+aware convolutional layer for indoor rgb-d semantic segmen-
+tation. In Proceedings of the IEEE/CVF international con-
+ference on computer vision , pages 7088–7097, 2021. 2
+[4] Lin-Zhuo Chen, Zheng Lin, Ziqin Wang, Y ong-Liang Y ang,
+and Ming-Ming Cheng. Spatial information guided convolu-
+tion for real-time rgbd semantic segmentation. IEEE Trans-
+actions on Image Processing, 30:2313–2324, 2021.
+[5] Xiaokang Chen, Kwan-Y ee Lin, Jingbo Wang, Wayne Wu,
+Chen Qian, Hongsheng Li, and Gang Zeng. Bi-directional
+cross-modality feature propagation with separation-and-
+aggregation gate for rgb-d semantic segmentation. In Eu-
+ropean conference on computer vision , pages 561–577.
+Springer, 2020. 2
+[6] Fuqin Deng, Hua Feng, Mingjian Liang, Hongmin Wang,
+Y ong Y ang, Y uan Gao, Junfeng Chen, Junjie Hu, Xiyue
+Guo, and Tin Lun Lam. Feanet: Feature-enhanced atten-
+tion network for rgb-thermal real-time semantic segmenta-
+tion. In 2021 IEEE/RSJ international conference on intel-
+ligent robots and systems (IROS) , pages 4467–4473. IEEE,
+2021. 2
+[7] Alexey Dosovitskiy, German Ros, Felipe Codevilla, Anto-
+nio Lopez, and Vladlen Koltun. Carla: An open urban driv-
+ing simulator. In Conference on robot learning, pages 1–16.
+PMLR, 2017. 3
+[8] Mingyuan Fan, Shenqi Lai, Junshi Huang, Xiaoming Wei,
+Zhenhua Chai, Junfeng Luo, and Xiaolin Wei. Rethink-
+ing bisenet for real-time semantic segmentation. In 2021
+IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 9716–9725, 2021. 2
+[9] Di Feng, Christian Haase-Sch ¨utz, Lars Rosenbaum, Heinz
+Hertlein, Claudius Glaeser, Fabian Timm, Werner Wies-
+beck, and Klaus Dietmayer. Deep multi-modal object de-
+tection and semantic segmentation for autonomous driving:
+Datasets, methods, and challenges. IEEE Transactions on
+Intelligent Transportation Systems, 22(3):1341–1360, 2020.
+1, 2
+[10] Ding Jia, Jianyuan Guo, Kai Han, Han Wu, Chao Zhang,
+Chang Xu, and Xinghao Chen. Geminifusion: Efﬁcient
+pixel-wise multimodal fusion for vision transformer. In
+F orty-ﬁrst International Conference on Machine Learning .
+2, 3, 5, 6, 7
+[11] Zhenchao Jin, Bin Liu, Qi Chu, and Nenghai Y u. Isnet: In-
+tegrate image-level and semantic-level context for semantic
+segmentation. In 2021 IEEE/CVF International Conference
+on Computer Vision (ICCV), pages 7169–7178, 2021. 2
+[12] Sanket Kachole, Xiaoqian Huang, Fariborz Baghaei Naeini,
+Rajkumar Muthusamy, Dimitrios Makris, and Y ahya Zweiri.
+Bimodal segnet: Instance segmentation fusing events
+and rgb frames for robotic grasping. arXiv preprint
+arXiv:2303.11228, 2023. 2
+[13] Bingyu Li, Da Zhang, Zhiyuan Zhao, Junyu Gao, and Xue-
+long Li. Stitchfusion: Weaving any visual modalities to en-
+hance multimodal semantic segmentation. arXiv preprint
+arXiv:2408.01343, 2024. 2, 3, 5, 6, 7
+[14] Gongyang Li, Yike Wang, Zhi Liu, Xinpeng Zhang, and Dan
+Zeng. Rgb-t semantic segmentation with location, activation,
+and sharpening. IEEE Transactions on Circuits and Systems
+for Video Technology, 33(3):1223–1235, 2022. 2
+[15] Y upeng Liang, Ryosuke Wakaki, Shohei Nobuhara, and Ko
+Nishino. Multimodal material segmentation. In Proceedings
+of the IEEE/CVF Conference on Computer Vision and Pat-
+tern Recognition, pages 19800–19808, 2022. 2, 3
+[16] Chenfei Liao, Xu Zheng, Y uanhuiyi Lyu, Haiwei Xue, Yi-
+hong Cao, Jiawen Wang, Kailun Y ang, and Xuming Hu.
+Memorysam: Memorize modalities and semantics with seg-
+ment anything model 2 for multi-modal semantic segmenta-
+tion. arXiv preprint arXiv:2503.06700, 2025. 2, 3
+[17] Jiaying Liu, Dejia Xu, Wenhan Y ang, Minhao Fan, and
+Haofeng Huang. Benchmarking low-light image enhance-
+ment and beyond. International Journal of Computer Vision,
+129:1153–1184, 2021. 1
+[18] Ruiping Liu, Jiaming Zhang, Kunyu Peng, Y ufan Chen, Ke
+Cao, Junwei Zheng, M. Saquib Sarfraz, Kailun Y ang, and
+Rainer Stiefelhagen. Fourier prompt tuning for modality-
+incomplete scene segmentation. In 2024 IEEE Intelligent
+V ehicles Symposium (IV), pages 961–968, 2024. 2, 3
+[19] Wenyu Liu, Wentong Li, Jianke Zhu, Miaomiao Cui, Xuan-
+song Xie, and Lei Zhang. Improving nighttime driving-scene
+segmentation via dual image-adaptive learnable ﬁlters. IEEE
+Transactions on Circuits and Systems for Video Technology ,
+2023. 1
+[20] Y ujian Mo, Y an Wu, Xinneng Y ang, Feilin Liu, and Y ujun
+Liao. Review the state-of-the-art technologies of semantic
+segmentation based on deep learning. Neurocomputing, 493:
+626–646, 2022. 1, 2
+[21] Huihui Pan, Y uanduo Hong, Weichao Sun, and Yisong Jia.
+Deep dual-resolution networks for real-time and accurate se-
+mantic segmentation of trafﬁc scenes. IEEE Transactions on
+Intelligent Transportation Systems, 24(3):3448–3460, 2023.
+2
+[22] Adam Paszke, Abhishek Chaurasia, Sangpil Kim, and Eu-
+genio Culurciello. Enet: A deep neural network architec-
+ture for real-time semantic segmentation. arXiv preprint
+arXiv:1606.02147, 2016.
+[23] Juncai Peng, Yi Liu, Shiyu Tang, Y uying Hao, Lutao Chu,
+Guowei Chen, Zewu Wu, Zeyu Chen, Zhiliang Y u, Y uning
+Du, et al. Pp-liteseg: A superior real-time semantic segmen-
+tation model. arXiv preprint arXiv:2204.02681, 2022.
+[24] Rudra PK Poudel, Stephan Liwicki, and Roberto Cipolla.
+Fast-scnn: Fast semantic segmentation network. arXiv
+preprint arXiv:1902.04502, 2019. 2
+1584
+\n[25] Daniel Seichter, Mona K ¨ohler, Benjamin Lewandowski, Tim
+Wengefeld, and Horst-Michael Gross. Efﬁcient rgb-d seman-
+tic segmentation for indoor scene analysis. In 2021 IEEE in-
+ternational conference on robotics and automation (ICRA) ,
+pages 13525–13531. IEEE, 2021. 2
+[26] Kechen Song, Ying Zhao, Liming Huang, Y unhui Y an, and
+Qinggang Meng. Rgb-t image analysis technology and ap-
+plication: A survey. Engineering Applications of Artiﬁcial
+Intelligence, 120:105919, 2023. 1, 2
+[27] Changshuo Wang, Chen Wang, Weijun Li, and Haining
+Wang. A brief survey on rgb-d semantic segmentation us-
+ing deep learning. Displays, 70:102080, 2021. 1, 2
+[28] Jian Wang, Chenhui Gou, Qiman Wu, Haocheng Feng,
+Junyu Han, Errui Ding, and Jingdong Wang. Rtformer: Efﬁ-
+cient design for real-time semantic segmentation with trans-
+former. In 2022 Conference on Neural Information Process-
+ing Systems (NeurIPS), pages 7423–7436, 2022. 2
+[29] Jiawen Wang, Chenfei Liao, Zhongqi Zhao, Lianghui Li,
+Xuan Gao, Suna Pan, Fangzhen Shi, Y udong Wang, Weijie
+Zhou, and Kehu Y ang. Umsss: A visual scene semantic seg-
+mentation dataset for underground mines. In ICASSP 2025-
+2025 IEEE International Conference on Acoustics, Speech
+and Signal Processing (ICASSP) , pages 1–5. IEEE, 2025. 1
+[30] Yikai Wang, Xinghao Chen, Lele Cao, Wenbing Huang,
+Fuchun Sun, and Y unhe Wang. Multimodal token fusion for
+vision transformers. In Proceedings of the IEEE/CVF con-
+ference on computer vision and pattern recognition , pages
+12186–12195, 2022. 2, 3
+[31] Wei Wu, Tao Chu, and Qiong Liu. Complementarity-aware
+cross-modal feature fusion network for rgb-t semantic seg-
+mentation. Pattern Recognition, 131:108881, 2022. 2
+[32] Bochen Xie, Y ongjian Deng, Zhanpeng Shao, and Y oufu Li.
+Eisnet: A multi-modal fusion network for semantic segmen-
+tation with events and images. IEEE Transactions on Multi-
+media, 2024. 2
+[33] Enze Xie, Wenhai Wang, Zhiding Y u, Anima Anandkumar,
+Jose M. Alvarez, and Ping Luo. Segformer: Simple and efﬁ-
+cient design for semantic segmentation with transformers. In
+2021 Conference on Neural Information Processing Systems
+(NeurIPS), pages 12077–12090, 2021. 2
+[34] Enze Xie, Wenhai Wang, Zhiding Y u, Anima Anandkumar,
+Jose M Alvarez, and Ping Luo. Segformer: Simple and
+efﬁcient design for semantic segmentation with transform-
+ers. Advances in neural information processing systems , 34:
+12077–12090, 2021. 6
+[35] Bowen Y ao, Y ongjian Deng, Y uhan Liu, Hao Chen, Y oufu
+Li, and Zhen Y ang. Sam-event-adapter: Adapting segment
+anything model for event-rgb semantic segmentation. In
+2024 IEEE International Conference on Robotics and Au-
+tomation (ICRA), pages 9093–9100. IEEE, 2024. 2
+[36] Bowen Yin, Xuying Zhang, Zhongyu Li, Li Liu, Ming-Ming
+Cheng, and Qibin Hou. Dformer: Rethinking rgbd repre-
+sentation learning for semantic segmentation. arXiv preprint
+arXiv:2309.09668, 2023. 2
+[37] Changqian Y u, Jingbo Wang, Chao Peng, Changxin Gao,
+Gang Y u, and Nong Sang. Bisenet: Bilateral segmentation
+network for real-time semantic segmentation. In 2018 Eu-
+ropean conference on computer vision (ECCV) , pages 325–
+341, 2018. 2
+[38] Changqian Y u, Changxin Gao, Jingbo Wang, Gang Y u,
+Chunhua Shen, and Nong Sang. Bisenet v2: Bilateral net-
+work with guided aggregation for real-time semantic seg-
+mentation. International Journal of Computer Vision , 129:
+3051–3068, 2021. 2
+[39] Jiaming Zhang, Kailun Y ang, and Rainer Stiefelhagen. Is-
+safe: Improving semantic segmentation in accidents by fus-
+ing event-based data. In 2021 IEEE/RSJ International Con-
+ference on Intelligent Robots and Systems (IROS) , pages
+1132–1139. IEEE, 2021. 2
+[40] Jiaming Zhang, Ruiping Liu, Hao Shi, Kailun Y ang, Si-
+mon Reiß, Kunyu Peng, Haodong Fu, Kaiwei Wang, and
+Rainer Stiefelhagen. Delivering arbitrary-modal semantic
+segmentation. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition , pages 1136–
+1147, 2023. 2, 3, 5, 6, 7
+[41] Qingyang Zhang, Y ake Wei, Zongbo Han, Huazhu Fu, Xi
+Peng, Cheng Deng, Qinghua Hu, Cai Xu, Jie Wen, Di Hu,
+et al. Multimodal fusion on low-quality data: A comprehen-
+sive survey. arXiv preprint arXiv:2404.18947, 2024. 1
+[42] Y u Zhang and Lin Zhang. A generative adversarial network
+approach for removing motion blur in the automatic detec-
+tion of pavement cracks. Computer-Aided Civil and Infras-
+tructure Engineering, 2024. 1
+[43] Yifei Zhang, D ´esir´e Sidib ´e, Olivier Morel, and Fabrice
+M´eriaudeau. Deep multimodal fusion for semantic image
+segmentation: A survey. Image and Vision Computing, 105:
+104042, 2021. 1, 2
+[44] Shenlu Zhao, Yichen Liu, Qiang Jiao, Qiang Zhang, and
+Jungong Han. Mitigating modality discrepancies for rgb-t
+semantic segmentation. IEEE Transactions on Neural Net-
+works and Learning Systems , 2023. 2
+[45] Xu Zheng, Y exin Liu, Y unfan Lu, Tongyan Hua, Tianbo Pan,
+Weiming Zhang, Dacheng Tao, and Lin Wang. Deep learning
+for event-based vision: A comprehensive survey and bench-
+marks. arXiv preprint arXiv:2302.08890, 2023. 1, 2
+[46] Xu Zheng, Y uanhuiyi Lyu, Lutao Jiang, Jiazhou Zhou, Lin
+Wang, and Xuming Hu. Magic++: Efﬁcient and resilient
+modality-agnostic semantic segmentation via hierarchical
+modality selection. arXiv preprint arXiv:2412.16876 , 2024.
+2, 3, 5, 6, 7
+[47] Xu Zheng, Y uanhuiyi Lyu, and Lin Wang. Learning
+modality-agnostic representation for semantic segmentation
+from any modalities. In European Conference on Computer
+Vision, pages 146–165. Springer, 2024. 2, 3
+[48] Xu Zheng, Y uanhuiyi Lyu, Jiazhou Zhou, and Lin Wang.
+Centering the value of every modality: Towards efﬁcient and
+resilient modality-agnostic semantic segmentation. arXiv
+preprint arXiv:2407.11344, 2024. 2, 3, 5, 6, 7
+[49] Xu Zheng, Haiwei Xue, Jialei Chen, Yibo Y an, Lutao Jiang,
+Y uanhuiyi Lyu, Kailun Y ang, Linfeng Zhang, and Xuming
+Hu. Learning robust anymodal segmentor with unimodal and
+cross-modal distillation. arXiv preprint arXiv:2411.17141 ,
+2024. 2, 3
+[50] Wujie Zhou, Tingting Gong, Jingsheng Lei, and Lu Y u. Dbc-
+net: Dynamic bilateral cross-fusion network for rgb-t urban
+1585
+\nscene understanding in intelligent vehicles. IEEE Transac-
+tions on Systems, Man, and Cybernetics: Systems , 2023. 2
+[51] Chenyang Zhu, Bin Xiao, Lin Shi, Shoukun Xu, and Xu
+Zheng. Customize segment anything model for multi-modal
+semantic segmentation with mixture of lora experts. arXiv
+preprint arXiv:2412.04220, 2024. 2, 3
+1586

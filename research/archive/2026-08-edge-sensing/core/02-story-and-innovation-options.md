@@ -1,0 +1,96 @@
+# 故事、经济价值与候选创新点
+
+## 1. 先纠正问题定义
+
+### 不能说的故事
+
+- “澳门没有掌纹系统，所以我们来填补空白。”
+- “掌纹可以证明没有非法劳工。”
+- “我们做第一个 RGB+NIR 掌纹或第一个掌纹活体检测。”
+
+这些说法都站不住：澳门出入境官方 FAQ 已把掌纹列为处理的生物识别资料之一；微信掌纹支付亦已在澳门银河于 2024 年落地；掌纹只能认定与注册身份的匹配，不能判定签证、劳动许可或雇佣关系；多光谱和 PAD 也有既有研究。
+
+### “我在澳门 18 年没遇到”应怎样变成研究问题
+
+这不是无效体感，反而是一个很好的**反例**：如果掌纹技术、支付价值和澳门旅游场景都存在，为何大多数本地居民仍未把它当成日常体验？本轮只能提出四个待验证解释，不能先选一个当事实：
+
+| 假设 | 为什么合理 | 如何证伪/验证 |
+| --- | --- | --- |
+| 部署仍局部且较新 | 已查到的澳门银河案例在 2024 年才上线。 | 访谈商户/场地方，搜集设备点位与使用频率。 |
+| 本地支付已有足够低摩擦的卡、二维码、手机路径 | 掌纹支付要额外注册、硬件与支付系统集成。 | 比较注册时长、结账时长、失败处理和商户集成成本。 |
+| 生物识别用途受到比例性、资料处理和接受度约束 | 澳门对员工生物识别处理已有专门指引。 | 访谈数据保护/运营负责人，记录合法性与替代方案要求。 |
+| 广泛支付并不适合低成本独立终端 | 支付需要银行、结算、风控和大规模后台，不是一个 Pi demo 能替代。 | 不把支付列为 FYP 目标；比较内部 1:1 核验的部署依赖。 |
+
+结论：**支付不是我们应该进入的故事。** 它已经有大厂、静脉+掌纹、支付风控和后台生态。近期接受度研究也显示，信任、使用习惯、易用性和专用基础设施是采用前提，但样本来自别国的自陈意愿，不能推出澳门需求或 ROI（详见 [`27-palm-payment-acceptance-boundary-log.md`](../log/27-palm-payment-acceptance-boundary-log.md)）。FYP 应寻找支付之外、尚没有被该生态自然满足的窄场景。
+
+### 可以验证的故事
+
+> 在一个受控但网络未必可靠的临时工作现场，负责人要确认进入受限区域或领取关键工具的人确为当班被授权者。设备需要快速离线工作、少留存生物资料，并避免单帧相机被简单重放或实体贴片欺骗。我们研究一个低成本、可重复采集的掌纹边缘终端，量化它在正常通行与攻击拦截之间的代价。
+
+合适的第一场景是**机房/设施维修的授权进入或关键工具领用**，而不是支付和城市级监控。它自然需要 `1:1 verification`：使用者先出示工单/二维码/卡片得到匿名 claim，设备再核验“声称身份是否真的到场”。这比 `1:N` 搜索更利于延迟和 FYP 数据规模控制。这里的 QR/工单是 upstream 已授权记录的 lookup，除非另行实现和审计受保护持有凭证，不能把“QR + 掌纹”写成 two-factor/MFA。现行 [NIST SP 800-171r3](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/800-171r3/NIST.SP.800-171r3.html) 把 maintenance personnel authorization、facility access list、temporary credential 和 physical-access log 分开讨论：未预先列为维护人员的 vendor/consultant 可依风险评估获得一次或极短期凭证。这说明“时限维护核验”是可观察的工作流模式，不说明澳门需要掌纹，也不规定用 biometrics。2024 年 privacy-preserving physical access-control 研究也区分了两类环境：在敏感工作区，身份披露可被合理需要；公共交通/活动等场景则应避免可关联性。因此本项目不进入支付/公共通行。外部行业调查虽不适用于澳门总体，但在 705 个设施受访者中记录到 38.30% 的 card/credential sharing；同时 tailgating 和 propped doors 更常见，说明掌纹只适合已有逐人流程的单人瓶颈，不能当作普通门禁或物理通行安全的普适方案。它也有比单纯门锁更清晰的待测价值：离线时仍能把“人、工单、时间、设备/工具”关联成最小审计事件；但这项价值仍须澳门现场访谈确认。完整 factor/PAD/endpoint 边界见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。
+
+这里还要明确排除高峰人员流和考勤。一个 construction field study 的访谈/现场观察显示，biometric 的姿态调整与 false rejection 会让每人处理时间高于 RFID/QR；其总流程模型将 FRR 与单次处理时间一起影响终端数量。[该研究](https://doi.org/10.1016/j.proeng.2017.07.204) 不适用于澳门或本设备，但足以否定“掌纹总是更方便”的叙事。故候选场景必须是低频、单人、可容忍明确 retry/fallback 的维护或工具节点；不把时间管理、工人考勤或批量入口作为故事。
+
+## 2. 经济价值链：目前哪些是事实，哪些待验证
+
+| 链条 | 当前证据 | 如何量化 | 仍需验证 |
+| --- | --- | --- | --- |
+| 临时/受限现场可采用时限维护授权，但是否有人-凭证不一致风险未知 | NIST SP 800-171r3 讨论 maintenance authorization 和一次/极短期 temporary credential；ASIS 2023 的非代表性设施调查有 credential sharing 先例；两者均不适用于澳门。`E1 + Q` | 等待时间、人工工时、每次单人领取/授权点的例外/争议 | 澳门现场是否有同类流程；尾随/撑门不可由掌纹解决。`Q` |
+| 离线模板核验可少传输原始图像 | 可由本系统架构保证。`E1`（设计能力） | 原始图上传次数=0；模板大小；离线成功率 | 这是否产生客户愿付费价值；不等于 privacy-preserving / non-transferable credential。`Q` |
+| 降低未授权进入风险可有经济价值 | 合理但需要具体业务模型。`Q` | 安保巡检工时、停工时间、审计覆盖 | 不能先假定能减少事故、损失或非法用工。 |
+
+因此，汇报时可说“我们要验证一个可计量的风险与效率假设”，而不是先报一个没有来源的 ROI 金额。
+
+## 3. 澳门与合规：真正的设计约束
+
+澳门 [个人资料保护法](https://www.dspdp.gov.mo/file/Laws%20and%20Regulations/%E5%80%8B%E4%BA%BA%E8%B3%87%E6%96%99%E4%BF%9D%E8%AD%B7%E6%B3%95_EN.pdf) 适用于自动化个人资料处理和可识别人士的影像处理。个人资料保护机构亦说明，使用生物识别建立员工身份属于自动化个人资料处理，并要求按用途考虑合法性、比例性和相应预防措施；该机构也有生物识别考勤/保安相关指引。
+
+历史上的官方考勤豁免文件还写明，在考勤身份核验中应提供不涉及生物识别资料的替代方案（涉及公共利益、健康或安全的情形除外），并规定关系结束后 30 天内删除生物识别资料。[官方英文文件](https://www.dspdp.gov.mo/file/Service%20Applications/Exemption%20of%20notification/2.%20%E7%82%BA%E7%A2%BA%E8%AA%8D%E8%BA%AB%E4%BB%BD%E4%BD%9C%E8%80%83%E5%8B%A4%E7%94%A8%E9%80%94%E8%80%8C%E9%80%B2%E8%A1%8C%E6%B6%89%E5%8F%8A%E7%94%9F%E7%89%A9%E7%89%A9%E7%89%B9%E5%BE%B5%E8%B3%87%E6%96%99%E7%9A%84%E8%99%95%E7%90%86-ENG.pdf) 仅作为设计参考，不构成现行法律意见；真实部署应由机构按届时法规和用途复核。
+
+这不是“禁止做”的理由，而是系统 requirements：明确目的、最少数据、可替代的非生物验证方式、保存/删除期限、谁能看日志、原始帧默认不出设备、以及真人复核/申诉路线。学校 demo 不应接入真实门禁、工资、处罚或移民判断。
+
+## 4. 三个候选创新点
+
+| 方向 | 核心问题 | 最小 demo | 创新需要证明什么 | 风险 | 当前决定 |
+| --- | --- | --- | --- | --- | --- |
+| A. 可撤销跨设备模板 | 同一人跨设备通过，但泄露模板可换、不同点位不可关联 | 两设备注册/验证 + key rotation | 跨设备 TAR、重发后旧模板失效、不可关联/不可逆分析 | 密码学与跨域数据工作量都大 | 备选 |
+| B. 受控 illumination relation gate | 既有掌部工作已有随机灯序和跨帧差异检查后，claim 后的 RGB/NIR 命令与**实际观测 response 的预冻结关系**，加 ToF/quality，是否还能降低重放/贴片误放行 | 采集盒指引距离；`B2 静态多谱`、`M post-claim relation check`、正常/打印/屏幕/普通贴片的 through/reject 对照 | 未见攻击材料上相对 B2 的 IAPMR/APCER、BPCER、p95 与输入端能耗 | 短序列可能无可验证 relation 或无额外增益；随机灯序本身已有直接先例；缺公开数据，要合规自采 | **条件性候选** |
+| C. Edge measurement/quality orchestration | 在 Pi 级设备上，何种采集质量与模型预算给出最佳可用性 | B0 + ToF 重采 + latency dashboard | ROI failure、TAR/FAR、p50/p95、内存/功耗与使用时间的 Pareto 前沿 | 容易变成工程报告而非新方法 | 必做 baseline / 作为 B 的支撑 |
+
+## 5. 推荐论文题目草案
+
+**中文：** 面向弱网受控现场的主动多传感无接触掌纹边缘核验：采集质量、物理攻击与端侧权衡。
+
+**英文：** Active Multi-Sensor Contactless Palm Verification at the Edge: Quality, Physical Attack Resistance, and Deployment Trade-offs.
+
+这个标题不预设“我们已经防住攻击”，也不把澳门、非法劳工或商业价值写成未经验证的普遍结论。
+
+## 6. Demo 到论文的门槛
+
+### 阶段 0：必须在两周内做完
+
+- RGB `image -> ROI -> embedding -> 1:1 score -> accept/reject`；
+- 在一个公开数据集和经同意的小样本自采数据上分别测；
+- 记录 ROI failure、TAR@FAR/EER、模型/模板大小、端到端 p50/p95；
+- ToF 只用于稳定工作距离和记录 metadata；先证明采集盒可重复。
+
+### 阶段 1：决定是否继续方向 B
+
+对照必须包含：`RGB 单帧`、`RGB + ToF quality gate`、`RGB/NIR 单帧`、`RGB/NIR 短序列 gate`，其中 M 还必须记录并检验每次 challenge 的 response relation；做不到时不得把它当 freshness/security 对照。攻击从打印、屏幕重放和非对抗性纹理开始；每类材料、攻击者、距离、角度、光照和 session 分开。未知材料/未知 session 必须留在测试集。
+
+继续 B 的最低条件：相对 B2 静态多谱，正常用户体验没有明显恶化，并出现可量化、未见 PAIS/session 上的攻击/质量净增益。否则保留 C 为清晰的嵌入式测量项目，或与老师讨论改为 A。
+
+## 7. 下一次访谈：六个问题
+
+1. 哪一种受限区域最常有临时/外包人员？他们的访问是一次、限时还是长期？现时怎样确认“人和凭证是同一人”？
+2. 是否发生卡片转交、人工核验排队、网络不稳定或审计追溯困难？频率和代价是什么？
+3. 可以接受多少秒的通行时间、多少次重采和怎样的人工 fallback？
+4. 绝不能保存或上传哪些资料？资料需保留多久？
+5. 对掌纹、手静脉、人脸、卡片的接受度和顾虑分别是什么？
+6. 若本地离线核验只同步结果日志，它解决的实际问题是什么？
+
+## 8. 本地资料链接
+
+- [澳门出入境 FAQ：生物识别资料包括指纹或掌纹](https://www.gov.mo/zh-hant/services/ps-1474/faqs/)
+- [澳门 GPDP：员工指纹/人脸身份建立](https://www.dspdp.gov.mo/en/abstract_detail_copy/article/l13avrww.html)
+- [ASIS 2023 access-control survey：方法与 Q34 设施事件](https://www.asisonline.org/globalassets/publications-and-resources/security-issues-research/2023-24/access-control/asis-2023-access-control-research-report.pdf)

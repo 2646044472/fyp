@@ -1,0 +1,5 @@
+runtime/
+data/processed/
+vendor/
+offline_wheels/
+__pycache__/

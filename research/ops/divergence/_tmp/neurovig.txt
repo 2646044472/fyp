@@ -1,0 +1,925 @@
+NeuroViG - Integrating Event Cameras for Resource-Efficient Video Grounding
+Dulanga Weerakoon
+SMART Centre
+dulanga.weerakoon@smart.mit.edu
+Vigneshwaran Subbaraju
+A*STAR, Singapore
+Vigneshwaran Subbaraju@ihpc.a-star.edu.sg
+Joo Hwee Lim
+A*STAR, Singapore
+joohwee@i2r.a-star.edu.sg
+Archan Misra
+Singapore Management University
+archanm@smu.edu.sg
+Abstract
+Spatio-Temporal Video Grounding (STVG) – the task of
+identifying the target object in the field-of-view, that the
+language instruction refers to – is a fundamental vision-
+language task. Current STVG approaches typically utilize
+feeds from an RGB camera that is assumed to be always-
+on and process the video frames using complex neural net-
+work pipelines. As a result, they often impose prohibitive
+system overheads (energy, latency) on pervasive devices.
+To address this, we propose NeuroViG with two key in-
+novations: (a) leveraging on event streams from a low-
+power neuromorphic event camera sensor to perform se-
+lective triggering of the more energy-hungry RGB cam-
+era for STVG, and (b) augmenting the STVG model with
+a lightweight Adaptive Frame Selector (AFS) that bypasses
+complex transformer-based operations for a majority of
+video frames, thereby enabling its execution on a pervasive
+Jetson AGX device. We have also introduced modifications
+to the neural network processing pipeline such that the sys-
+tem can offer tunable tradeoffs between accuracy and en-
+ergy/latency. Our proposed NeuroViG system allows us to
+reduce the STVG energy overhead and latency by∼ 4x and
+∼ 3.8x, respectively, for less than 1% loss in accuracy.
+1. Introduction
+Spatio-Temporal Video Grounding (STVG) is a com-
+pound vision-language task that combines both spatial and
+temporal grounding of a natural language query over a
+video. In STVG, a given video feed and a natural lan-
+guage query are taken as input to identify (a) the target
+object/region-of-interest, and (b) the start and end of the
+temporal segment within which this object is visible. Thus,
+the output of this multi-modal task is often visualized as a
+spatio-temporal tube extracted from the video by identify-
+ing the bounding-box of the target object over several con-
+secutive frames of the relevant video segment.
+STVG requires both temporal and spatial reasoning over
+multiple video frames. Implementing STVG on resource-
+constrained devices is thus very challenging due to high
+overheads involved in both sensing and processing. Single-
+stage transformer based models such as TubeDETR [24]
+and STCAT [9] dominate the performance charts in this
+challenging vision-language task. However, these state-of-
+the-art STVG models are very computationally intensive as
+they require cross-modal attention mechanisms to be re-
+peated across several frames of a video. Typically, they
+load entire videos and execute the compute-heavy trans-
+former encoders onevery single frameto retain the resulting
+intermediate feature maps. Subsequently, the intermediate
+attention-based features obtained from the decoder are used
+by prediction heads to generate the following three outputs
+for every single video frame— (a) a bounding box, (b) a
+probability that this frame is the start-frame of a tube and
+(c) the probability that this frame is the end-frame of a tube.
+Our evaluation of TubeDETR [24] and STCAT [9] (see Fig-
+ure 7) reveals that processing latency steadily increases with
+the video length. It is thus crucial to reduce the computa-
+tional latency and energy of STVG models, especially for
+practical use-cases that (a) involve long untrimmed videos
+(e.g., security footage or instructional videos), or (b) weave
+such grounding into interactive applications (e.g., having
+service bots respond to human assistance requests). Besides
+the processing overhead, traditional STVG models also re-
+quire continuous input from an RGB camera, which unnec-
+essarily increases the sensing energy overhead. Thus, it is
+necessary to reduce both processing and sensing overheads.
+In this paper, we propose NeuroViG - a system that can
+support the on-device execution of an STVG task on a per-
+vasive device, with significantly lower processing and sens-
+ing overheads. Our key insight is that it is often sufficient
+to execute the STVG pipeline on a small set of candidate
+moments/frames within a given video (e.g., when we see
+a frame that contains relevant objects or gestures men-
+This WACV paper is the Open Access version, provided by the Computer Vision Foundation.
+Except for this watermark, it is identical to the accepted version;
+the final published version of the proceedings is available on IEEE Xplore.
+5781
+\ntioned in the accompanying text) . Therefore, instead of
+continuously capturing images with the RGB camera, we
+use an event camera such as the Dynamic Vision Sensor
+(DVS) [12] to trigger the RGB camera only when required.
+In contrast to RGB cameras which rely on successive im-
+age frames to capture the dynamics of a scene, event cam-
+eras can directly capture scene dynamics. Hence, using an
+event camera for grounding enables the direct extraction
+of motion-specific representations from the sensor’s out-
+put, eliminating the need for further processing of RGB fea-
+tures. They also have advantages such as – a) low latency
+(in microseconds), and b) low power consumption (0.31W
+in comparison to 1.1W in traditional cameras). However,
+completely replacing the traditional RGB camera with an
+event camera is not feasible, as they may not capture static
+components of a scene or attributes such as color. Fur-
+thermore, current computer vision pipelines are tailored for
+sense-making using traditional RGB camera input and not
+an event-camera stream. Hence, we opt for an opportunistic
+triggering based mechanism that harnesses the advantages
+of both an event camera and the RGB-based SOTA models
+for STVG. In this approach, the RGB camera helps cap-
+ture static scene components and key moments in a video,
+whereas an event camera provides a low power approxima-
+tion of the redundant frames.
+To support selective triggering of the RGB camera, we
+have developed a lightweight early estimator named Adap-
+tive Frame Selector (AFS) which takes the event-camera
+stream and the textual query as an input to predict the
+key moments known as anchor-frames within the video.
+The RGB camera is triggered upon detection of such an-
+chor frames. Further, we propose a lightweight STVG
+model, called NeuroViG, which combines AFS along with
+the transformer encoder-decoder used by SOTA models for
+STVG. NeuroViG saves significant processing overheads
+by executing the complex transformer encoder-decoder
+pipelines exclusively on the anchor frames predicted by
+AFS. For the non-anchor frames, AFS provides a feature
+representation (called delta features) of the visual changes
+between the current frame and the last identified anchor
+frame. These delta features can then used to generate an
+approximation of the attention-based features for each non-
+anchor frame. The following are our main contributions:
+• NeuroViG : We believe that NeuroViG is the first sys-
+tem to execute the STVG task on a pervasive device (Jet-
+son AGX device), running at 8.2 FPS while consuming
+a total energy of 1.18J per frame. This makes NeuroViG
+∼ 3.82x faster and 4.08x energy efficient than STCAT,
+while maintaining similar accuracy.
+• Event camera based Adaptive Frame Selector : We
+have developed a novel Adaptive Frame Selector to iden-
+tify critical moments within the video that are pivotal
+for accurately grounding the natural language instruction.
+Our modified loss function for the AFS enables us to
+choose between various levels of aggressive or conser-
+vative frame-skipping behaviour in the STVG model to
+exploit the trade-off between accuracy and overall energy
+consumption (sensing + processing).
+2. Related Work
+Grounding is a foundational task in vision-language un-
+derstanding, wherein the agent’s goal is to identify elements
+within a video or image that correspond to a given linguis-
+tic expression. Early approaches in this domain [14, 16, 26]
+sought to leverage the success of pre-trained deep learning
+models for object detection and natural language processing
+to perform object grounding in images. Recent advance-
+ments in this research area have focused on enhancing ef-
+ficiency [25, 30] and extending the task to encompass ad-
+ditional modalities, such as incorporating pointing gestures
+alongside verbal instructions [6, 22]. Zhang et al. [27] in-
+troduced the VidSTG dataset and the STGRN model [27],
+which employs a two-stage Deep Neural Network (DNN)
+pipeline to spatially and temporally locate objects. This
+method relies on region or tubelet proposals generated in
+the first stage, which are then used in the subsequent stage to
+find the best match with the provided linguistic expression.
+Transformer-based models also gained traction, including
+STVGBert [18], an extension of ViLBERT that preserves
+spatial information. STGVT [19] focuses on human-centric
+STVG with the HC-STVG dataset.
+More recently, single-stage STVG approaches have be-
+come prominent, offering superior performance compared
+to earlier two-stage methods. TubeDETR [24], for exam-
+ple, extends MDETR [10] by incorporating temporal lo-
+calization losses, slow-fast encoding, and space-time de-
+coding. Another recent single-stage model for STVG is
+STCAT [9], which employs an MDETR-based framework
+and achieves state-of-the-art performance on both VidSTG
+and HC-STVG datasets. In contrast to TubeDETR, STCAT
+takes into account the global video context and maintains a
+template mechanism in the query-guided decoder to explic-
+itly model consistency.
+With the introduction of neuromorphic event cameras,
+many vision-based applications that traditionally relied
+on RGB cameras are beginning to adopt event camera
+streams as inputs. Event cameras offer several advan-
+tages over frame-based counterparts, including exception-
+ally fine temporal resolution (on the order of µsecs), a
+wide dynamic range, and low power consumption. Due
+to their asynchronous nature, numerous efforts have been
+made to process event-based input using spiking neural net-
+works (SNNs) [20]. Prior to integrating event streams into
+processing pipelines for various vision-based applications,
+such raw event data can be transformed into: a) Frame-
+5782
+\nbased representations [32], b) Time-surface representations
+[17], or c) V oxel-based methods [15]. Recent advances in
+leveraging event cameras for sense-making have also ex-
+tended to the fusion of RGB and event camera streams. For
+instance, Zhou et al. [31] proposed a frame-based multi-
+modal DNN pipeline that simultaneously processes both a
+conventional RGB camera stream and an event stream for
+tasks like moving object detection.
+In line with these developments, our NeuroViG frame-
+work is built upon a frame-based representation for pro-
+cessing event streams and represents the first approach to
+present a DNN pipeline that integrates three distinct sensing
+modalities: RGB camera data, event camera data, and nat-
+ural language text instructions. Remarkably, our NeuroViG
+system stands out as the first to use event camera streams for
+STVG instead of just using traditional RGB inputs. This in-
+novative approach not only reduces sensing and processing
+energy overhead but also significantly improves latency.
+3. Baseline
+We consider several state-of-the-art STVG models as
+baselines. All of the existing models proposed for STVG
+use inputs from a traditional RGB camera, along with lan-
+guage instruction. We identified STCAT [9] and Tube-
+DETR [24] as the current state-of-the-art STVG mod-
+els. Both of them use single-stage architectures with a)
+ROBERTa [13] model for language encoding, b) ResNet-
+101 model as visual feature backbone, c) Transformer en-
+coder for calculating multi-modal video-text features, d)
+Transformer decoder for modelling temporal dependencies
+and e) 2 prediction heads for calculating spatio-temporal
+bounding box tubes. Despite their single-stage architec-
+tures, these networks are generally computationally inten-
+sive due to the following reasons.
+1. These approaches consist of a complex ResNet-101
+[7] visual backbone, as well as multiple transformer
+encoder-decoder blocks for modelling multi-modal
+(video + text) features and temporal dependencies.
+2. These networks demand all the frames of the input video
+(partially or fully) to pass through a resource-intensive
+pipeline involving multiple transformer blocks. Tube-
+DETR [24] identified that this is very computationally
+intensive and used a fast-slow two-stream approach in
+their encoder that samples the video uniformly such
+that only one out of every k frames (k is an ad hoc
+constant) passes through the transformer encoder (slow
+multi-modal stream) to extract the attention-based fea-
+tures. However, TubeDETR still demands all the frames
+to pass through a complex RESNET backbone and a
+transformer decoder. On the other hand, STCAT, which
+achieves higher accuracy, demands all of the frames
+to pass through its complete pipeline including the en-
+coder and decoder. Such computation imposes an av-
+erage latency of 390msec per image and memory of
+2.1GB for TubeDETR, and 450msec latency per image
+and memory of 2.8GB STCAT, for VidSTG dataset on
+an NVIDIA Jetson AGX device [3].
+3. None of the existing work has looked at reducing the
+sensing overhead. Both STCAT and TubeDETR (and all
+of the existing work), require the camera to be always
+turned on. This will not be suitable, particularly in a
+pervasive setting where the sensing is performed by a
+battery-operated wearable or embedded device.
+To overcome these limitations, we looked into suitable
+approaches for jointly reducing the computational and sens-
+ing load involved in spatiotemporal video grounding. While
+approaches like model pruning and skipping [21] have been
+studied for unimodal tasks, they are less suited for DNNs
+used in multi-modal tasks such as STVG. Some previous
+works such as SoftSkip [23] and COSM2IC [22], have high-
+lighted this problem and have come up with specialized ap-
+proaches for multi-modal tasks such as referring expression
+comprehension. Even so, such optimization has not been
+attempted for transformer-based architectures that are com-
+mon in STVG or for reducing sensing overhead. However,
+we observed that: (a) the main computational load arises
+from the need for all the frames to pass through the whole
+pipeline, and (b) the main sensing overhead comes from
+having to keep a traditional RGB camera always turned on.
+We develop our NeuroViG to address these drawbacks.
+4. NeuroViG System
+We now describe the design of our proposed NeuroViG
+system. We propose a hybrid sensing system, consisting of
+both an event camera and an intermittently triggered RGB
+camera. Our key idea is to use the RGB sensing stream for
+some key moments in the video which we termed asanchor
+frames. These anchor frames may represent frames which
+either will not be captured well through an event camera
+(static scenes which may generate few events) or where rel-
+evant objects or actions first manifest or disappear. We fur-
+ther identified that such adaptive sensing can be extended
+to the processing pipeline. More precisely, we execute the
+compute-heavy transformer encoder-decoder blocks only
+on frames associated with such anchor moments.
+However, we need to tackle two main challenges with
+this proposed approach. First, the identification of such an-
+chor frames should be computationally inexpensive, while
+still utilizing features from both event stream and language
+inputs. Second, even if we can determine such anchor mo-
+ments (frames), data from an event camera and a traditional
+camera use two different representations. Hence, we need to
+devise a unified single-stage STVG model architecture that
+5783
+\nFigure 1. Overall architecture of STVG pipeline of NeuroViG
+Figure 2. Architecture of Adaptive Frame Selector
+accommodates both data representations. Inherently, out-
+put from an event camera represents scene changes across
+frames. Thus, we assume that the processing block from
+the event camera represents a differential feature represen-
+tation capturing scene changes with respect to the previous
+frame and the last identified anchor frame. A full-blown
+STVG pipeline is only executed over the identified anchor
+frames, while the rest of the redundant frames are approxi-
+mated with this computed delta representation. To identify
+these anchor frames and delta feature representations, we
+propose the Adaptive Frame Selector (AFS).
+4.1. Adaptive Frame Selector
+As shown in Figure 2, AFS takes a series of event frames
+and language features as input. The raw output of the event
+camera (Prophesee V2 [4] in our prototype implementation)
+is described by a stream of{x,y,p,t } wherep∈{ 0, 1} de-
+scribes the polarity of the event in either negative or positive
+direction. We convert this stream-based event representa-
+tion into a frame representation of shape [1× 448× 448].
+This is achieved by aggregating all the events received in
+a time frame of 33ms resulting in a fixed 30 FPS event
+stream that is input to the AFS model. This frame repre-
+sentation is passed through a shufflenet network for visual
+encoding and converted to a 2-dimensional feature vector
+of sizeRT×D, using a fully connected layer of output di-
+mension ofD = 256. These feature vectors are then passed
+through a window-based local attention network [5] (win-
+dow size=10) to model the temporal dependencies in the lo-
+cal neighbourhood to obtain Vt∈R T×D. Each visual fea-
+tureVt is concatenated with the language features computed
+using a ROBERTa model. Finally, AFS uses 2 separate in-
+expensive Multi-Layer Perceptron (MLP) models (designed
+to ensure low-latency processing) with 3 layers and dropout
+for regularization (dropout probability=0.5). One of these
+MLPs is used to predict whether a given frame is an anchor-
+frame or not. The other MLP is used to obtain a feature
+representation of the visual differences between the current
+frame with respect to the nearest anchor-frame. We call
+this output the delta feature representation. These delta fea-
+tures will then be used to interpolate the encoder output to
+obtain cross-modal attention-based features for non-anchor
+frames, so that they can used by the decoder and the predic-
+tion heads of the STVG pipeline to predict the spatiotempo-
+ral tubes. The two MLPs can be expressed as below.
+weights =Gumbel(MLP [Fl,E f
+t ])
+where weights∈R T×2
+δH s =MLP [Fl,E f
+t ] where δH s∈R T×D
+(1)
+In the above equation, Fl refers to the language fea-
+tures taken from the same text encoder as STCAT, Ef
+t
+refers to the visual features obtained after computing lo-
+cal attention for an event stream in frame representation
+of length T frames, while weights determine whether the
+respective frame is an anchor-frame or a redundant-frame.
+We use Gumbel-Softmax activation function, which returns
+discrete 0 or 1 value for elements in weights. When
+weightsi[0] = 1 and weightsi[1] = 0 , i th frame is
+deemed to be a anchor-frame. When weightsi[0] = 0 and
+weightsi[1] = 1 , i th frame is deemed to be a redundant-
+frame. We also assume that the first frame of the video is
+always an anchor-frame (Thus, RGB camera is always ac-
+tivated at the start once). The output of the second MLP,
+denoted byδH s, represents the delta features.
+4.2. Loss Function
+We propose a modification to the original loss func-
+tion used in STVG models to reward the model for skip-
+ping more RGB frames. At the training stage, we define a
+frame-skip parameter which is a hyper-parameter that de-
+termines the percentage of RGB frames that are considered
+to be redundant in the video. A value closer to 1 would
+encourage aggressive skipping behaviour, thereby reducing
+computation and also reducing RGB sensing overhead. A
+value closer to 0 would encourage conservative skipping be-
+haviour, resulting in higher computational load and sensing
+overhead. Let this frame-skip parameter be denoted as S
+and the original loss function of VG beLV G. We formulate
+the following reward loss in our proposedNeuroViGsystem.
+L =LV G+λdIoULdIoU (ˆb,b )+λw
+N
+NX
+i=0
+|weights[0]i−(1−S)|
+(2)
+Let us assume thatts andte are the ground truth start and
+end times of the target object. Then, b∈ [0, 1]4×(te−ts+1)
+and ˆb∈ [0, 1]4×(te−ts+1) denote the ground truth and pre-
+dicted bounding box coordinates respectively for the du-
+ration where the target object appears. In addition to the
+original STVG loss function, the second and third terms in
+5784
+\nthe loss function act as our reward function. The second
+term rewards the model for correct bounding box predic-
+tion using Distance IoU metric [28]. The third term, which
+is a Mean Absolute Error term rewards the model for skip-
+ping a desired fraction of RGB frames as redundant frames.
+SinceS refers to the desired average fraction of frames to
+be skipped, 1−S refers to the desired average fraction of
+anchor frames to be identified.λdIoU andλw are two hyper-
+parameters set for specifying the relative weights for the re-
+spective loss terms. These hyper-parameters are set to 1.0
+and 2.0 respectively in the training stage.
+Figures 1 summarizes this skipping paradigm used in
+NeuroViG, applied to a typical encoder & decoder based
+STVG pipeline that we shall now describe. The core prin-
+ciple is to activate the traditional RGB camera only for the
+anchor-frames and send them through an expensive STVG
+pipeline, while the input from an event camera is utilized,
+together with a late interpolation approach (explained in
+Equation 3), to obtain the corresponding feature represen-
+tation for the redundant frames.
+4.3. NeuroViG STVG pipeline
+We employ the AFS framework to introduce an opti-
+mized STVG model within theNeuroViGsystem, which is a
+derivative of STCAT. Figure 1 depicts the STVG model ar-
+chitecture. Distinguishing itself from existing STVG meth-
+ods, NeuroViGstands out as the first STVG model to accept
+both event and RGB streams as inputs. This unique feature
+empowers efficient and rapid processing, even on pervasive
+devices. The NeuroViG model consists of several key com-
+ponents, in addition to the previously explained AFS.
+• Language Encoder: NeuroViG uses ROBERTa [13] as
+the language encoder. The last hidden state output of
+ROBERTa is followed by a Linear layer to obtain Fl∈
+RL×d language features where L is the word length and
+d = 256 is the hidden dimension. These language fea-
+tures have already been computed for the AFS stage and
+can thus simply be reused here.
+• Visual & Multi-modal Encoder: After the AFS step,
+we get a series of K anchor-frames,{It}K
+t=1. These K
+frames are passed to the ResNet101 [7] backbone to ob-
+tain Fv ∈ RK×HW×d, where H and W are the res-
+olution of the feature maps from the ResNet backbone.
+Each{fv}M
+i=1 is concatenated withFl to obtain the multi-
+modal feature representation, which is then passed to 2
+transformer encoders with 6 layers (similar to STCAT)
+comprising the spatial interaction and temporal interac-
+tion layers. The key idea in the spatial interaction layer is
+to model spatial relationships in individual frames of the
+video, whereas the temporal interaction layer models the
+temporal dependencies across the video.
+• Redundant Frame Interpolation: As mentioned ear-
+lier, we always assume that the first frame of a video is an
+anchor-frame. While an anchor frame is passed through a
+complex ResNet visual backbone and an encoder pair to
+obtain attention based features, the subsequent redundant
+frames by-pass this complex ResNet based visual encoder
+and the transformer-based encoder network. In order to
+obtain the attention based features for such redundant
+frames, we adopt an interpolation based approach. First,
+to match the original sequence length of T video frames,
+we temporally replicate H s
+i till the next (i + 1)th anchor
+frame is found. We repeat this fori = 0 toi =K− 1 till
+we match the same sequence length of T . Then, for each
+of the temporally replicated frameH s, we add (as shown
+in Equation 3) the corresponding delta features δH s cal-
+culated during the AFS step to obtain ˆH s.
+ˆH s =H s +weights[1]∗δH s (3)
+Intuitively, each of these interpolated frames approxi-
+mates the attention based features of the corresponding
+redundant frame by combining the attention based fea-
+tures of the previous anchor-frame with the delta fea-
+tures that represent the visual differences of the redundant
+frame with respect to the anchor frame.
+• Multi-modal Decoder: After redundant frame inter-
+polation, STCAT proposes a query-guided decoding net-
+work, with dual-decoder architecture, to model the tem-
+poral interactions among a set of video-text features. We
+adopt this dual-decoder network as the multi-modal de-
+coder which takes the output from the visual & multi-
+modal encoder. Multi-modal decoder outputs a feature
+representationH D∈R K×d.
+• Prediction Heads: We use two MLPs as prediction
+heads that take H D as an input: (a) a 3-layer MLP for
+predicting bounding box coordinates, ˆb∈ [0, 1]T×4 and
+(b) a 2-layer MLP for predicting start and end time prob-
+abilities ˆTs∈ [0, 1]T and ˆTe∈ [0, 1]T . During inference,
+the start and end times of the target object ˆts and ˆte are
+computed by finding the maximum of joint start and end
+time probabilities, with invalid combinations (i.e., tuples
+where ˆts≥ ˆte) masked out.
+NeuroViG is trained for a single epoch with the initial
+weights taken from the trained STCAT model and the
+loss function as explained in Equation 2, where LV G is
+replaced with the original loss function of STCAT and
+frame-skip parameterS is set to 0.7.
+4.4. NeuroViG System Implementation
+Figure 3 shows our proposed system. We use Prophe-
+see V2 [4] as the event camera and Kinect DK [1] as RGB
+camera and microphone. Both these devices are connected
+5785
+\nFigure 3. NeuroViG System Architecture
+to a Jetson Xavier AGX device [3], which executes both the
+AFS preprocessing component and the rest of the STVG
+pipeline. Both these devices are not officially supported for
+integrating with ARM-based devices. Thus, for Prophesee
+V2, we use their open-sourced SDK, OpenEB, instead of
+the official MetaVision SDK. For the Kinect DK, we use a
+cross-compiled version of their SDK for the ARM-based
+devices. AFS and the rest of the STVG pipeline is im-
+plemented using PyTorch. The microphone of the Kinect
+DK remains continuously active, and we employ a real-
+time speech-to-text engine [2], running on the AGX device,
+to convert speech into textual commands. The NeuroViG
+system is initiated upon the user’s command, typically with
+the phrase ‘start’, and is subsequently terminated upon re-
+ceiving the user’s ‘done’ command. This action triggers
+the activation of the event camera. We assume the initial
+frame is always designated as an anchor-frame, leading to
+the activation of the RGB camera for a single frame along-
+side the event camera. AFS then takes the output from the
+event camera and textual query and sends a trigger signal
+to the Kinect DK camera once it infers an anchor moment
+in the video. Such intermittent triggering is also associated
+with a startup delay of 120ms. However, as current STVG
+pipelines are usually executed at 5 FPS, we can safely as-
+sume that the startup delay of 120ms is tolerable and allows
+STVG to be executed at 5 FPS without missing frames.
+5. Results
+We now experimentally evaluate NeuroViG vs. alterna-
+tive state-of-the-art VG models. In general, we follow the
+same evaluation methods utilized in prior work [9, 24]. In
+addition to the standard metrics, we shall also consider la-
+tency, frames per second (FPS), sensing energy, processing
+and memory consumption as additional systems-level per-
+formance metrics on a Jetson AGX device.
+5.1. Datasets & Evaluation Metrics
+Datasets: We utilize the VidSTG [27] and HC-STVG
+[19] benchmark datasets that have also been used in prior
+work for STVG evaluation. Both datasets are annotated
+with spatiotemporal tubes with start and end frames, as
+well as bounding boxes for each frame, corresponding to
+text queries. VidSTG consists of 99,943 sentence descrip-
+tions with 44,808 declarative sentences and 55,135 inter-
+rogative sentences describing 79 types of objects appearing
+in 10,303 different videos. HC-STVG is a human-centric
+STVG dataset with 5,660 videos in multi-person scenes,
+each associated with one language expression that is related
+to human attributes or actions. All of the existing STVG
+datasets are traditional video-based. To obtain the event-
+based counterpart, we use a V2E simulator [8], which syn-
+thesizes realistic event camera data from any real (or syn-
+thetic) conventional frame-based video. Thus, we use V2E
+to convert the existing videos in VidSTG and HC-STVG to
+the event representation.
+Evaluation Metrics: We follow [27] and use m vIoU ,
+m tIoU and vIoU @R as accuracy metrics. v IoU =
+1
+|Su|
+P
+t∈SiIoU ( ˆbt,b t), whereSu andSi refer to the inter-
+section and union between the predicted tube and ground
+truth tube. IoU ( ˆbt,b t) refers to the IoU score between
+the predicted bounding box and target bounding box at the
+frame t. Thus, m vIoU refers to the mean vIoU score
+across the dataset and vIoU @R refers to the percentage
+number of predictions achieving avIoU score of at leastR.
+tIoU measures the temporal overlap between the predicted
+and ground truth tubes, defined as tIoU = |Si|
+|Su|. m tIoU
+then refers to the mean tIoU across the dataset. We also
+measure the system-level metrics (inference latency, en-
+ergy) on the Jetson AGX, which serves as the representative
+edge device in our NeuroViG prototype.
+5.2. Characterizing NeuroViG Performance with
+Frame-Skip Parameter
+During the training process of our proposed AFS and
+NeuroViG, we introduced a reward loss mechanism to in-
+centivize the model to skip traditional RGB frames, aiming
+to reduce sensing and processing overhead. In this study,
+we assess the performance of the NeuroViG system while
+varying the frame-skip parameter. Our goal is to explore
+the balance between accuracy and energy efficiency.
+Initial measurements indicated that the Prophesee V2
+and Kinect DK cameras draw an average power of 0.31W
+and 1.125W, respectively. It was evident that utilizing an
+event camera should ideally reduce sensing power con-
+sumption by approximately 4 times.
+To evaluate this, we first examined how the accuracy
+of the NeuroViG model on the VidSTG dataset fluctuates
+with different frame-skip parameters, as illustrated in Fig-
+ure 4. Subsequently, we assessed how the sensing energy
+per frame varies with the frame-skip parameter, as shown
+in Figure 5. However, it’s important to note that sensing
+energy is just one component contributing to the overall en-
+ergy overhead of the NeuroViG system.
+We also evaluated the processing energy overhead of the
+system for different values of the frame-skip parameter, as
+presented in Figure 6. Our findings indicate that increasing
+the frame-skip parameter reduces both sensing and process-
+ing energy overhead but comes at the cost of lower accu-
+5786
+\nracy. Conversely, setting the frame-skip parameter below
+0.3 results in higher sensing energy consumption compared
+to a baseline system using only a traditional RGB camera.
+Based on this comprehensive study, we opted to select a
+frame-skip parameter of 0.7. This choice strikes a balance
+between energy efficiency and accuracy, aligning with our
+goal to optimize the energy-accuracy trade-off
+5.3. Performance on Benchmark Datasets
+Tables 1 and 2 then summarize the performance of
+NeuroViG (with frame-skip=0.7) against benchmark STVG
+models on VidSTG and HC-STVG datasets respectively.
+From our experiments, we observe that the AFS mecha-
+nism allows NeuroViG to identify only∼35% of the video
+frames as anchor frames, enabling the remaining frames to
+bypass the encoder-decoder blocks. However, this results in
+a minor drop in their accuracy when compared to STCAT.
+The m vIoU of NeuroViG is just 1.08% shy of STCAT on
+the human-centric HC-STVG dataset. On VidSTG dataset,
+NeuroViG achieves an m vIoU that is just about 1.1% short
+of STCAT for the interrogative sentences and about 0.99%
+short of STCAT for the declarative sentences. When com-
+pared to the TubeDETR,NeuroViGis able to achieve higher
+m vIoU on all the benchmark tasks and also achieve multi-
+fold improvement in grounding speed. Overall, we believe
+that this drop in accuracy is tolerable in light of the fact
+that nearly 65% of the frames by-passed the RESNET back-
+bone and transformer encoder, and were approximated via
+an event camera representation instead of a conventional
+RGB input. We believe that this will translate into signif-
+icant savings in latency, energy and memory when dealing
+with longer untrimmed videos in practical use-cases.
+We then measured the average FPS, sensing and process-
+ing energy per frame on Jetson AGX and compared them
+against STCAT in Table 3. We found that NeuroViG runs
+3.82x faster, consumes 2.2x less sensing energy and 4.25x
+less processing energy. Overall, this results in NeuroViG
+being 4.08x energy efficient than STCAT, the current state-
+of-the-art STVG approach. Figure 7 plots the latency of
+STCAT vs. NeuroViG. We see that while the latency for
+both models increases with the number of frames, However,
+the rate of increase of latency for NeuroViG is significantly
+lower than that of RGB-based STCAT.
+In Table 3, we compared the performance of STVG us-
+ing existing video processing techniques instead of our pro-
+posed NeuroViG’s AFS paradigm. STCAT-SparseSampler
+incorporates sparse sampling as proposed in ClipBERT
+[11], where a random subset of frames is selected as an-
+chor frames and applied to STCAT. STCAT-MGSampler,
+on the other hand, adopts the motion-guided frame selection
+method from MGSampler [29], which selects anchor frames
+to cover key segments with high motion salience. However,
+the results show that while these techniques achieve simi-
+lar FPS and energy consumption to NeuroViG , they lead
+to a substantial reduction in m vIoU. While ClipBERT’s
+random sparse sampling may be effective for tasks such as
+question answering, and MGSampler’s motion-based sam-
+pling performs well in video action classification, these
+methods are insufficient for STVG, which requires continu-
+ous tracking of target object/region across frames.
+5.4. Qualitative analysis: NeuroViG skipping
+We further analyzed some of the instructions in the
+dataset to understand how the AFS module picks the
+anchor-frames. Our analysis revealed that it picks up anchor
+frames whenever (a) there are static scenes in the video for
+longer periods (event sensor not generating enough events),
+(b) visual content partially matches the words in the text,
+and (c) target object appears in a frame. Observation (a)
+makes intuitive sense as event cameras inherently fail to
+generate events when the scene is completely unchanged or
+static; accordingly, AFS triggers the traditional RGB cam-
+era in such scenarios.
+Figure 8 shows two such example scenarios from the
+VidSTG dataset. This figure shows a series of RGB and
+event frames that are identified as anchor-frames, along
+with the instruction. In both examples, it appears that the
+AFS predicts an anchor-frame and subsequently triggers the
+RGB camera when a keyword or the target object appears
+in the scene. Furthermore, in the first example, anchor
+frames are also flagged for static scenes, where the event
+camera fails to generate sufficient discriminatory events for
+the STVG pipeline.
+5.5. Other variations of NeuroViG
+We consider additional variations of NeuroViG to eval-
+uate the efficacy of our hybrid sensing mechanism. Based
+on Table 4, it is evident that the performance of NeuroViG
+is significantly degraded when selecting anchor-frames at
+random (NeuroViG-Random). This suggests that the careful
+selection of anchor-frames is paramount to the performance
+of NeuroViG system. With NeuroViG-Vision, we seek to
+evaluate whether just using event visual feature on AFS is
+enough to identify anchor-frames. Just using visual features
+limits the capability of AFS to make an early decision about
+when the target object appears and only allows it to per-
+ceive changes in the scene. As shown in Table 4, while
+the performance does not degrade as much as in NeuroViG-
+Random, we observe a significant reduction in the accuracy
+metrics. This demonstrates the importance of using both
+language and visual features in AFS to predict the anchor-
+frames in the video. Given the advantages of event cam-
+eras, a plausible alternative approach might be to utilize
+only the DVS-based event camera as input (Event-STCAT),
+instead of NeuroViG’s hybrid sensing mechanism that uses
+both event & RGB cameras. Such a system would reduce
+5787
+\nFigure 4. Accuracy
+(m vIoU) vs. frame-skip
+Figure 5. Sensing energy
+per frame vs. frame-skip
+ Figure 6. Processing en-
+ergy/frame vs frame-skip
+Figure 7. Latency vs num. frames for Neu-
+roViG against STCAT
+Table 1. Performance comparisons of the state-of-the-art on the VidSTG test set (%)
+Methods Declarative Sentences Interrogative Sentences
+m tIoU m vIoU vIoU@0.3 vIoU@0.5 % frames
+skipped m tIoU m vIoU vIoU@0.3 vIoU@0.5 % frames
+skipped
+Two-Stage:
+STGVT [19] 21.62 29.80 18.94 0 - - - - 0
+One-Stage:
+STVGBert [18] 23.97 30.91 18.39 0 22.51 25.97 15.95 0
+TubeDETR [24] 48.10 30.40 42.50 28.20 0 46.90 25.70 35.70 23.20 0
+STCAT [9] 50.82 33.14 46.20 32.58 0 49.67 28.22 39.24 26.63 0
+NeuroViG(Ours) 49.01 32.15 44.89 31.06 66 48.89 27.12 38.09 25.43 64
+Table 2. Performance on the HC-STVG test set (%)
+Methods m tIoU m vIoU vIoU
+@0.3
+vIoU
+@0.5
+% frames
+skipped
+Two-Stage:
+STVGT - 18.15 26.81 9.48 0
+One-Stage:
+STVGBert - 20.42 29.37 11.31 0
+TubeDETR 43.70 32.40 49.80 23.50 0
+STCAT 49.44 35.09 57.67 30.09 0
+NeuroViG 48.65 34.01 56.12 28.91 65
+Table 3. Accuracy vs FPS vs Energy trade-off for NeuroViG
+against other baseline STVG systems
+Model m vIoU FPS Energy per frame (J)
+Sensing Processing Total
+STCAT 30.54 2.2 0.22 4.59 4.81
+STCAT-SparseSampler 12.19 8.8 0.22 1.04 1.26
+STCAT-MGSampler 19.11 8.6 0.22 1.02 1.24
+NeuroViG 30.11 8.4 0.10 1.08 1.18
+Figure 8. Qualitative analysis of the functionality of AFS
+the sensing overhead ∼ 4x. However, we observe a sim-
+ilar significant degradation in accuracy ( m vIoU drop of
+40+%) when using Event-STCAT. This suggests that, while
+event cameras do provide a good energy-aware approxima-
+tion to traditional RGB camera sensing, a combination of
+event+RGB features is paramount for STVG.
+Table 4. Ablation study of NeuroViG
+Methods m tIoU m vIoU vIoU@0.3 vIoU@0.5
+NeuroViG 48.62 29.40 41.67 28.07
+NeuroViG-Random 31.12 16.15 20.21 14.76
+NeuroViG-Vision 40.14 22.98 33.54 21.12
+STCAT-Event 34.17 19.76 28.16 17.19
+6. Conclusion
+We present NeuroViG , a novel system combining an
+event camera and an RGB camera for energy-efficient
+spatio-temporal video grounding. Our Adaptive Frame Se-
+lection (AFS) module identifies key anchor frames using
+event streams and language cues, activating the RGB sen-
+sor only when needed. The system’s dynamic pipeline
+improves efficiency by selectively invoking a transformer-
+based DNN for these frames. NeuroViG is the first to use a
+neuromorphic event camera for STVG, achieving a 4x en-
+ergy reduction and 3.8x faster processing with only 1% ac-
+curacy loss.
+7. Acknowledgments
+This work was supported in part by National Research
+Foundation, Prime Minister’s Office, Singapore through
+both its Campus for Research Excellence and Technolog-
+ical Enterprise (CREATE) Program and NRF Investiga-
+torship under Grant NRF-NRFI05-2019-0007, The Mens,
+Manus, and Machina (M3S) is an interdisciplinary re-
+search group of the Singapore-MIT Alliance for Research
+and Technology centre, and in part by the Agency for
+Science, Technology and Research, Singapore through
+its AME Programmatic Funding Scheme under Grant
+#A18A2b0046.
+5788
+\nReferences
+[1] Azure kinect dk. https://azure.microsoft.com/
+en- us/products/kinect- dk. Accessed: 2023-10-
+10. 5
+[2] Cheetah streaming speech-to-text. https :
+/ / picovoice . ai / platform / cheetah/, . Ac-
+cessed: 2022-04-11. 6
+[3] Jetson agx xavier series. https : / / www . nvidia .
+com/en- sg/autonomous- machines/embedded-
+systems/jetson- agx- xavier/. Accessed: 2023-
+10-10. 3, 6
+[4] Prophesee evaluation kit 2 – hd. https : / / www .
+prophesee.ai/event-based-evk-2/ . Accessed:
+2023-10-10. 4, 5
+[5] Iz Beltagy, Matthew E Peters, and Arman Cohan. Long-
+former: The long-document transformer. arXiv preprint
+arXiv:2004.05150, 2020. 4
+[6] Yixin Chen, Qing Li, Deqian Kong, Yik Lun Kei, Song-Chun
+Zhu, Tao Gao, Yixin Zhu, and Siyuan Huang. Yourefit: Em-
+bodied reference understanding with language and gesture.
+In Proceedings of the IEEE/CVF International Conference
+on Computer Vision, pages 1385–1395, 2021. 2
+[7] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+Deep residual learning for image recognition. In Proceed-
+ings of the IEEE conference on computer vision and pattern
+recognition, pages 770–778, 2016. 3, 5
+[8] Y Hu, S C Liu, and T Delbruck. v2e: From video frames
+to realistic DVS events. In 2021 IEEE/CVF Conference
+on Computer Vision and Pattern Recognition Workshops
+(CVPRW). IEEE, 2021. 6
+[9] Yang Jin, Zehuan Yuan, Yadong Mu, et al. Embracing con-
+sistency: A one-stage approach for spatio-temporal video
+grounding. Advances in Neural Information Processing Sys-
+tems, 35:29192–29204, 2022. 1, 2, 3, 6, 8
+[10] Aishwarya Kamath, Mannat Singh, Yann LeCun, Gabriel
+Synnaeve, Ishan Misra, and Nicolas Carion. Mdetr-
+modulated detection for end-to-end multi-modal understand-
+ing. In Proceedings of the IEEE/CVF International Confer-
+ence on Computer Vision, pages 1780–1790, 2021. 2
+[11] Jie Lei, Linjie Li, Luowei Zhou, Zhe Gan, Tamara L Berg,
+Mohit Bansal, and Jingjing Liu. Less is more: Clipbert for
+video-and-language learning via sparse sampling. In Pro-
+ceedings of the IEEE/CVF conference on computer vision
+and pattern recognition, pages 7331–7341, 2021. 7
+[12] Patrick Lichtsteiner, Christoph Posch, and Tobi Delbruck.
+A 128 x 128 120db 30mw asynchronous vision sensor that
+responds to relative intensity change. In 2006 IEEE Inter-
+national Solid State Circuits Conference-Digest of Technical
+Papers, pages 2060–2069. IEEE, 2006. 2
+[13] Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar
+Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettle-
+moyer, and Veselin Stoyanov. Roberta: A robustly optimized
+bert pretraining approach. arXiv preprint arXiv:1907.11692,
+2019. 3, 5
+[14] Junhua Mao, Jonathan Huang, Alexander Toshev, Oana
+Camburu, Alan L Yuille, and Kevin Murphy. Generation
+and comprehension of unambiguous object descriptions. In
+Proceedings of the IEEE conference on computer vision and
+pattern recognition, pages 11–20, 2016. 2
+[15] Henri Rebecq, Ren ´e Ranftl, Vladlen Koltun, and Davide
+Scaramuzza. Events-to-video: Bringing modern computer
+vision to event cameras. In Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition ,
+pages 3857–3866, 2019. 3
+[16] Anna Rohrbach, Marcus Rohrbach, Ronghang Hu, Trevor
+Darrell, and Bernt Schiele. Grounding of textual phrases in
+images by reconstruction. In Computer Vision–ECCV 2016:
+14th European Conference, Amsterdam, The Netherlands,
+October 11–14, 2016, Proceedings, Part I 14 , pages 817–
+834. Springer, 2016. 2
+[17] Amos Sironi, Manuele Brambilla, Nicolas Bourdis, Xavier
+Lagorce, and Ryad Benosman. Hats: Histograms of aver-
+aged time surfaces for robust event-based object classifica-
+tion. In Proceedings of the IEEE conference on computer
+vision and pattern recognition, pages 1731–1740, 2018. 3
+[18] Rui Su, Qian Yu, and Dong Xu. Stvgbert: A visual-
+linguistic transformer based framework for spatio-temporal
+video grounding. In Proceedings of the IEEE/CVF Inter-
+national Conference on Computer Vision, pages 1533–1542,
+2021. 2, 8
+[19] Zongheng Tang, Yue Liao, Si Liu, Guanbin Li, Xiaojie Jin,
+Hongxu Jiang, Qian Yu, and Dong Xu. Human-centric
+spatio-temporal video grounding with visual transformers.
+IEEE Transactions on Circuits and Systems for Video Tech-
+nology, 32(12):8238–8249, 2021. 2, 6, 8
+[20] Amirhossein Tavanaei, Masoud Ghodrati, Saeed Reza Kher-
+adpisheh, Timoth´ee Masquelier, and Anthony Maida. Deep
+learning in spiking neural networks. Neural networks ,
+111:47–63, 2019. 2
+[21] Xin Wang, Fisher Yu, Zi-Yi Dou, Trevor Darrell, and
+Joseph E Gonzalez. Skipnet: Learning dynamic routing in
+convolutional networks. In Proceedings of the European
+Conference on Computer Vision (ECCV) , pages 409–424,
+2018. 3
+[22] Dulanga Weerakoon, Vigneshwaran Subbaraju, Tuan Tran,
+and Archan Misra. Cosm2ic: Optimizing real-time multi-
+modal instruction comprehension. IEEE Robotics and Au-
+tomation Letters, 7(4):10697–10704, 2022. 2, 3
+[23] Dulanga Weerakoon, Vigneshwaran Subbaraju, Tuan Tran,
+and Archan Misra. Softskip: Empowering multi-modal dy-
+namic pruning for single-stage referring comprehension. In
+Proceedings of the 30th ACM International Conference on
+Multimedia, pages 3608–3616, 2022. 3
+[24] Antoine Yang, Antoine Miech, Josef Sivic, Ivan Laptev, and
+Cordelia Schmid. Tubedetr: Spatio-temporal video ground-
+ing with transformers. InProceedings of the IEEE/CVF Con-
+ference on Computer Vision and Pattern Recognition, pages
+16442–16453, 2022. 1, 2, 3, 6, 8
+[25] Zhengyuan Yang, Tianlang Chen, Liwei Wang, and Jiebo
+Luo. Improving one-stage visual grounding by recursive sub-
+query construction. In ECCV, 2020. 2
+[26] Licheng Yu, Zhe Lin, Xiaohui Shen, Jimei Yang, Xin Lu,
+Mohit Bansal, and Tamara L Berg. Mattnet: Modular atten-
+tion network for referring expression comprehension. InPro-
+5789
+\nceedings of the IEEE Conference on Computer Vision and
+Pattern Recognition, pages 1307–1315, 2018. 2
+[27] Zhu Zhang, Zhou Zhao, Yang Zhao, Qi Wang, Huasheng
+Liu, and Lianli Gao. Where does it exist: Spatio-temporal
+video grounding for multi-form sentences. In Proceedings
+of the IEEE/CVF Conference on Computer Vision and Pat-
+tern Recognition, pages 10668–10677, 2020. 2, 6
+[28] Zhaohui Zheng, Ping Wang, Wei Liu, Jinze Li, Rongguang
+Ye, and Dongwei Ren. Distance-iou loss: Faster and better
+learning for bounding box regression. In Proceedings of the
+AAAI conference on artificial intelligence, volume 34, pages
+12993–13000, 2020. 5
+[29] Yuan Zhi, Zhan Tong, Limin Wang, and Gangshan Wu.
+Mgsampler: An explainable sampling strategy for video ac-
+tion recognition. In Proceedings of the IEEE/CVF Inter-
+national conference on Computer Vision, pages 1513–1522,
+2021. 7
+[30] Yiyi Zhou, Rongrong Ji, Gen Luo, Xiaoshuai Sun, Jinsong
+Su, Xinghao Ding, Chia-Wen Lin, and Qi Tian. A real-time
+global inference network for one-stage referring expression
+comprehension. IEEE Transactions on Neural Networks and
+Learning Systems, 2021. 2
+[31] Zhuyun Zhou, Zongwei Wu, R ´emi Boutteau, Fan Yang,
+C´edric Demonceaux, and Dominique Ginhac. Rgb-event fu-
+sion for moving object detection in autonomous driving. In
+2023 IEEE International Conference on Robotics and Au-
+tomation (ICRA), pages 7808–7815. IEEE, 2023. 3
+[32] Alex Zihao Zhu and Liangzhe Yuan. Ev-flownet: Self-
+supervised optical flow estimation for event-based cameras.
+In Robotics: Science and Systems, 2018. 3
+5790

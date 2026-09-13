@@ -1,0 +1,16 @@
+[Unit]
+Description=Palm Reg camera debug UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fyp
+WorkingDirectory=/home/fyp/palm_demo
+ExecStart=/usr/bin/python3 /home/fyp/palm_demo/debug_ui.py --host 0.0.0.0 --port 8080 --camera 0
+Restart=on-failure
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

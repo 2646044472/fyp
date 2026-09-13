@@ -1,0 +1,109 @@
+# 研究方法与推理日志
+
+## 0. 这次研究要回答什么
+
+最初约束是 `palmprint + edge`，但在审计后，掌纹只保留为一个条件性方向，而不是不可质疑的前提。当前主短名单是掌纹 `P` 与非掌纹 `S/T/O`，见 [`16-research-first-direction-set.md`](16-research-first-direction-set.md)。本研究不从“能否训练一个更高 accuracy 的模型”开始，而依次回答：
+
+1. **需求：** 谁在什么工作流中因何付出成本，现有卡片、人脸或云端方案哪里不够？
+2. **技术：** 现有移动/端侧掌纹已经做到什么，现有 RGB/NIR/距离硬件还能带来什么增量？
+3. **研究：** 这个增量能否写成会失败也有意义的假设，并用有力的对照实验检验？
+4. **部署：** 能否在现有 Raspberry Pi 原型上以可测的延迟、内存、采集失败率和安全指标完成？
+
+## 1. 检索与筛选方法
+
+本轮检索起于 2026-08-21，并持续更新至 2026-08-27。关键词从最初五类扩展到问题驱动的 direct-neighbor 检索：
+
+- `contactless palmprint mobile edge`, `Palm-ID`, `cross-sensor palmprint`；
+- `palmprint recognition survey`, `deep learning palmprint`；
+- `palmprint presentation attack`, `liveness`, `adversarial patch`；
+- `multispectral palmprint`, `NIR RGB palm vein`；
+- `Macao biometric data`, `Macao non-resident workers`, `biometric attendance`。
+- `palm PAD domain generalization`, `GBU-Palm`, `IAPMR matcher protocol`；
+- `biometric injection attack detection`, `virtual camera detection`, `physical visual challenge attestation`；
+- `restoration hallucination measurement consistency`, `sensor health task confidence residual observability`, `partial sensor fault action policy`。
+
+筛选优先级：同行评审综述/原始论文 > 作者或期刊的开放版本 > arXiv 预印本 > 官方澳门政府资料 > 供应商或媒体。预印本只用来形成待复验的研究假设，不作为定论。未找到可公开核实的澳门私营掌纹部署普及率，因此不把“澳门没有掌纹系统”写成事实。
+
+本轮实际精读/逐段核对包括：Palm-ID、CAAP、GBU-Palm 全文、CEN/TS 18099 IAD 标准、virtual-camera detection、physical visual challenge attestation、restoration hallucination 的原始/官方材料，以及 sensor-health 系统综述与 MAMMOTH 全文。其余资料按摘要或官方页面筛选并明确标注。完整条目见 [01-literature-map.md](01-literature-map.md)，阅读边界见 [`09-reading-coverage-audit.md`](09-reading-coverage-audit.md)。
+
+## 2. AI 怎样参与，怎样不参与
+
+AI 在本项目中可用于：生成检索式、聚类文献主题、将原文抽取为统一字段、找出互相冲突的结论、提出实验对照和维护引文表。AI 不可以单独决定事实、虚构引文、从搜索结果推断澳门市场规模，或替代伦理/合规判断。
+
+这遵循证据综合中常见的透明、人工负责原则。Cochrane 的 RAISE 资料强调 AI 使用应透明、可追责并保持方法严谨；LLM 的事实性研究也指出自然流畅的输出可能包含错误或误导性内容。
+
+每一条将来进入汇报或论文的结论都应带以下标签之一：
+
+| 标签 | 含义 | 可否作为结论 |
+| --- | --- | --- |
+| `E1` | 逐段读过的同行评审原始论文/官方一手资料 | 可以，附条件与引用 |
+| `E2` | 读过摘要或可信综述的二手总结 | 只能作为背景或待核验线索 |
+| `E3` | 预印本、供应商陈述、搜索结果或推理 | 只能提出假设，不能当事实 |
+| `Q` | 需要访谈、设备测试或新数据才能回答 | 必须设计验证，不可臆断 |
+
+## 3. 本轮推理过程
+
+### 步骤 A：先排除“普通掌纹识别就是创新”
+
+Palm-ID 已展示从 ROI、增强、特征到手机端应用的完整无接触掌纹流程；还报告了质量估计、紧凑模板和跨时间/跨库评估。由此推出：在 Raspberry Pi 上再实现单帧 RGB 掌纹识别是必要 baseline，却不足以成为独立方法贡献。`E1`
+
+### 步骤 B：检查实验室硬件是否与真实缺口相关
+
+已有原型的 RGB、NIR 和距离传感器不应只是“更多 sensor”。多光谱掌纹文献已长期表明可见光与 NIR 看到的线纹/皮下信息不同；2022 已有 dual-camera + ToF 的距离对齐，2025 已研究 distance/rotation/video-based palm sensing。因此“融合 RGB 与 NIR 提高识别”或“以 ToF 引导采集”本身都不是新颖。可研究的增量应是：在**指定低成本硬件、固定几何、边缘端、预冻结攻击条件**下，主动第二模态是否有净收益，以及质量 gate 的失败率、重采、时延与能耗代价。NIR 对假体/贴片一定有效尚未被本轮文献证明。`E1 + E2 + Q`
+
+### 步骤 C：找一个安全问题而不是凭空加 AI
+
+CAAP 预印本明确评估了印刷后采集的可复用掌纹对抗贴片，并在不同识别器/数据集上测试。它给出“静态 RGB 掌纹模型可被物理攻击”的强动机，但其攻击是白盒优化场景、且是预印本；不能直接宣称本实验室设备会被同样攻击成功。正确做法是先量测从简单打印/屏幕重放到普通纹理贴片的攻击基线，授权后再复现 CAAP 风格威胁。`E1（对该论文）+ Q（对本系统）`
+
+### 步骤 D：审查澳门故事，而非为了本地化而硬凑
+
+澳门官方资料表明出入境可处理掌纹等生物识别资料，个人资料保护机构也为员工生物识别用途提供指引。进一步核查发现，微信掌纹支付已于 2024 年在澳门银河落地，是其在中国内地以外的首个应用，并采用掌纹与掌静脉。因此“澳门没有掌纹”是错误前提；“长期居民日常没有碰到”则可解释为服务刚落地、范围局部、面向特定商户/支付生态，而不能直接得出普及率结论。另一方面，官方统计显示非本地雇员数量大且分布于酒店餐饮、建筑、物业/商业活动等多种现场行业，这只说明潜在的现场规模，不能证明身份冒用、卡片转借或弱网是痛点。故事必须通过访谈验证。`E1 + Q`
+
+### 步骤 E：在三个方向中收敛
+
+可撤销模板很重要，但同时要证明跨设备鲁棒、不可逆、不可关联和可撤销，且需要密码学威胁模型，FYP 风险较高。单纯部署优化已有强先例，论文性弱。2010 年的低成本静态多谱系统已做 visible/NIR、纸张 anti-spoof 和 liveness 线索；2020 年又已有掌部随机 NIR/UV 顺序与跨帧差异检查，因此主动多传感、随机灯序或帧差不能直接列为主创新。
+
+后续反证又否定了两条看似合理的扩展：IAD/virtual-camera detection/physical visual challenge 已有标准与直接工作，不能借“capture provenance”制造第五题；restoration hallucination 已有 measurement consistency、FDA assessment 与 data-consistent reconstruction，不能以“复原会编细节”作为 R 的一般创新。详细过程见 [`41-capture-provenance-and-restoration-audit.md`](../log/41-capture-provenance-and-restoration-audit.md)。
+
+因此当前非掌纹首选是 S：把 `sensor health`、`environment/target observability`、`task confidence` 和 `residual observability` 分开记录，并评估由此选择的 action 是否降低最终任务风险。它不声称发明 fault diagnosis 或 fusion；其待验证空隙是 joint event labels、partial real faults、action-cost 与低成本 edge telemetry 的组合。详细审计见 [`42-sensor-state-action-audit.md`](../log/42-sensor-state-action-audit.md)。
+
+## 4. 当前可证伪假设
+
+### P：掌纹（条件性）
+
+> 在固定采集几何的 Raspberry Pi 级无接触掌纹终端中，若将 PAD 与冻结的 `1:1` matcher 串成系统，并按未见 PAIS material 和未见 capture device 双轴留出，device-conditioned accept/reject rule 是否能在固定 BPCER 和 edge budget 下控制系统级 IAPMR？
+
+这不是“RGB/NIR 主动短序列一定有用”的假设；GBU-Palm 数据的可得性、是否含 identity-preserving attack source、以及实验室是否有两个采集链，都是先决 Gate。
+
+### S：非掌纹（当前首选）
+
+> 在低成本 RGB/NIR/ToF edge 设备的受控真实事件中，显式分离 sensor state、environmental/target observability 与 task state，是否比 always-fuse、fixed fallback 和 quality router 更能在固定人工重试、延迟和能耗预算下减少高风险自动动作？
+
+它会被以下结果推翻：
+
+- 对 P：GBU-Palm 或其他工作覆盖 frozen matcher/IAPMR/edge protocol；或没有 cross-device/PAIS 留出和合法攻击材料；
+- 对 S：只有 random whole-modality masks，而没有 partial physical fault、healthy-but-unobservable hard negative 或 telemetry；
+- 对 S：state-separated action 在预冻结预算下不优于 fixed fallback/router 的 risk-cost Pareto；
+- 对任一方向：硬件不能导出其必须的 raw/telemetry 字段，或数据/访谈不支持问题的实际边界。
+
+## 5. 下一轮研究与实验记录模板
+
+每新增论文记录：问题、传感器、数据集与切分、威胁模型、指标、设备、核心结果、作者承认的限制、与本项目关系、证据等级。
+
+每新增实验记录：硬件版本、光源/距离、参与者与同意版本、数据切分、阈值从哪里定、正常与攻击样本、TAR/FAR/EER、APCER/BPCER、ROI failure、p50/p95、失败视频编号和结论。
+
+### 每个候选都必须经过的 AI 辅助研究循环
+
+1. 写成一个能被 baseline 推翻的句子，同时写下**什么证据会迫使我们放弃**。
+2. 先检索同任务、同输入、同 evaluation 的 direct neighbor；不能只搜支持自己的关键词。
+3. 回到论文全文/官方标准/数据卡，抽取 input、split、threat model、metric、hardware、限制和 artifact 状态；搜索摘要只可作为线索。
+4. 将证据写入 ledger，并把结论分为 `retain`、`narrow`、`abandon` 或 `Q`，不可只留下“相关论文列表”。
+5. 若仍保留，先审数据与 telemetry 是否能回答该问题，再写模型；实验报告必须同时含成功、失败、资源与反例。
+
+本轮的 IAD/provenance、R 与 S 重审就是这个循环的实际样例。[官方 OpenAI Docs 的 research decision memo 工作流](https://learn.chatgpt.com/codex/use-cases)将 AI 研究整理为 evidence、trade-off 和 open questions；在本项目中，这对应 `core/` 的当前决策页、`log/` 的推理过程和 `05-evidence-ledger.md` 的逐条来源，而不是把模型输出当作事实。
+
+## 参考：AI 辅助研究的使用原则
+
+- [Cochrane: Responsible AI use in evidence synthesis](https://www.cochrane.org/hr/about-us/news/setting-standards-responsible-ai-use-evidence-synthesis) - 透明报告、人工负责和方法严谨。
+- [Augenstein et al., 2024, Factuality challenges in LLMs](https://doi.org/10.1038/s42256-024-00881-z) - LLM 输出可能流畅但失实，必须回到来源核对。
+- [Cochrane Handbook: pre-specify inclusion criteria](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current/chapter-03) - 对正式综述，先写纳入/排除标准，再开始筛选。

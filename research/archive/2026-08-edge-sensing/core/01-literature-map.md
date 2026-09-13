@@ -1,0 +1,78 @@
+# 文献地图：掌纹、边缘与安全
+
+最后更新：2026-08-21。这里记录“读到了什么”和“它不能证明什么”，避免把不同数据集、设备和威胁模型的数字直接比较。
+
+## A. 与 baseline 直接相关
+
+| 文献 | 阅读深度 | 证据 | 核心内容 | 对本项目的影响 |
+| --- | --- | --- | --- | --- |
+| [Grosz, Godbole, Jain, Palm-ID, 2024](https://arxiv.org/abs/2401.08111) | 方法、数据、效率、失败分析 | `E1`，预印本 | 手机端完整 pipeline：ROI keypoints、增强、CNN + ViT、质量估计和紧凑 embedding；512-byte 模板在其协议中保持接近原表示的 TAR；部署于 Galaxy S22。 | v0 baseline 采用其问题分解与指标，而非声称新识别网络。Pi 的 latency 不可从其手机/服务器数字外推。 |
+| [Liu et al., BEST, Pattern Recognition, 2023](https://doi.org/10.1016/j.patcog.2023.109422) | 摘要/方法定位 | `E2` | 做了 within-, cross-database 和 cross-sensor 的无接触掌纹评测。 | 证明跨传感器必须单独测；本项目不应只随机分割同一采集 session。 |
+| [Amrouni & Benzaoui, 2024 survey](https://doi.org/10.3390/app14010153) | 摘要、数据集段落 | `E2` | 综述接触/无接触数据集、特征类别和评估问题；列出 PolyU-MS 等多光谱数据。 | 为公开 baseline 数据集筛选提供地图，最终仍需核对许可与 protocol。 |
+| [Gao et al., DL Palmprint Survey, IEEE TSMC-S 2026](https://doi.org/10.1109/TSMC.2025.3649416) / [arXiv v2](https://arxiv.org/html/2501.01166) | 正式 metadata；v2 的任务、security/privacy、cross-domain、lightweight、datasets 与 outlook | `E1`，正式书目信息 + 可访问 preprint；最终 PDF 未逐页核对 | 将 ROI、open/cross-domain、跨光谱/多模态、轻量部署、数据与安全/隐私放入同一系统图；强调数据 metadata 和跨域泛化挑战。 | 支持把 capture/ROI、identity/session/PAIS holdout 与实测 Pi resource 作为系统证据；不从综述推出本设备 liveness、部署价值或任何性能数字。 |
+| [Seyedmohammadi et al., X-Palm, 2026](https://github.com/X-Palm/X-Palm-2026) | 数据卡、split、code、results README | `E1`，预印本 | paired controlled-multispectral 与 unconstrained smartphone 的 6,006 图/103 人数据；code 已写出 closed/open cross-domain split。 | 是 B0 的高价值 domain-shift protocol 候选；数据签 EULA，且不包含 PAIS、ToF 或本相机。 |
+| [Alausa et al., PalmMatchDB, ICPECA 2023](https://huggingface.co/datasets/aspmirlab/PalmMatchDB) | dataset card/API | `E1`，数据卡 | Apache-2.0、10,528 rows 的 on-device contactless corpus；公开 card 只见一个 `train` split。 | 可立即用于 B0 工程 smoke test；没有公开 session/identity/camera/PAIS metadata 时，不可用作正式性能或泛化协议。 |
+| [Jia et al., EEPNet, PRL 2022](https://doi.org/10.1016/j.patrec.2022.05.015) | 出版 metadata/abstract；作者/题名/GitHub 工件检索 | `E2` | MobileNetV3-based lightweight palmprint route；摘要称在七个库比较 precision、speed、parameter count 与 FLOPs。未找到作者公开 code、weight、export、licence 或 Pi benchmark。 | “lightweight”不等于当前可部署。只作 architecture reading reference；B0 不依赖它，直到公开工件、数据条款和目标 Pi runtime 可被逐项核对。 |
+| [Fei et al., FFLNet VIS-NIR, TIFS 2024](https://doi.org/10.1109/TIFS.2024.3441945) | 正式 metadata/abstract；artifact search | `E2` | 以 Fourier feature learning 缩小 VIS/NIR heterogeneous palmprint matching 的 modality gap；摘要称在三个 heterogeneous database 评估。未找到可核验 code、weight、data/license、export 或 Pi artifact。 | 跨光谱 recognition 是已有路线，和 PAD/freshness 是不同任务。B2/M 必须把 spectrum metadata、cross-spectral matching 与 PAIS/IAPMR 分开报告。 |
+| [Yang et al., Beyond Static Features, IEEE SPL 2025](https://doi.org/10.1109/LSP.2025.3611328) | 正式 metadata；可访问摘要/索引描述 | `E2` | 可访问描述将其 "dynamic" 定义为在特征空间生成 class-aware pairs 并做匹配正则化，不是由传感器采集的连续掌纹帧。 | 不能把 M 写成首个 "dynamic palmprint"；更不能拿该方法支持 physical freshness 或 PAD。 |
+| [Liu et al., SF2Net, TIFS 2025](https://doi.org/10.1109/TIFS.2025.3611692) / [official code](https://github.com/20201422/SF2Net) | 正式 metadata/abstract；README、requirements、inference 与 model code、license | `E1`，原始代码/正式书目信息 | 模型每次接收单张 `1x128x128` grayscale ROI；标题中的 sequence 指内部局部/空间 feature token 的融合，而非物理连续帧。MIT code 有 CPU fallback，但训练依赖 CUDA PyTorch；没有 release weight、dataset 或 edge benchmark。 | 是识别架构阅读参照，不是 B0 默认依赖，也不是主动光照 challenge、PAD 或 freshness 的先例。 |
+| [Sahoo & Namboodiri, flash/non-flash fingerprint PAD, IWBF 2026](https://arxiv.org/abs/2603.17679) / [official code](https://github.com/clspooffnf/CLSpoofFNF) | 论文全文、私有数据/限制段、code/weight README | `E1`，IWBF 2026 camera-ready preprint + code；无公开 data/license | 手机连续 flash/non-flash 指纹 pair 用光度差异分析 print/display 样本；论文明确是 preliminary、私有小数据，且其限制含 pose/distance/temporal misalignment/high-fidelity 3D spoof。repo 有 notebooks 和一个 fingerprint-tuned ResNet weight，但要求自备数据、无显式 code license、GPU/MPS 推荐。 | 主动照明是已有 biometric sensing pattern，不是空白；它是掌纹 M 的 protocol/quality 近邻，不证明本设备、NIR、ToF、随机 challenge、掌纹 PAIS 或 Pi 效果。 |
+| [Kumar et al., Pi palm-vein (2017)](https://ijaas.iaescore.com/index.php/IJAAS/article/download/9470/7878) / [Dhabarde & Kashyap, Pi/NoIR palm-vein (2019)](https://ijsrd.com/articles/IJSRDV7I40667.pdf) / [Raspberry Pi TFLite camera docs](https://github.com/raspberrypi/documentation/blob/master/documentation/asciidoc/computers/camera/rpicam_apps_post_processing_tflite.adoc) | 两篇全文；current official runtime documentation | `E1`，primary papers + official docs | Pi、NIR/NoIR、IR LED、ROI 和 local hand-vein matcher 早已被组装为低成本 prototype；现行 Pi camera stack 可作为 TFLite runtime candidate。 | 这否定“Pi + IR hand biometric box”新颖性。历史小样本/旧运行时和 generic TFLite docs 都不证明 palmprint `1:1`、PAD、Pi resource 或本硬件性能；详见 [`25-pi-palm-vein-prior-art-boundary-log.md`](../log/25-pi-palm-vein-prior-art-boundary-log.md)。 |
+| [PKLNet](https://doi.org/10.1109/JSTSP.2023.3241540) / [Lin et al. lightweight ROI](https://doi.org/10.1371/journal.pone.0307822) / [Canny2Palm](https://arxiv.org/abs/2505.04922) | PKLNet 摘要；PLOS 全文；Canny2Palm 全文 | `E1` PKLNet metadata/abstract + PLOS full; `E2` Canny2Palm preprint | Edge-aware regression、轻量 ROI 与 Canny-conditioned synthesis 已分别覆盖视觉边缘、嵌入式 ROI 和离线合成数据。 | 不把这些 `edge` 术语等同 edge computing；轻量 ROI 的 GPU 数字不是 Pi 端到端证据，合成数据不替代真实 session/PAIS。详见 [`28-edge-term-and-lightweight-roi-reading-log.md`](../log/28-edge-term-and-lightweight-roi-reading-log.md)。 |
+| [Chai et al., RDRLA, TIFS 2025](https://doi.org/10.1109/TIFS.2024.3516539) / [official code](https://github.com/godfatherwang2/RDRLA) | 论文全文；README、目录、数据说明 | `E1` 全文与作者仓库 | FVP-free adaptive ROI（CHSST + inscribed-circle search）与 recurrent layer aggregation，针对复杂背景、姿态和指缝点不可见的开放环境。 | 这是开放环境 ROI 强基线，不是 Pi/ARM 或 PAD 先例；其 EER/Rank-1 不能移植为本地掌纹锁阈值。详见 [`29-open-environment-roi-rdrla-reading-log.md`](../log/29-open-environment-roi-rdrla-reading-log.md)。 |
+| [Shen et al., embedded palmprint system, Sensors 2012](https://doi.org/10.3390/s120201482) | 开放全文：硬件、ARM/DSP 分工、实测效率和限制 | `E1` 全文 | Blue LED + CMOS + 600 MHz ARM + 412 MHz DSP 的实物掌纹终端；DSP `G-LBP` extraction 60 ms、matching 3.9 ms。 | 已否定“嵌入式本地掌纹盒子”首创；定位柱/PolyU identification/DSP timing 不能外推为自由手、Pi、PAD 或端到端性能。详见 [`30-embedded-palmprint-system-prior-art-log.md`](../log/30-embedded-palmprint-system-prior-art-log.md)。 |
+| [Grosz et al., Palm-ID](https://arxiv.org/html/2401.08111) / [TIFS DOI](https://doi.org/10.1109/TIFS.2024.3413631) | 全文 HTML：Android app、训练/测试 session、quality、效率和数据边界 | `E1` 开放全文/作者预印本 | Galaxy S22 上的 on-device contactless palm `1:1/1:N` app；ViT+ResNet50、quality reject、516-byte template、time-separated MSU sessions。 | 移动端系统先例很强，但 76.04M 参数；18 ms/0.33 ms 是 AMD EPYC desktop timing，不是手机/Pi 端到端。无 PAIS/PAD、ToF/NIR 或 energy。详见 [`31-palm-id-mobile-system-reading-log.md`](../log/31-palm-id-mobile-system-reading-log.md)。 |
+| [Liu et al., edge computing compact system](https://doi.org/10.1360/SST-2021-0223) | 摘要、引言片段和书目信息 | `E1` 官方出版社检索片段；PDF 入口本次被 WAF 拦截 | 2022 已有终端 Tiny YOLOv3/MobileNetV2 ROI、edge-server GoogLeNet matching、cloud logging/model update 的三层掌纹 edge architecture。 | 这里的 edge 是 offloading，不是 Pi 全本地/离线推理；未核验硬件、p95、RAM、energy、PAD 或 fallback。不能把 edge palmprint system 写成空白。详见 [`32-edge-computing-palmprint-system-reading-log.md`](../log/32-edge-computing-palmprint-system-reading-log.md)。 |
+
+## B. 多光谱、NIR 与测量
+
+| 文献 | 阅读深度 | 证据 | 核心内容 | 对本项目的影响 |
+| --- | --- | --- | --- | --- |
+| [Aberni et al., Multispectral Palmprint Review, 2017](https://doi.org/10.1109/TSP.2017.8076097) | 摘要/全文片段 | `E2` | 多光谱掌纹中，NIR 可显现静脉等与可见光互补的信息。 | 不能声称 RGB+NIR fusion 新颖；新意必须在主动采集、安全与边缘测量。 |
+| [Amrouni & Benzaoui, 2024](https://doi.org/10.3390/app14010153) | 数据集段落 | `E2` | PolyU-MS 为 250 位受试者、红绿蓝/NIR、多 session 的受控多光谱数据。 | 可作为光谱 baseline 候选，但其固定采集装置不等于真实 Pi 采集盒。 |
+| [Zhang et al., online multispectral verification, IEEE TIM 2010](https://www4.comp.polyu.edu.hk/~cslzhang/paper/TIM_10_Feb.pdf) | 硬件、采集、anti-spoof、速度和结论全文 | `E1` | 低成本 visible/NIR 四谱系统用 470/525/660/880 nm LED、单色 CCD 和 controller 在 <1 s 采集；用纸张打印攻击，提出 Blue--NIR reflectance difference 为 liveness 线索。 | 固定多谱、低成本采集、纸张 anti-spoof 都不是新；M 必须相对静态 B2、未见 PAIS 与 Pi 成本证明随机 challenge 的额外价值。 |
+| [Stanuch et al., contact-free NIR/UV verification, Sensors 2020](https://doi.org/10.3390/s20195695) | 硬件、random-order capture、跨帧比较、数据与评测全文 | `E1` | 无接触掌静脉/掌纹系统以设备已知但用户未知的随机 NIR/UV 顺序取两帧；作者比较两帧差异，把不充分差异当作 presentation attack 线索，并允许重复该过程。数据为 515 人、10,160 图；识别评估按图像随机划分而非 PAIS/session blind holdout。 | 随机灯序、两模态、跨帧差异检查和“不额外交互”都已有直接掌部先例。M 的待测差异必须是实际观察到且预先冻结的 response verifier，在本硬件、未见 PAIS/session 与 Pi 成本下的净收益；不能把随机次序本身称为新颖或 liveness。 |
+| [GRGIntech PRM-001](https://www.grgintech.com/product/prm-001-palm-print-and-vein-recognition-module/) | 产品规格 | `E3` | 商用模组已公开组合 RGB+IR、距离、QR、补光与 palm print/vein。 | 不能将相同硬件组件/掌纹锁 demo 写成首创；产品性能声明需独立验证。 |
+
+## C. 物理攻击与 PAD
+
+| 文献 | 阅读深度 | 证据 | 核心内容 | 对本项目的影响 |
+| --- | --- | --- | --- | --- |
+| [Liu et al., CAAP, 2026](https://arxiv.org/abs/2604.06987) | 威胁模型、物理攻击、消融、结论 | `E1`，预印本 | 提出考虑打印和采集变化的可复用、十字形物理对抗贴片；在 Tongji、IITD、AISEC 和多个识别器上测白盒攻击、迁移与 print-and-capture。 | 最接近的攻击动机与高级攻击基线。先复现低风险物理攻击；不要直接套用其 ASR 或宣称 NIR 可防御。 |
+| [Shaheed et al., PAD systematic review, 2024](https://doi.org/10.1016/j.engappai.2023.107569) | 摘要 | `E2` | 总结深度 PAD，强调跨攻击、材料、传感器的泛化困难。 | PAD 必须报告 APCER/BPCER 与未知攻击条件，不能只报 accuracy。 |
+| [Li & Ramachandra, fingerprint PAD survey, 2023](https://arxiv.org/abs/2305.17522) | 摘要 | `E2`，预印本综述 | 总结接触、无接触、手机指纹 PAD 的攻击材料、数据和方法。 | 用来学习 PAD protocol，不用于把指纹数字外推到掌纹。 |
+| [Kolberg et al., COLFISPOOF, WACV Workshops 2023](https://openaccess.thecvf.com/content/WACV2023W/MAP-A/papers/Kolberg_COLFISPOOF_A_New_Database_for_Contactless_Fingerprint_Presentation_Attack_Detection_WACVW_2023_paper.pdf) / [official data page](https://dasec.h-da.de/colfispoof/) / [partitions and preprocessing](https://github.com/dasec/COLFISPOOF) | 论文正文、官方数据页、repo tree 与 partition README/CSV | `E1`，同行评审开放论文 + official data/protocol artifact | 无接触**指纹** PAD 数据有 7,200 个 PA sample、72 个 PAI species、两款手机；每 species 100 sample。官方分区既给随机 baseline（每个 species 同时出现在 train/valid/test），也给四个以视觉/材料属性分组的 LOO protocol，使完整 group 只在 test 出现。 | 这是可审计的 unknown-PAIS protocol 近邻，不是掌纹、RGB/NIR/ToF、`1:1` 或 IAPMR benchmark。它要求自采数据至少保存 PAI specimen、material family、制作/输出设备、capture chain 和 session，避免把 random split 误称未知攻击泛化。详见 [`23-attack-layer-and-loo-protocol-log.md`](../log/23-attack-layer-and-loo-protocol-log.md)。 |
+| [Xiong et al., HiChrom-MAE, ICMR 2026](https://doi.org/10.1145/3805622.3810599) | 正式 metadata/abstract | `E2` | 摘要称在七个 domain 上以 high-frequency residual 与 chromaticity alignment 做 cross-medium palmprint PAD；正文/工件仍待取得。 | “做一个 frequency/chromaticity PAD 分类器”本身也不新；需要在传感、协议、威胁模型或边缘测量上区分。 |
+| [Yan et al., PVASD palm-vein PAD, TIFS 2026](https://doi.org/10.1109/TIFS.2025.3650391) / [official repository](https://github.com/valhongli/PVASD) | 论文全文关键章节；README、dataset card、requirements、training/test code、MIT license | `E1`，同行评审全文 + current official artifact audit | 非接触**掌静脉** PAD：PVASD 有 5,515 subject、约 118.8 万图、16 种 2D/3D PA、五分辨率；repo 现有学术/非商业数据规则、三份 Drive split、MIT code、APCER/BPCER/ACER 脚本和 checkpoint links。requirements 固定 CUDA 12.1 PyTorch，训练示例包括 MobileNetV3Large 及大量 GPU 模型。 | 这是强 PAD/dataset 近邻，否定“掌静脉 NIR PAD 缺少数据/benchmark”的笼统说法；但不是 palmprint `1:1`、RGB/NIR/ToF、actual-state illumination 或 IAPMR 的证据。未下载的超大数据、CUDA-only recipe、无 ARM/Pi/camera service/交互 profile，不能作为本机 P0/P/S 依赖或资源比较。 |
+| [Jia et al., PalmRSS: single-source domain generalization for palm biometrics, Pattern Recognition 2025](https://doi.org/10.1016/j.patcog.2025.111620) / [authors' repository](https://github.com/yocii/PalmRSS) | 正式 metadata/abstract；current repo tree、README、requirements、train/test/inference code 与 refs audit | `E2`，正式摘要 + code artifact；正文/data/license/weights/Pi run `Q` | 论文将设备/环境带来的 shift 定义为 palm recognition 的 single-source domain-generalization 问题，以 source 内分组、Fourier low-frequency exchange、histogram matching、domain-adversarial 与 feature-similarity loss 做 cross-dataset evaluation。repo 有 split path lists、PyTorch training/test scripts；未见 code license、图像数据、权重或可用 README。训练/测试代码默认 `.cuda()`、大 batch、作者绝对路径，requirements 也未锁 PyTorch/runtime。 | 传感器与环境留出是已有 recognition 问题，不可把本机随机切分外推成跨设备能力。该工件不能直接作 Pi B0：没有 data/weight/license、CPU path/ARM export/latency/energy/camera service，且任务不含 PAD、PAIS、`1:1` operational threshold 或 IAPMR。详见 [`22-palmrss-reproducibility-log.md`](../log/22-palmrss-reproducibility-log.md)。 |
+| [Geissbuhler et al., sweet, 2024](https://arxiv.org/abs/2404.09376) | 传感与限制段落 | `E1`，预印本 | 开放模块化无接触手部平台覆盖 multi-NIR、RGB、立体视觉和 photometric stereo；反射式 NIR 可无接触但信号较弱、环境敏感。 | 3D 盒子/RGB+NIR 的存在不是贡献；先确认本实验室 NIR 的光学质量与同步方式。 |
+| [Garcia et al., challenge-response formalism, 2022](https://doi.org/10.1186/s13635-022-00131-y) | PAD、challenge-response 形式化段落 | `E1` | 把“是不是某人”与“是否为真实呈现”统一为阈值决策；challenge-response 给生物呈现加入 freshness。 | 主动短序列可以有明确安全动机，但并不自动证明某种掌纹 challenge 有效。 |
+| [ISO/IEC 30107-3:2023](https://www.iso.org/standard/79520.html) | 范围与评测/报告要求 | `E1`，标准元数据 | 定义 PAD 性能评估和已知攻击分类，范围限于采集装置处的 presentation attack。 | 项目需把 sensor-level PAD 与模板库、通信、门锁控制等其他攻击面分开。 |
+| [NIST SOFA biometrics draft](https://pages.nist.gov/SOFA/SOFA.html) | PAD 与 system-level 指标段落 | `E1`，草案 | 区分 PAD 的 APCER 与最终“攻击呈现被匹配为目标用户”的 IAPMR。 | 最终 demo 不能只报 PAD accuracy，要报告攻击是否真的获得通过。 |
+| [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html) / [ISO/IEC 30107-3:2023](https://www.iso.org/standard/79520.html) / [NIST SP 800-116r1](https://csrc.nist.gov/pubs/sp/800/116/r1/final) | current biometric/PAD/endpoint sections；official standard/facility-access scopes | `E1`，官方资料 | NIST 将 biometric comparison、PAD、sensor/endpoint integrity、fallback 与 physical authenticator 分开；ISO PAD 只管 capture-side presentation attack；facility access 是风险化 PACS/credential system。 | QR/work order 在本项目中只是 authorized claim lookup，不能自动叫 possession factor/MFA；IAPMR 仍不覆盖 injection、relay、tampering、tailgating 或授权策略。详见 [`24-authentication-boundary-and-release-metrics-log.md`](../log/24-authentication-boundary-and-release-metrics-log.md)。 |
+
+## D. 隐私、模板与端侧部署
+
+| 结论 | 依据 | 证据 | 对项目的意义 |
+| --- | --- | --- | --- |
+| 端侧无接触掌纹识别已经可实现，模板可被压缩，质量拒绝可提高使用可靠性。 | Palm-ID | `E1` | “edge” 不能只等于离线 inference；要报告端到端延迟、ROI、模板/日志和断网行为。 |
+| 生物模板保护通常要求可撤销、不可关联、不可逆与性能同时成立。 | [Jain et al., template protection review](https://doi.org/10.1109/TIFS.2015.2481158) | `E2` | 这是强论文方向，但单个 FYP 同时做跨设备与安全证明风险高；保留为备选。 |
+
+## E. 读文献后形成的空白，而非“领域从未做过”
+
+| 观察 | 支持它的资料 | 必须避免的过度结论 |
+| --- | --- | --- |
+| 识别、跨传感器泛化、质量估计和移动部署已有大量工作。 | Palm-ID、BEST、两份综述 | 不能称“第一个移动/边缘掌纹识别”。 |
+| 多光谱/NIR 掌纹已研究多年。 | 多光谱综述、PolyU 系统 | 不能称“第一个 RGB+NIR 掌纹”。 |
+| 新近 CAAP 将物理可复用贴片带入掌纹识别威胁讨论。 | CAAP | 不能称“第一个掌纹贴片攻击”或假定在本设备上有效。 |
+| 本轮没有找到一个公开标准数据集，同时覆盖低成本 RGB/NIR/ToF、主动短序列、掌纹身份核验和未知物理攻击。 | 检索结果，`E3` | 这只是待进一步系统检索和自采实验验证的 gap，不能写为绝对不存在。 |
+| 2026 已有专门的掌纹 PAD 论文。 | HiChrom-MAE 书目信息，`E2` | 不能声称“第一个掌纹 PAD”；获得全文后需检查其传感器、数据和协议是否与本项目重叠。 |
+
+## F. 澳门部署事实更新
+
+| 资料 | 证据 | 可支持的说法 | 不可支持的说法 |
+| --- | --- | --- | --- |
+| [腾讯：微信掌纹支付在澳门银河上线，2024-09](https://www.tencent.net.cn/weixin-palm-pay-achieves-first-application-outside-the-chinese-mainland-with-launch-in-macao/) | `E1`，供应商一手发布 | 这是微信掌纹支付在中国内地以外的首个应用；其描述使用掌纹与掌静脉，服务澳门银河购物/支付。 | 不能从单一上线项目估计全澳门普及率、用户采用率、经济效果或系统架构细节。 |
+| [澳门 GPDP：指纹/掌形考勤设备指引](https://www.dspdp.gov.mo/file/Guideline/%E4%BD%BF%E7%94%A8%E6%8C%87%E7%B4%8B%E6%8E%8C%E5%BD%A2%E8%80%83%E5%8B%A4%E8%A8%AD%E5%82%99%E7%9A%84%E5%95%8F%E9%A1%8C_TC.pdf) | `E1`，官方资料 | 澳门曾明确处理指纹/掌形考勤设备的个人资料问题。 | 掌形（hand geometry）不等于掌纹；不能把此指引当作掌纹门禁普及证据。 |
+
+这个更新解释了“在澳门住了 18 年仍没遇到”的合理现象：不是完全不存在，而是公开能查到的掌纹支付部署较新且局部。下一步要问的不是“有没有”，而是“为什么没有成为一般商户/工作现场的默认交互”。
