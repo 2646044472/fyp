@@ -63,6 +63,7 @@ def landmarks_to_palm_quad(
     height_scale: float = 1.25,
     center_offset: float = 0.30,
     min_span_px: float = 80.0,
+    fit_to_frame: bool = False,
 ) -> np.ndarray:
     """Return an oriented (top-left, top-right, bottom-right, bottom-left) quad.
 
@@ -113,14 +114,30 @@ def landmarks_to_palm_quad(
         )
     ).astype(np.float32)
 
-    # Do not silently pad or clip a hand that is partly outside the camera.
-    if (
+    outside = (
         float(quad[:, 0].min()) < 0
         or float(quad[:, 1].min()) < 0
         or float(quad[:, 0].max()) >= width
         or float(quad[:, 1].max()) >= height
-    ):
-        raise PalmROIError("dynamic palm ROI is outside the frame")
+    )
+    if outside:
+        if not fit_to_frame:
+            raise PalmROIError("dynamic palm ROI is outside the frame")
+        # Keep the largest centered oriented crop that is visible. This avoids
+        # dropping a valid hand just because the enlarged crop touches an edge.
+        ratios: list[float] = []
+        for x, y in quad:
+            dx, dy = float(x - center[0]), float(y - center[1])
+            if dx > 0:
+                ratios.append((width - 1.0 - float(center[0])) / dx)
+            elif dx < 0:
+                ratios.append((0.0 - float(center[0])) / dx)
+            if dy > 0:
+                ratios.append((height - 1.0 - float(center[1])) / dy)
+            elif dy < 0:
+                ratios.append((0.0 - float(center[1])) / dy)
+        factor = min(1.0, max(0.05, 0.98 * min(ratios)))
+        quad = center + (quad - center) * factor
     return quad
 
 
@@ -198,7 +215,7 @@ def warp_palm_roi(
 
 
 class HandLandmarkTracker:
-    """Palm tracker with an OpenCV DNN detector and NoIR foreground fallback."""
+    """Palm tracker with a gated OpenCV DNN detector."""
 
     def __init__(
         self,
@@ -228,6 +245,9 @@ class HandLandmarkTracker:
         self._stale_after_ms = stale_after_ms
         self._smoothing_alpha = smoothing_alpha
         self._min_detection_confidence = min_hand_detection_confidence
+        self._max_center_jump = 0.18
+        self._min_area_ratio = 0.55
+        self._max_area_ratio = 1.80
         self._lock = threading.Lock()
         self._landmarks: np.ndarray | None = None
         self._last_seen_monotonic: float | None = None
@@ -314,89 +334,48 @@ class HandLandmarkTracker:
             return None
         return points.astype(np.float32), score
 
-    def _foreground_landmarks(self, image: np.ndarray) -> np.ndarray | None:
-        """Return normalized pseudo-landmarks for a hand entering a static NoIR view.
+    def _is_stable_candidate(self, points: np.ndarray, source: str) -> bool:
+        """Reject detector jumps instead of drawing a new random ROI."""
 
-        The DNN model is trained on RGB hand images and can miss a hand under
-        IR illumination. This fallback learns the empty, fixed camera view,
-        segments the foreground by contrast, then uses the thickest part of the
-        connected component as the palm centre. It is deliberately used only
-        when the model does not produce a geometrically valid palm.
-        """
-
-        cv = self._cv
-        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY).astype(np.float32)
-        height, width = gray.shape
-        if self._background_gray is None:
-            self._background_gray = gray
-            return None
-
-        delta = gray - self._background_gray
-        # Camera auto-exposure can shift the whole image when a hand enters.
-        # Remove that global shift before looking for local foreground change.
-        delta -= float(np.median(delta))
-        difference = np.clip(np.abs(delta), 0, 255).astype(np.uint8)
-        mask = cv.threshold(difference, 24, 255, cv.THRESH_BINARY)[1]
-        mask = cv.morphologyEx(mask, cv.MORPH_OPEN, np.ones((3, 3), np.uint8))
-        mask = cv.morphologyEx(mask, cv.MORPH_CLOSE, np.ones((13, 13), np.uint8))
-        contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        minimum_area = max(900.0, float(width * height) * 0.008)
-        candidates = [contour for contour in contours if cv.contourArea(contour) >= minimum_area]
-        if not candidates:
-            # Update only on genuinely empty frames, so a held hand does not
-            # become part of the reference background.
-            self._background_gray = 0.96 * self._background_gray + 0.04 * gray
-            return None
-
-        contour = max(candidates, key=cv.contourArea)
-        component = np.zeros((height, width), dtype=np.uint8)
-        cv.drawContours(component, [contour], -1, 255, thickness=cv.FILLED)
-        distance = cv.distanceTransform(component, cv.DIST_L2, 5)
-        _, radius, _, centre_xy = cv.minMaxLoc(distance)
-        minimum_radius = max(14.0, min(width, height) * 0.035)
-        if radius < minimum_radius:
-            return None
-
-        center = np.asarray(centre_xy, dtype=np.float32)
-        ys, xs = np.nonzero(component)
-        coordinates = np.column_stack((xs, ys)).astype(np.float32)
-        local = coordinates[np.linalg.norm(coordinates - center, axis=1) <= radius * 2.4]
-        if len(local) >= 10:
-            eigenvalues, eigenvectors = np.linalg.eigh(np.cov(local, rowvar=False))
-            axis_y = eigenvectors[:, int(np.argmax(eigenvalues))].astype(np.float32)
-        else:
-            axis_y = np.asarray((0.0, 1.0), dtype=np.float32)
-
-        # Prefer the direction toward the nearest image edge as the wrist side.
-        edge_vectors = (
-            np.asarray((-center[0], 0.0), dtype=np.float32),
-            np.asarray((width - 1.0 - center[0], 0.0), dtype=np.float32),
-            np.asarray((0.0, -center[1]), dtype=np.float32),
-            np.asarray((0.0, height - 1.0 - center[1]), dtype=np.float32),
+        with self._lock:
+            previous = None if self._landmarks is None else self._landmarks.copy()
+            previous_source = self._tracking_source
+        if previous is None or previous_source != source:
+            return True
+        try:
+            previous_quad = palm_detection_to_palm_quad(
+                previous,
+                self._input_size,
+                width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                fit_to_frame=True,
+            )
+            candidate_quad = palm_detection_to_palm_quad(
+                points,
+                self._input_size,
+                width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                fit_to_frame=True,
+            )
+        except PalmROIError:
+            return False
+        input_scale = np.asarray(self._input_size, dtype=np.float32)
+        center_delta = np.linalg.norm((candidate_quad.mean(axis=0) - previous_quad.mean(axis=0)) / input_scale)
+        previous_area = float(np.linalg.norm(previous_quad[1] - previous_quad[0]) * np.linalg.norm(previous_quad[3] - previous_quad[0]))
+        candidate_area = float(np.linalg.norm(candidate_quad[1] - candidate_quad[0]) * np.linalg.norm(candidate_quad[3] - candidate_quad[0]))
+        if previous_area <= 1.0 or candidate_area <= 1.0:
+            return False
+        area_ratio = candidate_area / previous_area
+        previous_axis = previous_quad[1] - previous_quad[0]
+        candidate_axis = candidate_quad[1] - candidate_quad[0]
+        axis_similarity = abs(float(np.dot(previous_axis, candidate_axis))) / max(
+            float(np.linalg.norm(previous_axis) * np.linalg.norm(candidate_axis)), 1e-6
         )
-        wrist_direction = min(edge_vectors, key=lambda vector: float(np.linalg.norm(vector)))
-        if float(np.dot(axis_y, wrist_direction)) < 0:
-            axis_y = -axis_y
-        axis_y /= max(float(np.linalg.norm(axis_y)), 1e-6)
-        axis_x = np.asarray((-axis_y[1], axis_y[0]), dtype=np.float32)
-
-        # The inscribed-circle radius is conservative. Include component
-        # extent so a full hand does not collapse into a tiny central crop.
-        x0, y0, component_width, component_height = cv.boundingRect(contour)
-        del x0, y0
-        extent = min(float(component_width), float(component_height))
-        span = max(radius * 2.0, extent * 0.72, min(width, height) * 0.16, 64.0)
-        mcp_midpoint = center - axis_y * span * 0.30
-        points = np.zeros((7, 2), dtype=np.float32)
-        points[0] = center + axis_y * span * 0.50  # wrist
-        points[1] = mcp_midpoint - axis_x * span * 0.50  # index MCP
-        points[2] = mcp_midpoint  # middle MCP
-        points[3] = mcp_midpoint + axis_x * span * 0.25  # ring MCP
-        points[4] = mcp_midpoint + axis_x * span * 0.50  # pinky MCP
-        points[5] = mcp_midpoint - axis_x * span * 0.65  # thumb CMC
-        points[6] = mcp_midpoint - axis_x * span * 0.45  # thumb MCP
-        return points / np.asarray((width, height), dtype=np.float32)
-
+        return (
+            center_delta <= self._max_center_jump
+            and self._min_area_ratio <= area_ratio <= self._max_area_ratio
+            and axis_similarity >= 0.75
+        )
     def submit(self, image: Image.Image, timestamp_ms: int) -> None:
         """Run detection on a downscaled RGB frame, throttled to the camera rate."""
 
@@ -413,7 +392,6 @@ class HandLandmarkTracker:
             rgb = np.asarray(resized.convert("RGB"), dtype=np.uint8)
             bgr = self._cv.cvtColor(rgb, self._cv.COLOR_RGB2BGR)
             detected = self._infer(bgr)
-            fallback = None
             points: np.ndarray | None = None
             score: float | None = None
             source: str | None = None
@@ -421,15 +399,11 @@ class HandLandmarkTracker:
                 detected_points, detected_score = detected
                 detected_points = detected_points / np.asarray(self._input_size, dtype=np.float32)
                 try:
-                    palm_detection_to_palm_quad(detected_points, self._input_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE)
+                    palm_detection_to_palm_quad(detected_points, self._input_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
                 except PalmROIError:
                     pass
                 else:
                     points, score, source = detected_points, detected_score, "dnn"
-            if points is None:
-                fallback = self._foreground_landmarks(bgr)
-            if points is None and fallback is not None:
-                points, source = fallback, "foreground"
             with self._lock:
                 if points is None:
                     self._last_error = None
@@ -460,13 +434,10 @@ class HandLandmarkTracker:
         if age_ms is None or age_ms > self._stale_after_ms:
             return ROIStatus(None, "tracking_lost", hand_score=hand_score, age_ms=age_ms)
         try:
-            quad = palm_detection_to_palm_quad(landmarks, image_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE)
+            quad = palm_detection_to_palm_quad(landmarks, image_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
         except PalmROIError:
             return ROIStatus(None, "bad_geometry", hand_score=hand_score, age_ms=age_ms)
-        if tracking_source == "foreground":
-            status = "tracking_fallback" if age_ms <= 150.0 else "tracking_fallback_stale"
-        else:
-            status = "tracking" if age_ms <= 150.0 else "tracking_stale"
+        status = "tracking" if age_ms <= 150.0 else "tracking_stale"
         if last_error:
             status = "tracker_error"
         return ROIStatus(
