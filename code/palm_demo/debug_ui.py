@@ -72,12 +72,16 @@ class CameraFeed:
         inference_ms: float,
         input_size: tuple[int, int],
         recovery_pass: bool,
+        camera_tuning_file: Path | None,
     ) -> None:
         from picamera2 import Picamera2
 
         if roi_mode not in ("fixed", "dynamic"):
             raise ValueError(f"unsupported ROI mode: {roi_mode}")
-        self.camera = Picamera2(index)
+        # A NoIR module needs a separate imaging pipeline tuning file under IR
+        # illumination. Passing it to Picamera2 is required; an environment
+        # variable alone is ignored by the Pi 4 libcamera build.
+        self.camera = Picamera2(index, tuning=None if camera_tuning_file is None else str(camera_tuning_file))
         config = self.camera.create_video_configuration(
             main={"size": (width, height), "format": "RGB888"},
             buffer_count=2,
@@ -477,6 +481,7 @@ def main() -> int:
     parser.add_argument("--input-width", type=int, default=320, help="Small live image width used by the detector.")
     parser.add_argument("--input-height", type=int, default=240, help="Small live image height used by the detector.")
     parser.add_argument("--recovery-pass", action="store_true", help="Run a second detector pass when no hand is found; slower.")
+    parser.add_argument("--camera-tuning-file", type=Path, help="Optional libcamera tuning JSON, e.g. imx219_noir.json for NoIR + IR.")
     args = parser.parse_args()
     feed = CameraFeed(
         args.camera,
@@ -489,6 +494,7 @@ def main() -> int:
         inference_ms=args.inference_ms,
         input_size=(args.input_width, args.input_height),
         recovery_pass=args.recovery_pass,
+        camera_tuning_file=args.camera_tuning_file,
     )
     app = App(feed)
     server = ThreadingHTTPServer((args.host, args.port), make_handler(app))
