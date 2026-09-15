@@ -38,7 +38,7 @@ body{font:16px system-ui,sans-serif;max-width:1100px;margin:24px auto;padding:0 
 main{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px}section{background:white;border:1px solid #dce3ea;border-radius:12px;padding:16px;box-shadow:0 2px 8px #0000000d}
 preview{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}.preview img{display:block;width:100%;height:100%;object-fit:contain}.roi-guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.roi-guide .roi-box{fill:#25d36612;stroke:#25d366;stroke-width:.55;stroke-dasharray:2 1}.roi-guide .roi-point{fill:#25d366;stroke:#fff;stroke-width:.35}.roi-guide .roi-cross{stroke:#fff;stroke-width:.35;opacity:.9}.roi-label{position:absolute;left:19%;top:12%;color:#fff;background:#25d366d9;padding:3px 7px;border-radius:4px;font-size:.76rem;font-weight:700;letter-spacing:.02em;pointer-events:none}.roi-panel{margin-top:12px;padding:10px;border:1px solid #dce3ea;border-radius:8px;background:#f8fafb}.roi-preview{display:block;width:220px;height:220px;margin-top:6px;image-rendering:pixelated;background:#111;border-radius:6px}label{display:block;margin:10px 0 6px;font-weight:600}input,select,button{font:inherit;padding:9px;border:1px solid #b8c2cc;border-radius:7px}input,select{width:100%;box-sizing:border-box}button{cursor:pointer;margin:8px 4px 0 0;background:#1769aa;color:white;border:0}button.secondary{background:#5d6d7e}button:disabled{opacity:.5;cursor:wait}.notice{white-space:pre-wrap;background:#eef3f7;padding:10px;border-radius:7px;min-height:42px;margin-top:14px}.small{font-size:.88rem;color:#53616d}h1{margin-top:0} @media(max-width:760px){main{grid-template-columns:1fr}}
 </style></head><body><h1>Palm Reg · Pi debug</h1>
-<main><section><div class="preview"><img id="stream" src="/stream" alt="camera preview"></div><p class="small">The green quadrilateral follows the tracked palm. Keep one hand visible and wait for the tracking status before enrolling or verifying.</p><div class="roi-panel"><div class="small"><strong>Processing ROI (128×128 normalized)</strong></div><img id="roi" class="roi-preview" src="/roi" alt="normalized palm processing ROI"></div></section>
+<main><section><div class="preview"><img id="stream" src="/frame.jpg" alt="camera preview"></div><p class="small">The green quadrilateral follows the tracked palm. Keep one hand visible and wait for the tracking status before enrolling or verifying.</p><div class="roi-panel"><div class="small"><strong>Processing ROI (128×128 normalized)</strong></div><img id="roi" class="roi-preview" src="/roi.jpg" alt="normalized palm processing ROI"></div></section>
 <section><label for="user">Local test identity</label><input id="user" value="demo-noir" pattern="[A-Za-z0-9_-]+">
 <label for="profile">Capture profile</label><select id="profile"><option value="noir-ir" selected>NoIR + IR light</option><option value="rgb">RGB</option></select>
 <label><input id="consent" type="checkbox"> I have approval and participant consent for this local biometric demo.</label>
@@ -49,11 +49,9 @@ preview{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-ra
 const notice=document.getElementById('notice');
 const stream=document.getElementById('stream');
 const roiPreview=document.getElementById('roi');
-function reconnect(img,path){img.src=path+'?t='+Date.now()}
-stream.src='/stream?t='+Date.now();
-roiPreview.src='/roi?t='+Date.now();
-stream.addEventListener('error',()=>setTimeout(()=>reconnect(stream,'/stream'),500));
-roiPreview.addEventListener('error',()=>setTimeout(()=>reconnect(roiPreview,'/roi'),500));
+function pollImage(img,path,delay){let previous=null;async function tick(){try{const r=await fetch(path+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const next=URL.createObjectURL(await r.blob());const old=previous;previous=next;img.onload=()=>{if(old&&old.startsWith('blob:'))URL.revokeObjectURL(old)};img.src=next}catch(e){}setTimeout(tick,delay)}tick()}
+pollImage(stream,'/frame.jpg',180);
+pollImage(roiPreview,'/roi.jpg',300);
 async function runAction(action){const consent=document.getElementById('consent').checked;if(!consent){notice.textContent='Tick the approval/consent box before camera enrollment or verification.';return}const user=document.getElementById('user').value.trim();const profile=document.getElementById('profile').value;notice.textContent='Working…';try{const r=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,profile,consent:true})});const d=await r.json();notice.textContent=d.message||JSON.stringify(d,null,2)}catch(e){notice.textContent='Request failed: '+e}}
 async function resetRoi(){notice.textContent='Remove your hand, then reset the empty-view reference…';try{const r=await fetch('/api/reset-roi',{method:'POST'});const d=await r.json();notice.textContent=d.message||JSON.stringify(d,null,2)}catch(e){notice.textContent='Request failed: '+e}}
 async function loadUsers(){const r=await fetch('/api/users');const d=await r.json();notice.textContent=d.users.length?'Enrolled users: '+d.users.join(', '):'No enrolled users.'}
@@ -396,6 +394,24 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                         time.sleep(0.12)
                     except (BrokenPipeError, ConnectionResetError, RuntimeError):
                         break
+            elif route == "/frame.jpg":
+                frame = app.camera.jpeg_frame()
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", str(len(frame)))
+                self.end_headers()
+                self.wfile.write(frame)
+            elif route == "/roi.jpg":
+                frame = app.camera.roi_frame()
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", str(len(frame)))
+                self.end_headers()
+                self.wfile.write(frame)
             elif route == "/stream":
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
