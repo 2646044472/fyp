@@ -222,16 +222,19 @@ class HandLandmarkTracker:
         model_path: Path,
         hand_pose_model_path: Path | None = None,
         *,
-        input_size: tuple[int, int] = (640, 360),
-        stale_after_ms: float = 500.0,
-        smoothing_alpha: float = 0.18,
+        input_size: tuple[int, int] = (320, 240),
+        stale_after_ms: float = 1500.0,
+        smoothing_alpha: float = 0.22,
         min_hand_detection_confidence: float = 0.42,
         min_hand_presence_confidence: float = 0.5,
         min_tracking_confidence: float = 0.5,
+        refine_pose: bool = False,
+        submit_interval_ms: float = 800.0,
+        recovery_pass: bool = False,
     ) -> None:
         if not model_path.is_file():
             raise RuntimeError(f"Palm detector model not found: {model_path}")
-        if hand_pose_model_path is None or not hand_pose_model_path.is_file():
+        if refine_pose and (hand_pose_model_path is None or not hand_pose_model_path.is_file()):
             raise RuntimeError(f"Hand pose model not found: {hand_pose_model_path}")
         if not (0.0 < smoothing_alpha <= 1.0):
             raise ValueError("smoothing_alpha must be in (0, 1]")
@@ -247,6 +250,8 @@ class HandLandmarkTracker:
         self._input_size = input_size
         self._stale_after_ms = stale_after_ms
         self._smoothing_alpha = smoothing_alpha
+        self._submit_interval_s = max(0.08, submit_interval_ms / 1000.0)
+        self._recovery_pass = recovery_pass
         self._min_detection_confidence = min_hand_detection_confidence
         self._max_center_jump = 0.18
         self._min_area_ratio = 0.55
@@ -261,13 +266,18 @@ class HandLandmarkTracker:
         self._last_error: str | None = None
         self._background_gray: np.ndarray | None = None
         self._detector = self._cv.dnn.readNet(str(model_path))
-        from mp_handpose import MPHandPose
-        self._handpose = MPHandPose(
-            str(hand_pose_model_path),
-            confThreshold=0.62,
-            backendId=self._cv.dnn.DNN_BACKEND_OPENCV,
-            targetId=self._cv.dnn.DNN_TARGET_CPU,
-        )
+        # Keep the camera/HTTP threads responsive on Pi 4.  One detector pass
+        # every ~0.8 s is enough because the last stable quad is retained.
+        self._cv.setNumThreads(1)
+        self._handpose = None
+        if refine_pose:
+            from mp_handpose import MPHandPose
+            self._handpose = MPHandPose(
+                str(hand_pose_model_path),
+                confThreshold=0.62,
+                backendId=self._cv.dnn.DNN_BACKEND_OPENCV,
+                targetId=self._cv.dnn.DNN_TARGET_CPU,
+            )
         self._detector.setPreferableBackend(self._cv.dnn.DNN_BACKEND_OPENCV)
         self._detector.setPreferableTarget(self._cv.dnn.DNN_TARGET_CPU)
         self._anchors = self._load_anchors()
@@ -405,6 +415,21 @@ class HandLandmarkTracker:
             and axis_similarity >= 0.70
         )
 
+    def _has_valid_palm_geometry(self, points: np.ndarray) -> bool:
+        """Reject high-score detector ghosts before they become an ROI."""
+
+        try:
+            palm_detection_to_palm_quad(
+                points,
+                self._input_size,
+                width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                fit_to_frame=True,
+            )
+        except PalmROIError:
+            return False
+        return True
+
     def submit(self, image: Image.Image, timestamp_ms: int) -> None:
         """Run detection on a downscaled RGB frame, with close-range recovery."""
 
@@ -413,7 +438,7 @@ class HandLandmarkTracker:
         with self._lock:
             if self._closed:
                 return
-            if self._last_submit_monotonic is not None and now - self._last_submit_monotonic < 0.08:
+            if self._last_submit_monotonic is not None and now - self._last_submit_monotonic < self._submit_interval_s:
                 return
             self._last_submit_monotonic = now
         try:
@@ -422,13 +447,14 @@ class HandLandmarkTracker:
             bgr = self._cv.cvtColor(rgb, self._cv.COLOR_RGB2BGR)
             detections: list[tuple[np.ndarray, float, np.ndarray]] = []
             first = self._infer(bgr)
-            if first is not None:
+            if first is not None and self._has_valid_palm_geometry(first[0]):
                 detections.append(first)
-            # Close hands can be too large for the tiny palm detector. Retry
-            # with a centered reduced view only when the normal pass is weak.
-            if first is None:
+            # Close or clipped hands can be too large for the tiny palm
+            # detector. Retry with the same detector at a reduced scale only
+            # when the first result is absent or geometrically implausible.
+            if not detections and self._recovery_pass:
                 recovered = self._infer(bgr, detector_scale=0.72)
-                if recovered is not None:
+                if recovered is not None and self._has_valid_palm_geometry(recovered[0]):
                     detections.append(recovered)
 
             points: np.ndarray | None = None
@@ -436,7 +462,7 @@ class HandLandmarkTracker:
             source: str | None = None
             for detected_points, detected_score, palm_box in detections:
                 palm = np.concatenate((palm_box, detected_points.reshape(-1)))
-                hand = self._handpose.infer(bgr, palm)
+                hand = self._handpose.infer(bgr, palm) if self._handpose is not None else None
                 if hand is not None:
                     pose_landmarks = hand[4:67].reshape(21, 3)[:, :2]
                     pose_landmarks = pose_landmarks / np.asarray(self._input_size, dtype=np.float32)

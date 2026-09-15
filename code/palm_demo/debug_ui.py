@@ -70,20 +70,38 @@ class CameraFeed:
         roi_mode: str,
         hand_model: Path,
         hand_pose_model: Path,
+        refine_pose: bool,
+        inference_ms: float,
+        input_size: tuple[int, int],
+        recovery_pass: bool,
     ) -> None:
         from picamera2 import Picamera2
 
         if roi_mode not in ("fixed", "dynamic"):
             raise ValueError(f"unsupported ROI mode: {roi_mode}")
         self.camera = Picamera2(index)
-        config = self.camera.create_video_configuration(main={"size": (width, height), "format": "RGB888"})
+        config = self.camera.create_video_configuration(
+            main={"size": (width, height), "format": "RGB888"},
+            buffer_count=2,
+        )
         self.camera.configure(config)
         self.camera.start()
         self.lock = threading.Lock()
         self.frame_condition = threading.Condition(self.lock)
         self.roi_mode = roi_mode
         self.hand_model = hand_model
-        self.tracker = palm_roi.HandLandmarkTracker(hand_model, hand_pose_model) if roi_mode == "dynamic" else None
+        self.tracker = (
+            palm_roi.HandLandmarkTracker(
+                hand_model,
+                hand_pose_model,
+                input_size=input_size,
+                refine_pose=refine_pose,
+                submit_interval_ms=inference_ms,
+                recovery_pass=recovery_pass,
+            )
+            if roi_mode == "dynamic"
+            else None
+        )
         self.latest: Image.Image | None = None
         self.jpeg: bytes | None = None
         self.roi_jpeg: bytes | None = None
@@ -94,6 +112,9 @@ class CameraFeed:
             "roi_status": "starting",
         }
         self.running = True
+        self._last_preview_time = 0.0
+        self._last_processing_time = 0.0
+        self._processing_interval_s = max(0.10, inference_ms / 1000.0)
         self.pending_image: Image.Image | None = None
         self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
@@ -108,9 +129,12 @@ class CameraFeed:
                 with self.frame_condition:
                     self.latest = image
                     self.pending_image = image
-                    quad = None if self.latest_roi_quad is None else self.latest_roi_quad.copy()
-                    status = dict(self.latest_roi_status)
-                    self.jpeg = self._encode_preview(image, quad, status)
+                    now = time.monotonic()
+                    if self.jpeg is None or now - self._last_preview_time >= 0.12:
+                        quad = None if self.latest_roi_quad is None else self.latest_roi_quad.copy()
+                        status = dict(self.latest_roi_status)
+                        self.jpeg = self._encode_preview(image, quad, status)
+                        self._last_preview_time = now
                     self.frame_condition.notify()
             except Exception as error:
                 with self.lock:
@@ -134,6 +158,13 @@ class CameraFeed:
                 self.pending_image = None
             if image is None:
                 continue
+            now = time.monotonic()
+            if self.tracker is not None and now - self._last_processing_time < self._processing_interval_s:
+                # The capture thread keeps the live preview moving.  Do not
+                # spend CPU turning every camera frame into the same ROI.
+                time.sleep(0.01)
+                continue
+            self._last_processing_time = now
             try:
                 roi_quad: np.ndarray | None = None
                 if self.tracker is not None:
@@ -420,11 +451,16 @@ def main() -> int:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--camera", type=int, default=0)
-    parser.add_argument("--width", type=int, default=1280)
-    parser.add_argument("--height", type=int, default=720)
+    parser.add_argument("--width", type=int, default=480)
+    parser.add_argument("--height", type=int, default=360)
     parser.add_argument("--roi-mode", choices=("dynamic", "fixed"), default="dynamic")
     parser.add_argument("--hand-model", type=Path, default=DEFAULT_HAND_MODEL)
     parser.add_argument("--hand-pose-model", type=Path, default=DEFAULT_HAND_POSE_MODEL)
+    parser.add_argument("--refine-pose", action="store_true", help="Enable the slower 21-point pose refinement pass.")
+    parser.add_argument("--inference-ms", type=float, default=800.0, help="Minimum interval between detector passes.")
+    parser.add_argument("--input-width", type=int, default=320, help="Small live image width used by the detector.")
+    parser.add_argument("--input-height", type=int, default=240, help="Small live image height used by the detector.")
+    parser.add_argument("--recovery-pass", action="store_true", help="Run a second detector pass when no hand is found; slower.")
     args = parser.parse_args()
     feed = CameraFeed(
         args.camera,
@@ -433,6 +469,10 @@ def main() -> int:
         roi_mode=args.roi_mode,
         hand_model=args.hand_model,
         hand_pose_model=args.hand_pose_model,
+        refine_pose=args.refine_pose,
+        inference_ms=args.inference_ms,
+        input_size=(args.input_width, args.input_height),
+        recovery_pass=args.recovery_pass,
     )
     app = App(feed)
     server = ThreadingHTTPServer((args.host, args.port), make_handler(app))
