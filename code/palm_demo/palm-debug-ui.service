@@ -11,6 +11,7 @@ ExecStart=/home/fyp/palm_demo/.venv/bin/python /home/fyp/palm_demo/debug_ui.py -
 Restart=on-failure
 RestartSec=2
 Environment=PYTHONUNBUFFERED=1
+Environment=LIBCAMERA_RPI_TUNING_FILE=/usr/share/libcamera/ipa/rpi/vc4/imx219_noir.json
 
 [Install]
 WantedBy=multi-user.target
