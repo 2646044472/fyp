@@ -84,6 +84,17 @@ def test_confirmation_cannot_change_amount_or_user(tmp_path):
     assert payments.transaction_count() == 0
 
 
+def test_confirmation_rejects_non_integer_amount_without_debit(tmp_path):
+    workflow, payments = make_workflow(tmp_path)
+    pending = workflow.begin_payment(np.array([0.11]), 500, "TX-FLOAT")
+
+    invalid = workflow.confirm_payment(pending.confirmation_token, amount_cents=500.0)
+
+    assert invalid.status == "INVALID_AMOUNT"
+    assert payments.balance_for("P001") == 10_000
+    assert payments.transaction_count() == 0
+
+
 def test_confirmation_token_is_one_time_and_repeated_request_does_not_debit_again(tmp_path):
     workflow, payments = make_workflow(tmp_path)
     pending = workflow.begin_payment(np.array([0.11]), 500, "TX104")

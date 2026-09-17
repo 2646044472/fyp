@@ -76,6 +76,12 @@ class PalmPaymentWorkflow:
         if not transaction_id:
             return WorkflowResult("INVALID_TRANSACTION_ID", None, amount_cents, transaction_id)
 
+        with self._lock:
+            now = self.clock()
+            self._intents = {
+                token: intent for token, intent in self._intents.items() if intent.expires_at > now
+            }
+
         if hasattr(self.recognizer, "recognize"):
             identification = self.recognizer.recognize(roi, roi_status=roi_status)
         else:
@@ -110,6 +116,8 @@ class PalmPaymentWorkflow:
         )
 
     def confirm_payment(self, confirmation_token: str, *, amount_cents: int) -> WorkflowResult:
+        if isinstance(amount_cents, bool) or not isinstance(amount_cents, int) or amount_cents <= 0:
+            return WorkflowResult("INVALID_AMOUNT", None, amount_cents, "")
         with self._lock:
             intent = self._intents.get(confirmation_token)
             if intent is None:

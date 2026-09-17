@@ -111,10 +111,13 @@ class Gallery:
         threshold: float,
         direction: ScoreDirection = ScoreDirection.DISTANCE,
         capture_profile: str | None = None,
+        algorithm_name: str | None = None,
     ) -> "Gallery":
         templates: dict[str, Sequence[np.ndarray]] = {}
         for user_id, (features, metadata) in store.load_all().items():
             if capture_profile is not None and metadata.get("capture_profile") != capture_profile:
+                continue
+            if algorithm_name is not None and metadata.get("algorithm") != algorithm_name:
                 continue
             templates[user_id] = tuple(np.asarray(feature) for feature in features)
         return cls(templates, matcher, threshold=threshold, direction=direction)
@@ -127,4 +130,3 @@ class Gallery:
             self.threshold,
             direction=self.direction,
         )
-

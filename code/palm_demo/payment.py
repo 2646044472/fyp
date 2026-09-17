@@ -54,10 +54,21 @@ class PaymentService:
                     user_id TEXT NOT NULL REFERENCES users(user_id),
                     amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
                     status TEXT NOT NULL CHECK(status = 'SUCCESS'),
-                    created_at TEXT NOT NULL
+                    created_at TEXT NOT NULL,
+                    balance_after_cents INTEGER NOT NULL CHECK(balance_after_cents >= 0)
                 );
                 """
             )
+            columns = {
+                row["name"] for row in self.connection.execute("PRAGMA table_info(transactions)")
+            }
+            if "balance_after_cents" not in columns:
+                # Keep an older prototype database readable. Old rows cannot
+                # recover their historical post-payment balance, but new rows
+                # get the stable idempotency value.
+                self.connection.execute(
+                    "ALTER TABLE transactions ADD COLUMN balance_after_cents INTEGER"
+                )
 
     def create_account(self, user_id: str, display_name: str, balance_cents: int) -> None:
         if isinstance(balance_cents, bool) or not isinstance(balance_cents, int) or balance_cents < 0:
@@ -84,12 +95,14 @@ class PaymentService:
 
         with self._lock, self.connection:
             existing = self.connection.execute(
-                "SELECT transaction_id, user_id, amount_cents, status FROM transactions WHERE transaction_id = ?",
+                "SELECT transaction_id, user_id, amount_cents, status, balance_after_cents FROM transactions WHERE transaction_id = ?",
                 (transaction_id,),
             ).fetchone()
             if existing is not None:
                 if existing["user_id"] == user_id and existing["amount_cents"] == amount_cents:
-                    balance = self._balance_or_none(user_id)
+                    balance = existing["balance_after_cents"]
+                    if balance is None:
+                        balance = self._balance_or_none(user_id)
                     return PaymentResult("SUCCESS", user_id, amount_cents, balance, transaction_id)
                 return PaymentResult("TRANSACTION_CONFLICT", user_id, amount_cents, self._balance_or_none(user_id), transaction_id)
 
@@ -109,8 +122,8 @@ class PaymentService:
             if updated.rowcount != 1:
                 return PaymentResult("INSUFFICIENT_BALANCE", user_id, amount_cents, current_balance, transaction_id)
             self.connection.execute(
-                "INSERT INTO transactions(transaction_id, user_id, amount_cents, status, created_at) VALUES (?, ?, ?, 'SUCCESS', ?)",
-                (transaction_id, user_id, amount_cents, datetime.now(UTC).isoformat()),
+                "INSERT INTO transactions(transaction_id, user_id, amount_cents, status, created_at, balance_after_cents) VALUES (?, ?, ?, 'SUCCESS', ?, ?)",
+                (transaction_id, user_id, amount_cents, datetime.now(UTC).isoformat(), current_balance - amount_cents),
             )
             return PaymentResult("SUCCESS", user_id, amount_cents, current_balance - amount_cents, transaction_id)
 
@@ -150,4 +163,3 @@ class PaymentService:
 
     def close(self) -> None:
         self.connection.close()
-

@@ -77,6 +77,9 @@ saved `roi_128` arrays. The modules are deliberately small boundaries:
 Example using a saved ROI or a test array:
 
 ```python
+import numpy as np
+
+from biometric import load_fastcc
 from gallery import Gallery, ScoreDirection
 from recognition import RecognitionEngine
 from payment import PaymentService
@@ -84,16 +87,18 @@ from templates import TemplateStore
 from workflow import PalmPaymentWorkflow
 
 store = TemplateStore("runtime/templates")
-algorithm = load_fastcc(DEFAULT_BASELINE)  # existing Fast-CC loader
+algorithm = load_fastcc("vendor/palmprint-recognition-python")
 gallery = Gallery.from_store(
     store, algorithm, threshold=0.28,
-    direction=ScoreDirection.DISTANCE, capture_profile="noir-ir",
+    direction=ScoreDirection.DISTANCE, capture_profile="noir-ir", algorithm_name="FastCC",
 )
 recognizer = RecognitionEngine(algorithm, gallery)
 payments = PaymentService("runtime/palm_payment.sqlite3")
+# Run account setup once per local database.
 payments.create_account("P001", "Stephen", 10_000)
 workflow = PalmPaymentWorkflow(recognizer, payments)
 
+saved_roi_128 = np.zeros((128, 128), dtype=np.uint8)  # replace with a saved ROI
 pending = workflow.begin_payment(saved_roi_128, 500, "TX001")
 if pending.status == "PENDING_CONFIRMATION":
     result = workflow.confirm_payment(pending.confirmation_token, amount_cents=500)

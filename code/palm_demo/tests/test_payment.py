@@ -80,6 +80,18 @@ def test_reusing_transaction_id_with_different_details_is_rejected(tmp_path):
     assert service.transaction_count() == 1
 
 
+def test_idempotent_retry_returns_original_post_payment_balance(tmp_path):
+    service = make_service(tmp_path)
+    first = service.pay("P001", 500, "TX-STABLE")
+    service.pay("P001", 1_000, "TX-AFTER")
+
+    retry = service.pay("P001", 500, "TX-STABLE")
+
+    assert retry == first
+    assert retry.balance_cents == 9_500
+    assert service.balance_for("P001") == 8_500
+
+
 def test_schema_enables_foreign_keys_and_survives_reopen(tmp_path):
     database = tmp_path / "palm_payment.sqlite3"
     service = PaymentService(database)

@@ -91,6 +91,25 @@ def test_gallery_does_not_mix_capture_profiles(tmp_path):
     assert result.score is None
 
 
+def test_gallery_does_not_mix_template_algorithms(tmp_path):
+    store = TemplateStore(tmp_path / "templates")
+    store.save("P001", np.array([[0.10]]), {"capture_profile": "rgb", "algorithm": "FastCC"})
+    store.save("P002", np.array([[0.40]]), {"capture_profile": "rgb", "algorithm": "OtherMatcher"})
+    gallery = Gallery.from_store(
+        store,
+        DistanceMatcher(),
+        threshold=0.28,
+        direction=ScoreDirection.DISTANCE,
+        capture_profile="rgb",
+        algorithm_name="FastCC",
+    )
+
+    result = gallery.identify(np.array([0.40]))
+
+    assert result.status == "UNKNOWN"
+    assert result.user_id is None
+
+
 def test_empty_gallery_returns_unknown(tmp_path):
     gallery = Gallery({}, DistanceMatcher(), threshold=0.28, direction=ScoreDirection.DISTANCE)
 
@@ -99,4 +118,3 @@ def test_empty_gallery_returns_unknown(tmp_path):
     assert result.status == "UNKNOWN"
     assert result.user_id is None
     assert result.score is None
-
