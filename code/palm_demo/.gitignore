@@ -1,5 +1,9 @@
 runtime/
 data/processed/
+data/debug_capture/
 vendor/
 offline_wheels/
+*.db
+*.sqlite3
+.pytest-tmp/
 __pycache__/

@@ -1,3 +1,7 @@
 # Local palm captures contain biometric raw/ROI data; keep them off Git remotes.
 code/data/debug_capture/
 .worktrees/
+
+# Python test/build artefacts.
+**/__pycache__/
+.pytest-tmp/

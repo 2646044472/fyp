@@ -53,6 +53,62 @@ The saved ROI is the exact 128×128 uint8 array produced by the same normalizati
 - `tools/prepare_palmbigdata.py`: makes a small development subset from the supplied `../data/PalmBigDataBase.zip` without redistributing it.
 - `tools/calibrate_palmbigdata.py`: calculates a development-only threshold and pair-count record.
 
+## Palm Payment Phase 1 (offline vertical slice)
+
+The payment path is split from camera capture so it can be developed with
+saved `roi_128` arrays. The modules are deliberately small boundaries:
+
+- `templates.py` stores feature arrays in `.npz` plus metadata in `.json`.
+- `gallery.py` performs 1:N search and returns `ACCEPT` or `UNKNOWN`. It makes
+  score direction explicit: `DISTANCE` means lower is better and `SIMILARITY`
+  means higher is better. The current Fast-CC demo path uses distance-style
+  matching; confirm this against the pinned baseline before calibrating a
+  production threshold.
+- `recognition.py` exposes `RecognitionEngine.recognize(roi)`, which extracts a
+  feature and searches the gallery. A non-`READY` ROI returns `RETRY`.
+- `payment.py` owns local SQLite users, accounts and successful transactions.
+  Amounts are integer cents, and debit plus transaction insert share one SQLite
+  transaction. Repeating an identical transaction ID is idempotent.
+- `workflow.py` connects recognition to payment. `begin_payment` only creates
+  a short-lived server-side confirmation token; `confirm_payment` validates the
+  token and amount before allowing the debit. The client never supplies the
+  account user ID to the confirmation call.
+
+Example using a saved ROI or a test array:
+
+```python
+from gallery import Gallery, ScoreDirection
+from recognition import RecognitionEngine
+from payment import PaymentService
+from templates import TemplateStore
+from workflow import PalmPaymentWorkflow
+
+store = TemplateStore("runtime/templates")
+algorithm = load_fastcc(DEFAULT_BASELINE)  # existing Fast-CC loader
+gallery = Gallery.from_store(
+    store, algorithm, threshold=0.28,
+    direction=ScoreDirection.DISTANCE, capture_profile="noir-ir",
+)
+recognizer = RecognitionEngine(algorithm, gallery)
+payments = PaymentService("runtime/palm_payment.sqlite3")
+payments.create_account("P001", "Stephen", 10_000)
+workflow = PalmPaymentWorkflow(recognizer, payments)
+
+pending = workflow.begin_payment(saved_roi_128, 500, "TX001")
+if pending.status == "PENDING_CONFIRMATION":
+    result = workflow.confirm_payment(pending.confirmation_token, amount_cents=500)
+```
+
+Run the phase-1 tests from this directory with PowerShell:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python -m pytest --basetemp .pytest-tmp tests
+```
+
+The default `0.28` value remains a smoke-test parameter only; it is not a
+validated 1:N threshold.
+
 The demo stores compressed Fast-CC template samples under `runtime/templates/`; it does not store camera frames unless `--save-crop` is explicitly used for local debugging. Delete a user by deleting that user's `.npz` and `.json` files together.
 
 ## Pi setup
