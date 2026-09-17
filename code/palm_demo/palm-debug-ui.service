@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=fyp
 WorkingDirectory=/home/fyp/palm_demo
-ExecStart=/usr/bin/python3 /home/fyp/palm_demo/debug_ui.py --host 0.0.0.0 --port 8080 --camera 0
+ExecStart=/home/fyp/palm_demo/.venv/bin/python /home/fyp/palm_demo/debug_ui.py --host 0.0.0.0 --port 8080 --camera 0 --width 480 --height 360 --roi-mode dynamic --inference-ms 800 --input-width 320 --input-height 240 --recovery-pass --hand-model /home/fyp/palm_demo/models/palm_detection_mediapipe_2023feb.onnx --hand-pose-model /home/fyp/palm_demo/models/handpose_estimation_mediapipe_2023feb.onnx
 Restart=on-failure
 RestartSec=2
 Environment=PYTHONUNBUFFERED=1

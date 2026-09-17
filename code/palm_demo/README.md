@@ -4,7 +4,7 @@ This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry
 
 Read [Pi 5 Safety Checklist](PI5_SAFETY_CHECKLIST.md) before powering the board or connecting the camera ribbon.
 
-For a board without HDMI/keyboard, use [USB-C direct connection](USB_C_DIRECT_SETUP.md) first. It gives the Pi a USB network connection to this PC for SSH; Wi-Fi is only a fallback. [HEADLESS_FIRST_BOOT.md](HEADLESS_FIRST_BOOT.md) has the normal Wi-Fi route.
+For a board without HDMI/keyboard, use the [connection guide](CONNECT_GUIDE.md) for USB-C direct SSH or Wi-Fi/Ethernet SSH. [HEADLESS_FIRST_BOOT.md](HEADLESS_FIRST_BOOT.md) covers the normal Wi-Fi first boot.
 
 ## Current USB-C SSH connection
 
@@ -24,14 +24,32 @@ ssh fyp@10.12.194.1
 
 This password is stored here only for the private direct USB-C lab link. Change it before exposing the Pi to Wi-Fi or any other LAN.
 
+## Reliable ROI acquisition milestone
+
+The dynamic Pi UI uses the synchronized `palm-detector-mcp-v2` ROI implementation. The UI reports four capture states: `NO_HAND`, `TRACKING`, `LOW_QUALITY` and `READY`. Dynamic Enroll and Verify are enabled only after five fresh, in-bounds, sufficiently contrasted and sufficiently sharp ROI frames pass the current engineering gate. The five-frame requirement and quality thresholds are engineering parameters for this milestone; they are not a validated optimum.
+
+`tracking_lost`, `tracking_stale` and other non-ready tracker states clear the accepted ROI. Enroll and Verify wait for a new processed frame, so they cannot use the previous successful ROI after tracking is lost.
+
+Use **Capture debug sample** for the repeatability check. Each click saves one event under `runtime/debug_capture/<session>/sample_###/`:
+
+```text
+raw.png
+roi_128.png
+metadata.json
+```
+
+The saved ROI is the exact 128×128 uint8 array produced by the same normalization path used before the matcher. Metadata records the frame ID, capture times, ROI quadrilateral, tracker and quality states, quality metrics, camera settings, detector geometry version, and artifact hashes. After each saved sample the gate resets and the UI waits for a `NO_HAND` observation; remove and replace the palm before waiting for `READY` and capturing the next sample. Ten samples complete one debug dataset.
+
 ## What is included
 
 - `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
 - `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
 - `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
-- `enable_ssh_remote.sh` and `SSH_REMOTE.md`: enable and use local-network SSH after the Pi is online.
-- `USB_C_DIRECT_SETUP.md` and `windows/rpi-usb-gadget-driver-setup.exe`: direct USB-C SSH setup for Windows and Pi OS Trixie.
+- `CONNECT_GUIDE.md`: USB-C and local-network SSH setup, IP discovery, and login.
+- `enable_ssh_remote.sh`: enable SSH locally on an already-running Pi.
+- `debug_ui.py`, `palm_roi.py`, `live_roi.py`, `roi_quality.py`: dynamic ROI tracking, quality gating, and reproducible ROI capture.
+- `windows/rpi-usb-gadget-driver-setup.exe`: Windows driver for direct USB-C networking.
 - `tools/prepare_palmbigdata.py`: makes a small development subset from the supplied `../data/PalmBigDataBase.zip` without redistributing it.
 - `tools/calibrate_palmbigdata.py`: calculates a development-only threshold and pair-count record.
 

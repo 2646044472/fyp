@@ -20,6 +20,8 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
+import palm_roi
+
 
 ROOT = Path(__file__).resolve().parent
 RUNTIME = ROOT / "runtime"
@@ -54,11 +56,18 @@ def parse_crop(value: str) -> tuple[float, float, float, float]:
     return crop
 
 
-def crop_and_normalize(image: Image.Image, crop: tuple[float, float, float, float]) -> tuple[np.ndarray, dict[str, float]]:
+def crop_and_normalize(
+    image: Image.Image,
+    crop: tuple[float, float, float, float] = DEFAULT_CROP,
+    roi_quad: np.ndarray | None = None,
+) -> tuple[np.ndarray, dict[str, float]]:
     gray = image.convert("L")
-    width, height = gray.size
-    box = (round(crop[0] * width), round(crop[1] * height), round(crop[2] * width), round(crop[3] * height))
-    roi = gray.crop(box).resize((128, 128), Image.Resampling.LANCZOS)
+    if roi_quad is None:
+        width, height = gray.size
+        box = (round(crop[0] * width), round(crop[1] * height), round(crop[2] * width), round(crop[3] * height))
+        roi = gray.crop(box).resize((128, 128), Image.Resampling.LANCZOS)
+    else:
+        roi = palm_roi.warp_palm_roi(gray, roi_quad)
     array = np.asarray(roi, dtype=np.float32)
     contrast = float(array.std())
     gradient = np.hypot(*np.gradient(array))
