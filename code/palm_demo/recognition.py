@@ -19,4 +19,3 @@ class RecognitionEngine:
             return IdentificationResult("RETRY", None, None, None)
         feature = np.asarray(self.algorithm.extract(np.asarray(roi)))
         return self.gallery.identify(feature)
-

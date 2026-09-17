@@ -31,4 +31,3 @@ def test_template_store_rejects_path_traversal_and_can_delete_user(tmp_path):
     assert store.exists("P001")
     store.delete("P001")
     assert not store.exists("P001")
-

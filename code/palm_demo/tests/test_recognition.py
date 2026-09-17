@@ -43,4 +43,3 @@ def test_recognize_returns_retry_before_feature_extraction_when_roi_not_ready():
 
     assert result.status == "RETRY"
     assert result.user_id is None
-

@@ -72,4 +72,3 @@ class TemplateStore:
         data_path, metadata_path = self._paths(user_id)
         data_path.unlink(missing_ok=True)
         metadata_path.unlink(missing_ok=True)
-
