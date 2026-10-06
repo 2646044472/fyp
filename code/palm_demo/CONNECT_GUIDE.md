@@ -10,7 +10,7 @@ Open PowerShell on Windows:
 ssh fyp@10.12.194.1
 ```
 
-On the first connection, check that this is your Pi and type `yes` to accept its SSH host key. When asked for the password, enter **`fypfypum`**. The password will not appear as you type. This password is for the shared FYP Pi; do not reuse it elsewhere.
+On the first connection, check that this is your Pi and type `yes` to accept its SSH host key. When asked for the password, enter the password supplied by the project owner. The password will not appear as you type. This password is for the shared FYP Pi; do not reuse it elsewhere.
 
 ## Find the Pi's USB IP address
 

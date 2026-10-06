@@ -47,6 +47,7 @@ class ROIStatus:
     span_px: float | None = None
     reason: str | None = None
     diagnostics: dict[str, Any] = field(default_factory=dict)
+    geometry_diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -58,6 +59,7 @@ class ROIStatus:
             "roi_span_px": self.span_px,
             "roi_reason": self.reason,
             "roi_diagnostics": dict(self.diagnostics),
+            "roi_geometry_diagnostics": dict(self.geometry_diagnostics),
         }
 
 
@@ -71,7 +73,51 @@ class DetectorResult:
     diagnostics: dict[str, Any]
 
 
-def landmarks_to_palm_quad(
+@dataclass(frozen=True)
+class PalmQuadDiagnostics:
+    """Geometry evidence for one landmark set and one source image."""
+
+    raw_quad: np.ndarray
+    final_quad: np.ndarray
+    fit_factor: float
+    fit_applied: bool
+    out_of_frame: bool
+    mcp_span_px: float
+    center: np.ndarray
+    angle_deg: float
+    raw_width_px: float
+    raw_height_px: float
+    final_width_px: float
+    final_height_px: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "raw_quad": self.raw_quad.astype(float).tolist(),
+            "final_quad": self.final_quad.astype(float).tolist(),
+            "fit_factor": float(self.fit_factor),
+            "fit_applied": bool(self.fit_applied),
+            "out_of_frame": bool(self.out_of_frame),
+            "mcp_span_px": float(self.mcp_span_px),
+            "center": self.center.astype(float).tolist(),
+            "angle_deg": float(self.angle_deg),
+            "raw_width_px": float(self.raw_width_px),
+            "raw_height_px": float(self.raw_height_px),
+            "final_width_px": float(self.final_width_px),
+            "final_height_px": float(self.final_height_px),
+        }
+
+
+def frame_diagnostics_match(diagnostics: dict[str, Any], frame_timestamp_ms: int | None) -> bool:
+    """Return whether accepted detector evidence belongs to this frame."""
+
+    return (
+        frame_timestamp_ms is not None
+        and diagnostics.get("frame_timestamp_ms") == frame_timestamp_ms
+        and diagnostics.get("reason") == "accepted"
+    )
+
+
+def landmarks_to_palm_quad_diagnostics(
     landmarks: Sequence[Sequence[float]] | np.ndarray,
     image_size: tuple[int, int],
     *,
@@ -80,14 +126,8 @@ def landmarks_to_palm_quad(
     center_offset: float = 0.30,
     min_span_px: float = 80.0,
     fit_to_frame: bool = False,
-) -> np.ndarray:
-    """Return an oriented (top-left, top-right, bottom-right, bottom-left) quad.
-
-    Landmark coordinates are MediaPipe-normalized coordinates. The horizontal
-    axis follows the index-MCP to pinky-MCP line. The vertical axis points from
-    the MCP line toward the wrist, so the crop follows translation, scale, and
-    hand rotation while keeping finger bases near the top edge.
-    """
+) -> PalmQuadDiagnostics:
+    """Return raw and final palm geometry without changing ROI behavior."""
 
     points = np.asarray(landmarks, dtype=np.float32)
     if points.ndim != 2 or points.shape[0] <= PINKY_MCP or points.shape[1] < 2:
@@ -121,7 +161,7 @@ def landmarks_to_palm_quad(
     center = (index_mcp + pinky_mcp) * 0.5 + axis_y * span_px * center_offset
     half_width = span_px * width_scale * 0.5
     half_height = span_px * height_scale * 0.5
-    quad = np.stack(
+    raw_quad = np.stack(
         (
             center - axis_x * half_width - axis_y * half_height,
             center + axis_x * half_width - axis_y * half_height,
@@ -130,19 +170,20 @@ def landmarks_to_palm_quad(
         )
     ).astype(np.float32)
 
-    outside = (
-        float(quad[:, 0].min()) < 0
-        or float(quad[:, 1].min()) < 0
-        or float(quad[:, 0].max()) >= width
-        or float(quad[:, 1].max()) >= height
+    out_of_frame = (
+        float(raw_quad[:, 0].min()) < 0
+        or float(raw_quad[:, 1].min()) < 0
+        or float(raw_quad[:, 0].max()) >= width
+        or float(raw_quad[:, 1].max()) >= height
     )
-    if outside:
-        if not fit_to_frame:
-            raise PalmROIError("dynamic palm ROI is outside the frame")
-        # Keep the largest centered oriented crop that is visible. This avoids
-        # dropping a valid hand just because the enlarged crop touches an edge.
+    if out_of_frame and not fit_to_frame:
+        raise PalmROIError("dynamic palm ROI is outside the frame")
+
+    fit_factor = 1.0
+    final_quad = raw_quad.copy()
+    if out_of_frame:
         ratios: list[float] = []
-        for x, y in quad:
+        for x, y in raw_quad:
             dx, dy = float(x - center[0]), float(y - center[1])
             if dx > 0:
                 ratios.append((width - 1.0 - float(center[0])) / dx)
@@ -152,9 +193,53 @@ def landmarks_to_palm_quad(
                 ratios.append((height - 1.0 - float(center[1])) / dy)
             elif dy < 0:
                 ratios.append((0.0 - float(center[1])) / dy)
-        factor = min(1.0, max(0.05, 0.98 * min(ratios)))
-        quad = center + (quad - center) * factor
-    return quad
+        fit_factor = min(1.0, max(0.05, 0.98 * min(ratios)))
+        final_quad = center + (raw_quad - center) * fit_factor
+
+    angle_deg = float(np.degrees(np.arctan2(axis_x[1], axis_x[0])))
+    return PalmQuadDiagnostics(
+        raw_quad=raw_quad,
+        final_quad=final_quad.astype(np.float32),
+        fit_factor=fit_factor,
+        fit_applied=fit_factor != 1.0,
+        out_of_frame=out_of_frame,
+        mcp_span_px=span_px,
+        center=center.astype(np.float32),
+        angle_deg=angle_deg,
+        raw_width_px=float(np.linalg.norm(raw_quad[1] - raw_quad[0])),
+        raw_height_px=float(np.linalg.norm(raw_quad[3] - raw_quad[0])),
+        final_width_px=float(np.linalg.norm(final_quad[1] - final_quad[0])),
+        final_height_px=float(np.linalg.norm(final_quad[3] - final_quad[0])),
+    )
+
+
+def landmarks_to_palm_quad(
+    landmarks: Sequence[Sequence[float]] | np.ndarray,
+    image_size: tuple[int, int],
+    *,
+    width_scale: float = 1.15,
+    height_scale: float = 1.25,
+    center_offset: float = 0.30,
+    min_span_px: float = 80.0,
+    fit_to_frame: bool = False,
+) -> np.ndarray:
+    """Return an oriented (top-left, top-right, bottom-right, bottom-left) quad.
+
+    Landmark coordinates are MediaPipe-normalized coordinates. The horizontal
+    axis follows the index-MCP to pinky-MCP line. The vertical axis points from
+    the MCP line toward the wrist, so the crop follows translation, scale, and
+    hand rotation while keeping finger bases near the top edge.
+    """
+
+    return landmarks_to_palm_quad_diagnostics(
+        landmarks,
+        image_size,
+        width_scale=width_scale,
+        height_scale=height_scale,
+        center_offset=center_offset,
+        min_span_px=min_span_px,
+        fit_to_frame=fit_to_frame,
+    ).final_quad
 
 
 def palm_detection_to_palm_quad(
@@ -537,10 +622,12 @@ class HandLandmarkTracker:
             points: np.ndarray | None = None
             score: float | None = None
             source: str | None = None
+            raw_detector_points: np.ndarray | None = None
             selected_attempt: dict[str, Any] | None = None
             for detection in detections:
                 assert detection.points is not None and detection.box is not None and detection.score is not None
                 detected_points, detected_score, palm_box = detection.points, detection.score, detection.box
+                raw_detector_points = detected_points.copy()
                 palm = np.concatenate((palm_box, detected_points.reshape(-1)))
                 hand = self._handpose.infer(bgr, palm) if self._handpose is not None else None
                 if hand is not None:
@@ -609,7 +696,25 @@ class HandLandmarkTracker:
                 self._tracking_source = source
                 self._last_error = None
                 self._last_diagnostics.update(selected_attempt or {})
-                self._last_diagnostics.update({"reason": "accepted", "tracking_source": source})
+                input_scale = np.asarray(self._input_size, dtype=np.float32)
+                source_scale = np.asarray(image.size, dtype=np.float32)
+                accepted_landmarks = self._landmarks.copy()
+                self._last_diagnostics.update(
+                    {
+                        "reason": "accepted",
+                        "tracking_source": source,
+                        "detector_confidence": None if score is None else float(score),
+                        "source_image_size": [int(image.width), int(image.height)],
+                        "detector_input_landmarks_px": None
+                        if raw_detector_points is None
+                        else raw_detector_points.astype(float).tolist(),
+                        "raw_detector_landmarks_source_px": None
+                        if raw_detector_points is None
+                        else (raw_detector_points / input_scale * source_scale).astype(float).tolist(),
+                        "accepted_landmarks_input_px": (accepted_landmarks * input_scale).astype(float).tolist(),
+                        "accepted_landmarks_source_px": (accepted_landmarks * source_scale).astype(float).tolist(),
+                    }
+                )
         except Exception as error:
             with self._lock:
                 self._last_error = str(error)
@@ -647,7 +752,7 @@ class HandLandmarkTracker:
                 diagnostics=diagnostics,
             )
         try:
-            quad = landmarks_to_palm_quad(
+            geometry = landmarks_to_palm_quad_diagnostics(
                 landmarks,
                 image_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
@@ -667,11 +772,8 @@ class HandLandmarkTracker:
                 reason=str(error),
                 diagnostics=diagnostics,
             )
-        current_frame = (
-            frame_timestamp_ms is not None
-            and diagnostics.get("frame_timestamp_ms") == frame_timestamp_ms
-            and diagnostics.get("reason") == "accepted"
-        )
+        quad = geometry.final_quad
+        current_frame = frame_diagnostics_match(diagnostics, frame_timestamp_ms)
         status = "tracking" if current_frame or (frame_timestamp_ms is None and age_ms <= 150.0) else "tracking_stale"
         if diagnostics.get("reason") == "detector_error":
             status = "tracker_error"
@@ -683,6 +785,7 @@ class HandLandmarkTracker:
             span_px=float(np.linalg.norm(quad[1] - quad[0]) / RUNTIME_ROI_WIDTH_SCALE),
             reason=last_error,
             diagnostics=diagnostics,
+            geometry_diagnostics=geometry.as_dict(),
         )
 
     def reset_background(self) -> None:

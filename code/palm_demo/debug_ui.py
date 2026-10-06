@@ -11,8 +11,10 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import threading
 import time
+import zipfile
 from dataclasses import dataclass
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -35,6 +37,7 @@ DEFAULT_HAND_POSE_MODEL = palm_demo.ROOT / "models" / "handpose_estimation_media
 DEBUG_MATCHER = "DoN"
 DEBUG_MIN_THRESHOLD = 0.15
 DEBUG_MAX_THRESHOLD = 0.20
+REPEATABILITY_TOTAL = 10
 
 
 @dataclass(frozen=True)
@@ -66,6 +69,11 @@ preview{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-ra
 <button id="enroll" disabled onclick="runAction('enroll')">Enroll 5 samples</button><button id="verify" class="secondary" disabled onclick="runAction('verify')">Verify</button>
 <button id="debug-capture" class="secondary" disabled onclick="captureDebugSample()">Capture debug sample</button>
 <button class="secondary" onclick="resetRoi()">Reset ROI background</button><button class="secondary" onclick="loadUsers()">List users</button><div id="notice" class="notice">Ready.</div>
+<hr><h2>Quick 10-image repeatability test</h2><p class="small">Remove your hand, confirm the empty view, place the same hand, then save one READY frame. Repeat ten times.</p>
+<label for="repeat-session">Session name</label><input id="repeat-session" value="test01" pattern="[A-Za-z0-9_-]+">
+<button id="repeat-start" onclick="startRepeatability()">Start 10-image test</button><button id="repeat-empty" class="secondary" disabled onclick="confirmRepeatabilityEmpty()">Confirm hand removed</button><button id="repeat-capture" disabled onclick="captureRepeatability()">Save image</button>
+<a id="repeat-download" href="/api/download-repeatability" hidden><button type="button">Download ZIP to Windows</button></a>
+<div id="repeat-status" class="notice">Repeatability: not started.</div>
 <p class="small">This is a same-stand 1:1 baseline. It is not liveness detection, anti-spoofing, access control, or a security claim.</p></section></main>
 <script>
 const notice=document.getElementById('notice');
@@ -74,13 +82,21 @@ const roiPreview=document.getElementById('roi');
 const roiStatus=document.getElementById('roi-status');
 const actionButtons=['enroll','verify','debug-capture'].map(id=>document.getElementById(id));
 const debugCapture=actionButtons[2];
+const repeatStart=document.getElementById('repeat-start');
+const repeatEmpty=document.getElementById('repeat-empty');
+const repeatCapture=document.getElementById('repeat-capture');
+const repeatDownload=document.getElementById('repeat-download');
+const repeatStatus=document.getElementById('repeat-status');
 function pollImage(img,path,delay){let previous=null;async function tick(){try{const r=await fetch(path+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const next=URL.createObjectURL(await r.blob());const old=previous;previous=next;img.onload=()=>{if(old&&old.startsWith('blob:'))URL.revokeObjectURL(old)};img.src=next}catch(e){}setTimeout(tick,delay)}tick()}
 pollImage(stream,'/frame.jpg',80);
 pollImage(roiPreview,'/roi.jpg',300);
-async function pollStatus(){try{const r=await fetch('/api/status?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();const state=d.quality_status||'NO_HAND';const count=d.quality_consecutive_frames||0;const required=d.quality_required_frames||5;const reason=d.quality_reason?(' · '+d.quality_reason):'';const debug=d.debug_capture||{};const next=debug.next_sample||1;roiStatus.textContent=`ROI status: ${state} (${count}/${required})${reason}`;roiStatus.className='notice status '+(state==='READY'?'ready':'blocked');actionButtons[0].disabled=state!=='READY';actionButtons[1].disabled=state!=='READY';debugCapture.disabled=state!=='READY'||Boolean(debug.requires_removal);debugCapture.textContent=debug.requires_removal?'Remove palm before next sample':`Capture debug sample (${Math.min(next,10)}/10)`}catch(e){roiStatus.textContent='ROI status unavailable';roiStatus.className='notice status blocked';actionButtons.forEach(button=>button.disabled=true)}setTimeout(pollStatus,300)}
+async function pollStatus(){try{const r=await fetch('/api/status?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();const state=d.quality_status||'NO_HAND';const count=d.quality_consecutive_frames||0;const required=d.quality_required_frames||5;const reason=d.quality_reason?(' · '+d.quality_reason):'';const debug=d.debug_capture||{};const next=debug.next_sample||1;roiStatus.textContent=`ROI status: ${state} (${count}/${required})${reason}`;roiStatus.className='notice status '+(state==='READY'?'ready':'blocked');actionButtons[0].disabled=state!=='READY';actionButtons[1].disabled=state!=='READY';debugCapture.disabled=state!=='READY'||Boolean(debug.requires_removal);debugCapture.textContent=debug.requires_removal?'Remove palm before next sample':`Capture debug sample (${Math.min(next,10)}/10)`;const repeat=d.repeatability||{};const phase=repeat.phase||'idle';const placement=repeat.next_placement||1;const total=repeat.total_placements||10;const repeatReason=phase==='await_empty'?'Remove your hand, then confirm the empty view.':phase==='await_hand'?'Place the same hand and wait for READY, then save the image.':phase==='complete'?'Collection complete. Download the ZIP to this Windows PC.':'Start a new test session.';repeatStatus.textContent=repeat.active?`Repeatability ${placement>total?total:placement}/${total} · ${phase} · ${repeatReason}`:`Repeatability: ${repeatReason}`;repeatStatus.className='notice '+(phase==='complete'?'ready':'');repeatStart.disabled=repeat.active;repeatEmpty.disabled=!repeat.can_confirm_empty;repeatCapture.disabled=!repeat.can_capture;repeatDownload.hidden=phase!=='complete'}catch(e){roiStatus.textContent='ROI status unavailable';roiStatus.className='notice status blocked';actionButtons.forEach(button=>button.disabled=true);repeatEmpty.disabled=true;repeatCapture.disabled=true}setTimeout(pollStatus,300)}
 pollStatus();
 async function runAction(action){const user=document.getElementById('user').value.trim();const profile=document.getElementById('profile').value;notice.textContent='Working…';try{const r=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user,profile})});const d=await r.json();notice.textContent=d.message||JSON.stringify(d,null,2)}catch(e){notice.textContent='Request failed: '+e}}
 async function captureDebugSample(){notice.textContent='Capturing the latest detector frame…';try{const r=await fetch('/api/capture-debug-sample',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();notice.textContent=d.message||JSON.stringify(d,null,2)}catch(e){notice.textContent='Request failed: '+e}}
+async function startRepeatability(){const session=document.getElementById('repeat-session').value.trim();repeatStatus.textContent='Starting…';try{const r=await fetch('/api/start-repeatability',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session,placements:10})});const d=await r.json();repeatStatus.textContent=d.message||JSON.stringify(d,null,2)}catch(e){repeatStatus.textContent='Request failed: '+e}}
+async function confirmRepeatabilityEmpty(){repeatStatus.textContent='Checking that the view is empty…';try{const r=await fetch('/api/confirm-repeatability-empty',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();repeatStatus.textContent=d.message||JSON.stringify(d,null,2)}catch(e){repeatStatus.textContent='Request failed: '+e}}
+async function captureRepeatability(){repeatStatus.textContent='Saving the latest READY placement…';try{const r=await fetch('/api/capture-repeatability',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const d=await r.json();repeatStatus.textContent=d.message||JSON.stringify(d,null,2)}catch(e){repeatStatus.textContent='Request failed: '+e}}
 async function resetRoi(){notice.textContent='Remove your hand, then reset the empty-view reference…';try{const r=await fetch('/api/reset-roi',{method:'POST'});const d=await r.json();notice.textContent=d.message||JSON.stringify(d,null,2)}catch(e){notice.textContent='Request failed: '+e}}
 async function loadUsers(){const r=await fetch('/api/users');const d=await r.json();notice.textContent=d.users.length?'Enrolled users: '+d.users.join(', '):'No enrolled users.'}
 </script></body></html>"""
@@ -468,6 +484,95 @@ class App:
         self.debug_sample_index = 1
         self.debug_last_frame_id: int | None = None
         self.debug_requires_removal = False
+        self.repeatability_root: Path | None = None
+        self.repeatability_next = 1
+        self.repeatability_total = REPEATABILITY_TOTAL
+        self.repeatability_phase = "idle"
+        self.repeatability_last_frame_id: int | None = None
+
+    def start_repeatability(self, session_name: str, *, placements: int = REPEATABILITY_TOTAL) -> str:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", session_name or ""):
+            raise ValueError("session name must contain only letters, numbers, '-' or '_'")
+        if not 1 <= placements <= 100:
+            raise ValueError("placements must be between 1 and 100")
+        root = palm_demo.RUNTIME / "repeatability" / session_name
+        if root.exists():
+            raise RuntimeError(f"Repeatability session already exists: {root}")
+        root.mkdir(parents=True)
+        self.repeatability_root = root
+        self.repeatability_next = 1
+        self.repeatability_total = placements
+        self.repeatability_phase = "await_empty"
+        self.repeatability_last_frame_id = None
+        self.camera.reset_roi_background()
+        return f"Repeatability session started: {root}. Remove your hand, then confirm the empty view."
+
+    def confirm_repeatability_empty(self) -> str:
+        if self.repeatability_root is None or self.repeatability_phase != "await_empty":
+            raise RuntimeError("Start a repeatability session first, or finish the current step.")
+        status = self.camera.status()
+        if status.get("quality_status") != "NO_HAND":
+            reason = status.get("quality_reason") or status.get("quality_status") or "hand detected"
+            raise RuntimeError(f"The view is not empty ({reason}); remove your hand and retry.")
+        self.camera.reset_roi_background()
+        self.repeatability_phase = "await_hand"
+        return f"Empty view confirmed. Place the hand for placement {self.repeatability_next}/{self.repeatability_total}, then save when READY."
+
+    def capture_repeatability_placement(self) -> str:
+        if self.repeatability_root is None or self.repeatability_phase != "await_hand":
+            raise RuntimeError("Confirm an empty view before capturing this placement.")
+        image, roi, roi_quad, status, frame_id = self.camera.snapshot(
+            after_frame_id=self.repeatability_last_frame_id
+        )
+        if status.get("quality_status") != "READY" or roi_quad is None:
+            reason = status.get("quality_reason") or status.get("quality_status") or "ROI unavailable"
+            raise RuntimeError(f"ROI is not READY ({reason}); hold the hand steady and retry.")
+        placement = self.repeatability_next
+        writer = DebugDatasetWriter(
+            self.repeatability_root / f"placement_{placement:03d}",
+            camera_settings=self.camera.capture_settings(),
+            roi_algorithm_version=str(status.get("roi_geometry", palm_roi.ROI_GEOMETRY_VERSION)),
+        )
+        writer.save(
+            sample_index=1,
+            raw_image=image,
+            roi_128=roi,
+            metadata={
+                "placement_index": placement,
+                "captured_at": palm_demo.utc_now(),
+                "frame_id": frame_id,
+                "captured_monotonic_ms": status.get("captured_monotonic_ms"),
+                "processed_monotonic_ms": status.get("processed_monotonic_ms"),
+                "frame_timestamp_ms": status.get("roi_diagnostics", {}).get("frame_timestamp_ms"),
+                "roi_quad": roi_quad.tolist(),
+                "tracking_status": status.get("quality_status"),
+                "tracker_status": status.get("roi_status"),
+                "quality": status.get("quality", {}),
+                "roi_geometry_diagnostics": status.get("roi_geometry_diagnostics", {}),
+                "roi_status": status,
+                "source": "debug_ui_repeatability",
+                "image_color_order": "RGB",
+                "camera_array_format": "RGB888_BGR_bytes",
+            },
+        )
+        self.repeatability_next += 1
+        self.repeatability_last_frame_id = frame_id
+        self.camera.reset_quality_gate()
+        if placement == self.repeatability_total:
+            self.repeatability_phase = "complete"
+            return f"Repeatability collection complete: {self.repeatability_root}"
+        self.repeatability_phase = "await_empty"
+        return f"Placement {placement}/{self.repeatability_total} saved. Remove your hand, then confirm the empty view for the next placement."
+
+    def download_repeatability(self) -> tuple[str, bytes]:
+        if self.repeatability_root is None or self.repeatability_phase != "complete":
+            raise RuntimeError("Complete the repeatability test before downloading it.")
+        output = io.BytesIO()
+        with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for path in sorted(self.repeatability_root.rglob("*")):
+                if path.is_file():
+                    archive.write(path, Path(self.repeatability_root.name) / path.relative_to(self.repeatability_root))
+        return f"{self.repeatability_root.name}.zip", output.getvalue()
 
     def feature(
         self,
@@ -526,6 +631,7 @@ class App:
                 "tracking_status": status.get("quality_status"),
                 "tracker_status": status.get("roi_status"),
                 "quality": status.get("quality", {}),
+                "roi_geometry_diagnostics": status.get("roi_geometry_diagnostics", {}),
                 "roi_status": status,
                 "source": "debug_ui_processed_frame",
                 "image_color_order": "RGB",
@@ -552,6 +658,19 @@ class App:
             "next_sample": next_sample,
             "total_samples": 10,
             "requires_removal": bool(getattr(self, "debug_requires_removal", False)),
+        }
+        repeatability_root = getattr(self, "repeatability_root", None)
+        repeatability_phase = getattr(self, "repeatability_phase", "idle")
+        repeatability_next = getattr(self, "repeatability_next", 1)
+        repeatability_total = getattr(self, "repeatability_total", REPEATABILITY_TOTAL)
+        status["repeatability"] = {
+            "active": repeatability_root is not None,
+            "session": None if repeatability_root is None else str(repeatability_root),
+            "phase": repeatability_phase,
+            "next_placement": repeatability_next if repeatability_root is not None else None,
+            "total_placements": repeatability_total,
+            "can_confirm_empty": repeatability_phase == "await_empty" and status.get("quality_status") == "NO_HAND",
+            "can_capture": repeatability_phase == "await_hand" and status.get("quality_status") == "READY",
         }
         return status
 
@@ -711,10 +830,44 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                 json_response(self, HTTPStatus.OK, {"users": users})
             elif route == "/api/status":
                 json_response(self, HTTPStatus.OK, app.status())
+            elif route == "/api/download-repeatability":
+                try:
+                    filename, body = app.download_repeatability()
+                    self.send_response(HTTPStatus.OK)
+                    self.send_header("Content-Type", "application/zip")
+                    self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                except Exception as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
             else:
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "Not found"})
 
         def do_POST(self) -> None:  # noqa: N802
+            if self.path == "/api/start-repeatability":
+                try:
+                    payload = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))))
+                    session = str(payload.get("session", "test01"))
+                    placements = int(payload.get("placements", REPEATABILITY_TOTAL))
+                    json_response(self, HTTPStatus.OK, {"message": app.start_repeatability(session, placements=placements)})
+                except Exception as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
+                return
+            if self.path == "/api/confirm-repeatability-empty":
+                try:
+                    self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                    json_response(self, HTTPStatus.OK, {"message": app.confirm_repeatability_empty()})
+                except Exception as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
+                return
+            if self.path == "/api/capture-repeatability":
+                try:
+                    self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                    json_response(self, HTTPStatus.OK, {"message": app.capture_repeatability_placement()})
+                except Exception as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
+                return
             if self.path == "/api/reset-roi":
                 try:
                     app.camera.reset_roi_background()

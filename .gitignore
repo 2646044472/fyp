@@ -1,3 +1,19 @@
 # Local palm captures contain biometric raw/ROI data; keep them off Git remotes.
 code/data/debug_capture/
 .worktrees/
+
+# Local editor, Python caches, and build outputs.
+.vscode/
+**/__pycache__/
+*.py[cod]
+*.obj
+
+# Biometric captures and generated report images stay local.
+code/palm_demo/noir-focus-test*.jpg
+docs/_rendered_palm_report/
+docs/palm_report_assets/
+docs/*.docx
+
+# Local benchmark workspace, dependencies, and extracted datasets.
+offline_tongji_roi_audit/
+external/

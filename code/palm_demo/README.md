@@ -13,7 +13,7 @@ Verified on 2026-09-13 over the direct USB-C network link:
 ```text
 Host:     rasp4 (10.12.194.1)
 Username: fyp
-Password: fypfypum
+Password: obtain from the project owner
 ```
 
 Connect from this development PC with:
@@ -22,7 +22,7 @@ Connect from this development PC with:
 ssh fyp@10.12.194.1
 ```
 
-This password is stored here only for the private direct USB-C lab link. Change it before exposing the Pi to Wi-Fi or any other LAN.
+Keep the password out of Git. Change the Pi password before exposing the device to Wi-Fi or any other LAN.
 
 ## Reliable ROI acquisition milestone
 
@@ -41,6 +41,63 @@ metadata.json
 The saved ROI is the exact 128×128 uint8 array produced by the same normalization path used before the matcher. Metadata records the frame ID, capture times, ROI quadrilateral, tracker and quality states, quality metrics, camera settings, detector geometry version, and artifact hashes. After each saved sample the gate resets and the UI waits for a `NO_HAND` observation; remove and replace the palm before waiting for `READY` and capturing the next sample. Ten samples complete one debug dataset.
 
 ## What is included
+
+### Quick 10-image repeatability test
+
+Open the Pi debug page from Windows:
+
+```text
+http://10.12.194.1:8080
+```
+
+In **Quick 10-image repeatability test**, enter a new session name and click
+**Start 10-image test**. For each image, remove the hand until the page enables
+**Confirm hand removed**, put the same hand back, wait for `READY`, and click
+**Save image**. After image 10, click **Download ZIP to Windows**. The ZIP
+contains the original image, exact 128×128 ROI, and metadata for every placement.
+
+Extract the ZIP on Windows, then run Fast-CC from `code/palm_demo`:
+
+```powershell
+python .\tools\analyze_repeatability.py C:\path\to\test01 --expected 10
+```
+
+This writes `repeatability_report` inside the extracted session folder. It uses
+image 1 as the fixed reference and reports nine probe distances.
+
+### Later 30-placement repeatability pilot
+
+Keep the same person, same hand, camera, lighting, and approximate distance throughout
+this first session. Run from `code/palm_demo` on the Pi, using a new output folder:
+
+```bash
+python3 tools/collect_roi_diagnostics.py --output runtime/repeatability/person01_hand01_repeat30 --placements 30 --frames-per-placement 1
+python3 tools/analyze_repeatability.py runtime/repeatability/person01_hand01_repeat30
+```
+
+Use the same camera/model/tuning options as your working ROI setup. Follow each
+prompt: remove the hand completely, allow `NO_HAND`, replace it, then wait for
+`READY`. Each placement saves `raw.png`, the exact `roi_128.png`, and metadata.
+Do not count successive frames from a single placement as independent trials.
+If collection times out, retain the partial session for diagnosis and start a new
+folder for the complete pilot; do not silently discard difficult placements.
+
+The analyzer requires 30 placements with one ROI each. It writes
+`repeatability_report/scores.csv`, `summary.json`, and three comparison sheets.
+Placement 1 is the fixed reference; placements 2–30 are the 29 probes. Fast-CC
+distance is lower for more similar samples. The summary gives mean, standard
+deviation, minimum, and maximum. To report ACCEPT/REJECT, explicitly pass a
+previously selected `--threshold`; without one, decisions remain UNASSESSED.
+Do not fit a threshold to these same 30 images. A single hand cannot measure
+false accepts or establish general recognition accuracy.
+
+Review the highest-distance samples beside the reference. Check palm coverage,
+rotation, scale, blur and lighting, and record your judgment separately. A poor
+crop motivates ROI investigation; a visually plausible crop with a high distance
+needs further checks of image quality, normalization, matcher and threshold—it
+does not by itself prove a matcher bug. Only after this pilot is stable, collect
+separate rotation sessions (left/right 15° and 30°), distance sessions, and then
+additional participants. Record physical conditions and preserve raw images.
 
 - `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
