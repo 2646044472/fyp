@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ "${EUID}" -ne 0 ]]; then
-  echo "请使用 sudo 运行：sudo ./enable_ssh_remote.sh" >&2
+  echo "请使用 sudo 运行：sudo ./deploy/enable_ssh_remote.sh" >&2
   exit 1
 fi
 

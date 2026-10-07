@@ -15,8 +15,8 @@ NAME_RE = re.compile(r"^PalmBigDataBase/P_F_(\d+)_(\d+)\.bmp$")
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, default=Path(__file__).parents[2] / "data" / "PalmBigDataBase.zip")
-    parser.add_argument("--output", type=Path, default=Path(__file__).parents[1] / "data" / "processed" / "palmbigdata-dev")
+    parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[3] / "code" / "data" / "PalmBigDataBase.zip")
+    parser.add_argument("--output", type=Path, default=Path(__file__).resolve().parents[3] / "code" / "palm_demo" / "data" / "processed" / "palmbigdata-dev")
     parser.add_argument("--identities", type=int, default=20)
     parser.add_argument("--samples-per-identity", type=int, default=10)
     parser.add_argument(

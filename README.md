@@ -6,15 +6,15 @@
 [README](code/palm_demo/README.md).
 
 - `debug_ui.py`: camera web UI, enrollment and verification.
-- `palm_roi.py`, `roi_quality.py`, `live_roi.py`: dynamic ROI, quality gate and preview tracking.
-- `biometric.py`: matcher loading and feature comparison.
-- `palm_demo.py`: CLI baseline and shared template/log utilities.
+- `palm_app/palm_roi.py`, `palm_app/roi_quality.py`, `palm_app/live_roi.py`: dynamic ROI, quality gate and preview tracking.
+- `palm_app/biometric.py`: matcher loading and feature comparison.
+- `palm_app/common.py`: shared normalization, paths, templates and logs.
 - `models/` and local `vendor/`: runtime model and matcher dependencies.
-- `palm-debug-ui.service`: Pi service configuration.
+- `deploy/palm-debug-ui.service`: Pi service configuration.
 - `tools/`, `tests/`: collection, analysis and verification tools.
 
 The checked-in service uses dynamic ROI and the web UI currently selects DoN.
-The CLI baseline uses Fast-CC. This describes repository configuration, not a
+The former Fast-CC CLI is archived in `archive/palm_demo_legacy/`. This describes repository configuration, not a
 verified copy of the software currently running on the Pi.
 
 ## ROI experiments
@@ -42,7 +42,7 @@ The actual September capture directory is
 
 ## Separate work and generated files
 
-`code/prf_tr/` is a separate physical-target research workflow, not a dependency
+`archive/prf_tr/` is an archived physical-target research workflow, not a dependency
 of the palm demo. `.worktrees/` contains isolated working checkouts and should
 be managed separately rather than deleted as cache.
 

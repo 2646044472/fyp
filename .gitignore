@@ -1,5 +1,6 @@
 # Local palm captures contain biometric raw/ROI data; keep them off Git remotes.
 code/data/debug_capture/
+code/data/camera_checks/
 .worktrees/
 
 # Local editor, Python caches, and build outputs.

@@ -20,10 +20,12 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-import palm_roi
+APP_ROOT = Path(__file__).resolve().parents[2] / "code" / "palm_demo"
+sys.path.insert(0, str(APP_ROOT))
+from palm_app import palm_roi
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = APP_ROOT
 RUNTIME = ROOT / "runtime"
 DEFAULT_BASELINE = ROOT / "vendor" / "palmprint-recognition-python"
 DEFAULT_CROP = (0.19, 0.15, 0.81, 0.85)
@@ -37,7 +39,7 @@ def load_fastcc(baseline_path: Path) -> Any:
     """Load the pinned third-party Fast-CC implementation without installing it."""
     if not baseline_path.is_dir():
         raise RuntimeError(
-            f"Baseline not found at {baseline_path}. Run ./install_pi.sh first, "
+            f"Baseline not found at {baseline_path}. Run ./deploy/install_pi.sh first, "
             "or pass --baseline-path to a checked-out baseline."
         )
     sys.path.insert(0, str(baseline_path))
@@ -85,7 +87,7 @@ def capture_image(args: argparse.Namespace) -> Image.Image:
     try:
         from picamera2 import Picamera2
     except ImportError as error:
-        raise RuntimeError("Picamera2 is unavailable. Install it with install_pi.sh or use --image.") from error
+        raise RuntimeError("Picamera2 is unavailable. Install it with deploy/install_pi.sh or use --image.") from error
 
     camera = Picamera2(args.camera)
     config = camera.create_still_configuration(main={"size": (args.width, args.height), "format": "RGB888"})

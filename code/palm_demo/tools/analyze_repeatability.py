@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw
 
 APP_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(APP_DIR))
-from biometric import load_fastcc
+from palm_app.biometric import load_fastcc
 
 
 def load_samples(root, expected=30):

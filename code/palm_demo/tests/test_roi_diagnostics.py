@@ -9,7 +9,7 @@ APP_DIR = Path(__file__).parents[1]
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-from palm_roi import (  # noqa: E402
+from palm_app.palm_roi import (  # noqa: E402
     PalmROIError,
     ROIStatus,
     frame_diagnostics_match,

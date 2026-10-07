@@ -13,9 +13,10 @@ import numpy as np
 from PIL import Image
 
 
-ROOT = Path(__file__).parents[1]
+ROOT = Path(__file__).resolve().parents[3] / "code" / "palm_demo"
 sys.path.insert(0, str(ROOT))
-from palm_demo import DEFAULT_BASELINE, crop_and_normalize, load_fastcc
+from palm_app.common import DEFAULT_BASELINE, crop_and_normalize
+from palm_app.biometric import load_fastcc
 
 
 def equal_error_threshold(genuine: np.ndarray, impostor: np.ndarray) -> tuple[float, float, float]:

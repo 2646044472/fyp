@@ -16,10 +16,10 @@ APP_DIR = Path(__file__).resolve().parents[1]
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-import palm_demo  # noqa: E402
-import palm_roi  # noqa: E402
-from debug_ui import CameraFeed, DEFAULT_HAND_MODEL, DEFAULT_HAND_POSE_MODEL  # noqa: E402
-from roi_quality import DebugDatasetWriter  # noqa: E402
+from palm_app import common  # noqa: E402
+from palm_app import palm_roi  # noqa: E402
+from palm_app.debug_ui import CameraFeed, DEFAULT_HAND_MODEL, DEFAULT_HAND_POSE_MODEL  # noqa: E402
+from palm_app.roi_quality import DebugDatasetWriter  # noqa: E402
 
 
 def wait_for_state(feed: CameraFeed, state: str, timeout_s: float) -> dict:
@@ -56,7 +56,7 @@ def capture_placement(
             roi_128=roi,
             metadata={
                 "placement_index": placement,
-                "captured_at": palm_demo.utc_now(),
+                "captured_at": common.utc_now(),
                 "frame_id": frame_id,
                 "captured_monotonic_ms": status.get("captured_monotonic_ms"),
                 "processed_monotonic_ms": status.get("processed_monotonic_ms"),

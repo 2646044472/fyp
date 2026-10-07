@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 from PIL import Image
 
-from roi_quality import (
+from palm_app.roi_quality import (
     DEBUG_DATASET_SCHEMA_VERSION,
     ROIQualityGate,
     DebugDatasetWriter,
@@ -113,7 +113,7 @@ def test_debug_dataset_writer_preserves_exact_raw_and_matcher_roi():
 
 
 def test_feature_rejects_a_stale_quad_even_when_one_is_supplied():
-    import debug_ui
+    from palm_app import debug_ui
 
     class Algorithm:
         def extract(self, roi):
@@ -133,7 +133,7 @@ def test_feature_rejects_a_stale_quad_even_when_one_is_supplied():
 
 
 def test_debug_dataset_requires_a_no_hand_rearm_between_samples():
-    import debug_ui
+    from palm_app import debug_ui
 
     app = debug_ui.App.__new__(debug_ui.App)
     app.camera = SimpleNamespace(status=lambda: {"quality_status": "READY"})
@@ -148,7 +148,7 @@ def test_debug_dataset_requires_a_no_hand_rearm_between_samples():
 
 
 def test_debug_capture_api_rejects_capture_before_no_hand_rearm():
-    import debug_ui
+    from palm_app import debug_ui
 
     class Camera:
         def snapshot(self, **kwargs):
@@ -164,7 +164,7 @@ def test_debug_capture_api_rejects_capture_before_no_hand_rearm():
 
 
 def test_snapshot_returns_the_exact_roi_with_the_matching_frame():
-    import debug_ui
+    from palm_app import debug_ui
 
     captured = debug_ui.CapturedFrame(
         frame_id=7,

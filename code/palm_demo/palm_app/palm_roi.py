@@ -344,7 +344,7 @@ class HandLandmarkTracker:
             import cv2
         except ImportError as error:
             raise RuntimeError(
-                "Dynamic ROI requires OpenCV with the DNN module; run install_pi.sh first."
+                "Dynamic ROI requires OpenCV with the DNN module; run deploy/install_pi.sh first."
             ) from error
 
         self._cv = cv2

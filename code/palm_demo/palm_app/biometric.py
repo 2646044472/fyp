@@ -15,7 +15,7 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
     baseline_path = Path(baseline_path)
     if not baseline_path.is_dir():
         raise RuntimeError(
-            f"Baseline not found at {baseline_path}. Run ./install_pi.sh first, "
+            f"Baseline not found at {baseline_path}. Run ./deploy/install_pi.sh first, "
             "or pass --baseline-path to a checked-out baseline."
         )
     if str(baseline_path) not in sys.path:

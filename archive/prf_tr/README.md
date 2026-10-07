@@ -1,5 +1,9 @@
 # PRF-TR Pi bring-up
 
+Archived from `code/prf_tr/`. This separate research workflow is not used by the
+palmprint application. Run the commands below from this directory unless a
+repository-root path is shown explicitly.
+
 `prf_tr_bringup.sh` records a single static Camera NoIR v2 capture episode for
 the PRF-TR physical gate. It is not a decision policy and does not make a
 maintenance record.
@@ -75,7 +79,7 @@ replays to the same hidden initial/recapture capture bundle. Run its local
 tests with:
 
 ```bash
-python3 code/prf_tr/test_prf_tr_plan.py
+python3 archive/prf_tr/test_prf_tr_plan.py
 ```
 
 ## Freeze physical capture bundles
@@ -92,7 +96,7 @@ python3 prf_tr_bundles.py \\
   --registry prf-tr-screening/target-registry-verified.tsv \\
   --out prf-tr-screening/capture-bundles.tsv
 
-python3 code/prf_tr/test_prf_tr_bundles.py
+python3 archive/prf_tr/test_prf_tr_bundles.py
 ```
 
 Each `capture-bundles.tsv` row is one physical two-slot capture unit. Its
@@ -125,14 +129,14 @@ Use partial validation during collection. Add require-complete only after the
 planned matrix has been collected.
 
 ```bash
-python3 code/prf_tr/prf_tr_validate.py \
+python3 archive/prf_tr/prf_tr_validate.py \
   --plan prf-tr-screening/episode-plan.tsv \
   --registry prf-tr-screening/target-registry-verified.tsv \
   --episodes prf-tr-screening/episode-details.tsv \
   --out prf-tr-screening/provenance-summary.tsv \
   --require-complete
 
-python3 code/prf_tr/test_prf_tr_validate.py
+python3 archive/prf_tr/test_prf_tr_validate.py
 ```
 
 ## Summarize completed decision episodes
@@ -167,9 +171,9 @@ bundle IDs. It does not compute confidence intervals or choose a scalar cost
 weight; that analysis remains session-blocked and preregistered.
 
 ```bash
-python3 code/prf_tr/prf_tr_frontier.py \
+python3 archive/prf_tr/prf_tr_frontier.py \
   --episodes prf-tr-screening/decision-episodes.tsv \
   --out prf-tr-screening/frontier.tsv
 
-python3 code/prf_tr/test_prf_tr_frontier.py
+python3 archive/prf_tr/test_prf_tr_frontier.py
 ```

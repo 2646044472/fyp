@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENDOR_DIR="$APP_DIR/vendor/palmprint-recognition-python"
 BASELINE_REPO="https://github.com/Li-ChengYan/palmprint-recognition-python.git"
 BASELINE_COMMIT="d556f455a6cbdcb4264ec1cd75de2e451cf241b3"
@@ -18,8 +18,6 @@ if ! git -C "$VENDOR_DIR" cat-file -e "$BASELINE_COMMIT^{commit}" 2>/dev/null; t
 fi
 git -C "$VENDOR_DIR" checkout --detach "$BASELINE_COMMIT"
 
-chmod +x "$APP_DIR/run_palm_demo.sh"
-
 printf 'Installed Fast-CC baseline at commit %s\n' "$BASELINE_COMMIT"
 printf 'Test camera framing first with: rpicam-hello -t 0\n'
-printf 'Run the local demo with: ./run_palm_demo.sh --help\n'
+printf 'Run the web demo from the app directory with: python3 debug_ui.py --help\n'

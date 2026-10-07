@@ -1,189 +1,90 @@
-# Pi 5 Minimal Palm Demo
+# Palm camera demo
 
-This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry Pi 5. It supports separate RGB and NoIR-plus-IR-light capture profiles. It proves only that the local pipeline can acquire a frame, create a template, compare a probe and log the result. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
+Local Raspberry Pi palmprint enrollment and 1:1 verification. For connection,
+installation and hardware precautions, see [SETUP](docs/SETUP.md).
+Commands below run from `code/palm_demo` on Windows or `~/palm_demo` on the Pi.
 
-Read [Pi 5 Safety Checklist](PI5_SAFETY_CHECKLIST.md) before powering the board or connecting the camera ribbon.
+## Architecture
 
-For a board without HDMI/keyboard, use the [connection guide](CONNECT_GUIDE.md) for USB-C direct SSH or Wi-Fi/Ethernet SSH. [HEADLESS_FIRST_BOOT.md](HEADLESS_FIRST_BOOT.md) covers the normal Wi-Fi first boot.
+Camera → palm ROI → quality gate → 128×128 normalized grayscale → features →
+enrolled templates → distance and threshold decision.
 
-## Current USB-C SSH connection
+| Entry | ROI | Matcher |
+| --- | --- | --- |
+| `debug_ui.py` / Pi service | OpenCV DNN hand detection and landmarks | DoN |
+| Offline PKLNet runners | Learned keypoints and geometric crop | Fast-CC |
 
-Verified on 2026-09-13 over the direct USB-C network link:
+PKLNet lives in `../pklnet` and is not integrated into the service. This records
+repository configuration, not the verified deployed Pi version. The same-stand
+demo does not establish liveness, anti-spoofing or cross-device accuracy.
 
-```text
-Host:     rasp4 (10.12.194.1)
-Username: fyp
-Password: obtain from the project owner
-```
+## Use
 
-Connect from this development PC with:
+Open `http://<Pi-IP>:8080` when the debug service is running. Enter a user ID,
+enroll five samples, remove and replace the hand, then verify. The quality gate
+requires five fresh, in-bounds frames with sufficient contrast and sharpness.
+Capture states are NO_HAND, TRACKING, LOW_QUALITY and READY; lost/stale tracking
+clears the accepted ROI. Gate thresholds are engineering settings.
 
-```powershell
-ssh fyp@10.12.194.1
-```
+Use camera enrollment with institutional approval and participant consent.
+ACCEPT/REJECT includes distance, threshold and pipeline time. Thresholds are
+provisional. RGB and NoIR+IR use separate profiles/templates; check the camera
+index. Changing matcher/ROI mode needs re-enrollment. NoIR+IR is not automatically
+palm-vein recognition. The retired CLI is under `../../archive/palm_demo_legacy/`.
 
-Keep the password out of Git. Change the Pi password before exposing the device to Wi-Fi or any other LAN.
+## Capture and analyze
 
-## Reliable ROI acquisition milestone
-
-The dynamic Pi UI uses the synchronized `palm-detector-mcp-v2` ROI implementation. The UI reports four capture states: `NO_HAND`, `TRACKING`, `LOW_QUALITY` and `READY`. Dynamic Enroll and Verify are enabled only after five fresh, in-bounds, sufficiently contrasted and sufficiently sharp ROI frames pass the current engineering gate. The five-frame requirement and quality thresholds are engineering parameters for this milestone; they are not a validated optimum.
-
-`tracking_lost`, `tracking_stale` and other non-ready tracker states clear the accepted ROI. Enroll and Verify wait for a new processed frame, so they cannot use the previous successful ROI after tracking is lost.
-
-Use **Capture debug sample** for the repeatability check. Each click saves one event under `runtime/debug_capture/<session>/sample_###/`:
-
-```text
-raw.png
-roi_128.png
-metadata.json
-```
-
-The saved ROI is the exact 128×128 uint8 array produced by the same normalization path used before the matcher. Metadata records the frame ID, capture times, ROI quadrilateral, tracker and quality states, quality metrics, camera settings, detector geometry version, and artifact hashes. After each saved sample the gate resets and the UI waits for a `NO_HAND` observation; remove and replace the palm before waiting for `READY` and capturing the next sample. Ten samples complete one debug dataset.
-
-## What is included
-
-### Quick 10-image repeatability test
-
-Open the Pi debug page from Windows:
-
-```text
-http://10.12.194.1:8080
-```
-
-In **Quick 10-image repeatability test**, enter a new session name and click
-**Start 10-image test**. For each image, remove the hand until the page enables
-**Confirm hand removed**, put the same hand back, wait for `READY`, and click
-**Save image**. After image 10, click **Download ZIP to Windows**. The ZIP
-contains the original image, exact 128×128 ROI, and metadata for every placement.
-
-Extract the ZIP on Windows, then run Fast-CC from `code/palm_demo`:
+In the web **Quick 10-image repeatability test**, start a new session, remove
+the hand, confirm removal, replace it, wait for READY and save one image per
+placement. Download the ZIP after ten placements. Each sample contains raw.png,
+the exact matcher-path roi_128.png and metadata.json (times, geometry, quality,
+camera settings and hashes). From Windows:
 
 ```powershell
 python .\tools\analyze_repeatability.py C:\path\to\test01 --expected 10
 ```
 
-This writes `repeatability_report` inside the extracted session folder. It uses
-image 1 as the fixed reference and reports nine probe distances.
-
-### Later 30-placement repeatability pilot
-
-Keep the same person, same hand, camera, lighting, and approximate distance throughout
-this first session. Run from `code/palm_demo` on the Pi, using a new output folder:
+For a 30-placement pilot on the Pi:
 
 ```bash
 python3 tools/collect_roi_diagnostics.py --output runtime/repeatability/person01_hand01_repeat30 --placements 30 --frames-per-placement 1
 python3 tools/analyze_repeatability.py runtime/repeatability/person01_hand01_repeat30
 ```
 
-Use the same camera/model/tuning options as your working ROI setup. Follow each
-prompt: remove the hand completely, allow `NO_HAND`, replace it, then wait for
-`READY`. Each placement saves `raw.png`, the exact `roi_128.png`, and metadata.
-Do not count successive frames from a single placement as independent trials.
-If collection times out, retain the partial session for diagnosis and start a new
-folder for the complete pilot; do not silently discard difficult placements.
+Keep hand, camera, light and distance consistent; remove/replace for each
+placement. Preserve partial sessions. Analysis uses image 1 as reference and
+writes scores, summary and comparison sheets under repeatability_report.
+Lower Fast-CC distance means greater similarity. Decisions remain UNASSESSED
+without a previously selected `--threshold`; do not fit it to the same samples.
+A single hand cannot measure false accepts. Inspect difficult crops for palm
+coverage, rotation, scale, blur and lighting.
 
-The analyzer requires 30 placements with one ROI each. It writes
-`repeatability_report/scores.csv`, `summary.json`, and three comparison sheets.
-Placement 1 is the fixed reference; placements 2–30 are the 29 probes. Fast-CC
-distance is lower for more similar samples. The summary gives mean, standard
-deviation, minimum, and maximum. To report ACCEPT/REJECT, explicitly pass a
-previously selected `--threshold`; without one, decisions remain UNASSESSED.
-Do not fit a threshold to these same 30 images. A single hand cannot measure
-false accepts or establish general recognition accuracy.
+## Files and provenance
 
-Review the highest-distance samples beside the reference. Check palm coverage,
-rotation, scale, blur and lighting, and record your judgment separately. A poor
-crop motivates ROI investigation; a visually plausible crop with a high distance
-needs further checks of image quality, normalization, matcher and threshold—it
-does not by itself prove a matcher bug. Only after this pilot is stable, collect
-separate rotation sessions (left/right 15° and 30°), distance sessions, and then
-additional participants. Record physical conditions and preserve raw images.
+- Entry point: debug_ui.py (web).
+- palm_app/: camera UI, shared normalization/storage, ROI, quality and matching.
+- models/ and vendor/: runtime dependencies, not disposable caches.
+- deploy/: installation, packaging, connection and service tools.
+- tools/ and tests/: collection, analysis and development checks.
+- runtime/: local templates, logs and captures, excluded from deployment bundles.
 
-- `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
-- `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
-- `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
-- `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
-- `CONNECT_GUIDE.md`: USB-C and local-network SSH setup, IP discovery, and login.
-- `enable_ssh_remote.sh`: enable SSH locally on an already-running Pi.
-- `debug_ui.py`, `palm_roi.py`, `live_roi.py`, `roi_quality.py`: dynamic ROI tracking, quality gating, and reproducible ROI capture.
-- `windows/rpi-usb-gadget-driver-setup.exe`: Windows driver for direct USB-C networking.
-- `tools/prepare_palmbigdata.py`: makes a small development subset from the supplied `../data/PalmBigDataBase.zip` without redistributing it.
-- `tools/calibrate_palmbigdata.py`: calculates a development-only threshold and pair-count record.
+Remove both user .npz and .json files under runtime/templates to delete a
+template. Original camera frames are saved by explicit debug collection.
+Keep originals and manifests when cleaning derived results.
 
-The demo stores compressed Fast-CC template samples under `runtime/templates/`; it does not store camera frames unless `--save-crop` is explicitly used for local debugging. Delete a user by deleting that user's `.npz` and `.json` files together.
+The old dataset tools are archived under `../../archive/palm_demo_legacy/tools/`.
+Install requirements-dev.txt and the pinned matcher before reproducing them.
+Labels use P_F_<identity>_<sample>.bmp;
+this does not establish Pi-camera accuracy. See [source manifest](data/SOURCE_MANIFEST.md)
+and preserve source restrictions on redistribution.
 
-## Pi setup
-
-On the development PC, create the clean deployment archive (it excludes local templates, logs and derived data), transfer `dist/palm_demo_pi.zip` to the Pi, then unzip it:
-
-```powershell
-./make_deploy_bundle.ps1
-```
-
-```bash
-unzip palm_demo_pi.zip -d palm_demo
-```
-
-Then run:
-
-```bash
-cd palm_demo
-chmod +x install_pi.sh run_palm_demo.sh
-./install_pi.sh
-rpicam-hello -t 0
-```
-
-If you want to prepare everything on a USB first, use `install_usb_offline.sh` on the Pi instead of `install_pi.sh`. The USB package includes NumPy/SciPy/Pillow wheels and the baseline source. Picamera2/libcamera remains a Raspberry Pi OS system component; install it once with `sudo apt install -y python3-picamera2` if it is not already present.
-
-Use `rpicam-hello --list` to identify the camera index, then preview each camera separately, for example `rpicam-hello --camera 0 -t 0`. Keep the palm centred and parallel to the camera, with consistent light. The default crop assumes that physical setup; adjust `--crop left,top,right,bottom` after checking a local debug crop.
-
-For the research camera capability gate, run `tools/camera_capability_preflight.sh` on the Pi. It writes a timestamped manifest and sample files; inspect the help/output logs before treating RAW or RAW/JPEG pairing as available.
-
-## RGB and NoIR setup
-
-The Pi 5 can connect both cameras directly. Start with one camera at a time, not simultaneous capture. Record the physical mapping once with `rpicam-hello --list`; do not assume connector order equals camera index.
-
-| Setup | Example command | Rule |
-| --- | --- | --- |
-| RGB camera + visible light | `--camera 0 --capture-profile rgb` | Enroll and verify only against RGB templates. |
-| NoIR camera + IR fill light | `--camera 1 --capture-profile noir-ir` | Enroll and verify only against NoIR+IR templates. |
-
-The program refuses a profile mismatch during verification. NoIR+IR is a different observation condition, **not** automatic palm-vein recognition, liveness detection, anti-spoofing or a CASIA multispectral equivalent. If both cameras run together later, their auto-exposure/white-balance operations are not synchronised; treat each capture as a separate logged observation.
-
-## First demo
-
-Enroll five samples, then run a separate verification capture:
-
-```bash
-python3 palm_demo.py --authorized-local-biometric --camera 0 --capture-profile rgb enroll --user demo-rgb --samples 5 --interactive
-python3 palm_demo.py --authorized-local-biometric --camera 0 --capture-profile rgb verify --user demo-rgb
-python3 palm_demo.py users
-```
-
-For NoIR+IR, use a separate identifier and profile, for example `--camera 1 --capture-profile noir-ir --user demo-noir`.
-
-`ACCEPT`/`REJECT` is reported with the Fast-CC distance, threshold and local pipeline time. An exit status of `2` means a normal rejection. The default threshold is deliberately labelled provisional. It exists for a same-stand smoke test only.
-
-The authorization switch is intentionally mandatory for camera enrollment and verification. Use it only after the supervisor/institution permits this local test and the participant has consented. It is a safeguard in the demo, not a substitute for ethics approval.
-
-## Development-data check
-
-On the development PC, install the lightweight dependencies and create a 20-identity subset from the archive supplied by the PhD student:
-
-```powershell
-python -m pip install -r requirements-dev.txt
-git clone https://github.com/Li-ChengYan/palmprint-recognition-python.git .\vendor\palmprint-recognition-python
-git -C .\vendor\palmprint-recognition-python checkout d556f455a6cbdcb4264ec1cd75de2e451cf241b3
-python tools/prepare_palmbigdata.py --confirm-authorized-dataset
-python tools/calibrate_palmbigdata.py
-```
-
-The calibration script treats the `P_F_<identity>_<sample>.bmp` naming convention as an identity label. It creates a manifest and threshold record, but it does **not** establish accuracy on the Pi camera. Do not publish or move the supplied archive or derived images unless its source terms permit it.
-
-## Baseline choices
-
-The current runtime baseline is Fast-CC from `Li-ChengYan/palmprint-recognition-python`, pinned to commit `d556f455a6cbdcb4264ec1cd75de2e451cf241b3` (2026-04-19, MIT). It uses two Gabor directions and shifted Hamming distance, so it needs neither a GPU nor opaque pretrained weights. The project itself says it is an independent implementation rather than an official reproduction; its benchmark numbers must not be treated as ours.
-
-PPNet remains a useful research comparison rather than the initial Pi dependency: its repository has a Pi guide and pretrained-model links, but its tested stack is Python 3.7-3.8/PyTorch 1.2-1.7 and the released workflow is not the current camera demo. X-Palm is the preferred later dataset/protocol route for the actual cross-domain research question, after its academic EULA is accepted; its training benchmarks use an RTX A6000 and are not a Pi runtime baseline.
-
-Sources: [Fast-CC implementation](https://github.com/Li-ChengYan/palmprint-recognition-python), [PPNet](https://github.com/xuliangcs/ppnet), [X-Palm](https://github.com/X-Palm/X-Palm-2026), [Raspberry Pi camera documentation](https://www.raspberrypi.com/documentation/computers/camera_software.html).
+Fast-CC/DoN use [palmprint-recognition-python](https://github.com/Li-ChengYan/palmprint-recognition-python),
+pinned to d556f455a6cbdcb4264ec1cd75de2e451cf241b3. Fast-CC uses two Gabor
+directions and shifted Hamming distance. The MIT implementation is independent,
+not an official reproduction; upstream benchmark numbers are not ours.
+[PPNet](https://github.com/xuliangcs/ppnet) (old runtime stack),
+[X-Palm](https://github.com/X-Palm/X-Palm-2026) (academic data EULA) and
+[Palm-ID](https://arxiv.org/abs/2401.08111) are research references, not deployment
+dependencies. Their training/search timings are not Pi timings. Before adopting
+another model, record source/license, commit, weight hash, ARM64 installation,
+deterministic image checks and Pi latency, memory and temperature.

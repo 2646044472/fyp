@@ -19,9 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 def make_app(tmp_path, monkeypatch, *, quality_status="NO_HAND"):
-    import debug_ui
+    from palm_app import debug_ui
 
-    monkeypatch.setattr(debug_ui.palm_demo, "RUNTIME", tmp_path)
+    monkeypatch.setattr(debug_ui.common, "RUNTIME", tmp_path)
     app = debug_ui.App.__new__(debug_ui.App)
     app.camera = SimpleNamespace(
         roi_mode="dynamic",
@@ -37,7 +37,7 @@ def make_app(tmp_path, monkeypatch, *, quality_status="NO_HAND"):
 
 
 def test_debug_page_javascript_parses_so_buttons_can_run():
-    import debug_ui
+    from palm_app import debug_ui
 
     script = re.search(r"<script>(.*?)</script>", debug_ui.HTML, re.DOTALL).group(1)
     result = subprocess.run(
@@ -63,7 +63,7 @@ def test_repeatability_start_requires_a_new_session_and_waits_for_empty_view(tmp
 
 
 def test_repeatability_confirm_empty_then_capture_writes_one_sample(tmp_path, monkeypatch):
-    import debug_ui
+    from palm_app import debug_ui
 
     raw = Image.new("RGB", (8, 8), color="white")
     roi = np.full((128, 128), 42, dtype=np.uint8)
@@ -132,7 +132,7 @@ def test_completed_repeatability_download_contains_saved_images(tmp_path, monkey
 
 
 def test_repeatability_http_api_controls_the_collection_state():
-    import debug_ui
+    from palm_app import debug_ui
 
     messages = []
 
