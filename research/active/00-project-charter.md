@@ -2,7 +2,7 @@
 
 ## Research goal
 
-Select one computer-science edge-computing FYP direction that is meaningful, novel in a scoped and auditable sense, feasible for an undergraduate project, and modestly adjacent to Bob Zhang's research where that increases advisor fit.
+Select one computer-science **palmprint-recognition** FYP direction that is meaningful, novel in a scoped and auditable sense, feasible for an undergraduate project, and modestly adjacent to Bob Zhang's research where that increases advisor fit. Raspberry Pi/edge constraints shape the experiment but are not an alternative field of study. The original broader-edge search is historical; the user locked Palm-only scope on 2026-09-24 (`minutes/09-24-palm-scope-lock.md`).
 
 ## Quality bar
 
@@ -26,6 +26,12 @@ Select one computer-science edge-computing FYP direction that is meaningful, nov
 - [K] One-year FYP. A runnable benchtop demo is required by 2026-12; the 2027-H1 period is available for held-out cells, repetitions, analysis, and optimization.
 - [K] Affordable components and sensors may be self-purchased.
 - [KILL] The former C3 three-peer SBC topology is retained only as a possible replication appendix, not as a default FYP dependency or evidence of a contribution.
+
+## Current user-confirmed route (2026-09-13; reconciled 2026-09-23)
+
+- [K] One staged Pi 5 Palm Payment FYP, per `minutes/09-13-palm-payment-roadmap-update.md`: first deliver a consented local VIS live-capture/ROI, identifier-free open-set 1:N, simulated-account transaction by December 2026. No production payments or payment-grade security claim.
+- [K] Later controlled NIR and physical presentation-attack/PAD work is gated by apparatus, ethics, repeatability, full-path evaluation and direct-neighbor audit. NoIR+IR is not automatically palm-vein sensing.
+- [C] `T-RETRY` was the first conditional VIS question, but its positive rare wrong-debit policy claim was killed by the 2026-09-23 no-count feasibility audit and direct sequential-biometrics neighbor. First localize the undefined same-hand rejection in `minutes_note.md/9-22.md`; only then consider the narrower `VIS-GUIDE` completion/time evaluation. `G-ADMIT` is killed as an offline calibration thesis; `S-SELECT`/`P-DELETE` remain engineering controls. `E-BOUND` and `PA-CHARGE` remain later gated alternatives. Earlier `PRF-TR` is a non-personal alternative rather than the default route. Historical gates below are preserved as negative evidence and must not override the newer user decision.
 
 ## Current biometric gate [Amber]
 

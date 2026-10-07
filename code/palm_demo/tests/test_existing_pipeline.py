@@ -33,3 +33,10 @@ def test_template_filename_sanitization():
 def test_zero_range_image_is_rejected():
     with pytest.raises(RuntimeError, match="no usable intensity range"):
         palm_demo.crop_and_normalize(Image.new("L", (320, 240), 100), palm_demo.DEFAULT_CROP)
+from biometric import load_algorithm
+
+
+def test_don_matcher_is_available_from_the_vendored_baseline():
+    algorithm = load_algorithm("vendor/palmprint-recognition-python", "DoN")
+
+    assert algorithm.name == "DoN"

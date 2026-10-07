@@ -1,36 +1,14 @@
-# Raspberry Pi Minimal Palm Demo
+# Pi 5 Minimal Palm Demo
 
-This is a local-only Raspberry Pi 5 palm-payment Phase 1 demo. It supports separate RGB and NoIR-plus-IR-light capture profiles, open-set `1:N` identification, unknown-user rejection, simulated integer-cent balance updates, deterministic deletion and stage-level JSONL timing logs. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
+This is a local-only, fixed-stand `1:1` palm verification baseline for Raspberry Pi 5. It supports separate RGB and NoIR-plus-IR-light capture profiles. It proves only that the local pipeline can acquire a frame, create a template, compare a probe and log the result. It is not a liveness detector, a door controller, a cross-device result, or a security claim.
 
 Read [Pi 5 Safety Checklist](PI5_SAFETY_CHECKLIST.md) before powering the board or connecting the camera ribbon.
 
 For a board without HDMI/keyboard, use [USB-C direct connection](USB_C_DIRECT_SETUP.md) first. It gives the Pi a USB network connection to this PC for SSH; Wi-Fi is only a fallback. [HEADLESS_FIRST_BOOT.md](HEADLESS_FIRST_BOOT.md) has the normal Wi-Fi route.
 
-## Current USB-C SSH connection
-
-Verified on 2026-09-13 over the direct USB-C network link:
-
-```text
-Host:     rasp4 (10.12.194.1)
-Username: fyp
-Password: fypfypum
-```
-
-Connect from this development PC with:
-
-```powershell
-ssh fyp@10.12.194.1
-```
-
-This password is stored here only for the private direct USB-C lab link. Change it before exposing the Pi to Wi-Fi or any other LAN.
-
 ## What is included
 
 - `palm_demo.py`: enrollment, 1:1 verification and local JSONL timing logs.
-- `palm_roi.py`: two-stage palm detection plus OpenCV Zoo 21-point hand-pose refinement, temporal gating and perspective ROI normalization.
-- `mp_handpose.py`: Apache-2.0 OpenCV Zoo hand-pose adapter.
-- `palm_payment_ui.py`: local browser demo with `/admin` administration routes and simulated MOP payments.
-- `models.py`, `camera.py`, `roi.py`, `biometric.py`, `templates.py`, `gallery.py`, `payment.py`, `workflow.py`: reusable Phase 1 services.
 - `install_pi.sh`: Pi OS Bookworm setup plus a pinned Fast-CC baseline checkout.
 - `install_usb_offline.sh`: installs the bundled ARM64 Python wheels without PyPI/network access.
 - `OFFLINE_RESOURCES.md`: USB copy and offline-install instructions.
@@ -39,9 +17,27 @@ This password is stored here only for the private direct USB-C lab link. Change 
 - `tools/prepare_palmbigdata.py`: makes a small development subset from the supplied `../data/PalmBigDataBase.zip` without redistributing it.
 - `tools/calibrate_palmbigdata.py`: calculates a development-only threshold and pair-count record.
 
-The demo stores compressed Fast-CC template samples under `runtime/templates/`; it does not store camera frames unless `--save-crop` is explicitly used for local debugging. Delete a user by deleting that user's `.npz` and `.json` files together.
+The command-line demo stores compressed Fast-CC template samples under `runtime/templates/`; it stores camera frames only when `--save-crop` is explicitly used for local debugging. The collection page below explicitly saves diagnostic images. Delete a user by deleting that user's `.npz` and `.json` files together.
+
+## Basic simulated-payment page
+
+On the connected Pi, open `http://10.12.194.1:8080/demo`. Enroll a named test account with five consecutive 3280×2464 stills, then capture one still to search the small local gallery. The page displays the actual 128×128 palm ROI sent to DoN. Because the present same-person left/right scores overlap, the result is explicitly a **candidate**. A person must confirm the displayed name before MOP 20 is deducted from the simulated balance. A wrong name can be cancelled and re-shot. The page does not require a stability wait or hand removal. Its templates and SQLite balance are isolated under `runtime/demo_templates/` and `runtime/demo_payment.sqlite3`; the capture images are not retained by this flow. This is an end-to-end interaction demo, not a validated automatic biometric payment decision.
+
+## Full-resolution collection page
+
+On the USB-connected Pi, open `http://10.12.194.1:8080/collect` while `palm-debug-ui.service` is running. The page shows a live 480x360 preview and captures 3280x2464 stills from the current IMX219 camera. The preview now explicitly uses the sensor's 1640x1232 full-field binned mode; the previous automatic 640x480 mode cropped the sensor and gave a misleading zoomed view. Enter a participant code, left or right hand, and background once per 10-image batch; distance and notes are optional. After starting a batch, capture immediately when the hand is in view: this collection route does not wait for the five-frame quality gate or reject a still solely because no palm ROI was detected. The hand can remain in view while taking all ten images. A batch can be abandoned and restarted; previously captured files remain on the Pi. A finished batch downloads as one ZIP.
+
+Each image is saved under `runtime/highres_capture/<sample_id>/` as `full.jpg`, `preview.jpg`, and `metadata.json`. The still is independently downsampled for hand detection after capture; when that succeeds, the page also saves `roi_128.png`, a 128x128 crop from the full still, and `palm_detail_512.jpg`, a 512x512 native-pixel patch around it. The collection page displays both and includes them in the ZIP. If still-image detection fails, the full still is kept and the page reports that no automatic crop was generated. These are capture diagnostics: the live verifier still extracts its feature from the preview frame. Its session manifest is in `runtime/highres_sessions/<session_id>/manifest.json`. Metadata includes camera exposure and gain, plus browser time because the Pi clock may drift when offline. Inspect the diagnostic crop and native detail after each shot. Click the full image for another 512-pixel native crop.
+
+Templates enrolled with the old cropped preview cannot be verified under the full-field preview and must be re-enrolled. Existing images and templates are retained.
+
+For a focus check, keep the palm at the intended use distance and compare original line detail before deciding whether a larger algorithm ROI or a camera change is useful. This page saves diagnostic images; template enrollment remains a separate action.
 
 ## Pi setup
+
+### SSH deployment credential
+
+The current Raspberry Pi SSH username is `fyp`. Before using SSH or SCP, ask the user for the current password. The password is intentionally not stored in this README, scripts, Git, deployment archives, or logs.
 
 On the development PC, create the clean deployment archive (it excludes local templates, logs and derived data), transfer `dist/palm_demo_pi.zip` to the Pi, then unzip it:
 
@@ -57,16 +53,14 @@ Then run:
 
 ```bash
 cd palm_demo
-chmod +x install_pi.sh run_palm_demo.sh
+chmod +x install_pi.sh
 ./install_pi.sh
 rpicam-hello -t 0
 ```
 
 If you want to prepare everything on a USB first, use `install_usb_offline.sh` on the Pi instead of `install_pi.sh`. The USB package includes NumPy/SciPy/Pillow wheels and the baseline source. Picamera2/libcamera remains a Raspberry Pi OS system component; install it once with `sudo apt install -y python3-picamera2` if it is not already present.
 
-Use `rpicam-hello --list` to identify the camera index, then preview each camera separately, for example `rpicam-hello --camera 0 -t 0`. Keep the palm visible with consistent light. The browser debug UI uses the dynamic palm ROI by default; the standalone `palm_demo.py` command still uses its fixed crop unless its capture path is replaced with the debug UI snapshot path.
-
-For the research camera capability gate, run `tools/camera_capability_preflight.sh` on the Pi. It writes a timestamped manifest and sample files; inspect the help/output logs before treating RAW or RAW/JPEG pairing as available.
+Use `rpicam-hello --list` to identify the camera index, then preview each camera separately, for example `rpicam-hello --camera 0 -t 0`. Keep the palm centred and parallel to the camera, with consistent light. The default crop assumes that physical setup; adjust `--crop left,top,right,bottom` after checking a local debug crop.
 
 ## RGB and NoIR setup
 
@@ -90,14 +84,6 @@ python3 palm_demo.py users
 ```
 
 For NoIR+IR, use a separate identifier and profile, for example `--camera 1 --capture-profile noir-ir --user demo-noir`.
-
-## Dynamic ROI debug UI
-
-The Pi service uses a two-stage OpenCV DNN pipeline: the MediaPipe palm detector proposes a hand candidate, then the OpenCV Zoo hand-pose model refines it to 21 landmarks. The ROI is built from the refined landmarks, temporally gated, and perspective-warped to the fixed `128×128` Fast-CC input. There is no foreground/background fallback, so walls and computer edges are not treated as palms.
-
-Open `http://10.12.194.1:8080` from the development PC. Wait until the green quadrilateral follows the hand, then re-enroll `demo-noir`; templates created by the old fixed-ROI service are intentionally rejected until re-enrolled.
-
-The detector model is downloaded by `install_pi.sh` from the [OpenCV palm detector model card](https://huggingface.co/opencv/palm_detection_mediapipe). The runtime uses OpenCV DNN because the generic MediaPipe ARM64 wheel currently requires CPU instructions unavailable on the Pi 4 Cortex-A72.
 
 `ACCEPT`/`REJECT` is reported with the Fast-CC distance, threshold and local pipeline time. An exit status of `2` means a normal rejection. The default threshold is deliberately labelled provisional. It exists for a same-stand smoke test only.
 

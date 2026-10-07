@@ -16,6 +16,12 @@ This workspace is for finding one defensible computer-science undergraduate FYP 
 
 Do not edit a file outside the role directory assigned in the prompt, except when explicitly acting as the coordinator. Never erase or rewrite another agent's file. The worktree contains user-owned changes; preserve them.
 
+## Raspberry Pi deployment credential rule
+
+- The Pi SSH username is `fyp`.
+- Before any SSH/SCP deployment, ask the user for the current password in the chat; do not guess it.
+- Never write the Pi password into this file, README files, scripts, Git, deployment archives, or logs.
+
 ## Shared evidence standard
 
 - Read research/active/README.md and research/active/00-project-charter.md before proposing a conclusion.

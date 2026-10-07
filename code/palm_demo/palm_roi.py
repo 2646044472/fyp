@@ -10,7 +10,7 @@ optional detector model.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import threading
 import time
 from pathlib import Path
@@ -30,6 +30,8 @@ PALM_DETECTOR_INPUT_SIZE = (192, 192)
 PALM_DETECTOR_LANDMARKS = (0, 5, 9, 13, 17, 1, 2)
 RUNTIME_ROI_WIDTH_SCALE = 2.0
 RUNTIME_ROI_HEIGHT_SCALE = 2.0
+RUNTIME_MIN_PALM_SPAN_RATIO = 0.10
+RUNTIME_MIN_PALM_SPAN_FLOOR_PX = 24.0
 
 
 class PalmROIError(ValueError):
@@ -43,6 +45,8 @@ class ROIStatus:
     hand_score: float | None = None
     age_ms: float | None = None
     span_px: float | None = None
+    reason: str | None = None
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -52,7 +56,19 @@ class ROIStatus:
             "hand_score": self.hand_score,
             "roi_age_ms": self.age_ms,
             "roi_span_px": self.span_px,
+            "roi_reason": self.reason,
+            "roi_diagnostics": dict(self.diagnostics),
         }
+
+
+@dataclass
+class DetectorResult:
+    """One detector attempt plus the evidence needed to diagnose rejection."""
+
+    points: np.ndarray | None
+    score: float | None
+    box: np.ndarray | None
+    diagnostics: dict[str, Any]
 
 
 def landmarks_to_palm_quad(
@@ -264,6 +280,7 @@ class HandLandmarkTracker:
         self._tracking_source: str | None = None
         self._closed = False
         self._last_error: str | None = None
+        self._last_diagnostics: dict[str, Any] = {"reason": "starting"}
         self._background_gray: np.ndarray | None = None
         self._detector = self._cv.dnn.readNet(str(model_path))
         # Keep the camera/HTTP threads responsive on Pi 4.  One detector pass
@@ -281,6 +298,15 @@ class HandLandmarkTracker:
         self._detector.setPreferableBackend(self._cv.dnn.DNN_BACKEND_OPENCV)
         self._detector.setPreferableTarget(self._cv.dnn.DNN_TARGET_CPU)
         self._anchors = self._load_anchors()
+        self._output_names = list(self._detector.getUnconnectedOutLayersNames())
+
+    def _runtime_min_span_px(self) -> float:
+        """Scale the palm geometry gate with the detector working width."""
+
+        return max(
+            RUNTIME_MIN_PALM_SPAN_FLOOR_PX,
+            float(self._input_size[0]) * RUNTIME_MIN_PALM_SPAN_RATIO,
+        )
 
     @staticmethod
     def _load_anchors() -> np.ndarray:
@@ -297,7 +323,7 @@ class HandLandmarkTracker:
                 anchors.extend([center] * 6)
         return np.asarray(anchors, dtype=np.float32)
 
-    def _infer(self, image: np.ndarray, detector_scale: float = 1.0) -> tuple[np.ndarray, float, np.ndarray] | None:
+    def _infer(self, image: np.ndarray, detector_scale: float = 1.0) -> DetectorResult:
         """Run the palm detector and return seven points in source pixels.
 
         A second, smaller view is used only during recovery. It makes a close
@@ -338,15 +364,35 @@ class HandLandmarkTracker:
             value=(0, 0, 0),
         )
         rgb = cv.cvtColor(padded, cv.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        diagnostics: dict[str, Any] = {
+            "detector_scale": detector_scale,
+            "source_size": [width, height],
+            "detector_input_size": list(PALM_DETECTOR_INPUT_SIZE),
+            "resize_ratio": float(ratio),
+            "letterbox_padding": [left, top, pad_w - left, pad_h - top],
+            "input_channel_mean": [float(value) for value in rgb.mean(axis=(0, 1))],
+            "input_channel_std": [float(value) for value in rgb.std(axis=(0, 1))],
+            "output_names": list(self._output_names),
+        }
         self._detector.setInput(rgb[np.newaxis, ...])
-        outputs = self._detector.forward(self._detector.getUnconnectedOutLayersNames())
+        outputs = self._detector.forward(self._output_names)
+        diagnostics["output_shapes"] = [list(output.shape) for output in outputs]
 
-        scores = outputs[1][0, :, 0].astype(np.float64)
-        scores = 1.0 / (1.0 + np.exp(-scores))
+        logits = outputs[1][0, :, 0].astype(np.float64)
+        scores = 1.0 / (1.0 + np.exp(-logits))
         best = int(np.argmax(scores))
         score = float(scores[best])
+        diagnostics.update(
+            {
+                "best_anchor": best,
+                "raw_logit": float(logits[best]),
+                "detection_score": score,
+                "detection_threshold": self._min_detection_confidence,
+            }
+        )
         if score < self._min_detection_confidence:
-            return None
+            diagnostics["reason"] = "below_threshold"
+            return DetectorResult(None, score, None, diagnostics)
 
         box_delta = outputs[0][0, :, 0:4]
         landmark_delta = outputs[0][0, :, 4:]
@@ -369,8 +415,12 @@ class HandLandmarkTracker:
             points = (points - offset) / detector_scale
             box = (box - np.asarray((offset[0], offset[1], offset[0], offset[1]), dtype=np.float32)) / detector_scale
         if not np.isfinite(points).all() or not np.isfinite(box).all():
-            return None
-        return points.astype(np.float32), score, box.astype(np.float32)
+            diagnostics["reason"] = "decode_invalid"
+            return DetectorResult(None, score, None, diagnostics)
+        diagnostics["reason"] = "candidate"
+        diagnostics["decoded_box"] = [float(value) for value in box]
+        diagnostics["decoded_points"] = [[float(value) for value in point] for point in points]
+        return DetectorResult(points.astype(np.float32), score, box.astype(np.float32), diagnostics)
 
     def _is_stable_candidate(self, points: np.ndarray, source: str) -> bool:
         """Reject detector jumps instead of drawing a new random ROI."""
@@ -378,7 +428,12 @@ class HandLandmarkTracker:
         del source
         with self._lock:
             previous = None if self._landmarks is None else self._landmarks.copy()
-        if previous is None:
+            last_seen = self._last_seen_monotonic
+        if (
+            previous is None
+            or last_seen is None
+            or (time.monotonic() - last_seen) * 1000.0 > self._stale_after_ms
+        ):
             return True
         try:
             previous_quad = landmarks_to_palm_quad(
@@ -386,6 +441,7 @@ class HandLandmarkTracker:
                 self._input_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
                 height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                min_span_px=self._runtime_min_span_px(),
                 fit_to_frame=True,
             )
             candidate_quad = landmarks_to_palm_quad(
@@ -393,6 +449,7 @@ class HandLandmarkTracker:
                 self._input_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
                 height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                min_span_px=self._runtime_min_span_px(),
                 fit_to_frame=True,
             )
         except PalmROIError:
@@ -415,25 +472,32 @@ class HandLandmarkTracker:
             and axis_similarity >= 0.70
         )
 
-    def _has_valid_palm_geometry(self, points: np.ndarray) -> bool:
-        """Reject high-score detector ghosts before they become an ROI."""
+    def _detector_geometry(self, points: np.ndarray) -> tuple[bool, dict[str, Any]]:
+        """Validate detector landmarks while retaining the exact rejection reason."""
 
+        diagnostics: dict[str, Any] = {
+            "mcp_span_px": float(np.linalg.norm(points[4, :2] - points[1, :2])),
+        }
         try:
             palm_detection_to_palm_quad(
-                points,
+                points / np.asarray(self._input_size, dtype=np.float32),
                 self._input_size,
                 width_scale=RUNTIME_ROI_WIDTH_SCALE,
                 height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                min_span_px=self._runtime_min_span_px(),
                 fit_to_frame=True,
             )
-        except PalmROIError:
-            return False
-        return True
+        except PalmROIError as error:
+            message = str(error)
+            diagnostics["geometry_reason"] = message
+            diagnostics["reason"] = "span_too_small" if "span is too small" in message else "bad_geometry"
+            return False, diagnostics
+        diagnostics["reason"] = "geometry_ok"
+        return True, diagnostics
 
     def submit(self, image: Image.Image, timestamp_ms: int) -> None:
         """Run detection on a downscaled RGB frame, with close-range recovery."""
 
-        del timestamp_ms
         now = time.monotonic()
         with self._lock:
             if self._closed:
@@ -445,22 +509,38 @@ class HandLandmarkTracker:
             resized = image.resize(self._input_size, Image.Resampling.BILINEAR)
             rgb = np.asarray(resized.convert("RGB"), dtype=np.uint8)
             bgr = self._cv.cvtColor(rgb, self._cv.COLOR_RGB2BGR)
-            detections: list[tuple[np.ndarray, float, np.ndarray]] = []
+            detections: list[DetectorResult] = []
+            attempts: list[dict[str, Any]] = []
             first = self._infer(bgr)
-            if first is not None and self._has_valid_palm_geometry(first[0]):
+            attempts.append(dict(first.diagnostics))
+            if first.points is not None:
+                valid_geometry, geometry = self._detector_geometry(first.points)
+                attempts[-1].update(geometry)
+            else:
+                valid_geometry = False
+            if valid_geometry:
                 detections.append(first)
             # Close or clipped hands can be too large for the tiny palm
             # detector. Retry with the same detector at a reduced scale only
             # when the first result is absent or geometrically implausible.
             if not detections and self._recovery_pass:
                 recovered = self._infer(bgr, detector_scale=0.72)
-                if recovered is not None and self._has_valid_palm_geometry(recovered[0]):
+                attempts.append(dict(recovered.diagnostics))
+                if recovered.points is not None:
+                    valid_geometry, geometry = self._detector_geometry(recovered.points)
+                    attempts[-1].update(geometry)
+                else:
+                    valid_geometry = False
+                if valid_geometry:
                     detections.append(recovered)
 
             points: np.ndarray | None = None
             score: float | None = None
             source: str | None = None
-            for detected_points, detected_score, palm_box in detections:
+            selected_attempt: dict[str, Any] | None = None
+            for detection in detections:
+                assert detection.points is not None and detection.box is not None and detection.score is not None
+                detected_points, detected_score, palm_box = detection.points, detection.score, detection.box
                 palm = np.concatenate((palm_box, detected_points.reshape(-1)))
                 hand = self._handpose.infer(bgr, palm) if self._handpose is not None else None
                 if hand is not None:
@@ -472,11 +552,13 @@ class HandLandmarkTracker:
                             self._input_size,
                             width_scale=RUNTIME_ROI_WIDTH_SCALE,
                             height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                            min_span_px=self._runtime_min_span_px(),
                             fit_to_frame=True,
                         )
                     except PalmROIError:
                         continue
                     points, score, source = pose_landmarks, float(hand[-1]), "handpose"
+                    selected_attempt = dict(detection.diagnostics)
                     break
                 # The palm detector has reliable MCP geometry even when the
                 # heavier 21-point pose model misses a close or clipped hand.
@@ -490,21 +572,34 @@ class HandLandmarkTracker:
                         self._input_size,
                         width_scale=RUNTIME_ROI_WIDTH_SCALE,
                         height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                        min_span_px=self._runtime_min_span_px(),
                         fit_to_frame=True,
                     )
                 except PalmROIError:
                     continue
                 points, score, source = detector_landmarks, detected_score, "palm_detector"
+                selected_attempt = dict(detection.diagnostics)
                 break
 
+            stable_candidate = points is not None and self._is_stable_candidate(points, source or "unknown")
             with self._lock:
+                self._last_diagnostics = {
+                    "frame_timestamp_ms": timestamp_ms,
+                    "attempts": attempts,
+                    "reason": "no_candidate",
+                }
                 if points is None:
-                    self._last_error = None
+                    self._last_error = str(attempts[-1].get("reason", "no_candidate")) if attempts else "no_candidate"
                     return
-                if not self._is_stable_candidate(points, source or "unknown"):
+                if not stable_candidate:
                     self._last_error = "candidate_jump_rejected"
+                    self._last_diagnostics["reason"] = self._last_error
                     return
-                if self._landmarks is None:
+                if (
+                    self._landmarks is None
+                    or self._last_seen_monotonic is None
+                    or (now - self._last_seen_monotonic) * 1000 > self._stale_after_ms
+                ):
                     self._landmarks = points
                 else:
                     alpha = self._smoothing_alpha
@@ -513,28 +608,72 @@ class HandLandmarkTracker:
                 self._hand_score = score
                 self._tracking_source = source
                 self._last_error = None
+                self._last_diagnostics.update(selected_attempt or {})
+                self._last_diagnostics.update({"reason": "accepted", "tracking_source": source})
         except Exception as error:
             with self._lock:
                 self._last_error = str(error)
+                self._last_diagnostics = {
+                    "frame_timestamp_ms": timestamp_ms,
+                    "reason": "detector_error",
+                    "error": str(error),
+                }
 
-    def roi_status(self, image_size: tuple[int, int]) -> ROIStatus:
+    def roi_status(
+        self, image_size: tuple[int, int], *, frame_timestamp_ms: int | None = None,
+    ) -> ROIStatus:
         with self._lock:
             landmarks = None if self._landmarks is None else self._landmarks.copy()
             last_seen = self._last_seen_monotonic
             hand_score = self._hand_score
-            tracking_source = self._tracking_source
             last_error = self._last_error
+            diagnostics = dict(self._last_diagnostics)
         if landmarks is None:
-            return ROIStatus(None, "no_hand", hand_score=hand_score)
+            return ROIStatus(
+                None,
+                "no_hand",
+                hand_score=hand_score,
+                reason=last_error or "no_candidate",
+                diagnostics=diagnostics,
+            )
         age_ms = None if last_seen is None else (time.monotonic() - last_seen) * 1000.0
         if age_ms is None or age_ms > self._stale_after_ms:
-            return ROIStatus(None, "tracking_lost", hand_score=hand_score, age_ms=age_ms)
+            return ROIStatus(
+                None,
+                "tracking_lost",
+                hand_score=hand_score,
+                age_ms=age_ms,
+                reason="stale",
+                diagnostics=diagnostics,
+            )
         try:
-            quad = landmarks_to_palm_quad(landmarks, image_size, width_scale=RUNTIME_ROI_WIDTH_SCALE, height_scale=RUNTIME_ROI_HEIGHT_SCALE, fit_to_frame=True)
-        except PalmROIError:
-            return ROIStatus(None, "bad_geometry", hand_score=hand_score, age_ms=age_ms)
-        status = "tracking" if age_ms <= 150.0 else "tracking_stale"
-        if last_error:
+            quad = landmarks_to_palm_quad(
+                landmarks,
+                image_size,
+                width_scale=RUNTIME_ROI_WIDTH_SCALE,
+                height_scale=RUNTIME_ROI_HEIGHT_SCALE,
+                min_span_px=max(
+                    RUNTIME_MIN_PALM_SPAN_FLOOR_PX,
+                    float(image_size[0]) * RUNTIME_MIN_PALM_SPAN_RATIO,
+                ),
+                fit_to_frame=True,
+            )
+        except PalmROIError as error:
+            return ROIStatus(
+                None,
+                "bad_geometry",
+                hand_score=hand_score,
+                age_ms=age_ms,
+                reason=str(error),
+                diagnostics=diagnostics,
+            )
+        current_frame = (
+            frame_timestamp_ms is not None
+            and diagnostics.get("frame_timestamp_ms") == frame_timestamp_ms
+            and diagnostics.get("reason") == "accepted"
+        )
+        status = "tracking" if current_frame or (frame_timestamp_ms is None and age_ms <= 150.0) else "tracking_stale"
+        if diagnostics.get("reason") == "detector_error":
             status = "tracker_error"
         return ROIStatus(
             quad,
@@ -542,6 +681,8 @@ class HandLandmarkTracker:
             hand_score=hand_score,
             age_ms=age_ms,
             span_px=float(np.linalg.norm(quad[1] - quad[0]) / RUNTIME_ROI_WIDTH_SCALE),
+            reason=last_error,
+            diagnostics=diagnostics,
         )
 
     def reset_background(self) -> None:
@@ -554,6 +695,7 @@ class HandLandmarkTracker:
             self._hand_score = None
             self._tracking_source = None
             self._last_error = None
+            self._last_diagnostics = {"reason": "reset"}
 
     def close(self) -> None:
         with self._lock:

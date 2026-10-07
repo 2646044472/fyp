@@ -1,0 +1,85 @@
+Decision investigated: Should TRIG-LEAK or STALE-ACT survive the direct-neighbor, identification, simple-baseline and one-year feasibility gates as an edge FYP?
+
+# Validation Audit: 2026-09-23 TRIG-LEAK and STALE-ACT
+
+## Decision investigated
+
+Audit only the two HOLD hypotheses in `research/ops/divergence/2026-09-23-cross-mechanism-edge-decisions.md`. Read `AGENTS.md`, `research/ops/agent-validation.md`, active `README.md`, `00-project-charter.md`, `01-candidate-register.md`, and the new packet. The latter is a proposal, not proof. Search and primary full-text checks on 2026-09-23. No active, archive, `.research/`, divergence or prior validation file was changed.
+
+## Claim under test
+
+**TRIG-LEAK:** An encrypted, non-personal threshold notice must be delivered by deadline D within byte budget B. A passive LAN observer sees times/sizes. A causal `send / defer / cover-send` schedule supposedly improves defense-aware event-occurrence/time inference at fixed delivery/bytes against periodic, constant-rate and event-DP shaping. The packet's P95 deadline metric is *not* a hard deadline: tail misses must be reported separately. The actual confidential event and party harmed by inference remain [GAP].
+
+**STALE-ACT:** Capture-time inference was correct, but a benign tabletop indicator may change before `execute`. A timestamp plus pre-action transition proxy supposedly lowers wrong-action rate at equal capture/latency/joules against age-only/confidence-only `execute / reacquire / unknown`. Independently logged execution-time state is the target; real operator workflow and sensor restriction remain [GAP].
+
+## Three-round novelty audit
+
+| Round | Evidence for collision | Evidence for remaining distinction | Confidence |
+| --- | --- | --- | --- |
+| TRIG-LEAK component | Xiong et al. 2021, Secs. II-VII, already formulate event-packet timing/size DP with dummy packets, queue delay and perfect-privacy controls. Worae et al. 2026, Secs. III-VI, choose causal, budgeted traffic transforms with matched fixed/random controls and defense-aware retraining. | A threshold notice's event-time classification at an explicit *application* deadline is narrower than device-identity Macro-F1. | High collision; endpoint distinction conditional. |
+| TRIG-LEAK exact claim | Sathyavageeswaran et al. 2025, Secs. II-VI, jointly optimize information leakage and Age of Information, including deterministic and randomized accumulation/dump policies. Xiong includes packet waiting/dummy cost. The privacy-vs-timeliness frontier is thus not a new objective class. | Their primary text addresses update-policy leakage/age, not this predeclared event-time AUC at fixed deadline and bytes. The exact overlap with ACM DPShaping remains [GAP], since its full text was blocked. | High family collision, medium exact boundary. |
+| TRIG-LEAK boundary/impossibility | If an observer sees a packet only on events, occurrence leaks. A constant packet schedule independent of E can hide timing, but requires cover rate and worst wait <= D. For packet size s and period T, T <= D gives at least s/D long-run bytes/time per protected channel (ignoring multiplexing); if B forbids it, perfect fixed-clock masking is infeasible, not evidence of a clever scheduler. Side channels (uplink, ACK, retransmit, power) can defeat the stated surface. | A finite, declared event prior, packet surface, rate unit, D, B, stationarity and defense-aware attacker can measure a bounded *empirical* frontier. Neither AUC on one synthetic prior nor event-level DP proves privacy under a changed prior or side information. | High logical boundary; measured residual [GAP]. |
+| STALE-ACT component | Gan et al. 2025 already use task-age threshold routing for remote inference; Diao et al. 2025 compensate delayed perception/control; Nikkhah et al. 2024 and 2026 explicitly formalize Age of Actuated Information (data age when used for actuation). | A physical *post-capture change* with independently logged current state and a cheap transition proxy is a narrower observation model than their queueing/simulation endpoints. | High collision; endpoint distinction conditional. |
+| STALE-ACT exact claim | AoAI 2026, Secs. II-VI, explicitly says plain information age can be insufficient for action timeliness. Gan's age-threshold policy and Diao's delayed control are strong action/timing neighbors. | Neither inspected text tests this exact LED/MCU proxy, execute/reacquire/unknown loss and direct-state-read control. No exact hit is [GAP], never novelty evidence. | Medium-high. |
+| STALE-ACT boundary/impossibility | Two worlds can have identical capture, clock age and proxy trace, yet opposite state at execution. Any policy of those observations must choose the same action in both; it cannot certify the current state. If the state is directly readable at execution at comparable cost, that read dominates a proxy. If transition hazard depends only on age and no extra predictive signal exists, the Bayes age threshold absorbs the proxy policy. | With a predeclared stochastic transition family, independently wired truth and a proxy available *before* action, a finite predictive-risk comparison is testable. It is not a general guarantee or causal fault identification. | High boundary; proxy signal [GAP]. |
+
+## Assumption and identification audit
+
+- TRIG [GAP]: Specify adjacency as one event versus no event in a time bin, or shifted event time; these are different privacy targets. Split train/validation/test by independent event episodes and burst regimes. Give attacker the defended traffic during training; report occurrence AUC, event-time error, prior/base rate, bytes including dummy/headers, tail lateness, loss and confidence intervals. An observer with another device's correlated traffic or an outside physical cue violates the proposed view.
+- TRIG [KILL]: Optimizing both policy and attack against one frozen synthetic process risks an artifact. A constant-clock shaper may mask perfectly within B,D; if so adaptive selection has no privacy claim. If fixed clock is infeasible, compare its best feasible period and Xiong-style DP, not a deliberately underfunded comparator. Do not call empirical AUC a DP guarantee.
+- STALE [GAP]: Ground truth must be state at *execution*, not at capture, inference completion or replay preparation. Log synchronized MCU transition and action timestamps with clock-error bounds. State changes during the action need an explicit semantic rule. The proxy cannot be an exact digital copy of the truth pin or see future transitions. Sample sessions/transition seeds, not adjacent video frames, as independent units.
+- STALE [KILL]: If the LED's MCU state can be queried locally with less cost than inference/recapture, direct read is a strictly more informative control for this tabletop story. With only an age hazard and no proxy signal, a fixed/cost-aware age threshold is sufficient. Paired-world indistinguishability is an elementary boundary, not by itself a standalone research contribution.
+
+## Direct-neighbor table
+
+| Work | Inputs/actions | Target and evaluation | Exact overlap | What it kills or leaves open |
+| --- | --- | --- | --- | --- |
+| Xiong et al., *Network Traffic Shaping for Enhancing Privacy in IoT Systems*, arXiv:2111.14992v1, 2021-11-29, https://arxiv.org/html/2111.14992 | Event packet stream; dummy/padding/queue shaper | Event-level DP, delay and transmission overhead | TRIG's timing/size/cover mechanism | Kills generic event traffic shaping; Sec. VIII's burst limitation is not proof of an open deadline claim. |
+| Worae et al., *Adaptive Traffic Camouflage*, arXiv:2609.25787v1, 2026-09-22, https://arxiv.org/html/2609.25787 | Prior-window causal action choice, budgeted packet transforms | Closed-set device identity Macro-F1, budget and defense-aware attacker | TRIG's causal/adaptive/matched-budget components; different secret | Kills generic adaptive camouflage. Sec. VI-D reports substantial attacker recovery; Sec. VII narrows metadata and dataset claims. |
+| Sathyavageeswaran et al., *Balancing Timeliness and Privacy in Discrete-Time Updating Systems*, arXiv:2512.13439v1, 2025-12-15, https://arxiv.org/html/2512.13439 | Coupled/decoupled sampling and deterministic/random dump | Leakage versus AoI; numerical Markov/source results | Strongest TRIG objective-level neighbor | Kills generic privacy/timeliness scheduling; event-time AUC and hard notice D remain different. |
+| Gan et al., arXiv:2504.07428v1, 2025-04-10, https://arxiv.org/html/2504.07428 | Resolution/SLM/LLM remote inference selection by task age | SMDP threshold and simulation TAoI | STALE age-aware decision | Kills age-routing as mechanism; not physical post-capture truth. |
+| Diao et al., arXiv:2503.08661v1, 2025-03-11, https://arxiv.org/html/2503.08661 | Task JSCC and delay-aware trajectory/control prediction | CARLA control under communication delay | STALE delay compensation | Kills generic delayed-control prediction; not direct current-state read. |
+| Nikkhah et al., *Age of Actuated Information and Age of Actuation in a Data-Caching Energy Harvesting Actuator*, arXiv:2401.17011v1, 2024-01-30, https://arxiv.org/html/2401.17011 | Cached data, actuation opportunity, energy | AoI/AoA/AoAI analytics and simulation | STALE's data-age-at-action concept | Kills naming age-at-execution as new; different proxy/LED endpoint. |
+| Nikkhah et al., *Semantics in Actuation Systems: From Age of Actuation to Age of Actuated Information*, arXiv:2601.15496v1, 2026-01-21, https://arxiv.org/html/2601.15496 | Controller/queue/battery; data used at actuation | AoAI vs AoI/AoA analytics | Strongest STALE target-semantic neighbor | Explicitly addresses age of information when used for action; finite transition-proxy discrimination remains [GAP]. |
+
+Citation chains checked: Semantic Scholar `https://api.semanticscholar.org/graph/v1/paper/ARXIV:2111.14992/citations?fields=title,year,publicationDate,url,externalIds&limit=100` listed Sathyavageeswaran 2025 as a later citing work; its primary full text was read, not merely its citation record. `https://api.semanticscholar.org/graph/v1/paper/ARXIV:2401.17011/citations?fields=title,year,publicationDate,url,externalIds&limit=100` listed Nikkhah 2026, whose full text was read. These are sampled forward chains, not exhaustive. A Gan-citation query returned HTTP 429. The Worae preprint was posted only 2026-09-22; no meaningful post-publication chain can yet be inferred.
+
+## Strongest simple baseline
+
+**TRIG:** fixed periodic packets at interval T <= D (including empty/cover packets), constant-rate byte padding, feasible no-cover immediate send, and fixed deadline batching; also Xiong-style event-DP and Worae-style previous-window choice. Match *bytes/time*, packet sizes, P95 *and maximum/tail* lateness, drop rate, and defender computation. Train attacker on each defended output, not only raw traces. If a constant schedule fits B,D, its packet-time distribution need not depend on E under the stated observer; an adaptive privacy claim must beat it on some explicitly priced dimension.
+
+**STALE:** direct wired execution-time state read, fixed maximum-age cutoff, cost-aware hazard/age threshold, confidence-only, always reacquire, and always unknown. Equalize sensing/latency/joules and include read cost. The direct-state control is particularly strong because the proposed bench owns the MCU that drives the LED. If direct read is disallowed, document a real physical/permission/energy restriction, not an artificial hidden pin.
+
+## Contrarian result
+
+TRIG-LEAK's *generic scheduler* is KILL by Xiong/Worae/Sathyavageeswaran; the particular event-deadline/defense-aware **finite measurement** is HOLD only if a genuine confidential event owner, independent traces and a nontrivial B,D regime survive fixed clock. STALE-ACT's *general freshness mechanism* is KILL by Gan/Diao/AoAI; the proposed tabletop proxy method is **KILL as currently told** because direct current-state read is available from its own fixture and no real restriction/decision owner is supplied. Its paired-world example may be retained as a negative control, not a thesis. Neither missing exact paper nor an author's future-work sentence supports novelty.
+
+## Feasibility audit
+
+- TRIG [K]/[GAP]: two commodity machines, local gateway and packet capture can replay non-personal events, but one-year FYP/December 2026 demo leaves little time to secure a real threat model. Owner, attacker vantage, encryption/ACK surface, clock granularity, byte budget and actual notice-loss function are not confirmed. No personal traffic or production alert; synthetic privacy AUC is not proof of practical harm. Check ethics/network permission for packet capture. Networking/privacy advisor support [GAP].
+- STALE [K]/[GAP]: cheap MCU/LED, transition seed and wired truth logger make a finite experiment plausible, with synchronized clocks and no safety actuation. But Pi/MCU exact inventory, power/latency meter, operator authorization and reason a direct read is prohibited are unconfirmed. Labels at execution must be independently logged. If transition proxy is the truth line, evaluation leaks the answer; if it carries no conditional information beyond age, the test is a null. Bob Zhang fit remains generic imperfect observation, not evidence; no named advisor paper was newly audited.
+- Neither candidate has real data or a pilot result. The active PRF-TR gate is not displaced by this packet. Do not buy extra hardware or claim advisor fit before the cheap baseline gates.
+
+## Evidence ledger
+
+| Claim | Label | Primary source and version | Exact section/page read | Scope/caveat |
+| --- | --- | --- | --- | --- |
+| Event-time/size DP shaper incurs dummy, delay, queue costs and has burst limits. | [K] | Xiong et al., arXiv:2111.14992v1 (2021-11-29), https://arxiv.org/html/2111.14992 | Secs. II-VII; VIII limitations, IX conclusion; divergence PDF pp. 4-7, 12-15 | Different hard application deadline. |
+| Causal budgeted traffic action with matched fixed defenses and defense-aware recovery exists. | [KILL] | Worae et al., arXiv:2609.25787v1 (2026-09-22), https://arxiv.org/html/2609.25787 | Secs. III, IV, V-C, VI-D, VII; divergence PDF pp. 3, 5-10 | Device identity, not event timing; one-day-old preprint. |
+| Leakage and age are jointly optimized with deterministic/random dump controls. | [KILL] | Sathyavageeswaran et al., arXiv:2512.13439v1 (2025-12-15), https://arxiv.org/html/2512.13439 | Secs. II-IV (especially IV-D), V, VI, VII | AoI/source leakage, not event-time AUC at hard D. |
+| Task-age remote inference routing has threshold structure. | [KILL] | Gan et al., arXiv:2504.07428v1 (2025-04-10), https://arxiv.org/html/2504.07428 | Secs. II-V; divergence PDF pp. 1-2, 4-5 | Simulation and TAoI, not post-capture physical truth. |
+| Delay-aware control prediction exists. | [K] | Diao et al., arXiv:2503.08661v1 (2025-03-11), https://arxiv.org/html/2503.08661 | Secs. III-VII; divergence PDF pp. 1-2, 4-6, 10-13 | CARLA, not table-top state logger. |
+| Data age when used for actuation is an explicit prior target. | [KILL] | Nikkhah et al., arXiv:2401.17011v1 (2024-01-30), https://arxiv.org/html/2401.17011; extended arXiv:2601.15496v1 (2026-01-21), https://arxiv.org/html/2601.15496 | 2024 Secs. II-V; 2026 Secs. II-VI | Queue/actuation analytics, not exact proxy action. |
+| An exact event-deadline or transition-proxy frontier beats fixed controls. | [C]/[GAP] | New divergence packet, 2026-09-23, `Candidate matrix`, `Top two formalizations` | Entire relevant sections | No measured pilot or identified owner. |
+
+## Queries and failed searches
+
+Queries on 2026-09-23: `Adaptive Traffic Camouflage Worae 2026 event inference`; `Network Traffic Shaping for Enhancing Privacy in IoT Systems citations event timing deadline`; `task age inference stale actuation edge control state change direct read 2025 2026`; `DPShaping traffic shaping privacy guarantee communication cost full text`; arXiv API `all:"Age of Actuation"`; exact arXiv IDs 2609.25787, 2111.14992, 2512.13439, 2504.07428, 2503.08661, 2401.17011, 2601.15496; forward citation API URLs above. [GAP] ACM DPShaping, DOI https://doi.org/10.1145/3745783, full PDF remained blocked in the divergence packet and was not used for a claim. [GAP] Forward chains are sampled, no exhaustive database/citation sweep. [GAP] No real event owner, conditional transition evidence, current hardware log or operational review costs. Failed searches do not imply novelty.
+
+## Decision
+
+TRIG-LEAK: **HOLD only as a cheap finite privacy-deadline falsification gate**, not a novel scheduler. First prove fixed clock is infeasible or empirically dominated at matched B,D, and confirm an actual confidentiality owner. Otherwise KILL.
+
+STALE-ACT: **KILL as the supplied positive FYP claim**. Direct execution-time MCU state read is the honest baseline in its own tabletop story; if unavailable under a *real* constraint, formulate a new constrained candidate and test it against age thresholds. Retain paired worlds as a negative control only.
+
+Overall: HOLD

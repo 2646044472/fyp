@@ -11,6 +11,8 @@ sources: [arxiv, CVF, AAAI, Raspberry Pi official documentation]
 
 The broad claim that synthetic image/modality corruptions are invalid proxies for physical failures is already occupied and must be killed. The remaining candidate is a finite, preregistered transfer audit on the purchased Pi RGB/NoIR pair: do digital corruption and physical fault cells produce the same action/risk ranking for an exact printed-code decision under matched capture and energy cost?
 
+2026-09-23 update: Thomas et al. (arXiv:2608.30690v1, 2026-08-31) already show that synthetic proxy fidelity can reverse real-condition system selection. A rank inversion alone is therefore no longer a distinct PRF-TR result. Only a repeated, held-out exact-marker action-cost frontier beyond fixed two-shot, scalar-quality and always-review controls is conditionally retained; no pilot result exists.
+
 ## Findings
 
 - Agnihotri et al. (CVPRW 2025, arXiv v1 2025-05-07) directly tests synthetic-versus-real robustness proxy validity. Aggregate correlation can be high (Pearson 0.759) while individual mappings are weak (brightness/night 0.270; fog/fog 0.349), so universal invalidity is false.
@@ -34,6 +36,8 @@ The exact-action search boundary is not a novelty proof. It only supports retain
 
 For a static marker with fixed illumination, synthetic and physical cells may preserve the same ordering. A two-shot policy may be Pareto-optimal, turning the work into a characterization appendix. Without independent labels and a source-payload oracle, the transfer claim is unidentifiable.
 
+Thomas et al. 2026 directly occupy the broader engineering-choice reversal claim. See Secs. 2.3, 3.3, 4.2-4.4 and 6 at https://arxiv.org/html/2608.30690. A finite rank inversion must additionally change the charged marker admission/reacquisition frontier relative to fixed controls, with blocked independent physical repetitions.
+
 ## Discarded approaches
 
 Universal physical-vs-digital claims, new fusion models, generic adaptive camera selection, rolling-shutter calibration, and power telemetry as a correctness witness were not promoted.
@@ -48,12 +52,15 @@ The 2026-09-05 RGB/NoIR common-cause red team adds a narrower conclusion: a phys
 
 ## Timeline
 
+2026-09-23: direct-neighbor correction after independent validation; generic proxy-induced system-selection reversal discarded. PRF-TR remains PIVOT only for the narrower costed action endpoint and physical gate.
+
 2026-08-31: independent divergence and validation; broad thesis claim killed; finite audit retained as PIVOT and IR-CAUSE as HOLD Amber.
 
 2026-09-04: final exact-action red-team search added VisAlign and BCEA. Generic abstain/reacquire/acquire claims are explicitly excluded; no exact Pi physical-action-ranking collision was located.
 
 ## Sources
 
+- https://arxiv.org/html/2608.30690
 - https://arxiv.org/abs/2505.04835
 - https://doi.org/10.18420/vrar2025_08
 - https://openaccess.thecvf.com/content/CVPR2025W/TMM-OpenWorld/papers/Liao_Benchmarking_Multi-modal_Semantic_Segmentation_under_Sensor_Failures_Missing_and_Noisy_CVPRW_2025_paper.pdf

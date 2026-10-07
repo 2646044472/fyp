@@ -8,6 +8,10 @@ import numpy as np
 
 
 def load_fastcc(baseline_path: str | Path) -> Any:
+    return load_algorithm(baseline_path, "FastCC")
+
+
+def load_algorithm(baseline_path: str | Path, name: str) -> Any:
     baseline_path = Path(baseline_path)
     if not baseline_path.is_dir():
         raise RuntimeError(
@@ -16,9 +20,9 @@ def load_fastcc(baseline_path: str | Path) -> Any:
         )
     if str(baseline_path) not in sys.path:
         sys.path.insert(0, str(baseline_path))
-    from palmprint.algorithms.fastcc import FastCCAlgorithm
+    from palmprint.algorithms.registry import get_algorithm
 
-    return FastCCAlgorithm()
+    return get_algorithm(name)
 
 
 def extract_feature(algorithm: Any, roi: np.ndarray) -> np.ndarray:

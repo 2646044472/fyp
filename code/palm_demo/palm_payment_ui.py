@@ -149,7 +149,16 @@ def build_app(args: argparse.Namespace) -> PalmPaymentApp:
     payments = PaymentService(palm_demo.RUNTIME / "palm_payment.sqlite3")
     roi = FixedGuideROI(palm_demo.DEFAULT_CROP, args.min_contrast) if args.roi_mode == "fixed" else AutomaticPalmROI()
     camera = CameraFeed(args.camera, args.width, args.height)
-    workflow = PalmPaymentWorkflow(roi, algorithm, gallery, payments, capture_profile=policy["capture_profile"], logger=palm_demo.write_log, capture=camera.frame)
+    workflow = PalmPaymentWorkflow(
+        roi,
+        algorithm,
+        gallery,
+        payments,
+        capture_profile=policy["capture_profile"],
+        logger=palm_demo.write_log,
+        capture=camera.frame,
+        capture_context=camera.capture_context,
+    )
     return PalmPaymentApp(camera, workflow, payments)
 
 
