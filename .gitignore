@@ -7,6 +7,7 @@ code/data/debug_capture/
 **/__pycache__/
 *.py[cod]
 *.obj
+**/.pytest_cache/
 
 # Biometric captures and generated report images stay local.
 code/palm_demo/noir-focus-test*.jpg
@@ -16,4 +17,5 @@ docs/*.docx
 
 # Local benchmark workspace, dependencies, and extracted datasets.
 offline_tongji_roi_audit/
+research/
 external/
