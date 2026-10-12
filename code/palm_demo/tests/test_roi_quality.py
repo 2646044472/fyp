@@ -140,6 +140,8 @@ def test_debug_dataset_requires_a_no_hand_rearm_between_samples():
     app.debug_writer = SimpleNamespace(root=Path("session-1"))
     app.debug_sample_index = 2
     app.debug_requires_removal = True
+    app.collection_batch_lock = threading.Lock()
+    app.collection_batch = None
 
     assert app.status()["debug_capture"]["requires_removal"] is True
 

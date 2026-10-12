@@ -13,14 +13,17 @@
 - `deploy/palm-debug-ui.service`: Pi service configuration.
 - `tools/`, `tests/`: collection, analysis and verification tools.
 
-The checked-in service uses dynamic ROI and the web UI currently selects DoN.
+The checked-in service runs the full-resolution collection UI in capture-only
+mode. It saves originals and metadata and does not run ROI or recognition.
 The former Fast-CC CLI is archived in `archive/palm_demo_legacy/`. This describes repository configuration, not a
 verified copy of the software currently running on the Pi.
 
 ## ROI experiments
 
-`code/pklnet/` contains the PKLNet model and ROI extractor. It has been tested
-offline but is not integrated into the camera web UI.
+`code/pklnet/` contains the PKLNet model and ROI extractor. `pklnet_roi.py` and
+`pklnet_tracker.py` support offline extraction and an optional recognition debug mode.
+`tools/benchmark_pklnet_captures.py` regenerates ROIs from saved Pi originals and
+benchmarks explicit hand labels without changing the originals.
 
 The local, Git-ignored `offline_tongji_roi_audit/` contains comparison runners,
 downloaded dependencies, extracted datasets and results. Its PKLNet runners are

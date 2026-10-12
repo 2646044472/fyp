@@ -3,7 +3,7 @@
 | Directory | Purpose |
 | --- | --- |
 | [palm_demo](palm_demo/README.md) | Raspberry Pi camera application, enrollment and verification |
-| [pklnet](pklnet/README.md) | Third-party ROI model, currently tested offline |
+| [pklnet](pklnet/README.md) | Third-party ROI model for deferred extraction and offline benchmark |
 | data/debug_capture | Local original captures, metadata and derived results; Git-ignored |
 
 Start with `palm_demo/README.md`. Its `docs/` directory contains setup and

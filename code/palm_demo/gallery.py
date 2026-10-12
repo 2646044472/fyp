@@ -27,7 +27,7 @@ def load_policy(path: str | Path | None = None) -> dict[str, Any]:
 
 
 class Gallery:
-    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0) -> None:
+    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0, *, required_metadata: dict[str, Any] | None = None) -> None:
         if isinstance(threshold, dict):
             policy = threshold
             threshold = float(policy.get("threshold", 0.28))
@@ -36,6 +36,7 @@ class Gallery:
         self.algorithm = algorithm
         self.threshold = float(threshold)
         self.min_margin = float(min_margin)
+        self.required_metadata = dict(required_metadata or {})
 
     @property
     def size(self) -> int:
@@ -50,6 +51,8 @@ class Gallery:
             except (FileNotFoundError, KeyError, json.JSONDecodeError):
                 continue
             if metadata.get("capture_profile") != capture_profile:
+                continue
+            if any(metadata.get(key) != value for key, value in self.required_metadata.items()):
                 continue
             ranked.append((score_probe(self.algorithm, probe_feature, features), user_id))
         ranked.sort(key=lambda item: item[0])

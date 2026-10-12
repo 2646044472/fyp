@@ -11,16 +11,43 @@ enrolled templates → distance and threshold decision.
 
 | Entry | ROI | Matcher |
 | --- | --- | --- |
-| `debug_ui.py` / Pi service | OpenCV DNN hand detection and landmarks | DoN |
-| Offline PKLNet runners | Learned keypoints and geometric crop | Fast-CC |
+| `debug_ui.py` / Pi service (default) | None: original full-resolution collection | None |
+| Optional recognition debug mode | PKLNet keypoints and native crop | DoN / Fast-CC demo |
+| Offline capture benchmark | Same PKLNet extractor and normalization | All 14 registered matchers |
 
-PKLNet lives in `../pklnet` and is not integrated into the service. This records
-repository configuration, not the verified deployed Pi version. The same-stand
+The service defaults to `--capture-only`: no detector, ROI worker or matcher is
+loaded. The root page and `/collect` show the full-resolution collection UI.
+PKLNet remains available for deferred extraction. Use `make_deploy_bundle.ps1
+-IncludePKLNet` to include its weights, and explicitly pass `--enable-recognition`
+with `--roi-mode pklnet` to enter the optional recognition debug mode.
+The engineering guard rejects keypoint gaps below 10% of the shorter source-image
+side and out-of-bounds crops. It detects collapsed predictions, not all misplaced
+keypoints. On the connected Pi 4, CPU extraction took about 4.2 seconds per preview
+and 4.5 seconds per full still. Preview display continues independently; the five
+stable inference frames require about 20–25 seconds. PKLNet results have an 8-second
+age budget and capture waits up to 12 seconds for the next processed frame.
+The same-stand
 demo does not establish liveness, anti-spoofing or cross-device accuracy.
 
 ## Use
 
-Open `http://<Pi-IP>:8080` when the debug service is running. Enter a user ID,
+Open `http://<Pi-IP>:8080` when the service is running. Enter a participant code,
+select left or right hand, and press the capture button or Space. The first shot
+starts a labelled ten-image group. Check originals and click an image to inspect
+native pixels. Switch hands or finish a partial group without deleting photos;
+download any nonempty group as a ZIP. Each new sample saves only `full.jpg` and
+`metadata.json`, with `roi_processing=deferred`; the group also has a manifest.
+The live preview and browser magnifier do not create saved ROI artifacts.
+
+Select a thumbnail and use **Delete selected photo** to remove a bad shot and
+continue capturing up to ten retained images. Remaining metadata indices are
+renumbered; their original indices and the previous manifest are preserved.
+Saved groups also offer **Delete entire group**. Both actions require a UI
+confirmation and move originals into `runtime/collection_trash/` rather than
+erasing them. Recovery is currently manual using the saved recovery record,
+manifest and metadata backups; the UI does not have a restore button.
+
+In optional recognition debug mode, enter a user ID,
 enroll five samples, remove and replace the hand, then verify. The quality gate
 requires five fresh, in-bounds frames with sufficient contrast and sharpness.
 Capture states are NO_HAND, TRACKING, LOW_QUALITY and READY; lost/stale tracking
@@ -33,6 +60,32 @@ index. Changing matcher/ROI mode needs re-enrollment. NoIR+IR is not automatical
 palm-vein recognition. The retired CLI is under `../../archive/palm_demo_legacy/`.
 
 ## Capture and analyze
+
+The default `/collect` page saves full-resolution originals and capture metadata.
+ROI extraction happens later on saved images. In optional recognition mode, `/demo`
+uses the full-still PKLNet extractor with Fast-CC and the verification page processes
+preview frames with PKLNet and DoN. Existing templates from another
+ROI version require re-enrollment; demo ranking excludes incompatible templates.
+
+To regenerate ROIs and run the 14-matcher benchmark on a saved Pi snapshot:
+
+```powershell
+python tools/benchmark_pklnet_captures.py C:/path/to/pi_snapshot C:/path/to/results
+```
+
+The runner preserves originals, saves raw/normalized ROIs, keypoints and overlays,
+and writes extraction manifests, pair scores, gallery/probe scores and a comparison
+sheet. Only explicit participant/hand labels enter identity comparisons. The first
+five images per hand form the gallery; indices 6–10 are probes. Unlabelled older
+images get new ROIs but are excluded from identity metrics. A single person's two
+continuous hand bursts provide exploratory scores, not biometric accuracy.
+
+The default camera-only service uses `.venv` and does not need PyTorch. For offline
+PKLNet, install `requirements-pklnet.txt` in `.venv-pklnet` alongside the runtime
+dependencies, or run the extraction benchmark on the development PC.
+
+The remaining capture and verification controls below belong to optional
+recognition debug mode, enabled with `--enable-recognition`.
 
 In the web **Quick 10-image repeatability test**, start a new session, remove
 the hand, confirm removal, replace it, wait for READY and save one image per

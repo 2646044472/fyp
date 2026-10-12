@@ -56,7 +56,7 @@ cd ~/palm_demo
 chmod +x deploy/install_pi.sh
 ./deploy/install_pi.sh
 rpicam-hello --list
-python3 debug_ui.py --help
+.venv/bin/python debug_ui.py --capture-only
 ```
 
 Install unzip through apt if missing. The installer installs system camera and
@@ -64,9 +64,14 @@ Python dependencies and checks out the pinned matcher. Verify camera indices
 separately. SSH gives a terminal, not preview; rpicam-hello --camera <index> -t 0
 needs a usable display. Keep palm framing, distance and light consistent.
 
-The offline installer is archived and is not supported by current deployment
-bundles. Use the online installer; keep Picamera2/libcamera as matching OS
-components. Bundles exclude templates/logs/datasets. Respect source restrictions.
+The online installer creates `.venv` with OS camera libraries. The default service
+collects full-resolution originals and metadata without ROI or recognition.
+PKLNet is optional for offline extraction: `install_pi.sh --with-pklnet` creates
+`.venv-pklnet`. For an offline Pi, download matching ARM64/Python wheels on
+the PC and install using `--no-index --find-links <wheel-directory>` in this venv.
+Keep Picamera2/libcamera as matching OS components. ROI is deferred until analysis;
+preserve the previous venv and service configuration when migrating. Bundles
+include model weights and exclude templates/logs/datasets.
 
 ## Web service
 

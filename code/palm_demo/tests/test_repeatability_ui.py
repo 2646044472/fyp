@@ -33,6 +33,8 @@ def make_app(tmp_path, monkeypatch, *, quality_status="NO_HAND"):
     app.debug_sample_index = 1
     app.debug_last_frame_id = None
     app.debug_requires_removal = False
+    app.collection_batch_lock = threading.Lock()
+    app.collection_batch = None
     return app
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import sys
 import threading
+import types
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +18,11 @@ import numpy as np
 from PIL import Image
 
 
-PKLNET_ROOT = Path(__file__).resolve().parent.parent / "pklnet"
+_APP_ROOT = Path(__file__).resolve().parent
+PKLNET_ROOT = _APP_ROOT.parent / "pklnet" if (_APP_ROOT.parent / "pklnet").is_dir() else _APP_ROOT / "pklnet"
 PKLNET_WEIGHTS = PKLNET_ROOT / "net_params_500.pth"
+ROI_GEOMETRY_VERSION = "pklnet-palmkit-native-v1"
+MIN_KEYPOINT_SPAN_RATIO = 0.10
 
 
 class PKLNetUnavailable(RuntimeError):
@@ -36,6 +40,7 @@ class PKLNetROI:
         self._torch: Any | None = None
         self._model: Any | None = None
         self._roi_extractor: Any | None = None
+        self._inference_lock = threading.Lock()
 
     @property
     def available(self) -> bool:
@@ -62,6 +67,11 @@ class PKLNetROI:
             if root_text not in sys.path:
                 sys.path.insert(0, root_text)
             try:
+                # Upstream targets the old torchvision.models.utils location.
+                from torch.hub import load_state_dict_from_url
+                compatibility = types.ModuleType("torchvision.models.utils")
+                compatibility.load_state_dict_from_url = load_state_dict_from_url
+                sys.modules.setdefault("torchvision.models.utils", compatibility)
                 from lib.models.nets.pklnet import pklnet
                 import roiExtractor
 
@@ -72,6 +82,7 @@ class PKLNetROI:
                     state = torch.load(self.weights, map_location="cpu")
                 model.load_state_dict(state)
                 model.eval()
+                torch.set_num_threads(2)
             except Exception as error:  # pragma: no cover - model environment dependent
                 raise PKLNetUnavailable(f"PKLNet failed to load: {error}") from error
             self._torch = torch
@@ -79,7 +90,7 @@ class PKLNetROI:
             self._roi_extractor = roiExtractor
 
     @staticmethod
-    def _prepare(image: Image.Image) -> tuple[Any, tuple[int, int], tuple[int, int], float]:
+    def _prepare(image: Image.Image) -> tuple[Any, tuple[int, int], tuple[int, int], tuple[float, float]]:
         """Match PKLNet's TestLoader: rotate landscape input and pad to 400x300."""
 
         rgb = np.asarray(image.convert("RGB"), dtype=np.uint8)
@@ -96,24 +107,23 @@ class PKLNetROI:
             converted_w = 300
             converted_h = int(300.0 * h / w)
             ratio = float(w) / 300.0
-        resized = cv2.resize(rotated, (converted_w, converted_h), interpolation=cv2.INTER_CUBIC)
+        resized = cv2.resize(rotated, (converted_w, converted_h), interpolation=cv2.INTER_LINEAR)
         standard[:converted_h, :converted_w] = resized
 
         tensor = standard.transpose(2, 0, 1).astype(np.float32) / 255.0
         tensor = (tensor - np.array([0.485, 0.456, 0.406], dtype=np.float32)[:, None, None]) / np.array(
             [0.229, 0.224, 0.225], dtype=np.float32
         )[:, None, None]
-        return tensor[None, ...], (original_h, original_w), (h, w), ratio
+        return tensor[None, ...], (original_h, original_w), (h, w), (w / converted_w, h / converted_h)
 
     @staticmethod
-    def _unrotate_keypoints(kp: np.ndarray, original_size: tuple[int, int], rotated_size: tuple[int, int], ratio: float) -> np.ndarray:
-        scaled = np.rint(kp * ratio).astype(np.float32)
+    def _unrotate_keypoints(kp: np.ndarray, original_size: tuple[int, int], rotated_size: tuple[int, int], ratio: tuple[float, float]) -> np.ndarray:
+        scaled = (kp.reshape(-1, 2) * np.asarray(ratio)).reshape(-1).astype(np.float32)
         original_h, original_w = original_size
-        rotated_h, _ = rotated_size
         if original_w > original_h:
             # Inverse of cv2.ROTATE_90_CLOCKWISE, matching PKLNet test.py.
             x = scaled[1::2].copy()
-            y = rotated_h - scaled[0::2]
+            y = original_h - 1 - scaled[0::2]
             out = np.empty_like(scaled)
             out[0::2] = x
             out[1::2] = y
@@ -125,10 +135,10 @@ class PKLNetROI:
         assert self._torch is not None and self._model is not None and self._roi_extractor is not None
         tensor, original_size, rotated_size, ratio = self._prepare(image)
         torch = self._torch
-        with torch.no_grad():
-            output = self._model(torch.from_numpy(tensor), (400, 300))
+        with self._inference_lock, torch.inference_mode():
+            output = self._model(torch.from_numpy(tensor))
         kp = output[0][0].detach().cpu().numpy().astype(np.float32)
-        if kp.size < 4:
+        if kp.size < 6 or not np.isfinite(kp).all():
             raise PKLNetUnavailable(f"PKLNet returned only {kp.size} keypoint values")
         kp = self._unrotate_keypoints(kp, original_size, rotated_size, ratio)
         p1 = kp[0:2]
@@ -143,9 +153,29 @@ class PKLNetROI:
         if roi is None or roi.shape != (side, side):
             raise PKLNetUnavailable("PKLNet ROI perspective transform failed")
         quad = np.asarray(roi_points, dtype=np.float32)
+        in_bounds = bool((quad[:, 0] >= 0).all() and (quad[:, 0] < image.width).all() and (quad[:, 1] >= 0).all() and (quad[:, 1] < image.height).all())
+        span_ratio = float(np.linalg.norm(p2 - p1) / min(image.size))
+        geometry_reason = "roi_out_of_bounds" if not in_bounds else "pklnet_keypoint_span_too_small" if span_ratio < MIN_KEYPOINT_SPAN_RATIO else None
         diagnostics = {
             "roi_source": "pklnet",
+            "roi_geometry": ROI_GEOMETRY_VERSION,
+            "pklnet_preprocessing": "BGR, clockwise landscape rotation, 400x300 top-left padding, ImageNet channel normalization",
             "pklnet_keypoints": kp.tolist(),
             "roi_quad_full": quad.tolist(),
+            "roi_in_bounds": in_bounds,
+            "pklnet_keypoint_span_ratio": span_ratio,
+            "roi_geometry_valid": geometry_reason is None,
+            "roi_geometry_reason": geometry_reason,
+            "min_keypoint_span_ratio": MIN_KEYPOINT_SPAN_RATIO,
         }
         return roi.astype(np.uint8), quad, diagnostics
+
+
+def normalize_roi(roi: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
+    """Apply the live matcher's fixed percentile normalization to PKLNet pixels."""
+    array = np.asarray(roi, dtype=np.float32)
+    quality = {"contrast": float(array.std()), "sharpness": float(np.hypot(*np.gradient(array)).var())}
+    low, high = np.percentile(array, (1, 99))
+    if high - low < 1:
+        raise ValueError("PKLNet crop has no usable intensity range")
+    return np.clip((array - low) * 255 / (high - low), 0, 255).astype(np.uint8), quality

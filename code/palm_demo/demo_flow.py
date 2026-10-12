@@ -16,13 +16,15 @@ from templates import TemplateStore, safe_user_id
 
 
 class DemoFlow:
-    def __init__(self, runtime: Path, algorithm: Any, capture_feature: Callable[[], tuple[np.ndarray, str, str]]) -> None:
+    def __init__(self, runtime: Path, algorithm: Any, capture_feature: Callable[[], tuple[np.ndarray, str, str]], *, roi_geometry: str | None = None) -> None:
         self.algorithm = algorithm
         self.capture_feature = capture_feature
+        self.roi_geometry = roi_geometry
         self.store = TemplateStore(runtime / "demo_templates")
         self.payments = PaymentService(runtime / "demo_payment.sqlite3")
         # Ranking only; no open-set threshold can be calibrated from one person's two hands.
-        self.gallery = Gallery(self.store, algorithm, threshold=1.0)
+        required = {"roi_geometry": roi_geometry, "algorithm": algorithm.name} if roi_geometry is not None else None
+        self.gallery = Gallery(self.store, algorithm, threshold=1.0, required_metadata=required)
         self.lock = threading.Lock()
         self.pending: dict[str, tuple[str, int, float]] = {}
 
@@ -41,9 +43,10 @@ class DemoFlow:
                 features.append(feature)
                 sources.append(source)
             self.store.save(user_id, np.stack(features), {
-                "user": user_id, "display_name": display_name, "algorithm": "FastCC",
+                "user": user_id, "display_name": display_name, "algorithm": self.algorithm.name,
                 "capture_profile": "noir-ir", "samples": 5,
-                "source": "3280x2464-full-still-pose-core-128",
+                "source": "3280x2464-full-still",
+                "roi_geometry": self.roi_geometry,
                 "roi_sources": sources,
             })
             try:
