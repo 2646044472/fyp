@@ -1,0 +1,148 @@
+{
+  "sessions": [
+    {
+      "session_id": "20261013T111914781759Z-beb20306",
+      "subject": "syr",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:19:14.781934+08:00"
+    },
+    {
+      "session_id": "20261013T111838871161Z-df3d072b",
+      "subject": "syr",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:18:38.871328+08:00"
+    },
+    {
+      "session_id": "20261013T111748074392Z-46359232",
+      "subject": "kss",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:17:48.074563+08:00"
+    },
+    {
+      "session_id": "20261013T111708112290Z-72c78b6a",
+      "subject": "kss",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:17:08.112453+08:00"
+    },
+    {
+      "session_id": "20261013T111618212956Z-89979853",
+      "subject": "xyt",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:16:18.213163+08:00"
+    },
+    {
+      "session_id": "20261013T111521184481Z-6308ec42",
+      "subject": "xyt",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:15:21.184664+08:00"
+    },
+    {
+      "session_id": "20261013T111408488172Z-c247ae0b",
+      "subject": "cyw-real",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:14:08.488405+08:00"
+    },
+    {
+      "session_id": "20261013T111329527044Z-320a8441",
+      "subject": "cyw-real",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T19:13:29.527215+08:00"
+    },
+    {
+      "session_id": "20261013T082115393545Z-6d96c0e1",
+      "subject": "stephen-10-13",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T16:21:15.393715+08:00"
+    },
+    {
+      "session_id": "20261013T082005020670Z-04f4bb01",
+      "subject": "stephen-10-13",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-13T16:20:05.020805+08:00"
+    },
+    {
+      "session_id": "20261012T130434993228Z-d7be0efa",
+      "subject": "bankey-10-12",
+      "hand": "right",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-12T21:04:34.993406+08:00"
+    },
+    {
+      "session_id": "20261012T124820784370Z-84c6975d",
+      "subject": "bankey-10-12",
+      "hand": "left",
+      "background": "existing",
+      "distance_cm": null,
+      "notes": "",
+      "phase": "complete",
+      "sample_count": 10,
+      "total": 10,
+      "started_at_pi_utc": "2026-10-12T20:48:20.784587+08:00"
+    }
+  ]
+}
