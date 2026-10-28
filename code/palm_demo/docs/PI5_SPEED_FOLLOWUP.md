@@ -91,6 +91,15 @@ retain the reference implementation. The kernel requires ARM64 NEON/OpenMP.
 - Unstaged guarded v9 gives 2.474 s new-camera median and 12.156 s P95. Its
   superseded cached audit was stopped after 89/224 completed cases, all 20/20;
   those results remain preserved and are not presented as a complete audit.
+- A fixed centered-letterbox preprocessing experiment passes geometric checks
+  for all 40 new images, but its legacy-stage recognition over all 112 unchanged
+  new-camera splits averages 18.143/20 versus 18.625/20 for the original padding;
+  both have a minimum of 16/20. Confident queries rise only from 1,723 to 1,763
+  out of 2,240 correlated development queries, with no confident errors in
+  either tested set. This does not justify replacing preprocessing. All 40
+  old-camera inputs are unchanged by centered padding (their offset is zero).
+  This is a legacy-stage comparison, not an evaluation of a complete centered
+  v10 pipeline. The experiment is not integrated; no weights were retrained.
 
 The four reserved people / 80 old-camera images remain unevaluated. The existing
 80 development images and their repeated splits do not establish independent

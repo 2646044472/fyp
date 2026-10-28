@@ -45,6 +45,9 @@ def main():
     body+='<p>新旧数据共八次模拟支付及取消、重复确认检查通过。并发查询返回正确身份，测试后交易数未增加。Python：151 通过、2 个 PalmIR/ONNX 测试因环境缺依赖跳过；另明确排除 5 个旧 API 测试。前端交互检查通过。</p>'
     body+='<h2>为什么仍有长尾</h2><p>普通图在姿态或局部配准阶段就能明确排序；不明确的图继续扩大搜索，最后保留原来的完整搜索。完整搜索仍需多次定位和大量特征配准。不能把这些耗时删掉，也不能降低置信要求来凑 2 秒。</p>'
     body+='<p>ARM 内核的 4,760 次配准与参考实现逐次一致。更快但漏匹配的 v7/v8 结果均保留。热图模型裁剪只有约 10 ms 推理收益，未接入。未使用预留数据反复选择参数。</p>'
+    if (root/'center-summary.json').exists():
+        center=read('center-summary.json')
+        body+='<h2>宽高比预处理对照：未采纳</h2><p>居中补边通过了新图几何检查，但同一匹配阶段在全部 112 组新图划分上的平均正确数由 '+f"{center['new_legacy_baseline']['mean_correct']:.3f}"+'/20 降到 '+f"{center['new_centered_legacy']['mean_correct']:.3f}"+'/20。两者最差都是 16/20。没有为了个别改善而替换现有预处理；这也不是完整居中版流水线的准确率结果。</p>'
     body+='<p><a href="pi-staged-new-summary.json">新图原始统计</a> · <a href="pi-staged-old-summary.json">旧图原始统计</a> · <a href="staged-final-all-splits/summary.json">全部划分汇总</a></p>'
     page='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pi 5 识别加速验证</title><style>body{font:16px/1.6 system-ui,sans-serif;background:#f4f6fa;color:#182331;margin:0}main{max-width:1150px;margin:30px auto;background:white;padding:32px;border-radius:16px}h1{font-size:30px}h2{font-size:21px;margin-top:30px}p{color:#465568}.notice{background:#fff1d4;border-left:5px solid #c98418;padding:16px;font-weight:600}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:10px;border-bottom:1px solid #e2e7ef;text-align:left;overflow-wrap:anywhere}th{background:#eef3f9}a{color:#1764a1}@media(max-width:800px){main{margin:0;padding:16px}table{font-size:12px}th,td{padding:5px}}</style><main>'+body+'</main></html>'
     output=root/'report.html';output.write_text(page,encoding='utf-8');print(output.resolve())
