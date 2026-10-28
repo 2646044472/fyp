@@ -34,14 +34,25 @@ class DemoFlow:
         if not display_name or len(display_name) > 60:
             raise ValueError("请输入 1–60 个字符的姓名。")
         with self.lock:
-            if self.store.exists(user_id) or self.payments.user_exists(user_id):
-                raise ValueError("这个编号已经录入；请换一个编号。")
+            has_template = self.store.exists(user_id)
+            has_account = self.payments.user_exists(user_id)
+            refreshing = False
+            if has_template or has_account:
+                if not (has_template and has_account):
+                    raise ValueError("这个编号的模板或账户不完整，请先检查已有记录。")
+                _, metadata = self.store.load(user_id)
+                refreshing = any(metadata.get(k) != v for k, v in self.gallery.required_metadata.items())
+                if not refreshing:
+                    raise ValueError("这个编号已经录入；请换一个编号。")
+                display_name = self.payments.display_name_for(user_id)
             features = []
             sources = []
             for _ in range(5):
                 feature, _, source = self.capture_feature()
                 features.append(feature)
                 sources.append(source)
+            # Persist only after all five captures pass geometry and quality.
+            # On failure the old template and account remain usable for rollback.
             self.store.save(user_id, np.stack(features), {
                 "user": user_id, "display_name": display_name, "algorithm": self.algorithm.name,
                 "capture_profile": "noir-ir", "samples": 5,
@@ -49,12 +60,15 @@ class DemoFlow:
                 "roi_geometry": self.roi_geometry,
                 "roi_sources": sources,
             })
-            try:
-                self.payments.create_account(user_id, display_name, 10000)
-            except Exception:
-                self.store.delete(user_id)
-                raise
-            return {"user_id": user_id, "display_name": display_name, "balance_cents": 10000}
+            if not refreshing:
+                try:
+                    self.payments.create_account(user_id, display_name, 10000)
+                except Exception:
+                    self.store.delete(user_id)
+                    raise
+            self.pending.clear()
+            return {"user_id": user_id, "display_name": display_name,
+                    "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
 
     def identify(self) -> dict[str, Any]:
         with self.lock:
@@ -93,4 +107,11 @@ class DemoFlow:
                     "transaction_id": payment.transaction_id}
 
     def users(self) -> list[dict[str, Any]]:
-        return self.payments.list_users()
+        users = self.payments.list_users()
+        for user in users:
+            try:
+                _, metadata = self.store.load(user["user_id"])
+                user["needs_reenrollment"] = any(metadata.get(k) != v for k, v in self.gallery.required_metadata.items())
+            except (FileNotFoundError, KeyError, ValueError):
+                user["needs_reenrollment"] = True
+        return users

@@ -22,8 +22,10 @@ def main():
     parser.add_argument("--samples", nargs="+", required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    extractor = PKLNetROI()
+    extractor = PKLNetROI(backend="torch", policy="legacy")
     extractor._ensure_loaded()
+    onnx_extractor = PKLNetROI(backend="onnx", threads=2, policy="legacy")
+    onnx_extractor._ensure_loaded()
     torch = extractor._torch
     captured = {}
     def capture(name, item):
@@ -57,6 +59,10 @@ def main():
             hm_coords[:, :, 1] /= 1 - 1 / hm.size(3)
             hm_kp = extractor._model.kcr.kp_coord(hm_coords.reshape(1, -1), theta, 300, 400)[0].cpu().numpy()
             fc_kp = extractor._model.kcr.kp_coord(captured["fc"], theta, 300, 400)[0].cpu().numpy()
+            hm_axis = hm_kp[2:4] - hm_kp[:2]
+            fc_axis = fc_kp[2:4] - fc_kp[:2]
+            branch_axis_cosine = float(np.dot(hm_axis, fc_axis) / max(np.linalg.norm(hm_axis)*np.linalg.norm(fc_axis), 1e-9))
+            onnx_kp = onnx_extractor._session.run(["keypoints"], {"image": tensor})[0][0]
             canvas = tensor[0].transpose(1, 2, 0) * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406]
             canvas = np.clip(np.rint(canvas * 255), 0, 255).astype(np.uint8)
             preview = Image.fromarray(cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB))
@@ -107,6 +113,9 @@ def main():
                 "heatmap_branch_keypoints": hm_kp.tolist(), "fc_branch_keypoints": fc_kp.tolist(),
                 "heatmap_branch_gap_px": float(np.linalg.norm(hm_kp[:2] - hm_kp[2:4])),
                 "fc_branch_gap_px": float(np.linalg.norm(fc_kp[:2] - fc_kp[2:4])),
+                "branch_axis_cosine": branch_axis_cosine,
+                "fused_reconstruction_max_error": float(np.max(np.abs(keypoints - .5*(hm_kp+fc_kp)))),
+                "onnx_torch_keypoint_max_error_standardized_px": float(np.max(np.abs(onnx_kp-keypoints))),
                 "exposure_ms": metadata.get("exposure_ms"), "analogue_gain": metadata.get("analogue_gain"),
                 "focus_fom": metadata.get("camera_metadata", {}).get("FocusFoM"),
             })

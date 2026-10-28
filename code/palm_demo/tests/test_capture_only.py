@@ -12,6 +12,7 @@ from types import SimpleNamespace
 
 from PIL import Image
 import numpy as np
+import pytest
 
 from palm_app import debug_ui
 from capture_page import HTML
@@ -123,3 +124,49 @@ def test_camera_capture_only_starts_preview_without_inference_thread(monkeypatch
         assert feed.capture_settings()["roi_processing"] is False
     finally:
         feed.close()
+
+
+def test_disconnected_camera_does_not_advertise_cached_frame_as_ready(monkeypatch):
+    feed = debug_ui.CameraFeed.__new__(debug_ui.CameraFeed)
+    feed.lock = threading.Lock()
+    feed.capture_only = True
+    feed.jpeg = b"cached preview"
+    feed.still_size = (2592, 1944)
+    feed.latest_roi_status = {}
+    feed.latest = debug_ui.CapturedFrame(17, Image.new("RGB", (4, 4)), 10.0)
+    monkeypatch.setattr(debug_ui.time, "monotonic", lambda: 11.0)
+    assert feed.status()["camera_ready"]
+    assert feed.jpeg_frame() == b"cached preview"
+
+    monkeypatch.setattr(debug_ui.time, "monotonic", lambda: 16.0)
+    status = feed.status()
+    assert not status["camera_ready"]
+    assert status["latest_frame_age_ms"] == 6000
+    assert "frames stopped" in status["error"]
+    with pytest.raises(RuntimeError, match="frames stopped"):
+        feed.jpeg_frame()
+    # No camera_io_lock is installed: stale capture must fail before waiting on
+    # the device lock, which may be held by the disconnected capture thread.
+    with pytest.raises(RuntimeError, match="frames stopped"):
+        feed.capture_highres()
+
+
+def test_unavailable_preview_returns_http_503():
+    def unavailable():
+        raise RuntimeError("Camera frames stopped")
+
+    app = SimpleNamespace(capture_only=True, camera=SimpleNamespace(jpeg_frame=unavailable))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), debug_ui.make_handler(app))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        connection = HTTPConnection(*server.server_address)
+        connection.request("GET", "/frame.jpg")
+        response = connection.getresponse()
+        assert response.status == 503
+        assert "frames stopped" in json.loads(response.read())["message"]
+        connection.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()

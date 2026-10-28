@@ -1,0 +1,3 @@
+# Debian's 85-nm-unmanaged.rules excludes gadget interfaces by default.
+# The existing usb-gadget NetworkManager profile owns usb0 on this Pi.
+SUBSYSTEM=="net", ENV{DEVTYPE}=="gadget", KERNEL=="usb0", ENV{NM_UNMANAGED}="0"

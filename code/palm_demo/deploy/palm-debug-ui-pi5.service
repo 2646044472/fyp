@@ -1,0 +1,19 @@
+[Unit]
+Description=Palm collection UI (wait for camera)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=fyp5
+WorkingDirectory=/home/fyp5/palm_demo
+EnvironmentFile=-/home/fyp5/palm_demo/deploy/camera.env
+ExecStart=/bin/bash /home/fyp5/palm_demo/deploy/start_camera_service.sh
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+Environment=OMP_NUM_THREADS=2
+Environment=OPENBLAS_NUM_THREADS=1
+
+[Install]
+WantedBy=multi-user.target

@@ -22,6 +22,21 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCWindowUnion-v4":
+        from union_matcher import FastCCWindowUnionMatcher
+        return FastCCWindowUnionMatcher(get_algorithm("FastCC"))
+    if name == "FastCCMultiROI-v3":
+        from multiroi_matcher import FastCCMultiROIMatcher
+        return FastCCMultiROIMatcher(get_algorithm("FastCC"))
+    if name == "FastCCRegisteredBest2-v2":
+        from registered_matcher import FastCCDualRegisteredMatcher
+        return FastCCDualRegisteredMatcher(get_algorithm("FastCC"))
+    if name == "FastCCRegisteredBest2-v1":
+        from registered_matcher import FastCCRegisteredMatcher
+        return FastCCRegisteredMatcher(get_algorithm("FastCC"))
+    if name == "FastCCPoseNearest-v1":
+        from pose_matcher import FastCCPoseMatcher
+        return FastCCPoseMatcher(get_algorithm("FastCC"))
     return get_algorithm(name)
 
 
@@ -30,6 +45,8 @@ def extract_feature(algorithm: Any, roi: np.ndarray) -> np.ndarray:
 
 
 def score_probe(algorithm: Any, probe: np.ndarray, enrolled_features: list[np.ndarray] | np.ndarray) -> float:
+    if hasattr(algorithm, "score_enrollment"):
+        return float(algorithm.score_enrollment(probe, enrolled_features))
     scores = [float(algorithm.match(probe, candidate)) for candidate in enrolled_features]
     if not scores:
         raise ValueError("at least one enrolled feature is required")

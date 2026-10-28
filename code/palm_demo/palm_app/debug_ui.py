@@ -52,10 +52,12 @@ def _roi_geometry(mode: str) -> str:
 DEFAULT_HAND_MODEL = palm_demo.ROOT / "models" / "palm_detection_mediapipe_2023feb.onnx"
 DEFAULT_HAND_POSE_MODEL = palm_demo.ROOT / "models" / "handpose_estimation_mediapipe_2023feb.onnx"
 DEBUG_MATCHER = "DoN"
+DEMO_MATCHER = "DoN"
 DEBUG_MIN_THRESHOLD = 0.15
 DEBUG_MAX_THRESHOLD = 0.20
 REPEATABILITY_TOTAL = 10
 HIGHRES_BATCH_TOTAL = 10
+CAMERA_FRAME_MAX_AGE_S = 5.0
 
 
 @dataclass(frozen=True)
@@ -190,7 +192,9 @@ class CameraFeed:
         self.jpeg: bytes | None = None
         self.roi_jpeg: bytes | None = None
         self.latest_processed: ProcessedFrame | None = None
-        self.quality_gate = ROIQualityGate(required_frames=5, min_contrast=12.0, min_sharpness=2.0, max_age_ms=8000.0 if roi_mode == "pklnet" else 1200.0)
+        # User-selected diagnostic policy: record contrast/sharpness without
+        # excluding camera samples. Geometry/freshness are still checked.
+        self.quality_gate = ROIQualityGate(required_frames=5, min_contrast=0.0, min_sharpness=0.0, max_age_ms=8000.0 if roi_mode == "pklnet" else 1200.0)
         self.latest_roi_status: dict[str, Any] = {
             "roi_mode": roi_mode,
             "roi_geometry": _roi_geometry(roi_mode),
@@ -441,12 +445,14 @@ class CameraFeed:
 
     def status(self) -> dict[str, Any]:
         with self.lock:
+            camera_state = self._camera_frame_state()
             if self.capture_only:
                 return {"mode": "capture_only", "roi_mode": "capture", "roi_processing": False,
-                        "camera_ready": self.jpeg is not None, "capture_size": list(self.still_size),
+                        **camera_state, "capture_size": list(self.still_size),
                         "latest_frame_id": None if self.latest is None else self.latest.frame_id,
-                        "processing_thread_alive": False, "error": self.latest_roi_status.get("error")}
+                        "processing_thread_alive": False}
             status = dict(self.latest_roi_status)
+            status.update(camera_state)
             if self.latest is not None:
                 status["latest_frame_id"] = self.latest.frame_id
             if self.latest_processed is not None:
@@ -458,6 +464,15 @@ class CameraFeed:
                     self.latest.frame_id - self.latest_processed.captured.frame_id
                 )
             return status
+
+    def _camera_frame_state(self) -> dict[str, Any]:
+        """Call while holding self.lock; cached JPEGs do not prove a live camera."""
+        age = None if self.latest is None else max(0.0, time.monotonic() - self.latest.captured_monotonic)
+        error = self.latest_roi_status.get("error")
+        if age is not None and age > CAMERA_FRAME_MAX_AGE_S:
+            error = error or "Camera frames stopped; check the camera connection and restart the camera service."
+        return {"camera_ready": self.jpeg is not None and age is not None and age <= CAMERA_FRAME_MAX_AGE_S and not error,
+                "latest_frame_age_ms": None if age is None else round(age * 1000, 1), "error": error}
 
     def latest_processed_frame_id(self) -> int | None:
         with self.lock:
@@ -482,9 +497,17 @@ class CameraFeed:
 
     def capture_highres(self) -> tuple[Image.Image, Image.Image, dict[str, Any]]:
         """Pair a preview frame with a full-sensor still, then resume preview."""
+        # A disconnected UVC device can leave capture_array waiting while holding
+        # camera_io_lock. Reject an already-stale feed before joining that wait.
+        with self.lock:
+            state = self._camera_frame_state()
+            if not state["camera_ready"]:
+                raise RuntimeError(state["error"] or "Waiting for a fresh camera frame")
         with self.camera_io_lock:
             preview_array = self.camera.capture_array("main")
-            request = self.camera.switch_mode_and_capture_request(self.still_config, delay=3)
+            # Switching a UVC camera to full resolution can restart exposure
+            # and autofocus. Give it 15 frames to settle before taking a still.
+            request = self.camera.switch_mode_and_capture_request(self.still_config, delay=15)
             try:
                 full_array = request.make_array("main")
                 metadata = request.get_metadata()
@@ -502,8 +525,9 @@ class CameraFeed:
 
     def jpeg_frame(self) -> bytes:
         with self.lock:
-            if self.jpeg is None:
-                raise RuntimeError("Waiting for the first camera frame")
+            state = self._camera_frame_state()
+            if not state["camera_ready"]:
+                raise RuntimeError(state["error"] or "Waiting for the first camera frame")
             return self.jpeg
 
     def processed_debug_frame(self, *, after_frame_id: int | None = None) -> tuple[Image.Image, np.ndarray, np.ndarray | None, int, dict[str, Any]]:
@@ -540,12 +564,12 @@ class CameraFeed:
 
 
 class App:
-    def __init__(self, camera: CameraFeed) -> None:
+    def __init__(self, camera: CameraFeed, *, demo_matcher: str = DEMO_MATCHER) -> None:
         self.camera = camera
         self.algorithm_name = DEBUG_MATCHER
         self.capture_only = getattr(camera, "capture_only", False)
         self.algorithm = None if self.capture_only else load_algorithm(palm_demo.DEFAULT_BASELINE, self.algorithm_name)
-        self.demo_algorithm = None if self.capture_only else load_algorithm(palm_demo.DEFAULT_BASELINE, "FastCC")
+        self.demo_algorithm = None if self.capture_only else load_algorithm(palm_demo.DEFAULT_BASELINE, demo_matcher)
         self.lock = threading.Lock()
         self.debug_writer: DebugDatasetWriter | None = None
         self.debug_sample_index = 1
@@ -565,9 +589,11 @@ class App:
             self.collection_batch = None
         self.demo = None if self.capture_only else DemoFlow(palm_demo.RUNTIME, self.demo_algorithm, self.capture_demo_feature, roi_geometry=_roi_geometry(self.camera.roi_mode))
 
-    def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
+    def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False, localization_details: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
         if self.camera.roi_mode == "pklnet":
             raw_roi, quad, details = self.camera.tracker.extractor.extract(full)
+            if localization_details is not None:
+                localization_details.update(details)
             if not details["roi_geometry_valid"]:
                 raise palm_roi.PalmROIError(details["roi_geometry_reason"])
             roi, quality = normalize_roi(raw_roi)
@@ -606,8 +632,31 @@ class App:
             raise RuntimeError("相机正在拍摄，请稍后重试。")
         try:
             preview, full, _ = self.camera.capture_highres()
-            roi, _, _, _, source = self.detect_full_still(full, preview.size, demo_core=True)
-            feature = self.demo_algorithm.extract(roi)
+            try:
+                localization = {}
+                if hasattr(self.demo_algorithm, "extract_with_hypotheses"):
+                    roi, quad, _, quality, source = self.detect_full_still(full, preview.size, demo_core=True, localization_details=localization)
+                else:
+                    roi, quad, _, quality, source = self.detect_full_still(full, preview.size, demo_core=True)
+            except palm_roi.PalmROIError as error:
+                if str(error).startswith(("pklnet_", "roi_out_of_bounds")):
+                    raise RuntimeError("掌心定位不稳定，请展开手掌，调整距离和角度后重拍。") from error
+                raise
+            if hasattr(self.demo_algorithm, "extract_with_hypotheses"):
+                if self.camera.roi_mode != "pklnet":
+                    raise RuntimeError("Multi-ROI matching requires the PKLNet palm coordinate convention")
+                candidates = localization.get("pklnet_roi_candidates")
+                if not candidates:
+                    raise RuntimeError("Multi-ROI matching requires original/gamma localization diagnostics")
+                if hasattr(self.demo_algorithm, "complete_hypotheses"):
+                    candidates = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
+                feature = self.demo_algorithm.extract_with_hypotheses(full, quad, roi, candidates)
+            elif hasattr(self.demo_algorithm, "extract_with_context"):
+                if self.camera.roi_mode != "pklnet":
+                    raise RuntimeError("Pose matching requires the PKLNet palm coordinate convention")
+                feature = self.demo_algorithm.extract_with_context(full, quad, roi)
+            else:
+                feature = self.demo_algorithm.extract(roi)
             output = io.BytesIO()
             Image.fromarray(roi).save(output, format="PNG")
             return feature, base64.b64encode(output.getvalue()).decode("ascii"), source
@@ -1105,8 +1154,6 @@ class App:
                 roi, quality = palm_demo.crop_and_normalize(image, roi_quad=roi_quad)
         else:
             roi, quality = palm_demo.crop_and_normalize(image)
-        if quality["contrast"] < 12.0:
-            raise RuntimeError(f"Low contrast ({quality['contrast']:.1f}); improve lighting or hand position.")
         feature = self.algorithm.extract(roi).astype(bool)
         quality.update(roi_status)
         return feature, quality, (time.perf_counter() - started) * 1000
@@ -1220,7 +1267,7 @@ class App:
                         "roi_mode": self.camera.roi_mode,
                         "roi_geometry": _roi_geometry(self.camera.roi_mode),
                         "crop": palm_demo.DEFAULT_CROP if self.camera.roi_mode == "fixed" else None,
-                        "min_contrast": 12.0, "quality": qualities,
+                        "min_contrast": 0.0, "image_quality_policy": "diagnostic_only", "quality": qualities,
                         "frame_ids": frame_ids,
                         "pipeline_ms": {"mean": float(np.mean(timings)), "max": float(np.max(timings))},
                         "enrollment_distance_p95": float(np.quantile(distances, 0.95)),
@@ -1277,6 +1324,40 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
             route = urlsplit(self.path).path
+            if route in ("/palmir-report", "/palmir-examples.jpg", "/palmir-scores.csv", "/palmir-blur-examples.jpg", "/palmir-audit-1.jpg", "/palmir-audit-2.jpg", "/palmir-audit-3.jpg", "/palmir-audit-4.jpg"):
+                names = {"/palmir-report": ("report.html", "text/html; charset=utf-8"),
+                         "/palmir-examples.jpg": ("comparison.jpg", "image/jpeg"),
+                         "/palmir-scores.csv": ("scores.csv", "text/csv; charset=utf-8"),
+                         "/palmir-blur-examples.jpg": ("audit/blur_probe_pytorch/examples.jpg", "image/jpeg"),
+                         "/palmir-audit-1.jpg": ("audit/bankey-10-12_left.jpg", "image/jpeg"),
+                         "/palmir-audit-2.jpg": ("audit/bankey-10-12_right.jpg", "image/jpeg"),
+                         "/palmir-audit-3.jpg": ("audit/stephen-10-13_left.jpg", "image/jpeg"),
+                         "/palmir-audit-4.jpg": ("audit/stephen-10-13_right.jpg", "image/jpeg")}
+                name, content_type = names[route]
+                path = palm_demo.ROOT / "runtime/palmir_camera_assay" / name
+                if not path.is_file():
+                    json_response(self, HTTPStatus.NOT_FOUND, {"message": "Comparison report is not available yet"})
+                    return
+                body = path.read_bytes()
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if route == "/api/camera/focus":
+                from palm_app import camera_focus
+                json_response(self, HTTPStatus.OK, camera_focus.status())
+                return
+            if route == "/palmir":
+                from palmir_page import HTML as PALMIR_HTML
+                body = PALMIR_HTML.encode("utf-8")
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if getattr(app, "capture_only", False) and route in ("/demo", "/roi", "/roi.jpg", "/debug/processed.jpg", "/api/demo/users", "/api/users", "/api/download-repeatability"):
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "This service is configured for high-resolution collection."})
                 return
@@ -1348,7 +1429,11 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     except (BrokenPipeError, ConnectionResetError, RuntimeError):
                         break
             elif route == "/frame.jpg":
-                frame = app.camera.jpeg_frame()
+                try:
+                    frame = app.camera.jpeg_frame()
+                except RuntimeError as error:
+                    json_response(self, HTTPStatus.SERVICE_UNAVAILABLE, {"message": str(error)})
+                    return
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
                 self.send_header("Pragma", "no-cache")
@@ -1415,6 +1500,36 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "Not found"})
 
         def do_POST(self) -> None:  # noqa: N802
+            if self.path == "/api/camera/focus":
+                from palm_app import camera_focus
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    if not 0 <= length <= 4096:
+                        raise ValueError("Invalid request size")
+                    self.rfile.read(length)
+                    json_response(self, HTTPStatus.OK, camera_focus.enable())
+                except (ValueError, OSError, RuntimeError) as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
+                return
+            if self.path in ("/api/palmir/snapshot", "/api/palmir/restore", "/api/palmir/reference"):
+                try:
+                    from palm_app.palmir_restore import RESTORER
+                    length = int(self.headers.get("Content-Length", "0"))
+                    if not 1 <= length <= 4096:
+                        raise ValueError("Invalid request size")
+                    payload = json.loads(self.rfile.read(length))
+                    if not isinstance(payload, dict):
+                        raise ValueError("Expected a JSON object")
+                    if self.path.endswith("snapshot"):
+                        result = RESTORER.capture(app.camera)
+                    elif self.path.endswith("reference"):
+                        result = RESTORER.enroll_reference(payload)
+                    else:
+                        result = RESTORER.restore_snapshot(payload)
+                    json_response(self, HTTPStatus.OK, result)
+                except (ValueError, TypeError, RuntimeError, OSError, ImportError) as error:
+                    json_response(self, HTTPStatus.BAD_REQUEST, {"message": str(error)})
+                return
             if getattr(app, "capture_only", False) and not self.path.startswith("/api/collection/"):
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "Only collection actions are enabled."})
                 return
@@ -1557,6 +1672,7 @@ def main() -> int:
     parser.add_argument("--roi-mode", choices=("dynamic", "fixed", "pklnet"), default="pklnet")
     parser.add_argument("--capture-only", action="store_true", default=True, help="Collect original full-resolution images without ROI or matcher processing (default).")
     parser.add_argument("--enable-recognition", dest="capture_only", action="store_false", help="Explicitly enable the optional ROI/recognition debug routes.")
+    parser.add_argument("--demo-matcher", default=DEMO_MATCHER, help="Matcher for optional /demo recognition (default: DoN; alternatives include OC, PC and FastCC).")
     parser.add_argument("--hand-model", type=Path, default=DEFAULT_HAND_MODEL)
     parser.add_argument("--hand-pose-model", type=Path, default=DEFAULT_HAND_POSE_MODEL)
     parser.add_argument("--refine-pose", action="store_true", help="Enable the slower 21-point pose refinement pass.")
@@ -1580,7 +1696,7 @@ def main() -> int:
         camera_tuning_file=args.camera_tuning_file,
         capture_only=args.capture_only,
     )
-    app = App(feed)
+    app = App(feed, demo_matcher=args.demo_matcher)
     server = ThreadingHTTPServer((args.host, args.port), make_handler(app))
     print(f"Palm debug UI: http://{args.host}:{args.port}", flush=True)
     try:

@@ -12,6 +12,12 @@ code/data/camera_checks/
 *.obj
 **/.pytest_cache/
 
+# Generated PKLNet CPU export; recreate from the pinned weights.
+/code/pklnet/pklnet-keypoints.onnx
+/code/pklnet/pklnet-keypoints.json
+/code/pklnet/pklnet-keypoints-diagnostics.onnx
+/code/pklnet/pklnet-keypoints-diagnostics.json
+
 # Biometric captures and generated report images stay local.
 code/palm_demo/noir-focus-test*.jpg
 docs/_rendered_palm_report/
@@ -22,3 +28,6 @@ docs/*.docx
 offline_tongji_roi_audit/
 research/
 external/
+
+# Private research notes
+.research/

@@ -70,6 +70,7 @@ def test_collection_session_manager_lists_and_deletes_one_session(tmp_path, monk
     sample_root.mkdir(parents=True)
     (sample_root / "full.jpg").write_bytes(b"full")
     (sample_root / "roi_128.png").write_bytes(b"roi")
+    (sample_root / "metadata.json").write_text(json.dumps({"session_id": session_id}), encoding="utf-8")
     (session_root / "manifest.json").write_text(json.dumps({
         "session_id": session_id,
         "subject": "p01",
@@ -92,7 +93,8 @@ def test_collection_session_manager_lists_and_deletes_one_session(tmp_path, monk
     assert sessions[0]["sample_count"] == 1
 
     result = app.delete_highres_session(session_id)
-    assert result == {"status": "DELETED", "session_id": session_id, "deleted_samples": 1}
+    assert result == {"status": "DELETED", "session_id": session_id, "deleted_samples": 1, "recoverable": True}
+    assert list((runtime / "collection_trash").rglob("full.jpg"))[0].read_bytes() == b"full"
     assert not session_root.exists()
     assert not sample_root.exists()
     assert app.collection_batch is None

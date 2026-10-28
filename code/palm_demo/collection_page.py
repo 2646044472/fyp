@@ -27,7 +27,7 @@ button:disabled{opacity:.55;cursor:wait}.row{display:grid;grid-template-columns:
 .wide{grid-column:1/-1}.links{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0}
 @media(max-width:800px){main{grid-template-columns:1fr}.wide{grid-column:1}}@media(max-width:520px){.diagnostics{grid-template-columns:1fr}}
 </style></head><body>
-<header><h1>掌纹高清采集 · 每组 10 张</h1><span><a href="/demo">基础支付演示</a> · <a href="/">返回调试页</a></span></header>
+<header><h1>掌纹高清采集 · 每组 10 张</h1><span><a href="/palmir">PalmIR 恢复对比</a> · <a href="/">返回采集页</a></span></header>
 <main><section class="card"><h2>实时预览 · 480×360</h2><div class="preview"><img id="live" src="/frame.jpg" alt="实时画面"></div>
 <div id="readiness" class="readiness">开始采集后即可拍摄，无需等待稳定提示。</div><div id="progress">尚未开始十张采集。</div>
 <p class="hint">预览显示与高清原图相同的取景范围。放好手掌后可立即按拍摄；连续拍十张时不用移开手或手臂。即使暂时没有检测到掌心，原图也会保存。拍后检查裁图和纹线。</p></section>

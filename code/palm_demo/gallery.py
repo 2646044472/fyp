@@ -45,6 +45,7 @@ class Gallery:
     def identify(self, probe_feature: np.ndarray, capture_profile: str = "rgb") -> IdentificationResult:
         started = time.perf_counter()
         ranked: list[tuple[float, str]] = []
+        incompatible = False
         for user_id in self.store.list_users():
             try:
                 features, metadata = self.store.load(user_id)
@@ -53,12 +54,13 @@ class Gallery:
             if metadata.get("capture_profile") != capture_profile:
                 continue
             if any(metadata.get(key) != value for key, value in self.required_metadata.items()):
+                incompatible = True
                 continue
             ranked.append((score_probe(self.algorithm, probe_feature, features), user_id))
         ranked.sort(key=lambda item: item[0])
         elapsed = (time.perf_counter() - started) * 1000
         if not ranked:
-            return IdentificationResult("UNKNOWN", None, None, None, elapsed, "NO_ENROLLED_USERS")
+            return IdentificationResult("UNKNOWN", None, None, None, elapsed, "INCOMPATIBLE_TEMPLATES" if incompatible else "NO_ENROLLED_USERS")
         best, user_id = ranked[0]
         second = ranked[1][0] if len(ranked) > 1 else None
         if best > self.threshold:

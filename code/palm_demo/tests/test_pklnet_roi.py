@@ -7,6 +7,7 @@ from pklnet_roi import PKLNetROI, ROI_GEOMETRY_VERSION
 from pklnet_tracker import PKLNetStatus
 from palm_app.debug_ui import App
 from gallery import Gallery
+from demo_flow import DemoFlow
 from templates import TemplateStore
 from pklnet_tracker import PKLNetTracker
 import pytest
@@ -54,6 +55,16 @@ def test_demo_gallery_excludes_templates_from_old_roi(tmp_path):
     algorithm = SimpleNamespace(match=lambda probe, candidate: float(candidate[0]))
     gallery = Gallery(store, algorithm, threshold=2.0, required_metadata={"algorithm": "FastCC", "roi_geometry": ROI_GEOMETRY_VERSION})
     assert gallery.identify(np.array([0]), "noir-ir").user_id == "new"
+
+
+def test_demo_gallery_excludes_previous_matcher_templates(tmp_path):
+    algorithm = SimpleNamespace(name="DoN", match=lambda probe, candidate: float(candidate[0]))
+    flow = DemoFlow(tmp_path, algorithm, lambda: None, roi_geometry=ROI_GEOMETRY_VERSION)
+    flow.store.save("fastcc", np.array([[0]]), {"capture_profile": "noir-ir", "algorithm": "FastCC", "roi_geometry": ROI_GEOMETRY_VERSION})
+    flow.store.save("oc", np.array([[0.25]]), {"capture_profile": "noir-ir", "algorithm": "OC", "roi_geometry": ROI_GEOMETRY_VERSION})
+    flow.store.save("don", np.array([[1]]), {"capture_profile": "noir-ir", "algorithm": "DoN", "roi_geometry": ROI_GEOMETRY_VERSION})
+    # The old matcher would win by distance if its incompatible template were used.
+    assert flow.gallery.identify(np.array([0]), "noir-ir").user_id == "don"
 
 
 def test_collapsed_prediction_clears_previous_roi_without_fallback():

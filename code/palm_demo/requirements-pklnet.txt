@@ -4,3 +4,4 @@ timm==0.9.16
 huggingface-hub==0.25.2
 einops==0.8.1
 yacs==0.1.8
+onnxruntime==1.31.0
