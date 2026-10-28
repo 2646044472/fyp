@@ -593,6 +593,8 @@ class App:
         self.demo = None if self.capture_only else DemoFlow(palm_demo.RUNTIME, self.demo_algorithm, self.capture_demo_feature, roi_geometry=_roi_geometry(self.camera.roi_mode))
         if self.demo is not None and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
             self.demo.capture_enrollment_feature = lambda: self.capture_demo_feature(enrollment=True)
+        if self.demo is not None and hasattr(self.demo_algorithm, 'prepare_gallery'):
+            self.demo.gallery.warm_up()
 
     def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False, localization_details: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
         if self.camera.roi_mode == "pklnet":
@@ -647,13 +649,18 @@ class App:
                 if str(error).startswith(("pklnet_", "roi_out_of_bounds")):
                     raise RuntimeError("掌心定位不稳定，请展开手掌，调整距离和角度后重拍。") from error
                 raise
-            if hasattr(self.demo_algorithm, "extract_with_hypotheses"):
+            if not enrollment and hasattr(self.demo_algorithm, 'extract_probe_with_context'):
+                if self.camera.roi_mode != 'pklnet':
+                    raise RuntimeError('Indexed demo matching requires PKLNet geometry')
+                feature = self.demo_algorithm.extract_probe_with_context(full, quad, roi)
+            elif hasattr(self.demo_algorithm, "extract_with_hypotheses"):
                 if self.camera.roi_mode != "pklnet":
                     raise RuntimeError("Multi-ROI matching requires the PKLNet palm coordinate convention")
                 candidates = localization.get("pklnet_roi_candidates")
                 if not candidates:
                     raise RuntimeError("Multi-ROI matching requires original/gamma localization diagnostics")
-                if enrollment and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
+                if (enrollment and hasattr(self.demo_algorithm,"extract_gallery_with_context")
+                        and not getattr(self.demo_algorithm, 'enrollment_requires_hypotheses', False)):
                     feature = self.demo_algorithm.extract_gallery_with_context(full,quad,roi)
                 else:
                     if hasattr(self.demo_algorithm, "complete_hypotheses"):

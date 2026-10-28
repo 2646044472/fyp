@@ -68,8 +68,17 @@ class DemoFlow:
                     self.store.delete(user_id)
                     raise
             self.pending.clear()
-            return {"user_id": user_id, "display_name": display_name,
-                    "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
+            response = {"user_id": user_id, "display_name": display_name,
+                        "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
+            if hasattr(self.algorithm, 'prepare_gallery'):
+                try:
+                    self.gallery.warm_up()
+                    response['recognition_ready'] = True
+                except (ValueError, RuntimeError, OSError) as error:
+                    # Enrollment is already committed. Do not falsely report
+                    # it as rolled back when optional index preparation fails.
+                    response.update(recognition_ready=False, preparation_error=str(error))
+            return response
 
     def identify(self) -> dict[str, Any]:
         with self.lock:
@@ -85,6 +94,8 @@ class DemoFlow:
                         "timing_ms": {"capture_and_extract": (captured-started)*1000,
                                       "gallery": (matched-captured)*1000,
                                       "total": (matched-started)*1000}}
+            if hasattr(feature, 'route'):
+                response['recognition_route'] = feature.route
             if result.status != "MATCH" or result.user_id is None:
                 return response
             token = uuid.uuid4().hex

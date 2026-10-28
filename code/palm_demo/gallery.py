@@ -41,7 +41,7 @@ class Gallery:
         self.required_metadata = dict(required_metadata or {})
         self._prepared_cache = OrderedDict()
         self._prepared_cache_bytes = 0
-        self.prepared_cache_limit_bytes = 64 * 1024 * 1024
+        self.prepared_cache_limit_bytes = getattr(algorithm, 'prepared_cache_limit_bytes', 64 * 1024 * 1024)
         self._prepared_cache_lock = threading.RLock()
 
     def _signature(self,user_id):
@@ -77,6 +77,20 @@ class Gallery:
     def size(self) -> int:
         return len(self.store.list_users())
 
+    def warm_up(self, capture_profile="noir-ir"):
+        """Build optional cross-user search indexes before accepting queries."""
+        if not hasattr(self.algorithm, 'prepare_gallery'):
+            return
+        groups = {}
+        for user_id in self.store.list_users():
+            features, metadata = self._load_prepared(user_id)
+            if metadata.get('capture_profile') != capture_profile:
+                continue
+            if any(metadata.get(k) != v for k,v in self.required_metadata.items()):
+                continue
+            groups[user_id] = features
+        self.algorithm.prepare_gallery(groups)
+
     def identify(self, probe_feature: np.ndarray, capture_profile: str = "rgb") -> IdentificationResult:
         started = time.perf_counter()
         ranked: list[tuple[float, str]] = []
@@ -87,6 +101,8 @@ class Gallery:
                 self._prepared_cache_bytes-=self._prepared_cache.pop(stale)[3]
         prepared_mode=all(hasattr(self.algorithm,k) for k in ('prepare_probe','prepare_enrollment','prepared_bytes','score_prepared'))
         prepared_probe=self.algorithm.prepare_probe(probe_feature) if prepared_mode else None
+        global_mode = prepared_mode and hasattr(self.algorithm, 'score_gallery')
+        groups = {}
         for user_id in users:
             try:
                 features, metadata = self._load_prepared(user_id) if prepared_mode else self.store.load(user_id)
@@ -97,8 +113,13 @@ class Gallery:
             if any(metadata.get(key) != value for key, value in self.required_metadata.items()):
                 incompatible = True
                 continue
+            if global_mode:
+                groups[user_id] = features
+                continue
             score=self.algorithm.score_prepared(prepared_probe,features) if prepared_mode else score_probe(self.algorithm, probe_feature, features)
             ranked.append((float(score), user_id))
+        if global_mode and groups:
+            ranked.extend((float(score),user_id) for user_id,score in self.algorithm.score_gallery(prepared_probe,groups).items())
         ranked.sort(key=lambda item: item[0])
         elapsed = (time.perf_counter() - started) * 1000
         if not ranked:
