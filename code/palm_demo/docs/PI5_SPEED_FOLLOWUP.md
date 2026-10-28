@@ -108,6 +108,82 @@ unmet, so the reserved cohort is not being consumed for tuning.
 
 ## Reproduce in an isolated Pi checkout
 
+### Bounded fallback reuse audit (2026-10-29)
+
+All recorded exhaustive-fallback queries (three new, two old) were selected
+automatically, each replayed first and warm through HTTP. Before the cache pilot,
+the expected wall-time benefit was approximately 0.5–1.5 seconds, insufficient
+to close the two-second gap. No identity exceptions or candidate removal were
+allowed. Both baseline and pilot returned the same user, score, runner-up score,
+status and route as the saved reference on all ten executions per mode.
+
+Warm instrumented timings, in seconds (rows follow replay order):
+
+| Camera | Baseline | Exact-cache pilot | Saving |
+| --- | ---: | ---: | ---: |
+| New 1 | 11.323 | 9.459 | 16.5% |
+| New 2 | 10.294 | 9.062 | 12.0% |
+| New 3 | 11.277 | 9.508 | 15.7% |
+| Old 1 | 4.823 | 4.035 | 16.3% |
+| Old 2 | 4.658 | 3.941 | 15.4% |
+
+Each slow query repeats 10–18 SIFT computations and 120–280 registrations.
+The pilot uses only within-query exact-input reuse and resets before every
+query. Accounted array memory is 252–256 MiB new / 60–69 MiB old, capped at
+256 MiB; this is not a process-RSS bound. The measured pilot retained input
+references and checked array equality on hits. The committed tool additionally
+snapshots inputs to protect against caller mutation; the table is historical
+pilot evidence, not a benchmark of that additional defensive copy.
+
+New-camera extra-window localization alone takes 2.932–2.943 seconds; there
+are no exact duplicate localizer inputs. Its 11.58–11.62 process CPU-seconds
+include runtime spinning, not just useful computation. Full feature extraction
+takes 2.425–2.792 seconds new / 1.745–1.750 old. Summed gallery scoring takes
+2.492–2.957 seconds new / 0.536–0.621 old. Nested and parallel timers overlap
+and must not be added as exclusive stages. HTTP timings include profiling
+hash overhead; kernel timers exclude it.
+
+An intentionally generous counterfactual subtracts all summed duplicate SIFT
+and registration durations plus encoding, packing and unpacking from the
+unprofiled HTTP time. Decoding nested inside unpacking is not subtracted twice.
+Even this leaves 7.465–7.981 seconds new / 2.973–3.126 old. If all extra-window
+localization were also free, new queries still retain 4.532–5.048 seconds.
+These estimates overstate savings where work overlaps; they describe current
+measured work, not a theoretical hardware or algorithmic lower bound.
+
+Decision: keep the profiler and optional cache as isolated research tools;
+do not integrate the cache into the application. It does not reach two seconds,
+its fast-path overhead has not been established, and the 224-split audit was
+not rerun with caching. Production v6 and the v10 matcher are unchanged.
+No payments were made; query tokens were cancelled and transaction counts
+were unchanged. Reserved holdout data was not used. No thresholds were relaxed.
+
+Further progress requires a substantially cheaper recognition/search design
+and independent validation, or better acquisition/framing. Merely caching
+duplicates, removing serialization or batching the extra localizer passes
+cannot bridge this measured gap. Repeated splits of the same 80 images remain
+development evidence only. Freeze an architecture and acceptance criteria
+before evaluating the reserved people once; new-camera and cross-session
+generalization will still require separate data. Evaluate false accepts and
+false rejects alongside correct-within-two-seconds, not accuracy alone.
+
+Private evidence: `fallback-reuse-{profile,cached,summary}.json` under the
+existing runtime evidence directory. Reproduce from the isolated replay root:
+
+Local validation: 152 tests passed, two skipped because Windows lacks
+`onnxruntime`; five obsolete API tests in `test_existing_pipeline.py` were
+explicitly excluded. The Node UI interaction checks passed. Cache tests cover
+hash collisions, caller input mutation, output mutation and query reset.
+
+```sh
+OMP_WAIT_POLICY=PASSIVE python app/tools/profile_fallback_reuse.py fresh-profile.json \
+  http-staged-native-new http-staged-native-old \
+  --native-registration ./descriptor_match.so
+# Add --cache and use a new output filename for the isolated cache pilot.
+```
+
+### Main experiment
+
 ```sh
 mkdir -p runtime/native-build
 c++ -O3 -mcpu=cortex-a76 -fopenmp -shared -fPIC -ffp-contract=off \
