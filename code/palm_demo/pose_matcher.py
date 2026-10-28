@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from pklnet_roi import PKLNET_ROOT, normalize_roi
+from pklnet_roi import PKLNET_ROOT, normalize_roi_pixels
 
 POSE_MATCHER_NAME = 'FastCCPoseNearest-v1'
 POSES = ((0,1),(-12,1),(12,1),(0,.85),(0,1.15),(-12,.85),(-12,1.15),(12,.85),(12,1.15))
@@ -48,7 +48,7 @@ class FastCCPoseMatcher:
             if not ((candidate>=0).all() and (candidate[:,0]<full.width).all() and (candidate[:,1]<full.height).all()):continue
             raw=self.geometry.getROIimg(bgr,candidate)
             if raw is None:continue
-            try:roi=normalize_roi(raw)[0]
+            try:roi=normalize_roi_pixels(raw)
             except ValueError:continue
             bank[i]=self.base.extract(roi)
         return bank

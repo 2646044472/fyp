@@ -6,7 +6,7 @@ Padding is zero and compresses; exceeding capacity fails, never drops candidates
 """
 import cv2
 import numpy as np
-from pklnet_roi import PKLNetROI, normalize_roi
+from pklnet_roi import PKLNetROI, normalize_roi_pixels
 from registered_matcher import DUAL_SIZE, MAX_POINTS, FastCCDualRegisteredMatcher, local_features, registration
 from window_roi import window_candidates
 
@@ -58,13 +58,13 @@ class FastCCWindowUnionMatcher:
         ok,png=cv2.imencode('.png',gray,[cv2.IMWRITE_PNG_COMPRESSION,1])
         if not ok:raise ValueError('Native grayscale encoding failed')
         gallery=[];queries=[]
-        pixels=normalize_roi(primary[1][192:576,192:576])[0]
+        pixels=normalize_roi_pixels(primary[1][192:576,192:576])
         for sigma in [4,8]:
             p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
             gallery.append(self._encode_view(sigma,np.eye(3),p,d))
         # Exactly the expanded_strict baseline: descriptors from stored v2
         # context, native appearance. base_full is a separate unused control.
-        pixels=normalize_roi(primary[1])[0]
+        pixels=normalize_roi_pixels(primary[1])
         for sigma in [0,2]:
             p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
             queries.append(self._encode_view(sigma,primary[2],p-192,d,-192,576))
@@ -87,7 +87,7 @@ class FastCCWindowUnionMatcher:
         source=cv2.getPerspectiveTransform(q,dst);views=[]
         for size in [384,768]:
             offset=(size-384)/2;shift=np.asarray([[1.,0,offset],[0,1.,offset],[0,0,1.]])
-            pixels=normalize_roi(cv2.warpPerspective(gray,shift@source,(size,size)))[0]
+            pixels=normalize_roi_pixels(cv2.warpPerspective(gray,shift@source,(size,size)))
             for sigma in ([0,2] if h.get('kind')=='window' else [0,2,4,8]):
                 p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
                 views.append(self._encode_view(sigma,source,p-offset,d,int(-offset),int(size-offset)))
@@ -166,7 +166,7 @@ class FastCCWindowUnionMatcher:
             if not self._accept_alignment(a,mapped):
                 if details is not None:details.append(dict(entry,rejected='disjoint_aligned_region',aligned_quad=mapped.tolist()))
                 continue
-            pixels=normalize_roi(cv2.warpPerspective(native,warp,(128,128)))[0]
+            pixels=normalize_roi_pixels(cv2.warpPerspective(native,warp,(128,128)))
             distance=float(self.base.match(self.base.extract(pixels),b[0][0].astype(bool)))
             score=min(score,distance)
             if details is not None:details.append(dict(entry,score=distance,aligned_quad=mapped.tolist()))

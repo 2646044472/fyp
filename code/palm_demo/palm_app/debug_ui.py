@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -139,6 +140,7 @@ class CameraFeed:
         recovery_pass: bool,
         camera_tuning_file: Path | None,
         capture_only: bool = False,
+        pklnet_threads: int | None = None,
     ) -> None:
         from picamera2 import Picamera2
 
@@ -184,6 +186,7 @@ class CameraFeed:
                 refine_pose=refine_pose,
                 submit_interval_ms=inference_ms,
                 recovery_pass=recovery_pass,
+                **({"pklnet_threads": pklnet_threads} if roi_mode == "pklnet" else {}),
             )
             if roi_mode in ("dynamic", "pklnet")
             else None
@@ -1678,6 +1681,8 @@ def main() -> int:
     parser.add_argument("--capture-only", action="store_true", default=True, help="Collect original full-resolution images without ROI or matcher processing (default).")
     parser.add_argument("--enable-recognition", dest="capture_only", action="store_false", help="Explicitly enable the optional ROI/recognition debug routes.")
     parser.add_argument("--demo-matcher", default=DEMO_MATCHER, help="Matcher for optional /demo recognition (default: DoN; alternatives include OC, PC and FastCC).")
+    parser.add_argument("--opencv-threads", type=int, choices=range(1, 65), metavar="1..64", help="OpenCV worker limit; omitted keeps the library default.")
+    parser.add_argument("--pklnet-threads", type=int, choices=range(1, 65), metavar="1..64", help="ONNX localizer worker limit; omitted keeps the existing default.")
     parser.add_argument("--hand-model", type=Path, default=DEFAULT_HAND_MODEL)
     parser.add_argument("--hand-pose-model", type=Path, default=DEFAULT_HAND_POSE_MODEL)
     parser.add_argument("--refine-pose", action="store_true", help="Enable the slower 21-point pose refinement pass.")
@@ -1687,6 +1692,8 @@ def main() -> int:
     parser.add_argument("--recovery-pass", action="store_true", help="Run a second detector pass when no hand is found; slower.")
     parser.add_argument("--camera-tuning-file", type=Path, help="Optional libcamera tuning JSON, e.g. imx219_noir.json for NoIR + IR.")
     args = parser.parse_args()
+    if args.opencv_threads is not None:
+        cv2.setNumThreads(args.opencv_threads)
     feed = CameraFeed(
         args.camera,
         args.width,
@@ -1700,6 +1707,7 @@ def main() -> int:
         recovery_pass=args.recovery_pass,
         camera_tuning_file=args.camera_tuning_file,
         capture_only=args.capture_only,
+        pklnet_threads=args.pklnet_threads,
     )
     app = App(feed, demo_matcher=args.demo_matcher)
     server = ThreadingHTTPServer((args.host, args.port), make_handler(app))

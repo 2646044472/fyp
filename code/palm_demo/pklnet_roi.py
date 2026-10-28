@@ -31,7 +31,15 @@ HEATMAP_GEOMETRY_VERSION = "pklnet-heatmap-v3"
 ASPECT_GEOMETRY_VERSION = "pklnet-heatmap-aspect-v4"
 ROI_GEOMETRY_VERSION = "pklnet-illumination-consistent-v5"
 LOCALIZER_GAMMA = 0.6
+_LOCALIZER_GAMMA_LUT = np.rint((np.arange(256, dtype=np.float32) / 255) ** LOCALIZER_GAMMA * 255).astype(np.uint8)
 MIN_ILLUMINATION_IOU = 0.5
+
+
+def illumination_pixels(rgb: np.ndarray) -> np.ndarray:
+    """Exact byte-domain gamma mapping without full-frame float temporaries."""
+    if rgb.dtype != np.uint8:
+        raise ValueError("Localizer illumination input must be uint8")
+    return cv2.LUT(rgb, _LOCALIZER_GAMMA_LUT)
 
 
 class PKLNetUnavailable(RuntimeError):
@@ -203,7 +211,7 @@ class PKLNetROI:
         if self.policy != "illumination":
             return self._extract_aspect(image, side=side)
         rgb = np.asarray(image.convert("RGB"))
-        adjusted = np.rint((rgb.astype(np.float32) / 255) ** LOCALIZER_GAMMA * 255).astype(np.uint8)
+        adjusted = illumination_pixels(rgb)
         original = None
         try:
             original = self._extract_aspect(image, side=side)
@@ -399,11 +407,17 @@ class PKLNetROI:
         return roi.astype(np.uint8), quad, diagnostics
 
 
-def normalize_roi(roi: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
-    """Apply the live matcher's fixed percentile normalization to PKLNet pixels."""
+def normalize_roi_pixels(roi: np.ndarray) -> np.ndarray:
+    """Normalize matcher pixels without computing unused display diagnostics."""
     array = np.asarray(roi, dtype=np.float32)
-    quality = {"contrast": float(array.std()), "sharpness": float(np.hypot(*np.gradient(array)).var())}
     low, high = np.percentile(array, (1, 99))
     if high - low < 1:
         raise ValueError("PKLNet crop has no usable intensity range")
-    return np.clip((array - low) * 255 / (high - low), 0, 255).astype(np.uint8), quality
+    return np.clip((array - low) * 255 / (high - low), 0, 255).astype(np.uint8)
+
+
+def normalize_roi(roi: np.ndarray) -> tuple[np.ndarray, dict[str, float]]:
+    """Apply normalization and include quality diagnostics for camera/UI callers."""
+    array = np.asarray(roi, dtype=np.float32)
+    quality = {"contrast": float(array.std()), "sharpness": float(np.hypot(*np.gradient(array)).var())}
+    return normalize_roi_pixels(array), quality

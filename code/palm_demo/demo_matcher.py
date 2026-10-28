@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 from anchored_matcher import FastCCAnchoredUnionMatcher
-from pklnet_roi import normalize_roi
+from pklnet_roi import normalize_roi_pixels
 from registered_matcher import local_features
 
 
@@ -33,7 +33,7 @@ class FastCCDemoMatcher(FastCCAnchoredUnionMatcher):
     def extract_gallery_with_context(self,full,quad,normalized_roi):
         legacy=self.legacy.extract_with_context(full,quad,normalized_roi)
         primary,_=self.legacy._views(legacy)
-        pixels=normalize_roi(primary[1][192:576,192:576])[0];gallery=[]
+        pixels=normalize_roi_pixels(primary[1][192:576,192:576]);gallery=[]
         for sigma in [4,8]:
             p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
             gallery.append(self._encode_view(sigma,np.eye(3),p,d))

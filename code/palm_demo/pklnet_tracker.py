@@ -20,7 +20,7 @@ class PKLNetStatus(palm_roi.ROIStatus):
 
 class PKLNetTracker:
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self.extractor = PKLNetROI()
+        self.extractor = PKLNetROI(threads=kwargs.pop("pklnet_threads", None))
         self.extractor._ensure_loaded()
         self.detector = palm_roi.HandLandmarkTracker(*args, **kwargs)
         self._status = PKLNetStatus(None, "starting")

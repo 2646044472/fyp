@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from pklnet_roi import normalize_roi
+from pklnet_roi import normalize_roi_pixels
 from pose_matcher import FastCCPoseMatcher
 
 NAME = 'FastCCRegisteredBest2-v1'
@@ -121,7 +121,7 @@ class FastCCRegisteredMatcher(FastCCPoseMatcher):
                          else [[0, 0], [SIDE, 0], [SIDE, SIDE], [0, SIDE]], np.float32)
         matrix = cv2.getPerspectiveTransform(q, dst)
         gray = cv2.cvtColor(np.asarray(full.convert('RGB')), cv2.COLOR_RGB2GRAY)
-        pixels = normalize_roi(cv2.warpPerspective(gray, matrix, (SIDE, SIDE)))[0]
+        pixels = normalize_roi_pixels(cv2.warpPerspective(gray, matrix, (SIDE, SIDE)))
         points, desc = local_features(pixels)
         offset = np.asarray([[1., 0., SIDE/2], [0., 1., SIDE/2], [0., 0., 1.]])
         context = cv2.warpPerspective(gray, offset@matrix, (CONTEXT, CONTEXT))
@@ -154,7 +154,7 @@ class FastCCRegisteredMatcher(FastCCPoseMatcher):
                 return fallback
         aligned = cv2.warpPerspective(context, warp, (128, 128))
         try:
-            normalized = normalize_roi(aligned)[0]
+            normalized = normalize_roi_pixels(aligned)
         except ValueError:
             return fallback
         return float(self.base.match(self.base.extract(normalized), other[0].astype(bool)))
@@ -192,7 +192,7 @@ class FastCCDualRegisteredMatcher(FastCCRegisteredMatcher):
     def extract_with_context(self, full, quad, normalized_roi):
         base = FastCCRegisteredMatcher.extract_with_context(self, full, quad, normalized_roi)
         context = FastCCRegisteredMatcher._unpack(base)[1]
-        pixels = normalize_roi(context[192:576, 192:576])[0]
+        pixels = normalize_roi_pixels(context[192:576, 192:576])
         points, desc = local_features(cv2.GaussianBlur(pixels, (0, 0), 2.))
         return self._append_view(base, points, desc)
 

@@ -1,7 +1,7 @@
 """Frozen, identity-independent additional localizer windows."""
 import numpy as np
 from PIL import Image
-from pklnet_roi import LOCALIZER_GAMMA, MIN_KEYPOINT_SPAN_RATIO
+from pklnet_roi import illumination_pixels, MIN_KEYPOINT_SPAN_RATIO
 
 
 def window_candidates(image, engine):
@@ -15,7 +15,7 @@ def window_candidates(image, engine):
     for box in boxes:
         for gamma in [False,True]:
             view=image.crop(box)
-            if gamma:view=Image.fromarray(np.rint((np.asarray(view,dtype=np.float32)/255)**LOCALIZER_GAMMA*255).astype(np.uint8))
+            if gamma:view=Image.fromarray(illumination_pixels(np.asarray(view)))
             # Model/runtime failures must surface, not silently reduce candidates.
             _,q,d=engine.extract(view)
             offset=np.asarray(box[:2]);q=np.asarray(q)+offset
