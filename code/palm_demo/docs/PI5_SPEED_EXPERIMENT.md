@@ -1,5 +1,8 @@
 # Pi-only speed experiment and validation gates
 
+For the subsequent staged/native experiments and current measured limits, see
+[PI5_SPEED_FOLLOWUP.md](PI5_SPEED_FOLLOWUP.md). This document retains the v7 results.
+
 The target is a correct identification within 2 seconds on the Raspberry Pi 5,
 without reducing accuracy. `FastCCDemo-v6` remains the deployed default.
 `FastCCIndexed-v7-experimental` is explicitly opt-in and is not approved for demo

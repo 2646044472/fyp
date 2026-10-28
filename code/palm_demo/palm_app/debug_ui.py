@@ -653,6 +653,14 @@ class App:
                 if self.camera.roi_mode != 'pklnet':
                     raise RuntimeError('Indexed demo matching requires PKLNet geometry')
                 feature = self.demo_algorithm.extract_probe_with_context(full, quad, roi)
+                if getattr(self.demo_algorithm, 'requires_exhaustive_fallback', False):
+                    candidates = localization.get('pklnet_roi_candidates')
+                    if not candidates:
+                        raise RuntimeError('Exhaustive fallback requires original localization diagnostics')
+                    def exhaustive():
+                        hypotheses = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
+                        return self.demo_algorithm.extract_with_hypotheses(full, quad, roi, hypotheses)
+                    feature.exhaustive = exhaustive
             elif hasattr(self.demo_algorithm, "extract_with_hypotheses"):
                 if self.camera.roi_mode != "pklnet":
                     raise RuntimeError("Multi-ROI matching requires the PKLNet palm coordinate convention")

@@ -71,6 +71,7 @@ def registration(left, right):
 
 class FastCCRegisteredMatcher(FastCCPoseMatcher):
     name = NAME
+    registration = staticmethod(registration)
 
     @staticmethod
     def _pack(bank, context=None, matrix=None, size=(0, 0), points=None, descriptors=None):
@@ -136,7 +137,7 @@ class FastCCRegisteredMatcher(FastCCPoseMatcher):
         score = FastCCPoseMatcher.match(self, bank, other)
         pairs = [((points, desc), (other_points, other_desc)), *additional]
         for a, b in pairs:
-            transform = registration(a, b)
+            transform = self.registration(a, b)
             if transform is not None:
                 score = min(score, self._aligned_score(context, source, size, other, transform, score))
         return score

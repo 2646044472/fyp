@@ -21,6 +21,7 @@ class FastCCWindowUnionMatcher:
     name=NAME
     magic=MAGIC
     allow_gallery_only=False
+    registration=staticmethod(registration)
 
     def __init__(self,base):
         self.base=base;self.legacy=FastCCDualRegisteredMatcher(base);self.geometry=self.legacy.geometry
@@ -153,7 +154,7 @@ class FastCCWindowUnionMatcher:
         for index,(sigma,source,p,d) in enumerate(queries):
             entry=dict(branch='union',view_index=index,sigma=sigma,source_matrix=source.tolist())
             if sigma not in gallery:continue
-            transform=registration((p,d),gallery[sigma])
+            transform=self.registration((p,d),gallery[sigma])
             if transform is None:
                 if details is not None:details.append(dict(entry,rejected='correspondence_or_geometry'))
                 continue

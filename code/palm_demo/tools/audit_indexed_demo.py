@@ -18,6 +18,8 @@ def main():
     parser.add_argument('root', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--smoke', action='store_true', help='Only original/reverse; not the full split audit')
+    parser.add_argument('--matcher', default='FastCCIndexed-v7-experimental',
+                        choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental'])
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     base = args.root/'single-device'
@@ -26,12 +28,14 @@ def main():
     if args.smoke:
         cases = [c for c in cases if c['case'].endswith(('_original','_reverse'))]
     lookup = {r['sample']:i for i,r in enumerate(rows)}
-    reference = load_algorithm(APP/'vendor/palmprint-recognition-python','FastCC')
-    algorithm = IndexedDemoMatcher(reference)
+    algorithm = load_algorithm(APP/'vendor/palmprint-recognition-python',args.matcher)
     protocol = dict(algorithm=algorithm.name, code_sha256=hashlib.sha256((APP/'indexed_demo_matcher.py').read_bytes()).hexdigest(),
                     development_images=80, independent_holdout=False, parameters_selected_on_development=True,
                     cases=len(cases), source='unchanged v5 localization and enrollment descriptors; no query identity in extraction/matching',
                     limitation='Cached geometry/descriptor audit; not a live end-to-end latency measurement')
+    protocol['source_sha256'] = {name:hashlib.sha256((APP/name).read_bytes()).hexdigest()
+        for name in ('indexed_demo_matcher.py','proposed_index_matcher.py','guarded_index_matcher.py','staged_index_matcher.py','registration_accelerated.py',
+                     'registered_matcher.py','fastcc_accelerated.py') if (APP/name).exists()}
     (args.output/'protocol.json').write_text(json.dumps(protocol,indent=2))
     gallery, probes = [], []
     for row in rows:
@@ -41,7 +45,15 @@ def main():
         feature[:4] = np.asarray([algorithm.magic],'<i4').view(np.uint8)
         q = algorithm._unpack(feature)
         gallery.append(algorithm.prepare_enrollment([feature])[0])
-        probes.append(IndexedProbe(q[1][0].copy(),q[1][2].copy(),q[3]))
+        probe=IndexedProbe(q[1][0].copy(),q[1][2].copy(),q[3])
+        if getattr(algorithm,'requires_exhaustive_fallback',False):
+            def exhaustive(path=base/'runtime-v5'/(row['sample']+'.npz')):
+                with np.load(path,allow_pickle=False) as z:
+                    full=z['feature']
+                full[:4]=np.asarray([algorithm.magic],'<i4').view(np.uint8)
+                return full
+            probe.exhaustive=exhaustive
+        probes.append(probe)
     results = []
     try:
         for case in cases:

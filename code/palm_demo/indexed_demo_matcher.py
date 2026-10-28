@@ -182,7 +182,7 @@ class IndexedDemoMatcher(FastCCDemoMatcher):
                         if v[group] <= 0: continue
                         _,_,vi = self._mapping[group]
                         target = groups[user][j][1][vi]
-                        transform = registration((p,d),(target[2],target[3]))
+                        transform = self.registration((p,d),(target[2],target[3]))
                         if transform is None: continue
                         warp = np.diag([1/3,1/3,1])@transform@source
                         corners = np.asarray([[0,0,1],[128,0,1],[128,128,1],[0,128,1]])@np.linalg.inv(warp).T

@@ -22,6 +22,15 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCStagedIndex-v10-experimental":
+        from staged_index_matcher import StagedIndexMatcher
+        return StagedIndexMatcher(get_algorithm("FastCC"))
+    if name == "FastCCGuardedIndex-v9-experimental":
+        from guarded_index_matcher import GuardedIndexMatcher
+        return GuardedIndexMatcher(get_algorithm("FastCC"))
+    if name == "FastCCProposedIndex-v8-experimental":
+        from proposed_index_matcher import ProposedIndexMatcher
+        return ProposedIndexMatcher(get_algorithm("FastCC"))
     if name == "FastCCIndexed-v7-experimental":
         from indexed_demo_matcher import IndexedDemoMatcher
         return IndexedDemoMatcher(get_algorithm("FastCC"))

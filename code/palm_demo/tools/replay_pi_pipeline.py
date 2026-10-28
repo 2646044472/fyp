@@ -251,10 +251,13 @@ def extraction_audit(records, output, policies=("legacy", "heatmap", "aspect", "
     return extractors["illumination"], rows, results
 
 
-def demo_roundtrip(records, extractor, output, demo_matcher="DoN"):
+def demo_roundtrip(records, extractor, output, demo_matcher="DoN", *, native_registration=None, native_threads=4):
     debug_ui.common.RUNTIME = output / "demo_runtime"
     camera = ReplayCamera(False, extractor)
     app = debug_ui.App(camera, demo_matcher=demo_matcher)
+    if native_registration is not None:
+        from native_registration import enable_native_registration
+        enable_native_registration(app.demo_algorithm,native_registration,native_threads)
     groups = {key: sorted([r for r in records if r["identity"] == key], key=lambda r:r["index"])
               for key in sorted({r["identity"] for r in records})}
     enrollments, probes, payments = [], [], []
