@@ -4,6 +4,35 @@ Local Raspberry Pi palmprint enrollment and 1:1 verification. For connection,
 installation and hardware precautions, see [SETUP](docs/SETUP.md).
 Commands below run from `code/palm_demo` on Windows or `~/palm_demo` on the Pi.
 
+Latest locally validated opt-in recognition demo (2026-10-28):
+
+```sh
+python debug_ui.py --enable-recognition --roi-mode pklnet --demo-matcher FastCCDemo-v6
+```
+
+V6 retains the guarded v5 scores while separating enrollment-only work, caching
+compact gallery data (64 MiB limit), and using two bounded workers. Existing
+templates from other algorithm versions require reenrollment; balances remain.
+All 80 query templates match serial extraction byte-for-byte apart from the
+version marker, and all 3,120 within-device pair distances remain exactly equal.
+The original/reverse/ten random/100 extra splits remain 20/20 on each device.
+134 regression tests pass, 2 skip; the existing obsolete-module import test is
+excluded. These are repeated development images, not independent validation.
+
+Final local new-camera HTTP replay: 20/20 correct, four enrollments and four
+simulated payments; five-frame enrollment median 4.59 s, identification median
+4.80 s and p95 6.03 s. Old-camera replay also passes 20/20 with four enrollments
+and payments; identification median 2.48 s, p95 2.69 s. Hardware capture and Pi timings are not included. This is
+a supervised snapshot demo, not real-time identification. No Pi deployment or
+network change was made. The default capture-only service and DoN are unchanged.
+See [ROI pipeline](docs/ROI_PIPELINE.md),
+`runtime/roi-palmir-20261028/single-device/report-v6.html` for final timing/evidence,
+and `report-v5.html` in the same directory for actual per-template scoring quads.
+
+The new overlap guard removes spatially detached candidates, including the two
+wall candidates in the inspected photo. It does not replace the localizer or
+prove every retained crop contains a palm; the small anchor can still be wrong.
+
 Current deployment (2026-10-28): `pklnet-illumination-consistent-v5`, with
 original/brightened localization consistency and original-pixel ROI crops.
 Pi new-camera DoN is **14/20**, FastCC **15/20**, geometry 40/40 and enrollment

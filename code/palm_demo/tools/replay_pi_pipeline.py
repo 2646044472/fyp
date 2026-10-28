@@ -159,6 +159,8 @@ def http_app(app):
         server.shutdown()
         server.server_close()
         thread.join()
+        if hasattr(app.demo_algorithm,"close"):
+            app.demo_algorithm.close()
 
 
 def collection_roundtrip(records, output):

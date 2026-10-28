@@ -588,6 +588,8 @@ class App:
                 and self.collection_batch.get("collection_mode") != "full_resolution_only"):
             self.collection_batch = None
         self.demo = None if self.capture_only else DemoFlow(palm_demo.RUNTIME, self.demo_algorithm, self.capture_demo_feature, roi_geometry=_roi_geometry(self.camera.roi_mode))
+        if self.demo is not None and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
+            self.demo.capture_enrollment_feature = lambda: self.capture_demo_feature(enrollment=True)
 
     def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False, localization_details: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
         if self.camera.roi_mode == "pklnet":
@@ -627,7 +629,7 @@ class App:
         finally:
             tracker.close()
 
-    def capture_demo_feature(self) -> tuple[np.ndarray, str, str]:
+    def capture_demo_feature(self, *, enrollment: bool = False) -> tuple[np.ndarray, str, str]:
         if not self.collection_lock.acquire(blocking=False):
             raise RuntimeError("相机正在拍摄，请稍后重试。")
         try:
@@ -648,9 +650,12 @@ class App:
                 candidates = localization.get("pklnet_roi_candidates")
                 if not candidates:
                     raise RuntimeError("Multi-ROI matching requires original/gamma localization diagnostics")
-                if hasattr(self.demo_algorithm, "complete_hypotheses"):
-                    candidates = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
-                feature = self.demo_algorithm.extract_with_hypotheses(full, quad, roi, candidates)
+                if enrollment and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
+                    feature = self.demo_algorithm.extract_gallery_with_context(full,quad,roi)
+                else:
+                    if hasattr(self.demo_algorithm, "complete_hypotheses"):
+                        candidates = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
+                    feature = self.demo_algorithm.extract_with_hypotheses(full, quad, roi, candidates)
             elif hasattr(self.demo_algorithm, "extract_with_context"):
                 if self.camera.roi_mode != "pklnet":
                     raise RuntimeError("Pose matching requires the PKLNet palm coordinate convention")
@@ -1706,6 +1711,8 @@ def main() -> int:
     finally:
         server.server_close()
         feed.close()
+        if hasattr(app.demo_algorithm,"close"):
+            app.demo_algorithm.close()
     return 0
 
 

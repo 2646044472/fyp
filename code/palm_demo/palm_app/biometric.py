@@ -22,6 +22,12 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCDemo-v6":
+        from demo_matcher import FastCCDemoMatcher
+        return FastCCDemoMatcher(get_algorithm("FastCC"))
+    if name == "FastCCAnchoredUnion-v5":
+        from anchored_matcher import FastCCAnchoredUnionMatcher
+        return FastCCAnchoredUnionMatcher(get_algorithm("FastCC"))
     if name == "FastCCWindowUnion-v4":
         from union_matcher import FastCCWindowUnionMatcher
         return FastCCWindowUnionMatcher(get_algorithm("FastCC"))

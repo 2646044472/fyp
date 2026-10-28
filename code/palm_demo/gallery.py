@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import time
+import threading
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +39,39 @@ class Gallery:
         self.threshold = float(threshold)
         self.min_margin = float(min_margin)
         self.required_metadata = dict(required_metadata or {})
+        self._prepared_cache = OrderedDict()
+        self._prepared_cache_bytes = 0
+        self.prepared_cache_limit_bytes = 64 * 1024 * 1024
+        self._prepared_cache_lock = threading.RLock()
+
+    def _signature(self,user_id):
+        return tuple((s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+                     for s in (p.stat() for p in self.store.paths(user_id)))
+
+    def _load_prepared(self,user_id):
+        with self._prepared_cache_lock:
+            return self._load_prepared_locked(user_id)
+
+    def _load_prepared_locked(self,user_id):
+        signature=self._signature(user_id)
+        cached=self._prepared_cache.pop(user_id,None)
+        if cached is not None:
+            self._prepared_cache_bytes-=cached[3]
+            if cached[0]==signature:
+                self._prepared_cache[user_id]=cached
+                self._prepared_cache_bytes+=cached[3]
+                return cached[1],cached[2]
+        features,metadata=self.store.load(user_id)
+        # Validate metadata before preparing a potentially incompatible format.
+        if any(metadata.get(k)!=v for k,v in self.required_metadata.items()):return None,metadata
+        prepared=self.algorithm.prepare_enrollment(features)
+        size=self.algorithm.prepared_bytes(prepared)
+        if size<=self.prepared_cache_limit_bytes and signature==self._signature(user_id):
+            while self._prepared_cache and self._prepared_cache_bytes+size>self.prepared_cache_limit_bytes:
+                _,entry=self._prepared_cache.popitem(last=False);self._prepared_cache_bytes-=entry[3]
+            self._prepared_cache[user_id]=(signature,prepared,metadata,size)
+            self._prepared_cache_bytes+=size
+        return prepared,metadata
 
     @property
     def size(self) -> int:
@@ -46,9 +81,15 @@ class Gallery:
         started = time.perf_counter()
         ranked: list[tuple[float, str]] = []
         incompatible = False
-        for user_id in self.store.list_users():
+        users=self.store.list_users()
+        with self._prepared_cache_lock:
+            for stale in set(self._prepared_cache)-set(users):
+                self._prepared_cache_bytes-=self._prepared_cache.pop(stale)[3]
+        prepared_mode=all(hasattr(self.algorithm,k) for k in ('prepare_probe','prepare_enrollment','prepared_bytes','score_prepared'))
+        prepared_probe=self.algorithm.prepare_probe(probe_feature) if prepared_mode else None
+        for user_id in users:
             try:
-                features, metadata = self.store.load(user_id)
+                features, metadata = self._load_prepared(user_id) if prepared_mode else self.store.load(user_id)
             except (FileNotFoundError, KeyError, json.JSONDecodeError):
                 continue
             if metadata.get("capture_profile") != capture_profile:
@@ -56,7 +97,8 @@ class Gallery:
             if any(metadata.get(key) != value for key, value in self.required_metadata.items()):
                 incompatible = True
                 continue
-            ranked.append((score_probe(self.algorithm, probe_feature, features), user_id))
+            score=self.algorithm.score_prepared(prepared_probe,features) if prepared_mode else score_probe(self.algorithm, probe_feature, features)
+            ranked.append((float(score), user_id))
         ranked.sort(key=lambda item: item[0])
         elapsed = (time.perf_counter() - started) * 1000
         if not ranked:

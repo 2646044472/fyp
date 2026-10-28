@@ -197,3 +197,17 @@
 - 真实本地HTTP历史图回放http-v4-new/http-v4-old各20/20、4录入、4隔离模拟支付，原图hash保持。不是现场相机/Pi测试。此前v2/v3及失败实验全保留。
 - 资源：压缩NPZ单模板median5,439,208.5bytes、max7,063,675、80张total430,543,827；未压缩16MiB。并行开发测试时cached几何提取median1378ms、pairmedian138ms；fresh定位+提取median3712ms/p956025；HTTP新图identify median9998ms/p9513640，旧图median4754ms。批量80模板工具进程曾测peak约1.6GB。均非隔离性能基准、非Pi承诺；交互demo目前仍慢，优化需要保持原协议与分数一致。
 - report-v4.html为最终报告，resource-v4.json/union-audit.json/完整逐样本结果为证据。tools/write_union_report.py可复现；tools/package_union_patch.py生成版本化源补丁并逐文件SHA验证。没有独立新会话/陌生人拒绝率/泛化证明，不可宣称产品完全稳定。
+
+## 2026-10-28：截图候选检查、demo提速（用户要求完成后git push）
+
+- 用户要求继续修截图中主框偏小及背景候选问题，随后追加“加快速度，确保demo可以用”。仍未部署Pi、未改网络。上轮已push main 5dbb44b；本轮完成后需再次push。
+- 图像核对：bankey:right #8的候选3/4确实落墙面且与主ROI无交集。新增anchored_matcher.py可选FastCCAnchoredUnion-v5：候选和最终评分quad均须与主ROI交面积>1px²。不是语义手分割，主框若错仍有风险，不能宣称主框定位已修好。80图中9图移除48描述子视图(2248→2200)，所有3120配对距离未变，新旧各112固定划分仍全20。
+- union_matcher.py新增match_with_diagnostics，与普通匹配共用评分函数，记录赢家分支、source_matrix、aligned_quad及视图索引；legacy_v2回退胜出不伪造未知quad。runtime-v5/pair-winners.json及contributions.json保存实际赢家。bankey:right #8对录入#5的赢家是expanded主框view0，实际评分紫框比主框大、覆盖掌心，距离.180664。report-v5.html给出四张困难图各best2模板真实对齐区域。
+- v5真实HTTP新旧各20/20、4录入、4模拟支付。v5原并行测试新图enroll median26978ms，identify7085ms，不能当严格性能基准。新单元测试覆盖候选空间检查、模板迁移一致、版本隔离、评分quad检查；最初131通过2跳过。
+- 用户追加提速后实现demo_matcher.py可选FastCCDemo-v6：录入只提legacy+coarse gallery描述子（无查询视图/原生PNG）；查询完整候选保留；两线程并行候选和配对。v6模板独立magic，enrollment-only不能作probe。父matcher支持紧凑prepare_enrollment/prepare_probe/score_prepared，不重复解析v2或解码gallery图。
+- Gallery增加64MiB上限LRU紧凑缓存，signature=(dev,inode,size,mtime_ns,ctime_ns)覆盖数据及元数据；替换/重录/删档失效，RLock保护缓存，metadata不兼容在准备前排除。新增缓存失效/内存界限测试。DemoFlow录入callback独立，App在v6时跳过录入window推理；账户/余额逻辑不改。identify结果新增timing_ms分阶段。关闭服务和回放时关闭线程池。前端小图改称定位预览，保留人工确认支付。
+- tools/profile_union_threads.py显示减OpenCV线程数没有提速（1线程较慢），未采用。profile_parallel_matching.py显示2线程有收益且分数一致，4线程旧图反变慢，选择有界2线程。所有失败性能对照保留。
+- speed-v5/parallel-extraction.json：80/80查询模板与串行实现逐字节一致，版本号除外；其中4张历史缓存坐标有差异的图用相同候选重新生成串行参考。audit_prepared_matching.py逐图验证80份gallery保留的bank/descriptor一致并存储重载；prepared-parity-parallel.json全部3120配对分数零差异。原224划分因此不变。80份紧凑gallery总56,069,000bytes，实际demo只用20份；cache上限64MiB。
+- 当前回归134 passed,2 skipped；原test_existing_pipeline.py旧模块导入错误仍排除且明确记录。最终回放顺序执行、不与其他本任务重型测试并行。http-v6-final-new已完成20/20，4录入4支付；enroll median4593.8ms，identify median4800.175ms、p956033.5915ms，capture/extract median3189ms、gallery median1663ms。http-v6-final-old也完成20/20、4录入4支付；enroll median6251.14ms，identify median2478.875ms、p952685.513ms。tools/write_demo_speed_report.py已生成report-v6.html与speed-v5/final-metrics.json。20张gallery实际压缩磁盘总量新15,266,683bytes、旧10,321,552bytes。
+- 只保证本机历史图的完整演示通过，没有现场摄像头预览竞争/Pi CPU时延/新会话泛化证明。可选启动参数已写README顶部：--enable-recognition --roi-mode pklnet --demo-matcher FastCCDemo-v6。原默认DoN/capture-only未改。
+- 本轮新增源码应explicit stage；数据文件code/data/pi-captures-2026-10-15的三个文本因上轮恢复原字节显示状态变化但git diff内容为空，不要混入。Biometrics/bob-zhang/idea/tmp/模型二进制/运行数据仍留本地。

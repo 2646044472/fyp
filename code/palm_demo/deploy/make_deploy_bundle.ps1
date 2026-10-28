@@ -11,7 +11,7 @@ if (Test-Path -LiteralPath $archive) {
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::Open($archive, [System.IO.Compression.ZipArchiveMode]::Create)
 try {
-    $paths = @(".gitignore", "docs", "deploy", "palm_app", "debug_ui.py", "palmir_page.py", "pklnet_roi.py", "pklnet_policy.py", "pklnet_tracker.py", "pose_matcher.py", "registered_matcher.py", "multiroi_matcher.py", "union_matcher.py", "window_roi.py", "roi_sampling.py", "capture_page.py", "collection_page.py", "demo_flow.py", "demo_page.py", "gallery.py", "payment.py", "templates.py", "models.py", "biometric.py", "palm_roi.py", "roi_quality.py", "live_roi.py", "README.md", "requirements-dev.txt", "requirements-pklnet.txt", "models", "tools", "vendor")
+    $paths = @(".gitignore", "docs", "deploy", "palm_app", "debug_ui.py", "palmir_page.py", "pklnet_roi.py", "pklnet_policy.py", "pklnet_tracker.py", "pose_matcher.py", "registered_matcher.py", "multiroi_matcher.py", "union_matcher.py", "anchored_matcher.py", "demo_matcher.py", "window_roi.py", "roi_sampling.py", "capture_page.py", "collection_page.py", "demo_flow.py", "demo_page.py", "gallery.py", "payment.py", "templates.py", "models.py", "biometric.py", "palm_roi.py", "roi_quality.py", "live_roi.py", "README.md", "requirements-dev.txt", "requirements-pklnet.txt", "models", "tools", "vendor")
     foreach ($path in $paths) {
         $item = Get-Item -LiteralPath (Join-Path $appRoot $path)
         $files = if ($item.PSIsContainer) { Get-ChildItem -LiteralPath $item.FullName -Recurse -File } else { @($item) }

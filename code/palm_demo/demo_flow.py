@@ -16,9 +16,10 @@ from templates import TemplateStore, safe_user_id
 
 
 class DemoFlow:
-    def __init__(self, runtime: Path, algorithm: Any, capture_feature: Callable[[], tuple[np.ndarray, str, str]], *, roi_geometry: str | None = None) -> None:
+    def __init__(self, runtime: Path, algorithm: Any, capture_feature: Callable[[], tuple[np.ndarray, str, str]], *, roi_geometry: str | None = None, capture_enrollment_feature: Callable[[], tuple[np.ndarray,str,str]] | None = None) -> None:
         self.algorithm = algorithm
         self.capture_feature = capture_feature
+        self.capture_enrollment_feature = capture_enrollment_feature or capture_feature
         self.roi_geometry = roi_geometry
         self.store = TemplateStore(runtime / "demo_templates")
         self.payments = PaymentService(runtime / "demo_payment.sqlite3")
@@ -48,7 +49,7 @@ class DemoFlow:
             features = []
             sources = []
             for _ in range(5):
-                feature, _, source = self.capture_feature()
+                feature, _, source = self.capture_enrollment_feature()
                 features.append(feature)
                 sources.append(source)
             # Persist only after all five captures pass geometry and quality.
@@ -73,11 +74,17 @@ class DemoFlow:
     def identify(self) -> dict[str, Any]:
         with self.lock:
             self.pending.clear()
+            started=time.perf_counter()
             feature, roi_image, source = self.capture_feature()
+            captured=time.perf_counter()
             result = self.gallery.identify(feature, "noir-ir")
+            matched=time.perf_counter()
             response = {"status": result.status, "score": result.score,
                         "second_score": result.second_score, "reason": result.reason,
-                        "roi_image": roi_image, "roi_source": source}
+                        "roi_image": roi_image, "roi_source": source,
+                        "timing_ms": {"capture_and_extract": (captured-started)*1000,
+                                      "gallery": (matched-captured)*1000,
+                                      "total": (matched-started)*1000}}
             if result.status != "MATCH" or result.user_id is None:
                 return response
             token = uuid.uuid4().hex

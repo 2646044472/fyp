@@ -19,6 +19,8 @@ MAX_VIEWS=42
 
 class FastCCWindowUnionMatcher:
     name=NAME
+    magic=MAGIC
+    allow_gallery_only=False
 
     def __init__(self,base):
         self.base=base;self.legacy=FastCCDualRegisteredMatcher(base);self.geometry=self.legacy.geometry
@@ -41,7 +43,7 @@ class FastCCWindowUnionMatcher:
         chunks=[legacy,png,*gallery,*queries];used=HEADER+sum(c.size for c in chunks)
         if used>FEATURE_SIZE:raise ValueError('Union template capacity exceeded; no views were dropped')
         f=np.zeros(FEATURE_SIZE,np.uint8)
-        f[:HEADER]=np.asarray([MAGIC,used,len(png),len(queries),len(gallery)],'<i4').view(np.uint8)
+        f[:HEADER]=np.asarray([self.magic,used,len(png),len(queries),len(gallery)],'<i4').view(np.uint8)
         start=HEADER
         for c in chunks:f[start:start+c.size]=c;start+=c.size
         return f
@@ -67,30 +69,37 @@ class FastCCWindowUnionMatcher:
             p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
             queries.append(self._encode_view(sigma,primary[2],p-192,d,-192,576))
         if len(hypotheses)>8:raise ValueError('Expected at most two base and six window hypotheses')
-        for h in hypotheses:
-            if not h.get('valid',False):continue
-            q=np.asarray(h['quad'],np.float32)
-            if (q.shape!=(4,2) or not np.isfinite(q).all() or (q<0).any()
-                    or (q[:,0]>=full.width).any() or (q[:,1]>=full.height).any()
-                    or cv2.contourArea(q)<1):raise ValueError('Invalid candidate geometry')
-            dst=np.asarray([[384,0],[0,0],[0,384],[384,384]] if self.geometry.isAntiClock(q[:3].reshape(-1))
-                           else [[0,0],[384,0],[384,384],[0,384]],np.float32)
-            source=cv2.getPerspectiveTransform(q,dst)
-            for size in [384,768]:
-                offset=(size-384)/2;shift=np.asarray([[1.,0,offset],[0,1.,offset],[0,0,1.]])
-                pixels=normalize_roi(cv2.warpPerspective(gray,shift@source,(size,size)))[0]
-                for sigma in ([0,2] if h.get('kind')=='window' else [0,2,4,8]):
-                    p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
-                    queries.append(self._encode_view(sigma,source,p-offset,d,int(-offset),int(size-offset)))
+        queries.extend(self._all_hypothesis_views(gray,full.size,hypotheses))
         if len(queries)>MAX_VIEWS:raise ValueError('Too many union views')
         return self._pack(legacy,png.ravel(),queries,gallery)
 
-    def _unpack(self,feature):
+    def _all_hypothesis_views(self,gray,image_size,hypotheses):
+        return [view for h in hypotheses for view in self._hypothesis_views(gray,image_size,h)]
+
+    def _hypothesis_views(self,gray,image_size,h):
+        if not h.get('valid',False):return []
+        q=np.asarray(h['quad'],np.float32)
+        if (q.shape!=(4,2) or not np.isfinite(q).all() or (q<0).any()
+                or (q[:,0]>=image_size[0]).any() or (q[:,1]>=image_size[1]).any()
+                or cv2.contourArea(q)<1):raise ValueError('Invalid candidate geometry')
+        dst=np.asarray([[384,0],[0,0],[0,384],[384,384]] if self.geometry.isAntiClock(q[:3].reshape(-1))
+                       else [[0,0],[384,0],[384,384],[0,384]],np.float32)
+        source=cv2.getPerspectiveTransform(q,dst);views=[]
+        for size in [384,768]:
+            offset=(size-384)/2;shift=np.asarray([[1.,0,offset],[0,1.,offset],[0,0,1.]])
+            pixels=normalize_roi(cv2.warpPerspective(gray,shift@source,(size,size)))[0]
+            for sigma in ([0,2] if h.get('kind')=='window' else [0,2,4,8]):
+                p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
+                views.append(self._encode_view(sigma,source,p-offset,d,int(-offset),int(size-offset)))
+        return views
+
+    def _unpack(self,feature,*,decode_native=True):
         f=np.asarray(feature)
         if f.dtype!=np.uint8 or f.shape!=(FEATURE_SIZE,):raise ValueError('Incompatible union template shape or dtype')
         magic,used,encoded,nq,ng=map(int,f[:HEADER].view('<i4'))
-        if (magic!=MAGIC or not HEADER+DUAL_SIZE<=used<=FEATURE_SIZE or not 0<=encoded<=used-HEADER-DUAL_SIZE
-                or not 0<=nq<=MAX_VIEWS or ng not in (0,2) or bool(nq)!=bool(ng)):
+        if (magic!=self.magic or not HEADER+DUAL_SIZE<=used<=FEATURE_SIZE or not 0<=encoded<=used-HEADER-DUAL_SIZE
+                or not 0<=nq<=MAX_VIEWS or ng not in (0,2)
+                or (bool(nq)!=bool(ng) and not (self.allow_gallery_only and nq==0 and ng==2))):
             raise ValueError('Invalid union header')
         legacy=f[HEADER:HEADER+DUAL_SIZE];primary,secondary=self.legacy._views(legacy)
         pos=HEADER+DUAL_SIZE;native=None
@@ -100,9 +109,10 @@ class FastCCWindowUnionMatcher:
             if (encoded<24 or bytes(data[:8])!=b'\x89PNG\r\n\x1a\n'
                     or (int.from_bytes(data[16:20].tobytes(),'big'),int.from_bytes(data[20:24].tobytes(),'big'))!=primary[3]):
                 raise ValueError('Native PNG dimensions mismatch')
-            native=cv2.imdecode(data,cv2.IMREAD_GRAYSCALE)
-            if native is None or native.shape!=primary[3][::-1]:raise ValueError('Invalid native PNG')
-        if nq and native is None:raise ValueError('Missing native pixels')
+            if decode_native:
+                native=cv2.imdecode(data,cv2.IMREAD_GRAYSCALE)
+                if native is None or native.shape!=primary[3][::-1]:raise ValueError('Invalid native PNG')
+        if nq and not encoded:raise ValueError('Missing native pixels')
         pos+=encoded;views=[]
         for index in range(ng+nq):
             if pos+88>used:raise ValueError('Truncated union view')
@@ -120,23 +130,73 @@ class FastCCWindowUnionMatcher:
         return legacy,primary,secondary,native,views[:ng],views[ng:]
 
     def match(self,probe,candidate):
-        left,a,_,native,_,queries=self._unpack(probe)
-        right,b,bs,_,coarse,_=self._unpack(candidate)
-        score=self.legacy.match(left,right)
+        return self._match_unpacked(self._unpack(probe),self._unpack(candidate,decode_native=False))
+
+    def match_with_diagnostics(self,probe,candidate):
+        details=[]
+        score=self._match_unpacked(self.prepare_probe(probe),self._unpack(candidate,decode_native=False),details)
+        winner=min((r for r in details if 'score' in r),key=lambda r:r['score'])
+        return dict(score=score,winner=winner,attempts=details)
+
+    def _accept_alignment(self,primary,mapped):
+        return True
+
+    def _match_unpacked(self,query,target,details=None):
+        left,a,_,native,_,queries=query
+        right,b,bs,_,coarse,_=target
+        # Both parts were already validated while unpacking; do not parse the
+        # 1.6MB legacy envelope again for every candidate.
+        score=self.legacy._match_parts(a,b,[(query[2],bs)])
+        if details is not None:details.append(dict(branch='legacy_v2',score=score,aligned_quad=None))
         gallery={0:(b[4],b[5]),2:bs,**{s:(p,d) for s,_,p,d in coarse}}
         corners=np.asarray([[0,0,1],[128,0,1],[128,128,1],[0,128,1]])
-        for sigma,source,p,d in queries:
+        for index,(sigma,source,p,d) in enumerate(queries):
+            entry=dict(branch='union',view_index=index,sigma=sigma,source_matrix=source.tolist())
             if sigma not in gallery:continue
             transform=registration((p,d),gallery[sigma])
-            if transform is None:continue
+            if transform is None:
+                if details is not None:details.append(dict(entry,rejected='correspondence_or_geometry'))
+                continue
             warp=np.diag([1/3,1/3,1])@transform@source
             mapped=corners@np.linalg.inv(warp).T;mapped=mapped[:,:2]/mapped[:,2:]
             if (not np.isfinite(mapped).all() or (mapped<1).any() or (mapped[:,0]>=native.shape[1]-1).any()
-                    or (mapped[:,1]>=native.shape[0]-1).any()):continue
+                    or (mapped[:,1]>=native.shape[0]-1).any()):
+                if details is not None:details.append(dict(entry,rejected='sampling_bounds'))
+                continue
+            if not self._accept_alignment(a,mapped):
+                if details is not None:details.append(dict(entry,rejected='disjoint_aligned_region',aligned_quad=mapped.tolist()))
+                continue
             pixels=normalize_roi(cv2.warpPerspective(native,warp,(128,128)))[0]
-            score=min(score,float(self.base.match(self.base.extract(pixels),b[0][0].astype(bool))))
+            distance=float(self.base.match(self.base.extract(pixels),b[0][0].astype(bool)))
+            score=min(score,distance)
+            if details is not None:details.append(dict(entry,score=distance,aligned_quad=mapped.tolist()))
         return score
 
     def score_enrollment(self,probe,enrolled):
         if not len(enrolled):raise ValueError('At least one enrollment feature is required')
-        return float(np.mean(sorted(self.match(probe,f) for f in enrolled)[:2]))
+        query=self._unpack(probe)
+        return float(np.mean(sorted(self._match_unpacked(query,self._unpack(f,decode_native=False)) for f in enrolled)[:2]))
+
+    def prepare_probe(self,probe):
+        return self._unpack(probe)
+
+    def prepare_enrollment(self,enrolled):
+        prepared=[]
+        for f in enrolled:
+            _,b,bs,_,coarse,_=self._unpack(f,decode_native=False)
+            # Gallery matching needs neither native PNG nor query hypotheses.
+            # Copies release the large original packed arrays after loading.
+            compact=(b[0].copy(),None,None,b[3],b[4].copy(),b[5].copy())
+            prepared.append((None,compact,tuple(x.copy() for x in bs),None,
+                             [(s,m.copy(),p.copy(),d.copy()) for s,m,p,d in coarse],[]))
+        return prepared
+
+    @staticmethod
+    def prepared_bytes(value):
+        if isinstance(value,np.ndarray):return value.nbytes
+        if isinstance(value,(list,tuple)):return sum(FastCCWindowUnionMatcher.prepared_bytes(x) for x in value)
+        return 0
+
+    def score_prepared(self,probe,enrolled):
+        if not enrolled:raise ValueError('At least one enrollment feature is required')
+        return float(np.mean(sorted(self._match_unpacked(probe,f) for f in enrolled)[:2]))
