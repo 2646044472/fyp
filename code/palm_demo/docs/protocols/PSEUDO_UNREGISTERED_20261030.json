@@ -1,0 +1,781 @@
+{
+  "complete": true,
+  "baseline_sha256": "f9e9b39a8d37085318dd089309d975acec19ef1b5a826d813ae1f54af8828a09",
+  "selection_sha256": "6b3e53f2edf72711539503bc465d2ae71916da49069a0470811fc005a9f0f889",
+  "warning": "Fixed-development pseudo-unregistered HTTP diagnostic; no threshold tuning.\n\nNew isolated runtime and matcher per removal group, so no full-gallery search\ncache survives. Same-hand-only removal is reported separately from whole-person.\nThis is not independent stranger FAR. Source images/templates are unchanged.\n",
+  "threshold": 1.0,
+  "min_margin": 0.0,
+  "source_templates_unchanged": true,
+  "normal_full168": {
+    "count": 168,
+    "p50_ms": 1540.17,
+    "p95_ms": 6019.318500000008,
+    "max_ms": 15225.0,
+    "correct_accept": 164,
+    "wrong_accept": 4,
+    "rejected": 0,
+    "correct_within_2500": 146
+  },
+  "modes": {
+    "whole_person": {
+      "count": 6,
+      "p50_ms": 8312.435,
+      "p95_ms": 16144.115,
+      "max_ms": 16361.35,
+      "accepted": 6,
+      "rejected": 0,
+      "correct_hand_identification": 0
+    },
+    "same_hand_only": {
+      "count": 6,
+      "p50_ms": 8239.545,
+      "p95_ms": 15951.912499999999,
+      "max_ms": 18085.89,
+      "accepted": 6,
+      "rejected": 0,
+      "correct_hand_identification": 0
+    }
+  },
+  "groups": [
+    {
+      "case": "new-camera-original",
+      "mode": "whole_person",
+      "key": "billy",
+      "removed": [
+        "new-camera-billy-left",
+        "new-camera-billy-right"
+      ],
+      "retained": [
+        "new-camera-bankey-left",
+        "new-camera-bankey-right",
+        "new-camera-stephen-left",
+        "new-camera-stephen-right"
+      ],
+      "initialization_and_ready_ms": 15781.909366996842,
+      "startup": {
+        "generic_model_startup_ms": 1385.1029809957254,
+        "app_and_gallery_ms": 14333.735307998722,
+        "total_ms": 15718.857603998913,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261029T120016111983Z-a4677ec5",
+          "true_identity": "new-camera:billy:right",
+          "http_status": 200,
+          "http_ms": 4347.53,
+          "scores": {
+            "new-camera-bankey-left": 0.3876953125,
+            "new-camera-bankey-right": 0.3878370715725806,
+            "new-camera-stephen-left": 0.4013671875,
+            "new-camera-stephen-right": 0.40625
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.00014175907258062725,
+          "result": {
+            "status": "MATCH",
+            "score": 0.3876953125,
+            "second_score": 0.3878370715725806,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1424.1676620004,
+              "gallery": 2921.5512510054396,
+              "total": 4345.71891300584
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "new-camera-bankey-left",
+            "display_name": "EVAL new-camera:bankey:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "same_hand_only",
+      "key": "new-camera:billy:right",
+      "removed": [
+        "new-camera-billy-right"
+      ],
+      "retained": [
+        "new-camera-bankey-left",
+        "new-camera-bankey-right",
+        "new-camera-billy-left",
+        "new-camera-stephen-left",
+        "new-camera-stephen-right"
+      ],
+      "initialization_and_ready_ms": 16970.693527997355,
+      "startup": {
+        "generic_model_startup_ms": 1344.1690540057607,
+        "app_and_gallery_ms": 15562.304828003107,
+        "total_ms": 16906.497511001362,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261029T120016111983Z-a4677ec5",
+          "true_identity": "new-camera:billy:right",
+          "http_status": 200,
+          "http_ms": 4219.26,
+          "scores": {
+            "new-camera-bankey-left": 0.3876953125,
+            "new-camera-bankey-right": 0.3878370715725806,
+            "new-camera-billy-left": 0.3836000504032258,
+            "new-camera-stephen-left": 0.4013671875,
+            "new-camera-stephen-right": 0.40625
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.004095262096774188,
+          "result": {
+            "status": "MATCH",
+            "score": 0.3836000504032258,
+            "second_score": 0.3876953125,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1249.405865004519,
+              "gallery": 2968.2812449973426,
+              "total": 4217.687110001862
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "new-camera-billy-left",
+            "display_name": "EVAL new-camera:billy:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "whole_person",
+      "key": "bankey",
+      "removed": [
+        "new-camera-bankey-left",
+        "new-camera-bankey-right"
+      ],
+      "retained": [
+        "new-camera-billy-left",
+        "new-camera-billy-right",
+        "new-camera-stephen-left",
+        "new-camera-stephen-right"
+      ],
+      "initialization_and_ready_ms": 10617.761198001972,
+      "startup": {
+        "generic_model_startup_ms": 1351.7873410019092,
+        "app_and_gallery_ms": 9201.305162001518,
+        "total_ms": 10553.109743006644,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261020T165422041006Z-fbfa000c",
+          "true_identity": "new-camera:bankey:right",
+          "http_status": 200,
+          "http_ms": 15492.41,
+          "scores": {
+            "new-camera-billy-left": 0.38720703125,
+            "new-camera-billy-right": 0.3973214285714286,
+            "new-camera-stephen-left": 0.380859375,
+            "new-camera-stephen-right": 0.3837890625
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.0029296875,
+          "result": {
+            "status": "MATCH",
+            "score": 0.380859375,
+            "second_score": 0.3837890625,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1125.988467996649,
+              "gallery": 14364.683697000146,
+              "total": 15490.672164996795
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "new-camera-stephen-left",
+            "display_name": "EVAL new-camera:stephen:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "same_hand_only",
+      "key": "new-camera:bankey:right",
+      "removed": [
+        "new-camera-bankey-right"
+      ],
+      "retained": [
+        "new-camera-bankey-left",
+        "new-camera-billy-left",
+        "new-camera-billy-right",
+        "new-camera-stephen-left",
+        "new-camera-stephen-right"
+      ],
+      "initialization_and_ready_ms": 14567.577522997453,
+      "startup": {
+        "generic_model_startup_ms": 1374.6838360020774,
+        "app_and_gallery_ms": 13126.477862999309,
+        "total_ms": 14501.179903003504,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261020T165422041006Z-fbfa000c",
+          "true_identity": "new-camera:bankey:right",
+          "http_status": 200,
+          "http_ms": 18085.89,
+          "scores": {
+            "new-camera-bankey-left": 0.37646484375,
+            "new-camera-billy-left": 0.38720703125,
+            "new-camera-billy-right": 0.3973214285714286,
+            "new-camera-stephen-left": 0.380859375,
+            "new-camera-stephen-right": 0.3837890625
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.00439453125,
+          "result": {
+            "status": "MATCH",
+            "score": 0.37646484375,
+            "second_score": 0.380859375,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1151.4367530035088,
+              "gallery": 16931.906407997303,
+              "total": 18083.343161000812
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "new-camera-bankey-left",
+            "display_name": "EVAL new-camera:bankey:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person",
+      "key": "xyt",
+      "removed": [
+        "old-camera-xyt-left",
+        "old-camera-xyt-right"
+      ],
+      "retained": [
+        "old-camera-bankey-10-12-left",
+        "old-camera-bankey-10-12-right",
+        "old-camera-cyw-real-left",
+        "old-camera-cyw-real-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right"
+      ],
+      "initialization_and_ready_ms": 24220.651662995806,
+      "startup": {
+        "generic_model_startup_ms": 1386.9789559976198,
+        "app_and_gallery_ms": 22765.724506003608,
+        "total_ms": 24152.722443999664,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261013T111553178583Z-61f30739",
+          "true_identity": "old-camera:xyt:right",
+          "http_status": 200,
+          "http_ms": 16361.35,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.4148809523809524,
+            "old-camera-bankey-10-12-right": 0.4035972253837149,
+            "old-camera-cyw-real-left": 0.39773938635520945,
+            "old-camera-cyw-real-right": 0.389346918202765,
+            "old-camera-kss-left": 0.40085197710718,
+            "old-camera-kss-right": 0.396484375,
+            "old-camera-stephen-10-13-left": 0.3740234375,
+            "old-camera-stephen-10-13-right": 0.4012411794354839,
+            "old-camera-syr-right": 0.40788690476190476
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.015323480702765013,
+          "result": {
+            "status": "MATCH",
+            "score": 0.3740234375,
+            "second_score": 0.389346918202765,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1455.2965969996876,
+              "gallery": 14902.428009998403,
+              "total": 16357.72460699809
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-stephen-10-13-left",
+            "display_name": "EVAL old-camera:stephen-10-13:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        },
+        {
+          "sample": "20261013T111555214120Z-8d6441d2",
+          "true_identity": "old-camera:xyt:right",
+          "http_status": 200,
+          "http_ms": 8386.72,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.41459803427419356,
+            "old-camera-bankey-10-12-right": 0.38916015625,
+            "old-camera-cyw-real-left": 0.38988470262096775,
+            "old-camera-cyw-real-right": 0.3828125,
+            "old-camera-kss-left": 0.4047726640711902,
+            "old-camera-kss-right": 0.37472098214285715,
+            "old-camera-stephen-10-13-left": 0.38356854838709675,
+            "old-camera-stephen-10-13-right": 0.375,
+            "old-camera-syr-right": 0.403679435483871
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.0002790178571428492,
+          "result": {
+            "status": "MATCH",
+            "score": 0.37472098214285715,
+            "second_score": 0.375,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1429.8096519996761,
+              "gallery": 6955.298335000407,
+              "total": 8385.107987000083
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-right",
+            "display_name": "EVAL old-camera:kss:right",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 1
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "same_hand_only",
+      "key": "old-camera:xyt:right",
+      "removed": [
+        "old-camera-xyt-right"
+      ],
+      "retained": [
+        "old-camera-bankey-10-12-left",
+        "old-camera-bankey-10-12-right",
+        "old-camera-cyw-real-left",
+        "old-camera-cyw-real-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right",
+        "old-camera-xyt-left"
+      ],
+      "initialization_and_ready_ms": 31402.92159099772,
+      "startup": {
+        "generic_model_startup_ms": 1557.6456250055344,
+        "app_and_gallery_ms": 29782.34578799311,
+        "total_ms": 31340.010117004567,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261013T111553178583Z-61f30739",
+          "true_identity": "old-camera:xyt:right",
+          "http_status": 200,
+          "http_ms": 9549.98,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.4148809523809524,
+            "old-camera-bankey-10-12-right": 0.4035972253837149,
+            "old-camera-cyw-real-left": 0.39773938635520945,
+            "old-camera-cyw-real-right": 0.389346918202765,
+            "old-camera-kss-left": 0.40085197710718,
+            "old-camera-kss-right": 0.396484375,
+            "old-camera-stephen-10-13-left": 0.3740234375,
+            "old-camera-stephen-10-13-right": 0.4012411794354839,
+            "old-camera-syr-right": 0.40788690476190476,
+            "old-camera-xyt-left": 0.3949229250672043
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.015323480702765013,
+          "result": {
+            "status": "MATCH",
+            "score": 0.3740234375,
+            "second_score": 0.389346918202765,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1432.6194489985937,
+              "gallery": 8115.72809000063,
+              "total": 9548.347538999224
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-stephen-10-13-left",
+            "display_name": "EVAL old-camera:stephen-10-13:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        },
+        {
+          "sample": "20261013T111555214120Z-8d6441d2",
+          "true_identity": "old-camera:xyt:right",
+          "http_status": 200,
+          "http_ms": 8748.99,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.41459803427419356,
+            "old-camera-bankey-10-12-right": 0.38916015625,
+            "old-camera-cyw-real-left": 0.38988470262096775,
+            "old-camera-cyw-real-right": 0.3828125,
+            "old-camera-kss-left": 0.4047726640711902,
+            "old-camera-kss-right": 0.37472098214285715,
+            "old-camera-stephen-10-13-left": 0.38356854838709675,
+            "old-camera-stephen-10-13-right": 0.375,
+            "old-camera-syr-right": 0.403679435483871,
+            "old-camera-xyt-left": 0.38037109375
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.0002790178571428492,
+          "result": {
+            "status": "MATCH",
+            "score": 0.37472098214285715,
+            "second_score": 0.375,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1432.7605220023543,
+              "gallery": 7314.766777999466,
+              "total": 8747.52730000182
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-right",
+            "display_name": "EVAL old-camera:kss:right",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 1
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person",
+      "key": "cyw-real",
+      "removed": [
+        "old-camera-cyw-real-left",
+        "old-camera-cyw-real-right"
+      ],
+      "retained": [
+        "old-camera-bankey-10-12-left",
+        "old-camera-bankey-10-12-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right",
+        "old-camera-xyt-left",
+        "old-camera-xyt-right"
+      ],
+      "initialization_and_ready_ms": 25580.01531800255,
+      "startup": {
+        "generic_model_startup_ms": 1372.330067002622,
+        "app_and_gallery_ms": 24144.189550999727,
+        "total_ms": 25516.53826599795,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261013T111358589224Z-37d0c433",
+          "true_identity": "old-camera:cyw-real:left",
+          "http_status": 200,
+          "http_ms": 7502.31,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.4054754849137931,
+            "old-camera-bankey-10-12-right": 0.41217672413793105,
+            "old-camera-kss-left": 0.345703125,
+            "old-camera-kss-right": 0.404296875,
+            "old-camera-stephen-10-13-left": 0.3844201890989989,
+            "old-camera-stephen-10-13-right": 0.39294181034482756,
+            "old-camera-syr-right": 0.3941532258064516,
+            "old-camera-xyt-left": 0.360871345766129,
+            "old-camera-xyt-right": 0.39333417338709675
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.015168220766129004,
+          "result": {
+            "status": "MATCH",
+            "score": 0.345703125,
+            "second_score": 0.360871345766129,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1517.5905360010802,
+              "gallery": 5983.236690997728,
+              "total": 7500.827226998808
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-left",
+            "display_name": "EVAL old-camera:kss:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "same_hand_only",
+      "key": "old-camera:cyw-real:left",
+      "removed": [
+        "old-camera-cyw-real-left"
+      ],
+      "retained": [
+        "old-camera-bankey-10-12-left",
+        "old-camera-bankey-10-12-right",
+        "old-camera-cyw-real-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right",
+        "old-camera-xyt-left",
+        "old-camera-xyt-right"
+      ],
+      "initialization_and_ready_ms": 27359.048067002732,
+      "startup": {
+        "generic_model_startup_ms": 1354.9798800013377,
+        "app_and_gallery_ms": 25938.99548600166,
+        "total_ms": 27293.993273000524,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261013T111358589224Z-37d0c433",
+          "true_identity": "old-camera:cyw-real:left",
+          "http_status": 200,
+          "http_ms": 7730.1,
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.4054754849137931,
+            "old-camera-bankey-10-12-right": 0.41217672413793105,
+            "old-camera-cyw-real-right": 0.3967453917050691,
+            "old-camera-kss-left": 0.345703125,
+            "old-camera-kss-right": 0.404296875,
+            "old-camera-stephen-10-13-left": 0.3844201890989989,
+            "old-camera-stephen-10-13-right": 0.39294181034482756,
+            "old-camera-syr-right": 0.3941532258064516,
+            "old-camera-xyt-left": 0.360871345766129,
+            "old-camera-xyt-right": 0.39333417338709675
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.015168220766129004,
+          "result": {
+            "status": "MATCH",
+            "score": 0.345703125,
+            "second_score": 0.360871345766129,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1602.554938996036,
+              "gallery": 6126.031651998346,
+              "total": 7728.586590994382
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-left",
+            "display_name": "EVAL old-camera:kss:left",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person",
+      "key": "bankey",
+      "removed": [
+        "old-camera-bankey-10-12-left",
+        "old-camera-bankey-10-12-right"
+      ],
+      "retained": [
+        "old-camera-cyw-real-left",
+        "old-camera-cyw-real-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right",
+        "old-camera-xyt-left",
+        "old-camera-xyt-right"
+      ],
+      "initialization_and_ready_ms": 27437.74012900394,
+      "startup": {
+        "generic_model_startup_ms": 1593.3674950065324,
+        "app_and_gallery_ms": 25778.999971000303,
+        "total_ms": 27372.38439200155,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261012T124958024176Z-98185319",
+          "true_identity": "old-camera:bankey-10-12:left",
+          "http_status": 200,
+          "http_ms": 8238.15,
+          "scores": {
+            "old-camera-cyw-real-left": 0.39816810344827586,
+            "old-camera-cyw-real-right": 0.39567169540229885,
+            "old-camera-kss-left": 0.40885416666666663,
+            "old-camera-kss-right": 0.38733451354679804,
+            "old-camera-stephen-10-13-left": 0.3881042179802956,
+            "old-camera-stephen-10-13-right": 0.41129557291666663,
+            "old-camera-syr-right": 0.3878024193548387,
+            "old-camera-xyt-left": 0.38894127155172414,
+            "old-camera-xyt-right": 0.4041333128078818
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.0004679058080406806,
+          "result": {
+            "status": "MATCH",
+            "score": 0.38733451354679804,
+            "second_score": 0.3878024193548387,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 3434.4309369989787,
+              "gallery": 4802.061496004171,
+              "total": 8236.49243300315
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-right",
+            "display_name": "EVAL old-camera:kss:right",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "same_hand_only",
+      "key": "old-camera:bankey-10-12:left",
+      "removed": [
+        "old-camera-bankey-10-12-left"
+      ],
+      "retained": [
+        "old-camera-bankey-10-12-right",
+        "old-camera-cyw-real-left",
+        "old-camera-cyw-real-right",
+        "old-camera-kss-left",
+        "old-camera-kss-right",
+        "old-camera-stephen-10-13-left",
+        "old-camera-stephen-10-13-right",
+        "old-camera-syr-right",
+        "old-camera-xyt-left",
+        "old-camera-xyt-right"
+      ],
+      "initialization_and_ready_ms": 35842.201717001444,
+      "startup": {
+        "generic_model_startup_ms": 6900.309513002867,
+        "app_and_gallery_ms": 28879.08834099653,
+        "total_ms": 35779.41616799944,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      },
+      "fresh_matcher": true,
+      "threshold": 1.0,
+      "min_margin": 0.0,
+      "transactions_unchanged": true,
+      "queries": [
+        {
+          "sample": "20261012T124958024176Z-98185319",
+          "true_identity": "old-camera:bankey-10-12:left",
+          "http_status": 200,
+          "http_ms": 6248.62,
+          "scores": {
+            "old-camera-bankey-10-12-right": 0.3936491935483871,
+            "old-camera-cyw-real-left": 0.39816810344827586,
+            "old-camera-cyw-real-right": 0.39567169540229885,
+            "old-camera-kss-left": 0.40885416666666663,
+            "old-camera-kss-right": 0.38733451354679804,
+            "old-camera-stephen-10-13-left": 0.3881042179802956,
+            "old-camera-stephen-10-13-right": 0.41129557291666663,
+            "old-camera-syr-right": 0.3878024193548387,
+            "old-camera-xyt-left": 0.38894127155172414,
+            "old-camera-xyt-right": 0.4041333128078818
+          },
+          "correct_identification": false,
+          "accepted": true,
+          "gap": 0.0004679058080406806,
+          "result": {
+            "status": "MATCH",
+            "score": 0.38733451354679804,
+            "second_score": 0.3878024193548387,
+            "reason": null,
+            "roi_source": "pklnet",
+            "timing_ms": {
+              "capture_and_extract": 1457.5160879976465,
+              "gallery": 4789.247715001693,
+              "total": 6246.7638029993395
+            },
+            "recognition_route": "exhaustive_fallback",
+            "user_id": "old-camera-kss-right",
+            "display_name": "EVAL old-camera:kss:right",
+            "amount_cents": 2000
+          },
+          "request_index_in_fresh_group": 0
+        }
+      ]
+    }
+  ]
+}
