@@ -198,6 +198,18 @@ cost, not the remaining hard-query tail. Power flags remained zero.
 
 205 tests passed, four optional skips (same obsolete-test exclusion).
 
+Two further **unadopted offline screens** reused the existing auxiliary ROI
+codes without changing thresholds. Across 1,926 non-confident primary-pose
+queries from the same 224 splits, comparing query poses against auxiliary
+gallery codes gave 407 confident results; comparing auxiliary query codes
+against primary gallery codes gave 433. Neither screen had a wrong confident
+result on this development cohort, but **neither rescued any v24 complete
+fallback**. They therefore do not solve the current tail and are not integrated.
+These screens have no Pi timing or independent validation. Evidence:
+`gallery-pose-screen.json`, `query-pose-screen.json`. The next relevant
+experiment is staged auxiliary-ROI geometric registration, with full fallback
+and fixed guards retained; direct code comparison alone was insufficient.
+
 ### Capacity and independent validation (still pending)
 
 Neither four palm identities nor repeated development splits establish
