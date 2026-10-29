@@ -10,6 +10,7 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+import subprocess
 import time
 import cv2
 import numpy as np
@@ -25,6 +26,7 @@ def main():
     parser.add_argument('--native-registration',type=Path)
     parser.add_argument('--native-threads',type=int,choices=(1,2,4),default=4)
     parser.add_argument('--warm-model',action='store_true',help='Prime the model at startup on zeros, counted in startup time')
+    parser.add_argument('--record-power',action='store_true',help='Record Pi power/temperature after each timed request')
     args=parser.parse_args()
     # Only the documented replay layout is supported, never a bare production runtime.
     summary=json.loads((args.replay/'summary.json').read_text())
@@ -47,6 +49,10 @@ def main():
         enable_native_registration(app.demo_algorithm,args.native_registration,args.native_threads)
     result=dict(host=platform.node(),matcher=summary['matcher'],startup_s=time.perf_counter()-start,
                 model_primed=args.warm_model,live_camera_tested=False,passes=[])
+    result['timing_scope'] = dict(included=['saved-image input', 'preprocessing', 'ROI', 'features',
+        'retrieval', 'registration', 'scoring', 'loopback HTTP response'],
+        excluded=['live camera capture', 'external image upload'],
+        queue='Measured separately by concurrent_requests', acceptance_budget_ms=2500)
     result['native_registration']=None if args.native_registration is None else dict(
         path=str(args.native_registration),sha256=hashlib.sha256(args.native_registration.read_bytes()).hexdigest(),threads=args.native_threads)
     result['input_manifest_sha256']=hashlib.sha256((args.replay/'input-manifest.json').read_bytes()).hexdigest()
@@ -59,10 +65,16 @@ def main():
                 elapsed=trace[-1]['ms'];response.pop('roi_image',None)
                 correct=correct_identification(dict(http_status=status,result=response,identity=row['identity']))
                 trials.append(dict(sample=row['sample'],status=status,correct=correct,ms=elapsed,result=response))
+                if args.record_power:
+                    trials[-1]['power_after_request'] = {key: subprocess.run(
+                        ['vcgencmd', key], capture_output=True, text=True, timeout=3).stdout.strip()
+                        for key in ('get_throttled', 'measure_temp')}
                 if response.get('token'):request('/api/demo/cancel',dict(token=response['token']),200)
             times=[t['ms'] for t in trials]
             result['passes'].append(dict(label=label,n=len(trials),correct=sum(t['correct'] for t in trials),
                 correct_within_2s=sum(t['correct'] and t['ms']<=2000 for t in trials),median_ms=float(np.median(times)),
+                correct_within_2_5s=sum(t['correct'] and t['ms']<=2500 for t in trials),
+                over_2_5s=sum(t['ms']>2500 for t in trials),
                 p95_ms=float(np.percentile(times,95)),max_ms=max(times),first_ms=times[0],trials=trials))
             save_json(args.output,result)
             print(label,result['passes'][-1]['median_ms'],flush=True)

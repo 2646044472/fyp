@@ -72,7 +72,8 @@ exceptions. The existing 224 splits are correlated regression evidence only.
 
 The already-tested MediaPipe control detected 22/40 new images (19/40 with
 grayscale), so merely replacing PKLNet with that detector is not acceptable.
-The low-resolution pilot is pending; no speed or accuracy result is claimed yet.
+Subsequent low-resolution and backend results are documented in
+[PI5_ROI_BACKEND_EXPERIMENTS.md](PI5_ROI_BACKEND_EXPERIMENTS.md).
 
 ## Reproduction and private evidence
 
