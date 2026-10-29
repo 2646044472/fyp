@@ -10,6 +10,8 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+import os
+import random
 import subprocess
 import time
 import cv2
@@ -44,6 +46,7 @@ def main():
     parser.add_argument('--abort-on-power-fault',action='store_true',help='Stop after saving evidence if Pi reports current or historical throttle/undervoltage flags')
     parser.add_argument('--opencv-threads',type=int,default=4)
     parser.add_argument('--onnx-threads',type=int,default=4)
+    parser.add_argument('--query-order-seed',type=int,help='Reproducible shuffled query order; all queries are still measured')
     args=parser.parse_args()
     # Only the documented replay layout is supported, never a bare production runtime.
     summary=json.loads((args.replay/'summary.json').read_text())
@@ -56,6 +59,8 @@ def main():
         save_json(args.output, dict(aborted_power_fault=preflight, passes=[]))
         raise RuntimeError('Power/throttle fault before startup: '+str(preflight))
     queries=[r for r in sorted(rows,key=lambda r:(r['identity'],r['index'])) if r['index']>5]
+    if args.query_order_seed is not None:
+        random.Random(args.query_order_seed).shuffle(queries)
     cv2.setNumThreads(args.opencv_threads)
     start=time.perf_counter()
     model_root = summary.get('localizer_root')
@@ -75,6 +80,13 @@ def main():
     result=dict(host=platform.node(),matcher=summary['matcher'],startup_s=time.perf_counter()-start,
                 model_primed=args.warm_model,live_camera_tested=False,passes=[])
     result['thread_settings']=dict(opencv=args.opencv_threads,onnx=args.onnx_threads,native=args.native_threads)
+    result['query_order_seed']=args.query_order_seed
+    result['cpu_affinity']=sorted(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else None
+    result['opencv_version']=cv2.__version__
+    app_root=Path(__file__).resolve().parents[1]
+    result['runtime_code_sha256']={name:hashlib.sha256((app_root/name).read_bytes()).hexdigest()
+        for name in ('affine_enrollment_matcher.py','linked_enrollment_matcher.py','staged_index_matcher.py',
+                     'native_registration.py','pklnet_roi.py','tools/replay_ready_queries.py') if (app_root/name).exists()}
     result['power_before_startup']=preflight
     result['enrollment_reused_from']=summary.get('enrollment_reused_from')
     result['timing_scope'] = dict(included=['saved-image input', 'preprocessing', 'ROI', 'features',

@@ -51,7 +51,7 @@ class StagedIndexMatcher(GuardedIndexMatcher):
             linked(probe,groups,pairs)
             scores=aggregate()
             if self.confident(scores):
-                probe.route='enrollment_link_confident'
+                probe.route=getattr(probe,'link_stage_route','enrollment_link_confident')
                 return scores
         with self._index_lock:
             if self._index is not None:

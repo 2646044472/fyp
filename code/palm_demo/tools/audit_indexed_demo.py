@@ -19,8 +19,9 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--smoke', action='store_true', help='Only original/reverse; not the full split audit')
     parser.add_argument('--cache-exhaustive-pairs', action='store_true', help='Offline only: reuse exact frozen query/gallery pair scores across splits; timings are not latency')
+    parser.add_argument('--cache-registration', action='store_true', help='Offline only: memoize deterministic registration on SHA-checked frozen descriptor arrays')
     parser.add_argument('--matcher', default='FastCCIndexed-v7-experimental',
-                        choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental','FastCCLinkedEnrollment-v12-experimental'])
+                        choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental','FastCCLinkedEnrollment-v12-experimental','FastCCAffineEnrollment-v13-experimental'])
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     base = args.root/'single-device'
@@ -30,13 +31,42 @@ def main():
         cases = [c for c in cases if c['case'].endswith(('_original','_reverse'))]
     lookup = {r['sample']:i for i,r in enumerate(rows)}
     algorithm = load_algorithm(APP/'vendor/palmprint-recognition-python',args.matcher)
+    registration_caches = []
+    if args.cache_registration:
+        if not args.cache_exhaustive_pairs:
+            raise ValueError('Registration reuse is only supported in the offline cached audit')
+        def memoized(function):
+            cache = {}
+            registration_caches.append(cache)
+            def call(left, right, *extra):
+                digest = hashlib.sha256()
+                for array in (*left, *right):
+                    a = np.asarray(array)
+                    digest.update(str((a.shape, a.dtype.str)).encode())
+                    digest.update(a.tobytes())
+                if extra and extra[0] is not None:
+                    pairs = extra[0](left[1], right[1])
+                    digest.update(np.asarray(pairs, dtype='<i8').tobytes())
+                    extra = (lambda a, b: pairs,)
+                key = digest.digest()
+                if key not in cache:
+                    value = function(left, right, *extra)
+                    cache[key] = None if value is None else value.copy()
+                return None if cache[key] is None else cache[key].copy()
+            return call
+        cached = memoized(algorithm.registration)
+        algorithm.registration = algorithm.legacy.registration = cached
+        if args.matcher == 'FastCCAffineEnrollment-v13-experimental':
+            algorithm._correspondences = memoized(algorithm._correspondences)
+            import affine_enrollment_matcher
+            affine_enrollment_matcher.affine_registration = memoized(affine_enrollment_matcher.affine_registration)
     protocol = dict(algorithm=algorithm.name, code_sha256=hashlib.sha256((APP/'indexed_demo_matcher.py').read_bytes()).hexdigest(),
-                    exhaustive_pair_cache=args.cache_exhaustive_pairs,
+                    exhaustive_pair_cache=args.cache_exhaustive_pairs, registration_cache=args.cache_registration,
                     development_images=80, independent_holdout=False, parameters_selected_on_development=True,
                     cases=len(cases), source='unchanged v5 localization and enrollment descriptors; no query identity in extraction/matching',
                     limitation='Cached geometry/descriptor audit; not a live end-to-end latency measurement')
     protocol['source_sha256'] = {name:hashlib.sha256((APP/name).read_bytes()).hexdigest()
-        for name in ('indexed_demo_matcher.py','proposed_index_matcher.py','guarded_index_matcher.py','staged_index_matcher.py','linked_enrollment_matcher.py','registration_accelerated.py',
+        for name in ('indexed_demo_matcher.py','proposed_index_matcher.py','guarded_index_matcher.py','staged_index_matcher.py','linked_enrollment_matcher.py','affine_enrollment_matcher.py','registration_accelerated.py',
                      'registered_matcher.py','fastcc_accelerated.py') if (APP/name).exists()}
     (args.output/'protocol.json').write_text(json.dumps(protocol,indent=2))
     gallery, probes = [], []
@@ -99,7 +129,7 @@ def main():
                if (values:=[r['correct'] for r in results if r['case'].startswith(cohort+'_')])}
     (args.output/'summary.json').write_text(json.dumps(summary,indent=2))
     (args.output/'pair-cache.json').write_text(json.dumps(dict(enabled=args.cache_exhaustive_pairs,
-        pairs=len(pair_cache), offline_only=True, runtime_query_cache=False),indent=2))
+        pairs=len(pair_cache), registration_pairs=[len(c) for c in registration_caches], offline_only=True, runtime_query_cache=False),indent=2))
     print(json.dumps(summary),flush=True)
 
 
