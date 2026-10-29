@@ -55,6 +55,30 @@ def test_gallery_links_never_cross_users_and_rebuild_after_gallery_change(monkey
     count=len(seen)
     algorithm.prepare_gallery(groups)
     assert len(seen)==count
+    old_b=algorithm._links['b',0]
     groups['a']=[sample(3),sample(4)]
     algorithm.prepare_gallery(groups)
     assert (3,4) in seen and (4,3) in seen
+    assert len(seen)==count+4
+    assert algorithm._links['b',0] is old_b
+    # A newly assembled list of the exact same immutable samples is reusable.
+    groups={u:list(samples) for u,samples in groups.items()}
+    algorithm.prepare_gallery(groups)
+    assert len(seen)==count+4
+    # Adding a user computes only within that new user's templates.
+    groups['c']=[sample(30),sample(40)]
+    algorithm.prepare_gallery(groups)
+    assert len(seen)==count+8
+    assert set(seen[-4:])=={(30,40),(40,30)}
+    # Ordering is part of the key: edges must address the new template indices.
+    groups['b']=list(reversed(groups['b']))
+    algorithm.prepare_gallery(groups)
+    assert len(seen)==count+12
+    removed=groups.pop('a')
+    algorithm.prepare_gallery(groups)
+    assert len(seen)==count+12
+    assert 'a' not in algorithm._link_sources
+    assert not any(user=='a' for user,index in algorithm._links)
+    groups['a']=removed
+    algorithm.prepare_gallery(groups)
+    assert len(seen)==count+16

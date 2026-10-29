@@ -56,6 +56,7 @@ def weighted_distances(query,gallery):
 class QualityEvidenceMatcher(PooledEnrollmentMatcher):
     name='FastCCQualityEvidence-v24-experimental'
     magic=2801064
+    template_compression_level=1
 
     def prepare_enrollment(self,features):
         prepared=super().prepare_enrollment(features)

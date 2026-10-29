@@ -142,7 +142,63 @@ No query sample was used for warmup; simulated transactions were unchanged.
 The model and cache preparation time is paid before the first query and must
 be displayed as startup preparation, not hidden in a claim of instant readiness.
 
-### Capacity and independent validation
+### Lossless enrollment-cost improvements
+
+Unchanged prepared identity snapshots now retain their within-identity links
+when another identity is registered. Snapshot order/replacement invalidates
+that identity only; removal evicts links and strong references. No query result
+or feature is cached. This does not yet make the global FLANN index incremental.
+Tests exercise addition, replacement, reordering, deletion and re-addition.
+The complete 224-split development audit remains 20/20 throughout, with exact
+per-identity score and route equality on all 4,480 queries against prior v24.
+Evidence: `quality-v24-link-cache-all/`.
+
+With link reuse alone, sequential new-device enrollment took
+47.264 / 44.764 / 45.416 / 48.561 s (identities 1 through 4), compared with
+47.206 / 45.849 / 47.392 / 51.338 s before. At identity four, last-frame-read
+to ready decreased from 20.193 to 17.446 s. All immediate queries were correct;
+the single-identity fallback still took 11.377 s. These are sequential runs,
+not an interleaved statistical latency study.
+
+An isolated Pi benchmark also compared standard lossless NPZ compression:
+eight writes/reads at each level across all four new-device templates, with
+forward/reverse level order and exact dtype/array equality on every read.
+Mean level-6 save/read: 3.398/0.357 s, 28.042 MB. Level 1: 2.210/0.317 s,
+29.372 MB (+4.7%). No compression: 1.924/0.080 s, 83.886 MB. The experimental
+v24 factory now opts into level 1; ordinary TemplateStore clients and production
+v6 keep the original default. Existing NPZ readers and template payloads are
+unchanged. The source templates were untouched. Evidence:
+`template-io-quality-v24.json`.
+
+Combined link reuse + level-1 compression, fresh Pi enrollment and immediate
+query (same fixed new-device images):
+
+| Gallery identities | Enrollment s | Last frame read to ready s | First query s |
+| --- | ---: | ---: | ---: |
+| 1 | 45.968 | 13.488 | 11.422 |
+| 2 | 43.099 | 12.573 | 1.134 |
+| 3 | 45.114 | 14.499 | 1.618 |
+| 4 | 47.434 | 16.235 | 2.382 |
+
+All four first queries were correct. Newly instrumented template save times
+were 2.536/1.385/2.271/2.414 s; prepare_enrollment was
+0.402/0.360/0.362/0.373 s. Total gallery preparation was
+2.880/3.582/4.508/5.675 s. At four identities the unchanged full index took
+4.011 s, and index plus the new identity's links took 4.984 s. Thus the former
+identity-dependent link rebuild growth is removed, but the full index still
+grows. Source hashes and overlapping stage events are retained in
+`quality-v24-on-site-link-cache-fastzip-new/result.json`.
+
+A fresh process still needed 1.375 s generic model startup and 13.588 s gallery
+rebuild, followed by a correct 1.833 s query. In-memory link reuse does not
+survive process restart. Reprofiling all three previously over-budget reversed
+queries twice retained exact reference scores/routes; the hard fallback still
+took 13.911 s on the second repetition. This optimization reduces registration
+cost, not the remaining hard-query tail. Power flags remained zero.
+
+205 tests passed, four optional skips (same obsolete-test exclusion).
+
+### Capacity and independent validation (still pending)
 
 Neither four palm identities nor repeated development splits establish
 40-person readiness. The current 256 MiB prepared-cache/index limits and

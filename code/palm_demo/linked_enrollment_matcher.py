@@ -35,7 +35,21 @@ class LinkedEnrollmentMatcher(StagedIndexMatcher):
             if getattr(self,'_link_key',None) == self._index_key:
                 return
             linked = {}
+            previous_sources = getattr(self, '_link_sources', {})
+            previous_links = getattr(self, '_links', {})
+            sources = {}
             for user,samples in groups.items():
+                # Prepared samples are immutable snapshots supplied by Gallery.
+                # Retain their objects, not just IDs, to prevent ID reuse. A new
+                # snapshot or order invalidates only this identity's links.
+                snapshot = tuple(samples)
+                sources[user] = snapshot
+                previous = previous_sources.get(user)
+                if (previous is not None and len(previous) == len(snapshot)
+                        and all(a is b for a,b in zip(previous,snapshot))):
+                    for i in range(len(samples)):
+                        linked[user,i] = previous_links[user,i]
+                    continue
                 for i,sample in enumerate(samples):
                     primary,secondary = sample[2]
                     edges = []
@@ -48,7 +62,8 @@ class LinkedEnrollmentMatcher(StagedIndexMatcher):
                             if transform is not None:
                                 edges.append((j,transform.copy()))
                     linked[(user,i)] = edges
-            self._links,self._link_key = linked,self._index_key
+            # Removed identities and their strong references are evicted here.
+            self._links,self._link_sources,self._link_key = linked,sources,self._index_key
 
     def score_gallery(self, probe, groups):
         probe.enrollment_direct = {}

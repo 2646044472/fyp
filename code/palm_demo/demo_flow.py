@@ -21,7 +21,8 @@ class DemoFlow:
         self.capture_feature = capture_feature
         self.capture_enrollment_feature = capture_enrollment_feature or capture_feature
         self.roi_geometry = roi_geometry
-        self.store = TemplateStore(runtime / "demo_templates")
+        self.store = TemplateStore(runtime / "demo_templates",
+                                   compression_level=getattr(algorithm, 'template_compression_level', None))
         self.payments = PaymentService(runtime / "demo_payment.sqlite3")
         # Ranking only; no open-set threshold can be calibrated from one person's two hands.
         required = {"roi_geometry": roi_geometry, "algorithm": algorithm.name} if roi_geometry is not None else None

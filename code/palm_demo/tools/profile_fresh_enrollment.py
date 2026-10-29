@@ -19,6 +19,8 @@ from gallery import Gallery
 from indexed_demo_matcher import IndexedDemoMatcher
 from linked_enrollment_matcher import LinkedEnrollmentMatcher
 from union_matcher import FastCCWindowUnionMatcher
+from templates import TemplateStore
+from quality_evidence_matcher import QualityEvidenceMatcher
 
 
 def restart_check(args,rows):
@@ -67,6 +69,10 @@ def main():
     report=dict(camera_tested=False,query_warmup=False,records=[],
         scope='Saved raw frames at camera boundary, fresh empty gallery, immediate query after each identity is enrolled.',
         timing_warning='Nested stage durations overlap; camera read is file decode, not live capture.')
+    app_root=Path(__file__).resolve().parents[1]
+    report['source_sha256']={name:hashlib.sha256((app_root/name).read_bytes()).hexdigest()
+        for name in ('linked_enrollment_matcher.py','indexed_demo_matcher.py','quality_evidence_matcher.py',
+                     'templates.py','tools/profile_fresh_enrollment.py')}
     state={'events':None,'start':None};originals=[]
     def check_power():
         sample=power_sample()
@@ -92,6 +98,8 @@ def main():
         (debug_ui.App,'capture_demo_feature','frame_and_features'),
         (FastCCWindowUnionMatcher,'complete_hypotheses','alternate_roi'),
         (FastCCWindowUnionMatcher,'extract_with_hypotheses','complete_features'),
+        (TemplateStore,'save','template_save'),
+        (QualityEvidenceMatcher,'prepare_enrollment','prepare_enrollment'),
         (Gallery,'warm_up','gallery_prepare'),
         (IndexedDemoMatcher,'prepare_gallery','descriptor_index'),
         (LinkedEnrollmentMatcher,'prepare_gallery','index_and_enrollment_links')]:wrap(owner,name,label)

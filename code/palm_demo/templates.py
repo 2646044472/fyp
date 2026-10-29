@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,10 @@ def safe_user_id(user_id: str) -> str:
 
 
 class TemplateStore:
-    def __init__(self, root: str | Path | None = None) -> None:
+    def __init__(self, root: str | Path | None = None, *, compression_level: int | None = None) -> None:
+        if compression_level is not None and (type(compression_level) is not int or not 1 <= compression_level <= 9):
+            raise ValueError('Template compression level must be an integer from 1 to 9')
+        self.compression_level = compression_level
         self.root = Path(root) if root is not None else Path(__file__).resolve().parent / "runtime" / "templates"
 
     def paths(self, user_id: str) -> tuple[Path, Path]:
@@ -35,7 +39,15 @@ class TemplateStore:
             temp_data = Path(data_file.name)
         temp_meta = Path(tempfile.mktemp(dir=self.root, suffix=".json"))
         try:
-            np.savez_compressed(temp_data, features=np.asarray(features))
+            if self.compression_level is None:
+                np.savez_compressed(temp_data, features=np.asarray(features))
+            else:
+                # Standard lossless NPZ; only DEFLATE effort changes. Existing
+                # readers, array shape/dtype and atomic replacement are retained.
+                with zipfile.ZipFile(temp_data, 'w', compression=zipfile.ZIP_DEFLATED,
+                                     compresslevel=self.compression_level) as archive:
+                    with archive.open('features.npy', 'w', force_zip64=True) as stream:
+                        np.lib.format.write_array(stream, np.asarray(features), allow_pickle=False)
             temp_meta.write_text(json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8")
             os.replace(temp_data, data_path)
             os.replace(temp_meta, meta_path)
