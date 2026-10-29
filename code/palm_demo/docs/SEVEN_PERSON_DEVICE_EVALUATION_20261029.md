@@ -135,3 +135,51 @@ but cannot provide fresh validation of a subsequent fix.
 Original device ZIP/image bytes remain unchanged. Capture-sidecar LF policy and
 SHA256SUMS are normalized for reproducible Windows/Linux checkout verification;
 checksums include .gitattributes and exclude SHA256SUMS itself.
+
+## Subsequent exact geometry and visual inspection
+
+An additional Pi replay observes the actual outputs of OpenCV's similarity
+and affine RANSAC estimators without rerunning them, changing their inputs or
+changing any guard. All five query identities, scores, routes and ROI PNG bytes
+again match the frozen baseline exactly. This instrumented run is not latency
+evidence. True-target calls below include only labeled fallback attempts that
+actually reach an estimator; calls with fewer than four mutual pairs do not.
+
+| Error sample suffix | True-target estimator calls | Too few inliers first rejection | Coverage first rejection | Maximum inliers |
+|---|---:|---:|---:|---:|
+| 7619919c | 31 | 31 | 0 | 3 |
+| a4677ec5 | 14 | 14 | 0 | 2 |
+| 61f30739 | 66 | 65 | 1 | 4 |
+| 8d6441d2 | 43 | 43 | 0 | 3 |
+| 37d0c433 | 73 | 73 | 0 | 3 |
+
+Thus 226/227 traced true-target estimator calls first fail the existing inlier
+minimum, not merely an angle/scale limit. Similarity needs four inliers; affine
+needs six. The one four-inlier xyt attempt covers only 0.0024375 of the
+384-square frame (required .02), with scale .4719 and angle -46.07 degrees.
+Multiple guard violations can coexist; do not sum overlapping violation counts
+as independent failures. This does not justify relaxing the guards.
+
+All five sheets were actually opened and inspected alongside the true and
+predicted enrollment ROIs. The xyt two crops visibly include the wrist/heel
+and background unlike centered enrollment crops. Billy's images have marked
+viewpoint changes and broad smooth shading; the left query samples nearer the
+finger bases than some enrollment frames. Cyw stays on-palm with visible main
+creases but weak fine detail. These observations are clues, not a proof of
+motion blur, sensor failure, or one exclusive cause. Bright appearance alone
+does not establish pixel saturation.
+
+Private exact evidence: `geometry-diagnostics.json`; command option
+`tools/diagnose_frozen_device_errors.py --wrong-only --geometry-details`.
+`tools/build_device_failure_evidence.py --geometry <complete-export>
+--include-slowest` also creates a sheet for the slowest query without rerunning
+recognition. Historical metrics above are unchanged.
+
+The user subsequently explicitly deleted `20261029T085720586167Z-7619919c`
+after inspecting its strongly oblique original. It is removed from the Pi's
+active collection and re-exported active left-session ZIP; remaining image
+bytes are unchanged. Current active originals total 169. This post-result,
+user-directed dataset change is not an algorithm improvement; the 170-query
+baseline and its errors remain historical evidence. A new cohort protocol
+has 29/29 new-camera and 55/55 old-camera queries (168 total); it has not been
+rerun and has no new accuracy or latency result yet.

@@ -9,10 +9,13 @@ from pklnet_roi import normalize_roi_pixels
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('evidence',type=Path);args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('evidence',type=Path)
+    p.add_argument('--geometry',type=Path,help='Optional complete enrollment geometry export')
+    p.add_argument('--include-slowest',action='store_true',help='Also inspect the slowest main query, including a correct result')
+    args=p.parse_args()
     repo=app.parents[1];base=args.evidence
     data=json.loads((base/'results.json').read_text());rows={r['sample']:r for r in json.loads((base/'manifest.json').read_text())}
-    geometry=json.loads((base/'template-geometry.json').read_text())['records']
+    geometry=json.loads((args.geometry or base/'template-geometry.json').read_text())['records']
     enrolled={}
     for r in geometry:enrolled.setdefault((r['case'],r['identity'].replace(':','-')),[]).append(r)
     out=base/'failure-images';out.mkdir(exist_ok=True);metrics=[]
@@ -31,9 +34,10 @@ def main():
         gray=cv2.cvtColor(np.asarray(full),cv2.COLOR_RGB2GRAY)
         raw=cv2.warpPerspective(gray,np.diag([1/3,1/3,1])@source,(128,128))
         return normalize_roi_pixels(raw),raw
+    slowest=max((q for run in data['runs'] for q in run['queries']),key=lambda q:q['ms'])
     for run in data['runs']:
         for trial in run['queries']:
-            if trial['correct']:continue
+            if trial['correct'] and not (args.include_slowest and trial is slowest):continue
             sample=trial['sample'];source=np.asarray(trial['diagnostics']['source_matrix'])
             full=original(sample);roi=np.asarray(Image.open(base/trial['roi_artifact']).convert('L'))
             _,raw=crop(full,source)

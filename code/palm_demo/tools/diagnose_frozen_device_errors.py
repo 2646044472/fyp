@@ -7,6 +7,7 @@ import argparse,base64,hashlib,json
 import threading
 from pathlib import Path
 import cv2
+import numpy as np
 from replay_pi_pipeline import ReplayCamera,debug_ui,http_app,save_json
 from replay_ready_queries import power_sample,power_fault
 from replay_demo_manifest import correct_identification
@@ -19,6 +20,7 @@ def main():
     p.add_argument('manifest',type=Path);p.add_argument('baseline',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--native-registration',type=Path,required=True)
     p.add_argument('--wrong-only',action='store_true',help='Drill into only erroneous queries; omit correct controls')
+    p.add_argument('--geometry-details',action='store_true',help='Observe actual RANSAC outputs without rerunning or changing estimators')
     args=p.parse_args();data=json.loads((args.baseline/'results.json').read_text());protocol=data['protocol']
     assert data.get('complete') is True
     app_root=Path(__file__).resolve().parents[1]
@@ -46,6 +48,47 @@ def main():
         original_decisions=FastCCAnchoredUnionMatcher.candidate_decisions
         active=[None];target_ids={}
         local=threading.local();native=app.demo_algorithm.registration;native_pairs=native.pairs
+        geometry_originals=[]
+        if args.geometry_details:
+            for function_name,model in (('estimateAffinePartial2D','similarity'),('estimateAffine2D','affine')):
+                original=getattr(cv2,function_name);geometry_originals.append((function_name,original))
+                def observe_geometry(*a,_original=original,_model=model,**kw):
+                    value=_original(*a,**kw)
+                    if active[0] is None:return value
+                    matrix,mask=value
+                    item=dict(model=_model,target=getattr(local,'target',None),pairs=len(a[0]))
+                    if matrix is None or not np.isfinite(matrix).all():
+                        item.update(reason='no_finite_transform',violations=['no_finite_transform'])
+                    elif mask is None:
+                        item.update(reason='no_inlier_mask',violations=['no_inlier_mask'])
+                    else:
+                        pa,pb=(np.asarray(v,np.float32).reshape(-1,2) for v in a[:2])
+                        keep=mask.ravel().astype(bool);count=int(keep.sum())
+                        coverage=min(cv2.contourArea(cv2.convexHull(v[keep])) if count>=3 else 0. for v in (pa,pb))/(384*384)
+                        scale=float(np.hypot(matrix[0,0],matrix[1,0]))
+                        angle=float(np.rad2deg(np.arctan2(matrix[1,0],matrix[0,0])))
+                        singular=np.linalg.svd(matrix[:,:2],compute_uv=False)
+                        violations=[]
+                        minimum=4 if _model=='similarity' else 6
+                        if count<minimum:violations.append('too_few_inliers')
+                        if coverage<.02:violations.append('insufficient_coverage')
+                        if _model=='similarity':
+                            if not .5<=scale<=2:violations.append('scale_out_of_bounds')
+                        else:
+                            if np.linalg.det(matrix[:,:2])<=0:violations.append('nonpositive_determinant')
+                            if singular.min()<.5 or singular.max()>2:violations.append('scale_out_of_bounds')
+                            if singular.min()<=0 or singular.max()/singular.min()>1.5:violations.append('excessive_anisotropy')
+                        if abs(angle)>40:violations.append('angle_out_of_bounds')
+                        if _model=='affine' and not violations:
+                            from affine_enrollment_matcher import bounded_affine
+                            if not bounded_affine(np.linalg.inv(np.vstack([matrix,[0.,0.,1.]]))):violations.append('inverse_geometry_rejected')
+                        item.update(inliers=count,inlier_ratio=count/max(1,len(pa)),coverage=float(coverage),
+                            scale=scale,angle=angle,singular_values=singular.tolist(),
+                            reason=violations[0] if violations else 'geometry_accepted',violations=violations,
+                            matrix=matrix.tolist())
+                    active[0]['geometry'].append(item)
+                    return value
+                setattr(cv2,function_name,observe_geometry)
         def counted_pairs(a,b):
             values=native_pairs(a,b)
             current=getattr(local,'registration',None)
@@ -96,7 +139,7 @@ def main():
                 for reference in selected:
                     row=rows[reference['sample']]
                     assert hashlib.sha256(Path(row['original']).read_bytes()).hexdigest()==row['sha256']
-                    checkpoint();camera.select([row]);active[0]=dict(pairs=[],candidate_decisions=[],registrations=[])
+                    checkpoint();camera.select([row]);active[0]=dict(pairs=[],candidate_decisions=[],registrations=[],geometry=[])
                     status,response=request('/api/demo/identify',{},None)
                     details=active[0];active[0]=None
                     record=dict(case=run['case'],sample=row['sample'],identity=row['identity'],
@@ -115,6 +158,7 @@ def main():
                     print(run['case'],row['sample'],record['role'],record['reference_equal'],flush=True)
             assert app.demo.payments.transaction_count()==before
         finally:
+            for name,original in geometry_originals:setattr(cv2,name,original)
             FastCCAnchoredUnionMatcher.candidate_decisions=staticmethod(original_decisions)
             app.demo_algorithm.close()
     report['complete']=True;report['all_reference_equal']=all(q['reference_equal'] for q in report['queries'])
