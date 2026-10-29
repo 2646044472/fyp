@@ -21,7 +21,7 @@ def main():
     parser.add_argument('--cache-exhaustive-pairs', action='store_true', help='Offline only: reuse exact frozen query/gallery pair scores across splits; timings are not latency')
     parser.add_argument('--cache-registration', action='store_true', help='Offline only: memoize deterministic registration on SHA-checked frozen descriptor arrays')
     parser.add_argument('--matcher', default='FastCCIndexed-v7-experimental',
-                        choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental','FastCCLinkedEnrollment-v12-experimental','FastCCAffineEnrollment-v13-experimental'])
+                        choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental','FastCCLinkedEnrollment-v12-experimental','FastCCAffineEnrollment-v13-experimental','FastCCPooledEnrollment-v20-experimental'])
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     base = args.root/'single-device'
@@ -56,7 +56,7 @@ def main():
             return call
         cached = memoized(algorithm.registration)
         algorithm.registration = algorithm.legacy.registration = cached
-        if args.matcher == 'FastCCAffineEnrollment-v13-experimental':
+        if args.matcher in ('FastCCAffineEnrollment-v13-experimental','FastCCPooledEnrollment-v20-experimental'):
             algorithm._correspondences = memoized(algorithm._correspondences)
             import affine_enrollment_matcher
             affine_enrollment_matcher.affine_registration = memoized(affine_enrollment_matcher.affine_registration)
@@ -66,7 +66,7 @@ def main():
                     cases=len(cases), source='unchanged v5 localization and enrollment descriptors; no query identity in extraction/matching',
                     limitation='Cached geometry/descriptor audit; not a live end-to-end latency measurement')
     protocol['source_sha256'] = {name:hashlib.sha256((APP/name).read_bytes()).hexdigest()
-        for name in ('indexed_demo_matcher.py','proposed_index_matcher.py','guarded_index_matcher.py','staged_index_matcher.py','linked_enrollment_matcher.py','affine_enrollment_matcher.py','registration_accelerated.py',
+        for name in ('indexed_demo_matcher.py','proposed_index_matcher.py','guarded_index_matcher.py','staged_index_matcher.py','linked_enrollment_matcher.py','affine_enrollment_matcher.py','pooled_enrollment_matcher.py','registration_accelerated.py',
                      'registered_matcher.py','fastcc_accelerated.py') if (APP/name).exists()}
     (args.output/'protocol.json').write_text(json.dumps(protocol,indent=2))
     gallery, probes = [], []

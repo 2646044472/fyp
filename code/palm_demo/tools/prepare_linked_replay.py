@@ -1,4 +1,4 @@
-"""Reuse compatible isolated v10 enrollment for a v12/v13 query-only experiment.
+"""Reuse compatible isolated v10 enrollment for a v12/v13/v20 experiment.
 
 No production migration: copied templates change only their outer version tag.
 No query images/features/answers are computed or cached here. Preparation time
@@ -15,6 +15,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from staged_index_matcher import StagedIndexMatcher
 from linked_enrollment_matcher import LinkedEnrollmentMatcher
 from affine_enrollment_matcher import AffineEnrollmentMatcher
+from pooled_enrollment_matcher import PooledEnrollmentMatcher
 from templates import TemplateStore
 from union_matcher import FEATURE_SIZE
 
@@ -23,9 +24,9 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('source',type=Path)
     p.add_argument('output',type=Path)
-    p.add_argument('--matcher', choices=(LinkedEnrollmentMatcher.name, AffineEnrollmentMatcher.name), default=LinkedEnrollmentMatcher.name)
+    p.add_argument('--matcher', choices=(LinkedEnrollmentMatcher.name, AffineEnrollmentMatcher.name, PooledEnrollmentMatcher.name), default=LinkedEnrollmentMatcher.name)
     args=p.parse_args()
-    candidate = AffineEnrollmentMatcher if args.matcher == AffineEnrollmentMatcher.name else LinkedEnrollmentMatcher
+    candidate = {c.name:c for c in (LinkedEnrollmentMatcher,AffineEnrollmentMatcher,PooledEnrollmentMatcher)}[args.matcher]
     if args.output.resolve().is_relative_to(args.source.resolve()):
         raise ValueError('Output must be outside the source replay')
     summary=json.loads((args.source/'summary.json').read_text())
