@@ -1,0 +1,146 @@
+{
+  "protocol_canonical_sha256": "e4dc182b48e63b6ddb099c8b269f89a2aa7d5d800c04167498aa71e08c59a231",
+  "frozen_algorithm_commit": "9cfcab2fa0de4593fa8e9050cfbc9dd9cdf2f189",
+  "casia_prior_v13": {
+    "total": 4,
+    "correct": 4,
+    "correct_within_2_5s": 4,
+    "median_ms": 1059.7849999999999,
+    "p95_ms": 1497.2114999999997,
+    "max_ms": 1574.31,
+    "enrolled_identities": 4,
+    "transactions_unchanged": true
+  },
+  "casia_v26_passes": [
+    {
+      "name": "first_after_enrollment_and_ready",
+      "total": 4,
+      "correct": 4,
+      "correct_within_2_5s": 4,
+      "median_ms": 1067.975,
+      "p95_ms": 1131.6545,
+      "max_ms": 1142.18,
+      "routes": {
+        "pose_confident": 3,
+        "compnet_evidence_confident": 1
+      }
+    },
+    {
+      "name": "warm_repeat_same_four",
+      "total": 4,
+      "correct": 4,
+      "correct_within_2_5s": 4,
+      "median_ms": 1063.63,
+      "p95_ms": 1070.6115,
+      "max_ms": 1071.81,
+      "routes": {
+        "pose_confident": 3,
+        "compnet_evidence_confident": 1
+      }
+    }
+  ],
+  "casia_initialization_empty_gallery_ms": 1476.6089869990537,
+  "casia_enrollment_requests_ms": [
+    15447.87,
+    15000.78,
+    15328.9,
+    14720.62
+  ],
+  "casia_enrollment_successes": 4,
+  "casia_additional_ready_check_ms": 0.35064099938608706,
+  "casia_cancellation_ok": true,
+  "casia_explicit_rejects": [
+    0,
+    0
+  ],
+  "casia_wrong_identity_matches": [
+    0,
+    0
+  ],
+  "palmbig_inventory": {
+    "archive_sha256": "8bdcbc155f43efb4f6e7d4bee66c1794a181e222bee54a956bafae1445552829",
+    "prior_archive_match": true,
+    "bmp_images": 7752,
+    "prefix_images": {
+      "F": 3889,
+      "S": 3863
+    },
+    "filename_classes": 772,
+    "numeric_ids": 386,
+    "prefix_classes": {
+      "F": 386,
+      "S": 386
+    },
+    "sample_count_histogram": {
+      "10": 730,
+      "11": 28,
+      "17": 1,
+      "9": 7,
+      "13": 3,
+      "12": 2,
+      "1": 1
+    },
+    "dimensions": {
+      "128x128": 7752
+    },
+    "other_files": [
+      "PalmBigDataBase/Thumbs.db"
+    ],
+    "physical_identity_count": null,
+    "prefix_semantics": "Unknown; not assumed sessions/devices",
+    "supplied_images": "128x128 supplied palm patches; no full-original localization test",
+    "exposed_ids": "1..20 previous400-image test;21..60 conservatively excluded from old public40 bundle/tool footprint",
+    "exposure_bundle_sha256": "5654090314df580fcb7f6386ab7b80a2866a6b15b2496ea1cb178a6f04c69c14",
+    "selection": "All numeric IDs61..80 independently perF/S; no resampling if ineligible",
+    "enrollment": "five lowest numeric sample indices",
+    "queries": "all remaining samples",
+    "eligible": true,
+    "selected_images": 400,
+    "selected_classes": 40,
+    "overlap_with_exposed_content": 0,
+    "scope": "Frozen normalized FastCC feature/best2 component only; local Windows timing; not v26 routing, ROI,HTTP or Pi latency"
+  },
+  "palmbig_local": [
+    {
+      "prefix": "F",
+      "classes": 20,
+      "images": 200,
+      "total": 100,
+      "correct": 100,
+      "median_ms": 6.079700018744916,
+      "p95_ms": 6.611790039460175,
+      "max_ms": 9.533000004012138
+    },
+    {
+      "prefix": "S",
+      "classes": 20,
+      "images": 200,
+      "total": 100,
+      "correct": 100,
+      "median_ms": 6.380300008459017,
+      "p95_ms": 7.177015035995282,
+      "max_ms": 9.460700035560876
+    }
+  ],
+  "palmbig_failures": 0,
+  "kernel_environment_audit": {
+    "max_difference_kernel": 6.938893903907228e-18,
+    "max_all_gabor_kernels": 1.3877787807814457e-17,
+    "same_vendor_algorithm_sources": true,
+    "local_numpy": "2.3.5",
+    "pi_numpy": "2.2.4",
+    "local_opencv": "5.0.0",
+    "pi_opencv": "4.10.0"
+  },
+  "pixel_exposure_audit": {
+    "decoded_pixel_overlap": 0,
+    "selected_count": 400,
+    "selected_unique_pixels": 400
+  },
+  "new_device_session_validated": false,
+  "unknown_person_validation": false,
+  "algorithm_tuned": false,
+  "raw_biometric_transfer": false,
+  "production_changed": false,
+  "complete": true
+}

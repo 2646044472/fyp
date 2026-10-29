@@ -102,3 +102,10 @@ cardinality is 80 images/eight labels; the CASIA pilot explicitly passes
 `--expected-images 24 --expected-identities 4`. Run `tools/evaluate_roi_archive.py`
 on the PalmBig ZIP with a fresh output directory for the feature-only supplement.
 These tools report failures rather than requiring perfect accuracy to complete.
+
+The later frozen v26 confirmatory CASIA comparison and PalmBigDataBase61–80
+feature-only evaluation are recorded separately in
+[FROZEN_PUBLIC_VALIDATION_20261030.md](FROZEN_PUBLIC_VALIDATION_20261030.md).
+That inventory also found an old21–60 prepared public bundle and excludes it
+conservatively from untouched claims. Do not overwrite the historical results
+above or reuse either evaluated range as fresh independent evidence.
