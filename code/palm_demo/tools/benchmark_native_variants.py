@@ -11,6 +11,7 @@ import numpy as np
 from biometric import load_algorithm
 from native_registration import NativeRegistration
 from templates import TemplateStore
+from replay_ready_queries import power_sample,power_fault
 
 
 def neighbours(native, a, b):
@@ -29,15 +30,26 @@ def main():
     parser.add_argument('candidate', type=Path)
     parser.add_argument('replay', type=Path)
     parser.add_argument('--threads', type=int, choices=(1, 2, 4), default=2)
+    parser.add_argument('--abort-on-power-fault',action='store_true')
+    parser.add_argument('--odd-sizes',action='store_true',help='Also audit unequal descriptor counts and SIMD remainder lanes')
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
     cv2.setNumThreads(2)
+    power_samples=[]
+    def checkpoint():
+        if not args.abort_on_power_fault:return
+        sample=power_sample();power_samples.append(sample)
+        if power_fault(sample):
+            save_json(args.output,dict(complete=False,power_samples=power_samples,aborted_power_fault=sample))
+            raise RuntimeError('Pi power/throttle fault')
+    checkpoint()
     kernels = [NativeRegistration(p, args.threads) for p in (args.baseline, args.candidate)]
     rng = np.random.default_rng(20261029)
     synthetic = 0
     for n in (4, 32, 200, 1000):
         for noise in (0., .001, .02, .1):
+            checkpoint()
             a = rng.random((n, 128), dtype=np.float32)
             a = np.sqrt(a / a.sum(axis=1, keepdims=True))
             b = np.maximum(a + rng.normal(0, noise, a.shape).astype(np.float32), 0)
@@ -48,6 +60,16 @@ def main():
             assert all(np.array_equal(x, y) for x, y in zip(*values))
             assert kernels[0].pairs(a, b) == kernels[1].pairs(a, b)
             synthetic += 1
+    if args.odd_sizes:
+        for n,m in ((4,7),(7,9),(11,13),(36,17)):
+            checkpoint()
+            a=rng.random((n,128),dtype=np.float32);a=np.sqrt(a/a.sum(axis=1,keepdims=True))
+            b=rng.random((m,128),dtype=np.float32);b=np.sqrt(b/b.sum(axis=1,keepdims=True))
+            b[:4]=a[:4];b[1]=b[0]
+            values=[neighbours(k,a,b) for k in kernels]
+            assert all(np.array_equal(x,y) for x,y in zip(*values))
+            assert kernels[0].pairs(a,b)==kernels[1].pairs(a,b)
+            synthetic+=1
     summary = json.loads((args.replay / 'summary.json').read_text())
     assert summary['live_camera_tested'] is False
     root = Path(__file__).resolve().parents[1]
@@ -62,6 +84,7 @@ def main():
     trials = []
     for i, a in enumerate(views):
         for offset in (1, 9):
+            checkpoint()
             b = views[(i + offset) % len(views)]
             values = [neighbours(k, a[1], b[1]) for k in kernels]
             exact = all(np.array_equal(x, y) for x, y in zip(*values))
@@ -78,11 +101,12 @@ def main():
             trials.append(dict(i=i, offset=offset, exact_neighbours=exact, exact_transform=exact_transform,
                                baseline_ms=float(np.median(times[0])), candidate_ms=float(np.median(times[1]))))
     algorithm.close()
-    result = dict(synthetic_cases=synthetic, threads=args.threads, trials=trials,
+    checkpoint()
+    result = dict(complete=True,power_samples=power_samples,synthetic_cases=synthetic, threads=args.threads, trials=trials,
                   libraries={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in (args.baseline, args.candidate)},
                   median_ms={name: float(np.median([t[name + '_ms'] for t in trials])) for name in ('baseline', 'candidate')})
     save_json(args.output, result)
-    print(json.dumps({k: v for k, v in result.items() if k != 'trials'}), flush=True)
+    print(json.dumps({k: v for k, v in result.items() if k not in ('trials','power_samples')}), flush=True)
     assert trials and all(t['exact_neighbours'] and t['exact_transform'] for t in trials)
 
 

@@ -6,12 +6,17 @@ import numpy as np
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('baseline',type=Path);p.add_argument('candidate',type=Path);p.add_argument('output',type=Path)
-    p.add_argument('--control',type=Path);p.add_argument('--paired',type=Path);args=p.parse_args()
+    p.add_argument('--control',type=Path);p.add_argument('--paired',type=Path)
+    p.add_argument('--context',type=Path);p.add_argument('--native-pilot',type=Path);args=p.parse_args()
     base=json.loads(args.baseline.read_text());candidate=json.loads(args.candidate.read_text())
     control=json.loads(args.control.read_text()) if args.control else None
     paired=json.loads(args.paired.read_text()) if args.paired else None
+    context=json.loads(args.context.read_text()) if args.context else None
+    native_pilot=json.loads(args.native_pilot.read_text()) if args.native_pilot else None
     assert base['complete'] and candidate['complete'] and (control is None or control['complete'])
     assert paired is None or paired['complete']
+    assert context is None or context['complete']
+    assert native_pilot is None or native_pilot['complete']
     def queries(d):return [q for r in d['runs'] for q in r['queries']]
     def stats(q):
         ms=[q['ms'] for q in q]
@@ -67,6 +72,15 @@ def main():
         content+='<h2>同一应用交替开关新分支</h2><p>机械选择 v24 对照中最慢三次查询，并加入候选最大提速查询（已在前三中）；保持同一份已加载 v25 图库和模型，按关闭→开启→开启→关闭运行，每次重读原图并重算。此小样本诊断用于区分新分支开销与完整搜索，不代替全量准确率实验。所有电源标志为 '+html.escape(', '.join(sorted({s['get_throttled'] for s in paired['power_samples']})))+'。</p>'
         content+=table(['分组','样本','关闭秒（两次）','开启秒（两次）','新增分支毫秒（两次）','四次正确'],paired_rows)
         content+='<p>新分支本身约 8.5–8.8 毫秒；可解样本从约 14–15 秒降至约 1.2 秒。最难样本仍约 14–15 秒，不能归因于这约 9 毫秒；需要新的可靠对齐/局部证据。关闭与开启均未修复原有误认。</p>'
+    if context:
+        summary=context['summary']
+        content+='<h2>后续邻域检索：拒绝接入</h2><p>固定 15 个半尺度/原尺度/双尺度及中心/四方向平移 ROI，各候选分别评分，有把握的候选必须身份一致，原 ROI 提前判断优先。未调整 .32/.08 门槛、人员标签或样本分母。原始图与已保存 Pi 主 ROI 几何在本机离线筛查，未跑此方案的 Pi 全流程，不能据此声称提速。</p>'
+        content+=table(['数据','查询次数','额外提前判断','额外错误判断'],[[name,s['total'],s['extra_confident'],s['extra_wrong']] for name,s in summary.items()])
+        content+='<p>当前数据额外三次判断全错，且原 v25 均可正确识别；最难图及四张原有误认都没有获得可靠提前证据。224 组历史划分（4480 次相关查询）没有暴露这三个错误，说明旧划分不足以保证泛化。方案未接入识别器。</p>'
+        content+='<p>对照校验发现旧离线零角度姿态重建使四张原始 ROI 角点变化最多 0.00003052 像素；重建旧算式后余弦矩阵最大差 '+f"{context['legacy_cosine_max_abs_error']:.3g}"+'。这些是数值对照差异，原始 ROI 的提前判断不变，未改写已完成的 Pi 结果。</p>'
+    if native_pilot:
+        timings=native_pilot['median_ms']
+        content+='<h2>四候选 SIMD 计算：拒绝接入</h2><p>试图跨四个注册描述子复用查询读取，保留原浮点累加/归约树、双向近邻、并列顺序与几何规则。'+str(native_pilot['synthetic_cases'])+' 组合成输入及 '+str(len(native_pilot['trials']))+' 组真实特征的近邻索引、距离与配准矩阵均一致；四次交替顺序测试的中位耗时 '+f"{timings['baseline']:.3f} → {timings['candidate']:.3f}"+' 毫秒，反而更慢。电源标志全为 0x0，不替换原库，不另跑无收益的全流程。</p>'
     content+='''<h2>论文带来的结构选择</h2><p><a href="https://web.comp.polyu.edu.hk/csajaykr/myhome/papers/PR2023.pdf">BEST（Pattern Recognition 2023）</a>提示共享特征计算、汇总局部证据；官方包已下载但加密，尚未复现其模型。<a href="https://github.com/xuliangcs/compnet">CompNet 作者代码与预训练模型</a>提供本轮实际测试的冻结表征。<a href="https://arxiv.org/abs/2401.08111">Palm-ID（2024）</a>支持紧凑向量检索的设计方向，但其服务器/手机耗时不等于 Pi 耗时。<a href="https://www.nature.com/articles/s41467-025-58213-7">ERAlign（Nature Communications 2025）</a>强调稳定 ROI 和注册覆盖，包含红外及距离传感条件，尚未直接移植。</p>
 <p>上述论文仍报告 ROI、强畸变或低质量失败。文献指标不是本设备效果；本轮收益只按实际 Pi 请求统计。</p>'''
     content+='<details><summary>新分支逐张返回记录</summary>'+table(['分组','样本','真实身份','正确','对照毫秒','候选毫秒'],[[c,q['sample'],q['identity'],q['correct'],r['ms'],q['ms']] for c,q,r in changed])+'</details></html>'
