@@ -14,7 +14,7 @@ struct Best {
         } else if(d<d1 || (d==d1 && (i1<0 || i<i1))) {d1=d;i1=i;}
     }
 };
-static float distance128(const float* a,const float* b) {
+static float distance128(const float* a,const float* b,float cutoff) {
     float32x4_t s0=vdupq_n_f32(0),s1=s0,s2=s0,s3=s0;
     for(int k=0;k<128;k+=16) {
         auto d0=vsubq_f32(vld1q_f32(a+k),vld1q_f32(b+k));
@@ -23,6 +23,14 @@ static float distance128(const float* a,const float* b) {
         auto d3=vsubq_f32(vld1q_f32(a+k+12),vld1q_f32(b+k+12));
         s0=vmlaq_f32(s0,d0,d0);s1=vmlaq_f32(s1,d1,d1);
         s2=vmlaq_f32(s2,d2,d2);s3=vmlaq_f32(s3,d3,d3);
+#ifdef PALM_PARTIAL_DISTANCE
+        // Positive squared terms make this a lower bound on the final sum.
+        // Preserve arithmetic order and ties. Skip only when this pair cannot
+        // enter either direction's top two, including thread-local reverse.
+        if ((k==16 || k==48 || k==80) &&
+            vaddvq_f32(vaddq_f32(vaddq_f32(s0,s1),vaddq_f32(s2,s3)))>cutoff)
+            return std::numeric_limits<float>::infinity();
+#endif
     }
     return vaddvq_f32(vaddq_f32(vaddq_f32(s0,s1),vaddq_f32(s2,s3)));
 }
@@ -38,7 +46,8 @@ extern "C" int descriptor_neighbours(const float* a,int n,const float* b,int m,
             for(int i=0;i<n;i++) {
                 Best forward;
                 for(int j=0;j<m;j++) {
-                    float d=distance128(a+128*i,b+128*j);
+                    float cutoff=forward.d1>backwards[t*m+j].d1 ? forward.d1 : backwards[t*m+j].d1;
+                    float d=distance128(a+128*i,b+128*j,cutoff);
                     forward.add(d,j);backwards[t*m+j].add(d,i);
                 }
                 fi[2*i]=forward.i0;fi[2*i+1]=forward.i1;
