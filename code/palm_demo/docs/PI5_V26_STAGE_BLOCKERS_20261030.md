@@ -98,6 +98,66 @@ that all such captures are irrecoverable. No additional samples were deleted.
 
 ## Concrete blocker and a defensible next step
 
+### Source-image reconciliation after the PPNet screen
+
+Revisited the saved original/actual-query-ROI/true-enrollment comparison sheets.
+All four active error ROIs and the slowest ROI have `roi_byte_equal=True` in
+the complete169-image v26 run, so the displayed query evidence still applies.
+The old comparison folder also retains the user-deleted historical billy:left
+image; that image was not reopened for this assessment, restored to active
+data, or used as a new experiment. Do not infer current gallery content from
+its historical predicted-enrollment row.
+
+| Active failure pattern | Visible evidence | What is established / not established |
+|---|---|---|
+| Two xyt:right errors | Query ROI covers wrist/heel and some background, unlike the true enrollment's central palm | Anatomical coverage is inconsistent; another descriptor of the same wrong patch is not a demonstrated correction |
+| Slowest stephen:left | Primary ROI is smaller and nearer finger bases than enrollment coverage | There is a scale/coverage mismatch; complete late matching can still rank the correct hand, but early evidence remains weak |
+| billy:right error | ROI remains on the palm; appearance/viewpoint and visible fine detail differ from enrollment | A general wrist-crop correction does not explain it. PPNet top1 becomes correct but margin .031171 remains below .08 |
+| cyw-real:left error | ROI remains inside the palm and major creases are visible | It cannot be classified as the same out-of-palm failure. The sheet alone does not establish blur, sensor failure or recoverable fine texture |
+
+The common measured outcome is insufficient reliable query-to-enrollment
+evidence, with heterogeneous causes. There is no visual justification for a
+single fixed offset/angle correction. Failed neighborhood expansion added
+three confident wrong answers; the confirmed MediaPipe detector+pose control
+works on only7/40 new-device images. Frozen PPNet is a genuinely new tested
+representation, but rescues0/13 current fallbacks at the declared gate and is
+closed according to its predeclared criterion. See
+[PPNET_FROZEN_PILOT_20261030.md](PPNET_FROZEN_PILOT_20261030.md) for the complete
+rejected-route inventory and model results. It is not retried here.
+
+### Exact missing capability and evidence
+
+The prioritized hypothesis would be a fast, anatomically consistent palm ROI
+estimator with independently demonstrated low-quality-device performance. The
+current verified inputs provide identity labels and model-produced geometry,
+not independently confirmed wrist/MCP/palm-region ground truth. The available
+two-keypoint localizer and tested landmark replacement have not supplied that
+capability. A stable localizer would address the clear coverage failures, but
+is not by itself proven sufficient for the in-palm billy/cyw texture cases.
+
+Before selecting or training a replacement, the missing evidence is:
+
+- A blinded anatomical-reference ROI/landmark audit, so coverage error can be
+  separated from representation/appearance failure. Existing images can support
+  diagnostic annotation, but fitting their query crops and reusing them as the
+  claimed independent test would be invalid.
+- A genuinely separate collection/session set with normal and difficult device
+  images for a frozen candidate's evaluation. Repeatedly resplitting the exposed
+ 169 images or substituting the user's cleaner public datasets does not supply
+  this domain-specific evidence.
+- Unregistered-person inputs and an independent calibration/evaluation split
+  for rejection claims. Current168 registered-person queries cannot establish
+  FAR/verification FRR or justify a new PPNet Euclidean/margin decision rule.
+
+No available executable replacement has been shown to meet those conditions.
+There is therefore no distinct, evidence-backed next repair selected in this
+assessment. No new classifier, model training, Pi experiment, camera acquisition
+or background job was started. The isolated experimental baseline remains
+v26; production was not switched. This is a concrete capability/validation gap,
+not a claim that all future architectures are impossible. Query, existing-gallery initialization/ready
+wait and fresh enrollment latency remain distinct; no unchanged number is
+presented as improvement.
+
 The current tested ROI/representation stages do not produce reliable evidence
 soon enough for the hardest query and do not resolve the four mistakes. The
 complete fallback is inherently multi-stage and measured in many seconds on
