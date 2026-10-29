@@ -22,6 +22,9 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCCompNetAlternateROI-v26-experimental":
+        from compnet_alternate_roi_matcher import CompNetAlternateROIMatcher
+        return CompNetAlternateROIMatcher(get_algorithm("FastCC"))
     if name == "FastCCCompNetEvidence-v25-experimental":
         from compnet_evidence_matcher import CompNetEvidenceMatcher
         return CompNetEvidenceMatcher(get_algorithm("FastCC"))

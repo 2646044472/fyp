@@ -668,6 +668,8 @@ class App:
                     candidates = localization.get('pklnet_roi_candidates')
                     if not candidates:
                         raise RuntimeError('Exhaustive fallback requires original localization diagnostics')
+                    if getattr(self.demo_algorithm,'needs_localization_candidates',False):
+                        feature.localization_candidates=candidates
                     def exhaustive():
                         hypotheses = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
                         return self.demo_algorithm.extract_with_hypotheses(full, quad, roi, hypotheses)

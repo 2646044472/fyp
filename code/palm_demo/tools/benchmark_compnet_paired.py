@@ -19,6 +19,7 @@ def main():
     p.add_argument('manifest',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--model-root',type=Path,required=True)
     p.add_argument('--native-registration',type=Path,required=True)
+    p.add_argument('--disable-alternate-only',action='store_true',help='v26: select all alternate returns and compare with inherited v25 evidence on the same loaded gallery')
     args=p.parse_args()
     control=json.loads(args.control.read_text());candidate=json.loads((args.candidate/'results.json').read_text())
     assert control['complete'] and candidate['complete']
@@ -29,11 +30,18 @@ def main():
     gain=max(options,key=lambda t:refs[t[0],t[1]['sample']]['ms']-t[1]['ms'])
     key=(gain[0],gain[1]['sample'])
     if key not in selected:selected.append(key)
+    if args.disable_alternate_only:
+        assert candidate['matcher']=='FastCCCompNetAlternateROI-v26-experimental'
+        selected=[(r['case'],q['sample']) for r in candidate['runs'] for q in r['queries']
+            if q['result'].get('recognition_route')=='compnet_alternate_roi_confident']
+        assert selected
     rows={r['sample']:r for r in json.loads(args.manifest.read_text())}
     args.output.mkdir(exist_ok=False,parents=True)
     os.environ['PALM_COMPNET_MODEL_ROOT']=str(args.model_root.resolve());cv2.setNumThreads(1)
     report=dict(protocol='Top 3 control latency plus largest auxiliary gain; ABBA paired; same loaded v25 gallery; no query cache',
                 selected=selected,power_samples=[],trials=[],live_camera_tested=False)
+    if args.disable_alternate_only:
+        report['protocol']='Every v26 alternate return; ABBA with v25 raw evidence vs v26 alternate enabled; same loaded v26 gallery; no query cache'
     def checkpoint():
         sample=power_sample();report['power_samples'].append(sample);save_json(args.output/'results.json',report)
         if power_fault(sample):raise RuntimeError('Pi power/throttle fault')
@@ -45,10 +53,13 @@ def main():
         shutil.copytree(args.candidate/case/'runtime',runtime)
         app,camera,startup=initialize(runtime,candidate['matcher'],args.native_registration)
         original=app.demo_algorithm._auxiliary_scores;active={};mode={'enabled':False}
+        if args.disable_alternate_only:
+            from compnet_evidence_matcher import CompNetEvidenceMatcher
+            disabled=CompNetEvidenceMatcher._auxiliary_scores.__get__(app.demo_algorithm,CompNetEvidenceMatcher)
         def auxiliary(*a):
-            if not mode['enabled']:return None
+            if not mode['enabled'] and not args.disable_alternate_only:return None
             begin=time.perf_counter()
-            try:return original(*a)
+            try:return original(*a) if mode['enabled'] else disabled(*a)
             finally:active['auxiliary_ms']=(time.perf_counter()-begin)*1000
         app.demo_algorithm._auxiliary_scores=auxiliary
         transactions=app.demo.payments.transaction_count()

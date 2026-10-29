@@ -20,7 +20,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('baseline',type=Path);p.add_argument('manifest',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--model-root',type=Path,required=True);p.add_argument('--native-registration',type=Path,required=True)
-    p.add_argument('--matcher',choices=('FastCCQualityEvidence-v24-experimental','FastCCCompNetEvidence-v25-experimental'),default='FastCCCompNetEvidence-v25-experimental',help='v24 creates a matched fresh-process control with the same copied enrollment protocol')
+    p.add_argument('--matcher',choices=('FastCCQualityEvidence-v24-experimental','FastCCCompNetEvidence-v25-experimental','FastCCCompNetAlternateROI-v26-experimental'),default='FastCCCompNetEvidence-v25-experimental',help='v24 creates a matched fresh-process control with the same copied enrollment protocol')
     args=p.parse_args();data=json.loads((args.baseline/'results.json').read_text());assert data['complete']
     rows={r['sample']:r for r in json.loads(args.manifest.read_text())};assert len(rows)==data['protocol']['images']
     assert all(digest(Path(r['original']))==r['sha256'] for r in rows.values())
@@ -30,7 +30,8 @@ def main():
         baseline_results_sha256=digest(args.baseline/'results.json'),live_camera_tested=False,
         enrollment='Immutable copy of completed baseline enrollment; only envelope magic/algorithm metadata versioned; no fresh-enrollment latency claim',
         timing_scope=data['timing_scope'],metric_warning='Auxiliary angular embedding distance differs from FastCC; nominal .32/.08 gates, unknown-person rejection uncalibrated',
-        code_sha256={p.name:digest(p) for p in [app_root/n for n in ('compnet_evidence_matcher.py','compnet_pilot.py','staged_index_matcher.py','biometric.py')]},
+        code_sha256={p.relative_to(app_root).as_posix():digest(p) for p in [app_root/n for n in
+            ('compnet_evidence_matcher.py','compnet_alternate_roi_matcher.py','compnet_pilot.py','staged_index_matcher.py','biometric.py','palm_app/debug_ui.py')]},
         model_metadata=json.loads((args.model_root/'metadata.json').read_text()),runs=[],power_samples=[])
     source_hashes={str(p):digest(p) for p in args.baseline.glob('*/runtime/demo_templates/*') if p.is_file()}
     def checkpoint():
@@ -47,7 +48,8 @@ def main():
             assert all(int(row[:4].view('<i4')[0])==2801064 for row in features)
             payload=hashlib.sha256(features[:,4:].tobytes()).hexdigest()
             if args.matcher=='FastCCQualityEvidence-v24-experimental':continue
-            features[:,:4]=np.asarray([2801065],'<i4').view(np.uint8)
+            magic=2801066 if args.matcher=='FastCCCompNetAlternateROI-v26-experimental' else 2801065
+            features[:,:4]=np.asarray([magic],'<i4').view(np.uint8)
             assert hashlib.sha256(features[:,4:].tobytes()).hexdigest()==payload
             metadata['algorithm']=report['matcher'];store.save(user,features,metadata)
         app,camera,startup=initialize(runtime,report['matcher'],args.native_registration)
@@ -55,6 +57,7 @@ def main():
         report['runs'].append(run);source_scores=app.demo_algorithm.score_gallery;active={}
         def traced_score(probe,groups):
             values=source_scores(probe,groups);active.update(scores=dict(values),source_matrix=probe.source.tolist())
+            if hasattr(probe,'auxiliary_roi_quad'):active['auxiliary_roi_quad']=probe.auxiliary_roi_quad.tolist()
             return values
         app.demo_algorithm.score_gallery=traced_score
         try:

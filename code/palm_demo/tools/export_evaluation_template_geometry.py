@@ -12,6 +12,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('baseline',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--all-enrolled',action='store_true',help='Export every enrolled transform and original FastCC reference code')
     p.add_argument('--native-registration',type=Path,help='Also export within-enrollment similarity links using this native library')
+    p.add_argument('--candidates',action='store_true',help='Also export existing stored query-hypothesis transforms, without rerunning localization')
     args=p.parse_args()
     if args.output.exists():raise FileExistsError(args.output)
     data=json.loads((args.baseline/'results.json').read_text());protocol=data['protocol']
@@ -41,6 +42,13 @@ def main():
                         result['records'].append(dict(case=run['case'],identity=identity,sample=sample,
                             source_matrix=q[1][2].tolist(),quad=source_quad(q[1][2]).tolist(),template_sha256=before,
                             reference_code=q[1][0][0].tolist()))
+                        if args.candidates:
+                            sources={}
+                            for sigma,matrix,points,desc in q[5]:
+                                key=matrix.tobytes()
+                                if key not in sources:sources[key]=dict(source_matrix=matrix.tolist(),quad=source_quad(matrix).tolist(),sigmas=[])
+                                if sigma not in sources[key]['sigmas']:sources[key]['sigmas'].append(sigma)
+                            result['records'][-1]['candidates']=list(sources.values())
                     if args.native_registration:
                         for i,left in enumerate(parts):
                             for j,right in enumerate(parts):

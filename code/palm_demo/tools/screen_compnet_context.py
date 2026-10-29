@@ -21,9 +21,14 @@ def main():
     p.add_argument('--development',type=Path,required=True)
     p.add_argument('--single-reference',type=Path,required=True)
     p.add_argument('--feature-bank',type=Path,help='Offline embeddings from the same model/images/quads; never used in runtime recognition')
+    p.add_argument('--stored-candidates',action='store_true',help='Use the baseline stored base/window hypotheses instead of the fixed spatial pyramid')
+    p.add_argument('--base-only',action='store_true',help='With --stored-candidates, exclude additional window-localizer hypotheses')
     args=p.parse_args();args.output.mkdir(exist_ok=False,parents=True)
+    if args.base_only and not args.stored_candidates:p.error('--base-only requires --stored-candidates')
     rows=json.loads((args.cohort/'manifest.json').read_text());cohort=json.loads((args.cohort/'protocol.json').read_text())
-    quads={r['sample']:np.asarray(r['quad'],np.float32) for r in json.loads(args.geometry.read_text())['records']}
+    records=json.loads(args.geometry.read_text())['records']
+    quads={r['sample']:np.asarray(r['quad'],np.float32) for r in records}
+    stored={r['sample']:r.get('candidates',[]) for r in records}
     lookup={r['sample']:i for i,r in enumerate(rows)};truth={r['sample']:r['identity'] for r in rows}
     encoder=CompNetPilot(args.model);cv2.setNumThreads(1)
     algorithm=load_algorithm(APP/'vendor/palmprint-recognition-python',cohort['matcher'])
@@ -33,12 +38,17 @@ def main():
         timing_scope='Offline frozen Pi primary geometry and feature reuse; no full Pi latency claim',
         source_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in
             [Path(__file__),APP/'compnet_context_pilot.py',args.geometry,args.development,args.cohort/'manifest.json']})
+    if args.stored_candidates:
+        assert all(stored[r['sample']] for r in rows)
+        protocol.update(views='All existing stored base/window hypotheses; original primary first',
+            method='Stored baseline ROI hypotheses, no new localization; independently scored crops; primary precedence, confident identity consensus')
+        if args.base_only:protocol['views']='Original primary + existing original/gamma base hypotheses, window hypotheses excluded'
     (args.output/'protocol.json').write_text(json.dumps(protocol,indent=2))
     features=[];indices=[];legacy_features=[];changed_quads=[];started=time.perf_counter();repo=APP.parents[1]
     cache=np.load(args.feature_bank) if args.feature_bank else None
     if cache is not None:
         previous=json.loads((args.feature_bank.parent/'protocol.json').read_text())
-        assert previous['model']==protocol['model'] and previous['views']==json.loads(json.dumps(CONTEXT_VIEWS))
+        assert previous['model']==protocol['model'] and previous['views']==json.loads(json.dumps(protocol['views']))
         for name in (args.geometry.name,'manifest.json','compnet_context_pilot.py'):
             assert previous['source_sha256'][name]==protocol['source_sha256'][name]
         protocol['offline_feature_bank_sha256']=hashlib.sha256(args.feature_bank.read_bytes()).hexdigest()
@@ -49,6 +59,14 @@ def main():
             image=Image.open(io.BytesIO(value)).convert('RGB')
             native=cv2.cvtColor(np.asarray(image),cv2.COLOR_RGB2GRAY)
             bank=[];valid=[];crops=context_quads(quads[row['sample']],image.size)
+            if args.stored_candidates:
+                crops=[(0,quads[row['sample']])]
+                for j,candidate in enumerate(stored[row['sample']],1):
+                    if args.base_only and 4 not in candidate['sigmas']:continue
+                    q=np.asarray(candidate['quad'],np.float32)
+                    if any(np.array_equal(q,existing) for _,existing in crops):continue
+                    assert q.shape==(4,2) and np.isfinite(q).all()
+                    if (q>=0).all() and (q[:,0]<image.width).all() and (q[:,1]<image.height).all():crops.append((j,q))
             for j,(i,q) in enumerate(crops):
                 bank.append(cache[row['sample']][j] if cache is not None else encoder.extract(Image.fromarray(algorithm.geometry.getROIimg(native,q))))
                 valid.append(i)

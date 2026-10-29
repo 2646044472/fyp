@@ -40,7 +40,7 @@ class StagedIndexMatcher(GuardedIndexMatcher):
         if auxiliary is not None:
             candidate=auxiliary(probe,groups)
             if candidate is not None and self.confident(candidate):
-                probe.route='compnet_evidence_confident'
+                probe.route=getattr(probe,'auxiliary_route','compnet_evidence_confident')
                 return candidate
         self.prepare_gallery(groups)
         primary,secondary=self._legacy_probe(probe)
