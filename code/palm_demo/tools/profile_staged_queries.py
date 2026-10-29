@@ -10,6 +10,7 @@ from pathlib import Path
 import threading
 import time
 import cv2
+import numpy as np
 from replay_pi_pipeline import ReplayCamera,http_app,debug_ui,save_json
 from replay_demo_manifest import correct_identification
 from replay_ready_queries import power_sample,power_fault
@@ -23,6 +24,8 @@ from pooled_enrollment_matcher import PooledEnrollmentMatcher
 import pooled_enrollment_matcher
 from union_matcher import FastCCWindowUnionMatcher
 from demo_matcher import FastCCDemoMatcher
+from compnet_evidence_matcher import CompNetEvidenceMatcher
+from compnet_alternate_roi_matcher import CompNetAlternateROIMatcher
 
 
 def main():
@@ -31,6 +34,8 @@ def main():
     parser.add_argument('previous',type=Path)
     parser.add_argument('output',type=Path)
     parser.add_argument('--native-registration',type=Path,required=True)
+    parser.add_argument('--retain-reference-errors',action='store_true',help='Retain incorrect reference decisions and require their correctness/status to remain unchanged')
+    parser.add_argument('--warm-model',action='store_true',help='Load/prime PKLNet before query timing; record initialization/ready wait separately')
     args=parser.parse_args()
     if args.output.exists():raise FileExistsError(args.output)
     summary=json.loads((args.replay/'summary.json').read_text())
@@ -75,6 +80,8 @@ def main():
         (FastCCWindowUnionMatcher,'extract_with_hypotheses','complete_features'),
         (FastCCWindowUnionMatcher,'_hypothesis_views','hypothesis_features'),
         (FastCCDemoMatcher,'score_prepared','complete_identity_match')]:wrap(owner,name,label)
+    wrap(CompNetEvidenceMatcher,'_auxiliary_scores','primary_embedding_evidence')
+    wrap(CompNetAlternateROIMatcher,'_auxiliary_scores','base_roi_embedding_evidence')
     confident=StagedIndexMatcher.confident
     def gate(scores):
         answer=confident(scores)
@@ -91,9 +98,15 @@ def main():
             raise RuntimeError('Pi power/throttle fault')
         return sample
     report['preflight']=power()
-    camera=ReplayCamera(False,PKLNetROI(threads=3));debug_ui.common.RUNTIME=args.replay/'demo_runtime'
+    startup=time.perf_counter();engine=PKLNetROI(threads=3)
+    if args.warm_model:
+        engine._ensure_loaded()
+        engine._session.run(['keypoints','heatmap_keypoints','fc_keypoints'],{'image':np.zeros((1,3,400,300),np.float32)})
+    camera=ReplayCamera(False,engine);debug_ui.common.RUNTIME=args.replay/'demo_runtime'
     app=debug_ui.App(camera,demo_matcher=summary['matcher'])
     native=enable_native_registration(app.demo_algorithm,args.native_registration,1)
+    report.update(initialization_ready_ms=(time.perf_counter()-startup)*1000,model_primed=args.warm_model,
+        retained_reference_errors=args.retain_reference_errors)
     class TimedNative:
         def pairs(self,*a):
             start=time.perf_counter()
@@ -116,14 +129,16 @@ def main():
                     reference=selected[row['sample']]['result']
                     trial=dict(sample=row['sample'],repeat=repeat,http_ms=trace[-1]['ms'],result=response,
                         correct=correct_identification(dict(http_status=status,result=response,identity=row['identity'])),
+                        reference_correct=selected[row['sample']].get('correct'),
                         reference_equal=all(response.get(k)==reference.get(k) for k in ('user_id','score','second_score','status','recognition_route')),
                         **record,power_after=power())
                     report['queries'].append(trial);save_json(args.output,report)
                     if response.get('token'):request('/api/demo/cancel',dict(token=response['token']),200)
                     print(row['sample'],repeat,round(trial['http_ms']),trial['reference_equal'],flush=True)
         report['transactions_unchanged']=transactions==app.demo.payments.transaction_count()
-        save_json(args.output,report)
-        assert report['transactions_unchanged'] and all(q['correct'] and q['reference_equal'] for q in report['queries'])
+        assert report['transactions_unchanged'] and all(q['reference_equal'] and
+            (q['correct']==q['reference_correct'] if args.retain_reference_errors else q['correct']) for q in report['queries'])
+        report['complete']=True;save_json(args.output,report)
     finally:
         app.demo_algorithm.close()
         for owner,name,old in reversed(originals):setattr(owner,name,old)

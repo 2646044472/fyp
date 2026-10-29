@@ -151,3 +151,6 @@ Tools: `inspect_aligned_compnet.py`, `screen_compnet_contrast.py`,
 `compnet-contrast-screen-20261030`, `compnet-stored-window-screen-20261030`,
 `compnet-base-candidate-screen-20261030`, `compnet-v26-pi-20261030` and
 `compnet-v26-paired-20261030`. The v26 run retains its source archive.
+
+The subsequent unchanged-result stage diagnosis and explicit remaining blockers
+are in [PI5_V26_STAGE_BLOCKERS_20261030.md](PI5_V26_STAGE_BLOCKERS_20261030.md).
