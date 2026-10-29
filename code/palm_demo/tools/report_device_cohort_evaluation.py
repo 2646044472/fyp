@@ -17,14 +17,17 @@ def main():
         assert feature_data.get('complete') and feature_data.get('all_reference_equal')
         diagnostic_rows={(q['case'],q['sample']):q for q in feature_data['queries']}
     cases={c['name']:c for c in protocol['cases']}
+    device_counts=protocol.get('device_images',{'old-camera':110,'new-camera':60})
+    query_counts={device:sorted({len(c['queries']) for c in protocol['cases'] if c['device']==device}) for device in device_counts}
+    expected_queries=sum(len(c['queries']) for c in protocol['cases'])
     status='已完成' if data.get('complete') else '进行中，部分分组尚未完成'
     chunks=['<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>七人分设备完整流程实验</title>',
       '<style>body{font:16px/1.6 system-ui,sans-serif;max-width:1450px;margin:32px auto;padding:0 22px;color:#182637}h1{font-size:29px}h2{margin-top:32px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:8px;border:1px solid #cdd6e1;text-align:left;vertical-align:top}th{background:#edf2f8;white-space:nowrap}.notice{padding:12px 16px;border-left:4px solid #ac6914;background:#fff6e7}.failure{border:1px solid #d0d8e1;border-radius:8px;margin:16px 0;padding:16px}.failure img{max-width:100%;height:auto}code{overflow-wrap:anywhere}small{color:#526276}</style>',
       '<h1>七人分设备：冻结版本完整流程与错图分析</h1>',
       '<p>2026-10-29 · 纯 Raspberry Pi 5 · Wi-Fi 管理连接 · '+status+'</p>',
-      '<p class="notice">当前在用数据共 170 张：旧相机 110 张、6 个人员标签、11 个掌纹身份；新相机 60 张、3 人、6 个掌纹身份（含 billy）。bankey/stephen 在两设备重复出现，按人员合并计 7 人；匹配图库始终按设备分别建立。</p>',
+      '<p class="notice">本轮冻结原图共 '+str(protocol['images'])+' 张：旧相机 '+str(device_counts['old-camera'])+' 张；新相机 '+str(device_counts['new-camera'])+' 张（含 billy）。bankey/stephen 在两设备重复出现，按人员合并计 '+str(protocol['people'])+' 人；匹配图库始终按设备分别建立。</p>',
       '<p>固定识别版本：<code>'+esc(protocol['matcher'])+'</code>，算法快照提交 <code>'+esc(protocol['frozen_commit'])+'</code>。全部识别源文件和测试工具的 SHA 在协议中固定；本轮不根据这些结果调参。</p>',
-      '<p>每个设备分别做最早 5 张注册/其余查询，以及最晚 5 张注册/其余查询。旧相机每组 55 次主查询，新相机每组 30 次，共 170 次主查询。每组从空库重新注册；不跨设备注册查询。已移出的 syr 会话不参与本轮，旧版 120 张实验的 62/65 保留为历史记录。</p>',
+      '<p>每个设备分别做最早 5 张注册/其余查询，以及最晚 5 张注册/其余查询。旧相机各组查询数 '+esc(query_counts['old-camera'])+'，新相机各组查询数 '+esc(query_counts['new-camera'])+'，合计 '+str(expected_queries)+' 次主查询。每组从空库重新注册；不跨设备注册查询。用户删除的原图按协议排除，已有历史实验不改写为算法改善；旧版 120 张实验的 62/65 保留为历史记录。</p>',
       '<h2>完整主查询结果</h2><p>正确要求成功返回 MATCH 且掌纹身份一致；“≤2.5 秒正确”还要求本次完整 HTTP 请求不超过 2500 ms。失败、误认、定位错误及超时全部保留。</p>']
     summaries=[]
     for run in data['runs']:

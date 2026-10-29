@@ -36,6 +36,12 @@ class StagedIndexMatcher(GuardedIndexMatcher):
             return {u:self._aggregate([pairs[(u,j)] for j in range(len(samples))]) for u,samples in groups.items()}
         scores=aggregate()
         if self.confident(scores):probe.route='pose_confident';return scores
+        auxiliary=getattr(self,'_auxiliary_scores',None)
+        if auxiliary is not None:
+            candidate=auxiliary(probe,groups)
+            if candidate is not None and self.confident(candidate):
+                probe.route='compnet_evidence_confident'
+                return candidate
         self.prepare_gallery(groups)
         primary,secondary=self._legacy_probe(probe)
         def legacy(key):
