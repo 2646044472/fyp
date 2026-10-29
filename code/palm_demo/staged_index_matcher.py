@@ -25,6 +25,10 @@ class StagedIndexMatcher(GuardedIndexMatcher):
             return probe.source,p/scale-unoffset,d
         return list(self._workers.map(extract,(0,2)))
 
+    def _legacy_pair(self,probe,primary,secondary,target):
+        tp,ts=target[2]
+        return self.legacy._match_parts(primary,tp,[(secondary,ts)])
+
     def score_gallery(self,probe,groups):
         pairs={(u,j):min(self.base.match(p.astype(bool),s[0]) for p in probe.bank if p[0,0]>=0)
                for u,samples in groups.items() for j,s in enumerate(samples)}
@@ -35,13 +39,20 @@ class StagedIndexMatcher(GuardedIndexMatcher):
         self.prepare_gallery(groups)
         primary,secondary=self._legacy_probe(probe)
         def legacy(key):
-            u,j=key;tp,ts=groups[u][j][2]
-            return key,self.legacy._match_parts(primary,tp,[(secondary,ts)])
+            u,j=key
+            return key,self._legacy_pair(probe,primary,secondary,groups[u][j])
         pairs.update(self._workers.map(legacy,list(pairs)))
         scores=aggregate()
         if self.confident(scores):
             probe.route='legacy_confident'
             return scores
+        linked=getattr(self,'_enrollment_link_stage',None)
+        if linked is not None:
+            linked(probe,groups,pairs)
+            scores=aggregate()
+            if self.confident(scores):
+                probe.route='enrollment_link_confident'
+                return scores
         with self._index_lock:
             if self._index is not None:
                 for wide in (False,True):
