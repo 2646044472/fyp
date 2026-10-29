@@ -230,6 +230,39 @@ order preservation and propagation of model failures. Application replay tools
 can now select an explicit isolated localizer; ready-query replays verify and
 reuse that exact model hash instead of silently falling back to the default.
 
+### INT8 rejected by actual Pi recognition
+
+New-image actual Pi HTTP replay identifies 19/20 correctly: one query is
+misidentified as a different enrolled user at the exhaustive fallback stage.
+P50 is 1.332 s, P95 10.234 s, maximum 10.685 s; only 14/20 are correct within
+2.5 seconds. This is a wrong accept, not a timeout or a mere ranking ambiguity.
+The script's final correctness assertion fails, so the chained old-image HTTP
+replay does not run. The standalone paired localization test still covered all
+80 images; it must not be mistaken for 80 successful identifications.
+
+The full development audit was stopped after 45 of 224 cases because this
+candidate had already failed acceptance. Two completed new-camera splits
+(`new_random_2026102807` and `new_random_2026102808`) are 19/20, independently
+confirming a regression. No complete 224-split success is claimed. Preserve
+`int8-rejection.json`, `int8-cached-splits/results.json`, and
+`http-int8-new-summary.json`. No thresholds were loosened and no candidate was
+deployed to production.
+
+### Dominant convolution microbenchmark: no hybrid backend integration
+
+Both large segmentation Conv+ReLU pairs have input shape 1x224x100x75 and
+224x224x3x3 weights. With unchanged FP32 weights on Pi, ONNX Runtime is about
+68 ms per pair versus OpenCV Winograd about 103 ms, including input binding.
+These are synthetic operator timings, not ROI or end-to-end timings. The
+partial backend replacement is rejected before splitting the full graph.
+
+An additional requested CPU-FP16 target was ignored by OpenCV 5's graph engine;
+the resulting numbers are FP32 fallback, not FP16 performance evidence.
+Production OpenCV 4.10 advertises CPU only as well. The tool now rejects an
+unadvertised FP16 target before collecting timings. No supported FP16 speed
+claim or deployment results from this check. Logs and raw JSON remain private
+under `large-convs*` for traceability.
+
 ## Evidence and tooling
 
 Private evidence stays under `runtime/pi5-under2-20261028/`: `lowres-screen/`,
