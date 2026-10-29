@@ -72,6 +72,7 @@ def registration(left, right):
 class FastCCRegisteredMatcher(FastCCPoseMatcher):
     name = NAME
     registration = staticmethod(registration)
+    local_features = staticmethod(local_features)
 
     @staticmethod
     def _pack(bank, context=None, matrix=None, size=(0, 0), points=None, descriptors=None):
@@ -123,7 +124,7 @@ class FastCCRegisteredMatcher(FastCCPoseMatcher):
         matrix = cv2.getPerspectiveTransform(q, dst)
         gray = cv2.cvtColor(np.asarray(full.convert('RGB')), cv2.COLOR_RGB2GRAY)
         pixels = normalize_roi_pixels(cv2.warpPerspective(gray, matrix, (SIDE, SIDE)))
-        points, desc = local_features(pixels)
+        points, desc = self.local_features(pixels)
         offset = np.asarray([[1., 0., SIDE/2], [0., 1., SIDE/2], [0., 0., 1.]])
         context = cv2.warpPerspective(gray, offset@matrix, (CONTEXT, CONTEXT))
         return self._pack(bank, context, matrix, full.size, points, desc)
@@ -194,7 +195,7 @@ class FastCCDualRegisteredMatcher(FastCCRegisteredMatcher):
         base = FastCCRegisteredMatcher.extract_with_context(self, full, quad, normalized_roi)
         context = FastCCRegisteredMatcher._unpack(base)[1]
         pixels = normalize_roi_pixels(context[192:576, 192:576])
-        points, desc = local_features(cv2.GaussianBlur(pixels, (0, 0), 2.))
+        points, desc = self.local_features(cv2.GaussianBlur(pixels, (0, 0), 2.))
         return self._append_view(base, points, desc)
 
     @staticmethod

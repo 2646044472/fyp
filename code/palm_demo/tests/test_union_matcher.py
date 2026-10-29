@@ -60,3 +60,18 @@ def test_bad_valid_candidate_cannot_be_silently_used(matcher):
     q=np.array([[20,20],[170,20],[170,170],[20,170]],np.float32)
     with pytest.raises(ValueError,match='geometry'):
         matcher.extract_with_hypotheses(Image.fromarray(rgb),q,rgb[:128,:128,0],[dict(quad=q-500,valid=True)])
+
+
+def test_parallel_window_map_preserves_order_and_surfaces_failure():
+    from concurrent.futures import ThreadPoolExecutor
+    image = Image.new('RGB', (600, 300), (64, 64, 64))
+    def extract(view):
+        return None, np.array([[20,20],[100,20],[100,100],[20,100]]), {'pklnet_keypoints': [[20,20],[100,20],[50,50]]}
+    engine = SimpleNamespace(extract=extract)
+    expected = window_candidates(image, engine)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert window_candidates(image, engine, map_jobs=pool.map) == expected
+        def fail(view):
+            raise RuntimeError('model failed')
+        with pytest.raises(RuntimeError, match='model failed'):
+            window_candidates(image, SimpleNamespace(extract=fail), map_jobs=pool.map)

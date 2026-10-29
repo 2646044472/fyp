@@ -1,4 +1,4 @@
-"""Fixed default-ORB pilot on all frozen development ROIs and enrollment splits.
+"""Fixed binary-feature pilots on frozen development ROIs and enrollment splits.
 
 Only local features and their distance metric change. All views, geometry gates,
 original pixels, FastCC scoring and best-two aggregation are retained. This is
@@ -25,14 +25,17 @@ from union_matcher import HEADER
 
 
 def binary_features(pixels, detector='orb'):
+    half = detector == 'akaze_half'
+    if half:
+        pixels = cv2.resize(pixels, (pixels.shape[1]//2, pixels.shape[0]//2), interpolation=cv2.INTER_AREA)
     engine = cv2.ORB_create(nfeatures=MAX_POINTS) if detector == 'orb' else cv2.AKAZE_create()
     points, descriptors = engine.detectAndCompute(pixels, None)
     if descriptors is None:
         return np.empty((0, 2), np.float32), np.empty((0, engine.descriptorSize()), np.uint8)
-    if detector == 'akaze' and len(points) > MAX_POINTS:
+    if detector != 'orb' and len(points) > MAX_POINTS:
         indices = sorted(range(len(points)), key=lambda i: -points[i].response)[:MAX_POINTS]
         points, descriptors = [points[i] for i in indices], descriptors[indices]
-    return np.asarray([p.pt for p in points[:MAX_POINTS]], np.float32), descriptors[:MAX_POINTS]
+    return np.asarray([p.pt for p in points[:MAX_POINTS]], np.float32)*(2 if half else 1), descriptors[:MAX_POINTS]
 
 
 def binary_registration(left, right):
@@ -47,8 +50,8 @@ def binary_registration(left, right):
     return estimate_pairs(pa, pb, pairs)
 
 
-def convert_query(reference, feature, detector='orb'):
-    return extract_binary_geometry(**query_geometry(reference, feature), detector=detector)
+def convert_query(reference, feature, detector='orb', scope='full'):
+    return extract_binary_geometry(**query_geometry(reference, feature), detector=detector, scope=scope)
 
 
 def query_geometry(reference, feature):
@@ -68,7 +71,7 @@ def query_geometry(reference, feature):
                 matrices=np.asarray([q[1] for q in old_queries]), bounds=np.asarray(bounds))
 
 
-def extract_binary_geometry(bank, context, source, size, native, sigmas, matrices, bounds, detector='orb'):
+def extract_binary_geometry(bank, context, source, size, native, sigmas, matrices, bounds, detector='orb', scope='full'):
     """Recompute descriptors from pixels; cached geometry is explicitly excluded."""
     pixels = normalize_roi_pixels(cv2.warpPerspective(native, source, (384, 384)))
     p, d = binary_features(pixels, detector)
@@ -78,6 +81,10 @@ def extract_binary_geometry(bank, context, source, size, native, sigmas, matrice
     gallery = [(sigma, np.eye(3), *binary_features(cv2.GaussianBlur(second_pixels, (0, 0), sigma), detector))
                for sigma in (4, 8)]
     queries = []
+    if scope in ('context', 'frame'):
+        sigmas, matrices, bounds = sigmas[:2], matrices[:2], bounds[:2]
+    elif scope == 'gallery':
+        sigmas, matrices, bounds = sigmas[:0], matrices[:0], bounds[:0]
     for sigma, matrix, (lower, upper) in zip(sigmas, matrices, bounds):
         sigma = int(sigma)
         side = int(upper-lower)
@@ -86,6 +93,13 @@ def extract_binary_geometry(bank, context, source, size, native, sigmas, matrice
         p, d = binary_features(cv2.GaussianBlur(pixels, (0, 0), sigma) if sigma else pixels, detector)
         queries.append((sigma, matrix, p+lower, d))
     assert len(queries) == len(sigmas)
+    if scope == 'frame':
+        scale = min(1., 1536/max(native.shape))
+        pixels = normalize_roi_pixels(cv2.resize(native, (round(native.shape[1]*scale), round(native.shape[0]*scale)), interpolation=cv2.INTER_AREA))
+        for sigma in (0, 2):
+            points, descriptors = binary_features(cv2.GaussianBlur(pixels, (0, 0), sigma) if sigma else pixels, detector)
+            mapped = cv2.perspectiveTransform((points/scale).reshape(-1, 1, 2), source).reshape(-1, 2) if len(points) else points
+            queries.append((sigma, source, mapped, descriptors))
     return None, primary, secondary, native, gallery, queries
 
 
@@ -93,16 +107,23 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('source', type=Path)
     parser.add_argument('output', type=Path)
-    parser.add_argument('--detector', choices=['orb', 'akaze'], default='orb')
+    parser.add_argument('--detector', choices=['orb', 'akaze', 'akaze_half'], default='orb')
+    parser.add_argument('--scope', choices=['full', 'context', 'frame'], default='full')
+    parser.add_argument('--gallery-detector', choices=['orb', 'akaze', 'akaze_half'])
     args = parser.parse_args()
+    if args.gallery_detector and (args.detector == 'orb') != (args.gallery_detector == 'orb'):
+        parser.error('Query and gallery must use the same binary descriptor family')
     args.output.mkdir(parents=True, exist_ok=False)
     cv2.setNumThreads(4)
     rows = json.loads((args.source/'stability/records.json').read_text())
     cases = json.loads((args.source/'single-device/runtime-v5/results.json').read_text())
     assert len(rows) == 80 and len(cases) == 224
     plan = dict(detector=args.detector, settings='OpenCV defaults; cap at 1000 points, AKAZE by response',
+                gallery_detector=args.gallery_detector or args.detector,
+                descriptor_resize='Fixed half size with INTER_AREA, points mapped back; final scoring uses original pixels' if args.detector=='akaze_half' else 'none',
                 descriptor_metric='Hamming, same 0.85 ratio and mutual-nearest test',
-                spatial_candidates='Every saved v5 candidate/view; no removal',
+                spatial_candidates=args.scope, context_scope='Primary, secondary and first two original context views; full scope retains all views',
+                frame_scope='Context plus whole native frame capped at 1536 long side, sigma 0/2; no auxiliary window inference',
                 geometry='unchanged RANSAC and spatial-overlap gates',
                 recognition='unchanged FastCC pixel scoring and best-two aggregation',
                 development_only=True, independent_validation=False, opencv_version=cv2.__version__)
@@ -110,21 +131,23 @@ def main():
     base = load_algorithm(Path(__file__).resolve().parents[1]/'vendor/palmprint-recognition-python', 'FastCC')
     algorithm = FastCCDemoMatcher(AcceleratedFastCC(base))
     algorithm.registration = algorithm.legacy.registration = binary_registration
-    queries = []
+    queries, galleries = [], []
     for row in rows:
         assert hashlib.sha256(Path(row['original']).read_bytes()).hexdigest() == row['sha256']
         with np.load(args.source/'single-device/runtime-v5'/(row['sample']+'.npz'), allow_pickle=False) as saved:
             feature = saved['feature']
         # v5/v6 have identical layout; only the numeric envelope tag differs.
         feature[:4] = np.asarray([algorithm.magic], '<i4').view(np.uint8)
-        queries.append(convert_query(algorithm, feature, args.detector))
+        queries.append(convert_query(algorithm, feature, args.detector, args.scope))
+        galleries.append(convert_query(algorithm, feature, args.gallery_detector, 'gallery')
+                         if args.gallery_detector else queries[-1])
         print('features', len(queries), flush=True)
     matrix = np.full((len(rows), len(rows)), np.nan)
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=2) as executor:
         for i, row in enumerate(rows):
             indices = [j for j, target in enumerate(rows) if target['cohort'] == row['cohort'] and j != i]
-            values = list(executor.map(lambda j: algorithm._match_unpacked(queries[i], queries[j]), indices))
+            values = list(executor.map(lambda j: algorithm._match_unpacked(queries[i], galleries[j]), indices))
             matrix[i, indices] = values
             matrix[i, i] = 0.
             np.save(args.output/'distances.npy', matrix)

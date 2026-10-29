@@ -34,6 +34,7 @@ def main():
     parser.add_argument('output', type=Path)
     parser.add_argument('--opencv-threads', type=int)
     parser.add_argument('--onnx-threads', type=int, default=2)
+    parser.add_argument('--localizer-root', type=Path, help='Explicit isolated model directory; default remains unchanged')
     parser.add_argument('--restoration', action='store_true')
     parser.add_argument('--demo-matcher', default='FastCCDemo-v6')
     parser.add_argument('--native-registration', type=Path, help='Explicit experimental ARM64 library; disabled by default')
@@ -50,7 +51,8 @@ def main():
     assert unchanged()
     args.output.mkdir(parents=True, exist_ok=False)
     save_json(args.output / 'input-manifest.json', rows)
-    engine = PKLNetROI(threads=args.onnx_threads)
+    engine = (PKLNetROI(threads=args.onnx_threads) if args.localizer_root is None else
+              PKLNetROI(root=args.localizer_root, weights=args.localizer_root/'net_params_500.pth', threads=args.onnx_threads))
     start = time.perf_counter()
     result = demo_roundtrip(rows, engine, args.output, args.demo_matcher,
                             native_registration=args.native_registration,native_threads=args.native_threads)
@@ -61,17 +63,21 @@ def main():
                    elapsed_s=time.perf_counter()-start, opencv_threads=cv2.getNumThreads(),
                    onnx_threads=args.onnx_threads, peak_rss_bytes=peak_rss_bytes(),
                    originals_unchanged=unchanged(), payment=result['payment'], live_camera_tested=False)
+    summary['localizer_root'] = str(engine.root.resolve())
+    summary['localizer_sha256'] = hashlib.sha256((engine.root/'pklnet-keypoints-diagnostics.onnx').read_bytes()).hexdigest()
+    summary['acceptance_budget_ms'] = 2500
     summary['native_registration'] = None if args.native_registration is None else dict(
         path=str(args.native_registration),sha256=hashlib.sha256(args.native_registration.read_bytes()).hexdigest(),threads=args.native_threads)
     for name in ('enroll', 'identify'):
         values = times('/api/demo/' + name)
-        summary[name] = dict(n=len(values), median_ms=float(np.median(values)), p95_ms=float(np.percentile(values,95)), max_ms=max(values), first_ms=values[0], within_2s=sum(v<=2000 for v in values))
+        summary[name] = dict(n=len(values), median_ms=float(np.median(values)), p95_ms=float(np.percentile(values,95)), max_ms=max(values), first_ms=values[0], within_2s=sum(v<=2000 for v in values), within_2_5s=sum(v<=2500 for v in values))
     timed = [p['result']['timing_ms'] for p in result['probes'] if 'timing_ms' in p['result']]
     summary['timed_probes'] = len(timed)
     summary['failures'] = [p for p in result['probes'] if not correct_identification(p)]
     summary['stages_median_ms'] = {k:float(np.median([p[k] for p in timed])) for k in timed[0]} if timed else {}
     identify_trace = [r for r in result['http_trace'] if r['route'] == '/api/demo/identify']
     summary['correct_within_2s'] = sum(correct_identification(p) and t['ms']<=2000 for p,t in zip(result['probes'],identify_trace))
+    summary['correct_within_2_5s'] = sum(correct_identification(p) and t['ms']<=2500 for p,t in zip(result['probes'],identify_trace))
     summary['over_2s'] = [dict(sample=p['sample'],identity=p['identity'],ms=t['ms'],
                               route=p['result'].get('recognition_route'),http_status=p['http_status'])
                          for p,t in zip(result['probes'],identify_trace) if t['ms']>2000]

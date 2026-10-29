@@ -22,6 +22,7 @@ class FastCCWindowUnionMatcher:
     magic=MAGIC
     allow_gallery_only=False
     registration=staticmethod(registration)
+    local_features=staticmethod(local_features)
 
     def __init__(self,base):
         self.base=base;self.legacy=FastCCDualRegisteredMatcher(base);self.geometry=self.legacy.geometry
@@ -61,13 +62,13 @@ class FastCCWindowUnionMatcher:
         gallery=[];queries=[]
         pixels=normalize_roi_pixels(primary[1][192:576,192:576])
         for sigma in [4,8]:
-            p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
+            p,d=self.local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
             gallery.append(self._encode_view(sigma,np.eye(3),p,d))
         # Exactly the expanded_strict baseline: descriptors from stored v2
         # context, native appearance. base_full is a separate unused control.
         pixels=normalize_roi_pixels(primary[1])
         for sigma in [0,2]:
-            p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
+            p,d=self.local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
             queries.append(self._encode_view(sigma,primary[2],p-192,d,-192,576))
         if len(hypotheses)>8:raise ValueError('Expected at most two base and six window hypotheses')
         queries.extend(self._all_hypothesis_views(gray,full.size,hypotheses))
@@ -90,7 +91,7 @@ class FastCCWindowUnionMatcher:
             offset=(size-384)/2;shift=np.asarray([[1.,0,offset],[0,1.,offset],[0,0,1.]])
             pixels=normalize_roi_pixels(cv2.warpPerspective(gray,shift@source,(size,size)))
             for sigma in ([0,2] if h.get('kind')=='window' else [0,2,4,8]):
-                p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
+                p,d=self.local_features(cv2.GaussianBlur(pixels,(0,0),sigma) if sigma else pixels)
                 views.append(self._encode_view(sigma,source,p-offset,d,int(-offset),int(size-offset)))
         return views
 

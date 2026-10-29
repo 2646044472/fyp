@@ -18,6 +18,7 @@ def main():
     parser.add_argument('root', type=Path)
     parser.add_argument('output', type=Path)
     parser.add_argument('--smoke', action='store_true', help='Only original/reverse; not the full split audit')
+    parser.add_argument('--cache-exhaustive-pairs', action='store_true', help='Offline only: reuse exact frozen query/gallery pair scores across splits; timings are not latency')
     parser.add_argument('--matcher', default='FastCCIndexed-v7-experimental',
                         choices=['FastCCIndexed-v7-experimental','FastCCProposedIndex-v8-experimental','FastCCGuardedIndex-v9-experimental','FastCCStagedIndex-v10-experimental'])
     args = parser.parse_args()
@@ -30,6 +31,7 @@ def main():
     lookup = {r['sample']:i for i,r in enumerate(rows)}
     algorithm = load_algorithm(APP/'vendor/palmprint-recognition-python',args.matcher)
     protocol = dict(algorithm=algorithm.name, code_sha256=hashlib.sha256((APP/'indexed_demo_matcher.py').read_bytes()).hexdigest(),
+                    exhaustive_pair_cache=args.cache_exhaustive_pairs,
                     development_images=80, independent_holdout=False, parameters_selected_on_development=True,
                     cases=len(cases), source='unchanged v5 localization and enrollment descriptors; no query identity in extraction/matching',
                     limitation='Cached geometry/descriptor audit; not a live end-to-end latency measurement')
@@ -55,6 +57,20 @@ def main():
             probe.exhaustive=exhaustive
         probes.append(probe)
     results = []
+    pair_cache, active_query = {}, [None]
+    if args.cache_exhaustive_pairs:
+        if not getattr(algorithm, 'requires_exhaustive_fallback', False):
+            raise ValueError('Pair reuse supports exhaustive fallback matchers only')
+        # Gallery objects are strongly retained for the entire audit. Query IDs
+        # identify immutable, SHA-checked extraction inputs, never true labels.
+        target_ids = {id(sample[3]): i for i,sample in enumerate(gallery)}
+        original_pair = algorithm._match_unpacked
+        def frozen_pair(query, target):
+            key = active_query[0], target_ids[id(target)]
+            if key not in pair_cache:
+                pair_cache[key] = original_pair(query, target)
+            return pair_cache[key]
+        algorithm._match_unpacked = frozen_pair
     try:
         for case in cases:
             groups = {k:[gallery[lookup[s]] for s in ids] for k,ids in case['gallery'].items()}
@@ -65,6 +81,7 @@ def main():
             for trial in case['trials']:
                 assert all(trial['sample'] not in ids for ids in case['gallery'].values())
                 probe = probes[lookup[trial['sample']]]
+                active_query[0] = lookup[trial['sample']]
                 tick = time.perf_counter()
                 scores = algorithm.score_gallery(probe,groups)
                 correct = scores[trial['identity']] < min(v for k,v in scores.items() if k!=trial['identity'])
@@ -81,6 +98,8 @@ def main():
                for cohort in ('new','old')
                if (values:=[r['correct'] for r in results if r['case'].startswith(cohort+'_')])}
     (args.output/'summary.json').write_text(json.dumps(summary,indent=2))
+    (args.output/'pair-cache.json').write_text(json.dumps(dict(enabled=args.cache_exhaustive_pairs,
+        pairs=len(pair_cache), offline_only=True, runtime_query_cache=False),indent=2))
     print(json.dumps(summary),flush=True)
 
 

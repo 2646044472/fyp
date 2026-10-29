@@ -22,6 +22,9 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCAKAZE-v11-experimental":
+        from binary_demo_matcher import BinaryDemoMatcher
+        return BinaryDemoMatcher(get_algorithm("FastCC"))
     if name == "FastCCStagedIndex-v10-experimental":
         from staged_index_matcher import StagedIndexMatcher
         return StagedIndexMatcher(get_algorithm("FastCC"))

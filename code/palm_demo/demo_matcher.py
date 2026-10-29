@@ -35,7 +35,7 @@ class FastCCDemoMatcher(FastCCAnchoredUnionMatcher):
         primary,_=self.legacy._views(legacy)
         pixels=normalize_roi_pixels(primary[1][192:576,192:576]);gallery=[]
         for sigma in [4,8]:
-            p,d=local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
+            p,d=self.local_features(cv2.GaussianBlur(pixels,(0,0),sigma))
             gallery.append(self._encode_view(sigma,np.eye(3),p,d))
         return self._pack(legacy,np.empty(0,np.uint8),[],gallery)
 

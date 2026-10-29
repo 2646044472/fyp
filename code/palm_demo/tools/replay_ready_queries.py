@@ -37,7 +37,11 @@ def main():
     queries=[r for r in sorted(rows,key=lambda r:(r['identity'],r['index'])) if r['index']>5]
     cv2.setNumThreads(4)
     start=time.perf_counter()
-    engine=PKLNetROI(threads=4)
+    model_root = summary.get('localizer_root')
+    engine = (PKLNetROI(threads=4) if model_root is None else
+              PKLNetROI(root=Path(model_root), weights=Path(model_root)/'net_params_500.pth', threads=4))
+    if summary.get('localizer_sha256'):
+        assert hashlib.sha256((engine.root/'pklnet-keypoints-diagnostics.onnx').read_bytes()).hexdigest() == summary['localizer_sha256']
     if args.warm_model:
         engine._ensure_loaded()
         engine._session.run(['keypoints','heatmap_keypoints','fc_keypoints'],{'image':np.zeros((1,3,400,300),np.float32)})

@@ -1,4 +1,4 @@
-"""Isolated ORB compute screen. Cached ROI geometry makes this NOT end-to-end.
+"""Isolated binary-feature compute screen. Cached geometry makes this NOT end-to-end.
 
 Export on the original-data host, copy the bundle to Pi, then measure there.
 Every query recomputes its descriptors; enrollment descriptors alone are reused.
@@ -17,7 +17,8 @@ def main():
     parser.add_argument('mode', choices=['export', 'measure'])
     parser.add_argument('source', type=Path)
     parser.add_argument('output', type=Path)
-    parser.add_argument('--detector', choices=['orb', 'akaze'], default='orb')
+    parser.add_argument('--detector', choices=['orb', 'akaze', 'akaze_half'], default='orb')
+    parser.add_argument('--scope', choices=['full', 'context'], default='full')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     cv2.setNumThreads(4)
@@ -41,20 +42,20 @@ def main():
         cases = json.loads((args.source/'cases.json').read_text())
         output = dict(end_to_end=False, excludes=['camera', 'upload', 'queue', 'image decode',
                       'ROI inference including candidate discovery', 'pose-bank extraction', 'HTTP return'],
-                      includes=['ORB descriptor extraction from pixels', 'all gallery comparisons', 'aggregation'],
-                      opencv=cv2.__version__, detector=args.detector, passes=[])
+                      includes=['binary descriptor extraction from pixels', 'all gallery comparisons', 'aggregation'],
+                      opencv=cv2.__version__, detector=args.detector, scope=args.scope, passes=[])
         def geometry(sample):
             with np.load(args.source/f'{sample}.npz', allow_pickle=False) as z:
                 return dict(z)
         for case in cases:
-            gallery = {u: [extract_binary_geometry(**geometry(s), detector=args.detector) for s in ids]
+            gallery = {u: [extract_binary_geometry(**geometry(s), detector=args.detector, scope=args.scope) for s in ids]
                        for u, ids in case['gallery'].items()}
             for repeat in range(2):
                 trials = []
                 for trial in case['trials']:
                     inputs = geometry(trial['sample'])
                     start = time.perf_counter()
-                    probe = extract_binary_geometry(**inputs, detector=args.detector)
+                    probe = extract_binary_geometry(**inputs, detector=args.detector, scope=args.scope)
                     extracted = time.perf_counter()
                     scores = {u: algorithm.score_prepared(probe, enrolled) for u, enrolled in gallery.items()}
                     elapsed = time.perf_counter()-start

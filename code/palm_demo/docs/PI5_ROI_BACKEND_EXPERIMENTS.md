@@ -158,6 +158,78 @@ The HTTP replay now reports <=2.5-second correct counts and timeout counts, with
 optional per-request Pi throttle/temperature sampling outside timed requests.
 It explicitly records included/excluded timing stages and separate queue tests.
 
+### Completed USB power and AKAZE results
+
+v10 USB-powered warm replay: new 20/20 correct, 17/20 within 2.5 seconds,
+P50 1.618 s, P95 11.174 s, maximum 11.233 s; old 20/20 correct, 18/20 within
+2.5 seconds, P50 1.419 s, P95 4.576 s, maximum 4.657 s. First-pass new maximum
+11.934 s includes a 4.115 s first request. All request-adjacent throttle samples
+are 0x0. Both queue tests pass and simulated transaction counts are unchanged.
+These are saved-image HTTP replays, excluding physical capture/external upload.
+
+Full AKAZE compute-only warm P50 is 3.747 s new and 1.477 s old; extraction
+alone is 2.687 s and 1.416 s. Complete fresh-enrollment HTTP flows also ran:
+new 20/20, P50 7.678 s, P95 8.540 s, maximum 9.842 s; old 20/20, P50 3.066 s,
+P95 3.299 s, maximum 4.028 s. Each cohort passed four simulated payments,
+duplicate/cancel guards and PalmIR restore API checks. PalmIR used a fixed
+manual square: this verifies execution, not anatomical accuracy or enhancement
+benefit. Full AKAZE is not a speed replacement for v10.
+
+The candidate has an explicit opt-in name, `FastCCAKAZE-v11-experimental`, with
+a distinct numeric template magic. Byte descriptors are losslessly padded in
+the existing float32 envelope; SIFT templates cannot be loaded as AKAZE.
+The default extractor remains SIFT. An instance-level extractor hook prevents
+cross-instance/global changes. Validation with OpenCV 4.10: 163 tests pass,
+three dependency skips, excluding five obsolete API tests as before.
+
+Further fixed development controls, all with unchanged scoring and gates:
+
+- Only primary/secondary plus two context views: new minimum 17/20, reject.
+- Half-size AKAZE on both query and gallery: six new splits at 19/20, reject.
+- Half-size query with full-resolution enrollment: four new splits at 19/20,
+  reject. Old splits remain 20/20 for each control. No confident wrong rankings
+  were observed, but that is not an independent false-accept estimate.
+
+Private evidence: `usb-power-ready-{new,old}.json`,
+`http-akaze-{new,old}-summary.json`, `akaze-pi-compute.json`,
+`akaze-context-audit/`, `akaze-half-audit/`, `akaze-asymmetric-audit/`.
+
+Whole-frame AKAZE (context plus two full-frame views, long side capped at 1536)
+also has new minimum 17/20 and old 20/20; it does not replace window localization.
+The window scheduling control on all 40 new images gives sequential median
+2.945 s versus two-worker median 2.993 s. All validity decisions agree, maximum
+quad difference 0.004883 pixels. It is not integrated into recognition.
+
+Conv-only static QDQ INT8 is the next isolated localizer pilot. Fixed MinMax
+calibration uses the 40 original-split enrollment images, each original and
+existing gamma transform; no original-split query or reserved holdout input.
+It is not training, but calibration means the repeated development splits
+cannot be called independent validation. Initial export with ORT's intermediate
+output cap failed because that version clears samples without merging ranges;
+the corrected exporter retains all reduced calibration statistics.
+The corrected model passes geometry on 80/80 images, with zero extraction
+errors. Pose-only screen: new 34/40 ranking correct, old 40/40. These are not
+full recognition results. Pi paired latency and full-template split regression
+must finish before any adoption decision. Evidence: `int8-conv-fixed/`,
+`int8-screen/`, `int8-templates/`, `int8-full-splits/`.
+
+The completed paired Pi INT8 localization benchmark has baseline/candidate
+P50 1.157/0.822 s, P95 1.486/0.987 s, maximum 2.087/1.331 s, both 80/80 valid.
+This is about 29% lower localization median, not full recognition latency.
+All 80 complete templates were rebuilt successfully. The uncached split audit
+was deliberately stopped with its partial results retained, then restarted
+as `int8-cached-splits/`. Its optional cache reuses only deterministic exhaustive
+query/gallery scores across offline splits; runtime queries never use it.
+The first 140 overlapping query results agree exactly in scores, decisions and
+routes with the uncached audit. More complete comparison remains possible from
+the saved partial results. Audit timings with this option are not latency claims.
+
+Latest regression suite with OpenCV 4.10: 164 passed, three dependency skips;
+five obsolete API tests explicitly excluded. Parallel-window tests also verify
+order preservation and propagation of model failures. Application replay tools
+can now select an explicit isolated localizer; ready-query replays verify and
+reuse that exact model hash instead of silently falling back to the default.
+
 ## Evidence and tooling
 
 Private evidence stays under `runtime/pi5-under2-20261028/`: `lowres-screen/`,
