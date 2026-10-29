@@ -38,3 +38,20 @@ This isolates the decision mechanism, not a proof that disabling poses or changi
 The next substantive accuracy experiment must improve anatomical correspondence before expensive gallery search and preserve existing successes. This audit does not claim that change has been implemented. Current frozen performance remains 164/168 correct, 146/168 correct within 2.5 seconds, with a 15.225-second maximum. No unknown-person probes were tested, so these figures do not establish false-accept performance.
 
 Artifacts: `protocols/v26-four-error-ledger-20261030.csv`, `protocols/V26_FOUR_ERROR_AUDIT_20261030.json`. Private images, raw templates and full private traces remain outside Git.
+
+## Full-precision reconciliation follow-up
+
+Executed `tools/audit_frozen_error_scores.py` against the frozen v26 results, complete pose diagnostics, active169 manifest/protocol and all-candidate geometry. All 195 frame distances (30 new-device, 55 for each of three old-device queries) reproduce every recorded identity score exactly using `float(np.mean(sorted(five_distances)[:2]))`. Every selected enrollment frame ID resolves through the original case protocol and geometry. All returned winner and second scores match the frozen response exactly; baseline v26 code hashes match current scoring sources. No distances were recomputed or rounded before comparison.
+
+Pi readback independently confirms native SHA `272857b624cad687b7d87a32eb79ac0124f3d782be3e3a2b0ca092c92d87e600`, frozen result SHA `f9e9b39a8d37085318dd089309d975acec19ef1b5a826d813ae1f54af8828a09`, and manifest SHA `08a4fa9574f94023057efcf7aa7bee3b1d07625be91c2835ed9dab464a0472c4`; power remains 0x0. The active protocol contains 169 images and exactly 168 query occurrences over four cases. Historical 170-query results are not merged.
+
+`second_score` means the second-ranked gallery identity, not the true identity's score. This explains apparently inconsistent true/second comparisons in abbreviated tables. Full precision:
+
+| Query suffix | True identity score | True sorted position | Second gallery identity | Frozen second score |
+|---|---:|---:|---|---:|
+| a4677ec5 | 0.3876953125 | 3 (tied with position 2) | new-camera-bankey-left | 0.3876953125 |
+| 61f30739 | 0.3899589573732719 | 3 | old-camera-cyw-real-right | 0.389346918202765 |
+| 8d6441d2 | 0.4058743759600615 | 10 | old-camera-stephen-10-13-right | 0.375 |
+| 37d0c433 | 0.37532433144725136 | 3 | old-camera-xyt-left | 0.360871345766129 |
+
+Sorted position uses stable source gallery order for ties; it is not a claim that a tied score is strictly worse. The JSON retains all ties, all five distances per identity, actual best-two frame IDs, winning branch, pose scores, primary ROI geometry and accepted geometric estimates/coverage summaries. It excludes raw feature codes and image pixels. This is an audit of the existing behavior; no ROI oracle, pseudo-unregistered experiment or new speed improvement is claimed by this follow-up.
