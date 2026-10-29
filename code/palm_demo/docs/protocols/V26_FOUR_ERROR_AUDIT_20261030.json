@@ -1,0 +1,967 @@
+{
+  "complete": true,
+  "all_reference_equal": true,
+  "queries": [
+    {
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "case": "new-camera-original",
+      "true_identity": "new-camera:billy:right",
+      "returned_identity": "new-camera-billy-left",
+      "reference_equal": true,
+      "roi_byte_equal": true,
+      "baseline_ms": 4344.12,
+      "estimator_calls": 307,
+      "eligible_calls": 1,
+      "eligible_estimator_ms": 0.06800199480494484,
+      "identities": [
+        {
+          "identity": "new-camera-billy-right",
+          "best_two": [
+            {
+              "enrollment_index": 0,
+              "score": 0.3701171875,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "new-camera-billy-right",
+                    "index": 0
+                  },
+                  "score": 0.3701171875,
+                  "winner": 7,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4223790322580645
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.43951612903225806
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.41935483870967744
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4112903225806452
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4153225806451613
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.43870967741935485
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.43103448275862066
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.3701171875
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.43649193548387094
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 3,
+              "score": 0.4052734375,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "new-camera-billy-right",
+                    "index": 3
+                  },
+                  "score": 0.4052734375,
+                  "winner": 1,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.42036290322580644
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.4052734375
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.43333333333333335
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4375
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4213709677419355
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4267578125
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.41271551724137934
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.41271551724137934
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.44432882414151925
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        },
+        {
+          "identity": "new-camera-billy-left",
+          "best_two": [
+            {
+              "enrollment_index": 4,
+              "score": 0.373046875,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "new-camera-billy-left",
+                    "index": 4
+                  },
+                  "score": 0.373046875,
+                  "winner": 8,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4423828125
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.4111328125
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.41770833333333335
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4353448275862069
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4213709677419355
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4072265625
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.3974609375
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.4267578125
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.373046875
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 0,
+              "score": 0.3941532258064516,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "new-camera-billy-left",
+                    "index": 0
+                  },
+                  "score": 0.3941532258064516,
+                  "winner": 8,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4284274193548387
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.44140625
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.4326171875
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.43426724137931033
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.425
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.40301724137931033
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.43973214285714285
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.42338709677419356
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.3941532258064516
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": "20261013T111553178583Z-61f30739",
+      "case": "old-camera-original",
+      "true_identity": "old-camera:xyt:right",
+      "returned_identity": "old-camera-stephen-10-13-left",
+      "reference_equal": true,
+      "roi_byte_equal": true,
+      "baseline_ms": 10257.49,
+      "estimator_calls": 1296,
+      "eligible_calls": 6,
+      "eligible_estimator_ms": 0.3160250053042546,
+      "identities": [
+        {
+          "identity": "old-camera-xyt-right",
+          "best_two": [
+            {
+              "enrollment_index": 0,
+              "score": 0.37701612903225806,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-xyt-right",
+                    "index": 0
+                  },
+                  "score": 0.37701612903225806,
+                  "winner": 1,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4353448275862069
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.37701612903225806
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.44432882414151925
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4213362068965517
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.43044354838709675
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.42075892857142855
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.4032258064516129
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.43020833333333336
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4162330905306972
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 3,
+              "score": 0.4029017857142857,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-xyt-right",
+                    "index": 3
+                  },
+                  "score": 0.4029017857142857,
+                  "winner": 2,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.41935483870967744
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.41935483870967744
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.4029017857142857
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4197916666666667
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4382647385984427
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4341517857142857
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.4153225806451613
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.40826612903225806
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.44048943270300334
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        },
+        {
+          "identity": "old-camera-stephen-10-13-left",
+          "best_two": [
+            {
+              "enrollment_index": 1,
+              "score": 0.3740234375,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-stephen-10-13-left",
+                    "index": 1
+                  },
+                  "score": 0.3740234375,
+                  "winner": 7,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.42439516129032256
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.4213709677419355
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.404296875
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3961693548387097
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.41294642857142855
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4189453125
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.4354166666666667
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.3740234375
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4153225806451613
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 0,
+              "score": 0.3740234375,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-stephen-10-13-left",
+                    "index": 0
+                  },
+                  "score": 0.3740234375,
+                  "winner": 7,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.40423387096774194
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.3911290322580645
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.408203125
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3984375
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.3896484375
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4072265625
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.400390625
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.3740234375
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4166666666666667
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "case": "old-camera-original",
+      "true_identity": "old-camera:xyt:right",
+      "returned_identity": "old-camera-kss-right",
+      "reference_equal": true,
+      "roi_byte_equal": true,
+      "baseline_ms": 9396.87,
+      "estimator_calls": 1049,
+      "eligible_calls": 0,
+      "eligible_estimator_ms": 0,
+      "identities": [
+        {
+          "identity": "old-camera-xyt-right",
+          "best_two": [
+            {
+              "enrollment_index": 2,
+              "score": 0.4021505376344086,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-xyt-right",
+                    "index": 2
+                  },
+                  "score": 0.4021505376344086,
+                  "winner": 0,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4021505376344086
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.44285714285714284
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.43044354838709675
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4311827956989247
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4228110599078341
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.42439516129032256
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.430952380952381
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.4485887096774194
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4354166666666667
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 3,
+              "score": 0.4095982142857143,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-xyt-right",
+                    "index": 3
+                  },
+                  "score": 0.4095982142857143,
+                  "winner": 7,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4107142857142857
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.45161290322580644
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.4382647385984427
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.41359447004608296
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4267578125
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4375
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.4486607142857143
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.4095982142857143
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4322916666666667
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        },
+        {
+          "identity": "old-camera-kss-right",
+          "best_two": [
+            {
+              "enrollment_index": 4,
+              "score": 0.35546875,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-kss-right",
+                    "index": 4
+                  },
+                  "score": 0.35546875,
+                  "winner": 8,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4174107142857143
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.42299107142857145
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.39620535714285715
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.4202586206896552
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.412109375
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.40625
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.4189453125
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.41244239631336405
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.35546875
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 1,
+              "score": 0.3939732142857143,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-kss-right",
+                    "index": 1
+                  },
+                  "score": 0.3939732142857143,
+                  "winner": 2,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.4107142857142857
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.43080357142857145
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.3939732142857143
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.41875
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4223790322580645
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4263392857142857
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.42564655172413796
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.4205069124423963
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.3984375
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sample": "20261013T111358589224Z-37d0c433",
+      "case": "old-camera-original",
+      "true_identity": "old-camera:cyw-real:left",
+      "returned_identity": "old-camera-kss-left",
+      "reference_equal": true,
+      "roi_byte_equal": true,
+      "baseline_ms": 8080.53,
+      "estimator_calls": 1446,
+      "eligible_calls": 1,
+      "eligible_estimator_ms": 0.024963999749161303,
+      "identities": [
+        {
+          "identity": "old-camera-cyw-real-left",
+          "best_two": [
+            {
+              "enrollment_index": 4,
+              "score": 0.36420395421436,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-cyw-real-left",
+                    "index": 4
+                  },
+                  "score": 0.36420395421436,
+                  "winner": 0,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.36420395421436
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.43080357142857145
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.3955078125
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3836405529953917
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.376953125
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.4351961950059453
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.42795698924731185
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.4306640625
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.400390625
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 0,
+              "score": 0.3864447086801427,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-cyw-real-left",
+                    "index": 0
+                  },
+                  "score": 0.3864447086801427,
+                  "winner": 3,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.42269187986651835
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.42995689655172414
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.40948275862068967
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3864447086801427
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.4169921875
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.44308035714285715
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.42780172413793105
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.42380422691879865
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.41013824884792627
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        },
+        {
+          "identity": "old-camera-kss-left",
+          "best_two": [
+            {
+              "enrollment_index": 3,
+              "score": 0.3447265625,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-kss-left",
+                    "index": 3
+                  },
+                  "score": 0.3447265625,
+                  "winner": 4,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.3699596774193548
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.41875
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.4270833333333333
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3971774193548387
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.3447265625
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.42780172413793105
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.41875
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.419921875
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.4208984375
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            },
+            {
+              "enrollment_index": 4,
+              "score": 0.3466796875,
+              "pose": [
+                {
+                  "target": {
+                    "identity": "old-camera-kss-left",
+                    "index": 4
+                  },
+                  "score": 0.3466796875,
+                  "winner": 4,
+                  "views": [
+                    {
+                      "index": 0,
+                      "score": 0.3740234375
+                    },
+                    {
+                      "index": 1,
+                      "score": 0.4166666666666667
+                    },
+                    {
+                      "index": 2,
+                      "score": 0.42157953281423804
+                    },
+                    {
+                      "index": 3,
+                      "score": 0.3860215053763441
+                    },
+                    {
+                      "index": 4,
+                      "score": 0.3466796875
+                    },
+                    {
+                      "index": 5,
+                      "score": 0.41935483870967744
+                    },
+                    {
+                      "index": 6,
+                      "score": 0.410752688172043
+                    },
+                    {
+                      "index": 7,
+                      "score": 0.412109375
+                    },
+                    {
+                      "index": 8,
+                      "score": 0.42439516129032256
+                    }
+                  ]
+                }
+              ],
+              "legacy_alignment": [],
+              "winning_branch": "legacy_v2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "warning": "Selected development errors only; instrumented times are not baseline latency. No scoring or thresholds changed."
+}

@@ -3,7 +3,7 @@
 Only diagnostics are added. No candidate, transform, score or gate is changed.
 Instrumented time is not a replacement for the baseline HTTP latency evidence.
 """
-import argparse,base64,hashlib,json
+import argparse,base64,hashlib,json,os,shutil,time
 import threading
 from pathlib import Path
 import cv2
@@ -13,6 +13,7 @@ from replay_ready_queries import power_sample,power_fault
 from replay_demo_manifest import correct_identification
 from evaluate_six_person_frozen import initialize,sanitized
 from anchored_matcher import FastCCAnchoredUnionMatcher
+from pose_matcher import FastCCPoseMatcher
 
 
 def main():
@@ -21,16 +22,26 @@ def main():
     p.add_argument('--native-registration',type=Path,required=True)
     p.add_argument('--wrong-only',action='store_true',help='Drill into only erroneous queries; omit correct controls')
     p.add_argument('--geometry-details',action='store_true',help='Observe actual RANSAC outputs without rerunning or changing estimators')
-    args=p.parse_args();data=json.loads((args.baseline/'results.json').read_text());protocol=data['protocol']
+    p.add_argument('--model-root',type=Path,help='Frozen CompNet model directory for v25/v26')
+    args=p.parse_args();data=json.loads((args.baseline/'results.json').read_text())
+    protocol=data.get('protocol')
+    if protocol is None:
+        source=Path(data['baseline'])/'results.json'
+        assert hashlib.sha256(source.read_bytes()).hexdigest()==data['baseline_results_sha256']
+        protocol=json.loads(source.read_text())['protocol']
+    matcher=data.get('matcher',protocol['matcher'])
+    if args.model_root:os.environ['PALM_COMPNET_MODEL_ROOT']=str(args.model_root.resolve())
     assert data.get('complete') is True
     app_root=Path(__file__).resolve().parents[1]
-    for name,value in protocol['code_hashes'].items():assert hashlib.sha256((app_root/name).read_bytes()).hexdigest()==value,name
+    for name,value in data.get('code_sha256',protocol['code_hashes']).items():assert hashlib.sha256((app_root/name).read_bytes()).hexdigest()==value,name
     assert hashlib.sha256(args.native_registration.read_bytes()).hexdigest()==protocol['native_sha256']
     rows={r['sample']:r for r in json.loads(args.manifest.read_text())}
     args.output.mkdir(exist_ok=False);(args.output/'rois').mkdir()
+    source_hashes={str(p):hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in args.baseline.glob('*/runtime/demo_templates/*') if p.is_file()}
     cv2.setNumThreads(1)
     report=dict(timing_warning='Instrumented HTTP includes trace creation; use frozen baseline for latency.',
-        selection=('All incorrect main queries only.' if args.wrong_only else
+        matcher=matcher,baseline_results_sha256=hashlib.sha256((args.baseline/'results.json').read_bytes()).hexdigest(),selection=('All incorrect main queries only.' if args.wrong_only else
             'All incorrect main queries plus first correct fallback query per case (first correct query if none fall back).'),queries=[],power_samples=[])
     def checkpoint():
         sample=power_sample();report['power_samples'].append(sample);save_json(args.output/'diagnostics.json',report)
@@ -42,7 +53,31 @@ def main():
         if not controls:controls=[q for q in run['queries'] if q['correct']]
         if controls and not args.wrong_only:selected.append(min(controls,key=lambda q:q['sample']))
         if not selected:continue
-        app,camera,startup=initialize(args.baseline/run['case']/'runtime',protocol['matcher'],args.native_registration)
+        runtime=args.output/run['case']/'runtime'
+        runtime.parent.mkdir(parents=True)
+        shutil.copytree(args.baseline/run['case']/'runtime',runtime)
+        app,camera,startup=initialize(runtime,matcher,args.native_registration)
+        original_pose=FastCCPoseMatcher.match
+        original_aligned=app.demo_algorithm.legacy._aligned_score
+        def traced_pose(owner,probe,candidate):
+            probe=owner._validate(probe);candidate=owner._validate(candidate)
+            base=candidate[0].astype(bool)
+            values=[dict(index=i,score=float(owner.base.match(p.astype(bool),base)))
+                for i,p in enumerate(probe) if p[0,0]>=0]
+            score=min(v['score'] for v in values)
+            if active[0] is not None:
+                active[0]['pose_scores'].append(dict(target=getattr(local,'target',None),
+                    score=score,winner=min(values,key=lambda v:v['score'])['index'],views=values))
+            return score
+        def traced_aligned(context,source,size,other,transform,fallback):
+            score=original_aligned(context,source,size,other,transform,fallback)
+            if active[0] is not None:
+                active[0]['legacy_alignments'].append(dict(target=getattr(local,'target',None),
+                    score=score,fallback=fallback,improved=score<fallback,
+                    transform=transform.tolist(),source_matrix=source.tolist()))
+            return score
+        FastCCPoseMatcher.match=traced_pose
+        app.demo_algorithm.legacy._aligned_score=traced_aligned
         original_pair=app.demo_algorithm._match_unpacked
         original_score=app.demo_algorithm.score_gallery
         original_decisions=FastCCAnchoredUnionMatcher.candidate_decisions
@@ -53,10 +88,18 @@ def main():
             for function_name,model in (('estimateAffinePartial2D','similarity'),('estimateAffine2D','affine')):
                 original=getattr(cv2,function_name);geometry_originals.append((function_name,original))
                 def observe_geometry(*a,_original=original,_model=model,**kw):
+                    started=time.perf_counter()
                     value=_original(*a,**kw)
+                    estimator_ms=(time.perf_counter()-started)*1000
                     if active[0] is None:return value
                     matrix,mask=value
-                    item=dict(model=_model,target=getattr(local,'target',None),pairs=len(a[0]))
+                    points=[np.asarray(v,np.float32).reshape(-1,2) for v in a[:2]]
+                    # Every inlier hull lies within the all-correspondence box.
+                    # Observe only: this does not skip or change any estimator.
+                    box_bound=min(float(np.prod(np.ptp(v,axis=0))) for v in points)/(384*384)
+                    item=dict(model=_model,target=getattr(local,'target',None),pairs=len(a[0]),
+                        estimator_ms=estimator_ms,coverage_bbox_upper_bound=box_bound,
+                        safely_below_existing_coverage=bool(np.isfinite(box_bound) and box_bound<.02-1e-6))
                     if matrix is None or not np.isfinite(matrix).all():
                         item.update(reason='no_finite_transform',violations=['no_finite_transform'])
                     elif mask is None:
@@ -139,7 +182,7 @@ def main():
                 for reference in selected:
                     row=rows[reference['sample']]
                     assert hashlib.sha256(Path(row['original']).read_bytes()).hexdigest()==row['sha256']
-                    checkpoint();camera.select([row]);active[0]=dict(pairs=[],candidate_decisions=[],registrations=[],geometry=[])
+                    checkpoint();camera.select([row]);active[0]=dict(pairs=[],candidate_decisions=[],registrations=[],geometry=[],pose_scores=[],legacy_alignments=[])
                     status,response=request('/api/demo/identify',{},None)
                     details=active[0];active[0]=None
                     record=dict(case=run['case'],sample=row['sample'],identity=row['identity'],
@@ -158,9 +201,12 @@ def main():
                     print(run['case'],row['sample'],record['role'],record['reference_equal'],flush=True)
             assert app.demo.payments.transaction_count()==before
         finally:
+            FastCCPoseMatcher.match=original_pose
             for name,original in geometry_originals:setattr(cv2,name,original)
             FastCCAnchoredUnionMatcher.candidate_decisions=staticmethod(original_decisions)
             app.demo_algorithm.close()
+    report['source_templates_unchanged']=all(hashlib.sha256(Path(p).read_bytes()).hexdigest()==v for p,v in source_hashes.items())
+    assert report['source_templates_unchanged']
     report['complete']=True;report['all_reference_equal']=all(q['reference_equal'] for q in report['queries'])
     checkpoint()
 

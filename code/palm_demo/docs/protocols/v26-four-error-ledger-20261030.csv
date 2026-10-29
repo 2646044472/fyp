@@ -1,0 +1,5 @@
+case,sample,true_identity,returned_identity,status,score,second_score,margin,route,baseline_http_ms
+new-camera-original,20261029T120016111983Z-a4677ec5,new-camera:billy:right,new-camera-billy-left,MATCH,0.3836000504032258,0.3876953125,0.004095262096774188,exhaustive_fallback,4344.12
+old-camera-original,20261013T111553178583Z-61f30739,old-camera:xyt:right,old-camera-stephen-10-13-left,MATCH,0.3740234375,0.389346918202765,0.015323480702765013,exhaustive_fallback,10257.49
+old-camera-original,20261013T111555214120Z-8d6441d2,old-camera:xyt:right,old-camera-kss-right,MATCH,0.37472098214285715,0.375,0.0002790178571428492,exhaustive_fallback,9396.87
+old-camera-original,20261013T111358589224Z-37d0c433,old-camera:cyw-real:left,old-camera-kss-left,MATCH,0.345703125,0.360871345766129,0.015168220766129004,exhaustive_fallback,8080.53
