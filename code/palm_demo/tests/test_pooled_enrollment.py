@@ -1,4 +1,8 @@
 import numpy as np
+import cv2
+from pathlib import Path
+from biometric import load_algorithm
+from indexed_demo_matcher import IndexedDemoMatcher,IndexedProbe
 from pooled_enrollment_matcher import pool_correspondences,PooledEnrollmentMatcher
 
 
@@ -60,4 +64,22 @@ def test_batched_transfer_is_bit_exact_with_scalar_reference():
         p,q=pool_correspondences(samples,target,0,query,observations,links)
         np.testing.assert_array_equal(p,query[0][ids])
         np.testing.assert_array_equal(q,expected)
+
+
+def test_parallel_legacy_sift_preserves_serial_arrays_and_reuses_probe():
+    root=Path(__file__).resolve().parents[1]
+    algorithm=load_algorithm(root/'vendor/palmprint-recognition-python','FastCCPooledEnrollment-v20-experimental')
+    try:
+        rng=np.random.default_rng(23)
+        native=rng.integers(0,256,(640,640),dtype=np.uint8)
+        source=np.asarray([[1.,0,-128],[0,1.,-128],[0,0,1.]])
+        bank=np.zeros((9,32,32),np.int8)
+        serial=IndexedProbe(bank,source,native)
+        parallel=IndexedProbe(bank,source,native)
+        a=IndexedDemoMatcher._legacy_probe(algorithm,serial)
+        b=algorithm._legacy_probe(parallel)
+        for left,right in zip(a[0],b[0]):np.testing.assert_array_equal(left,right)
+        for left,right in zip(a[1],b[1]):np.testing.assert_array_equal(left,right)
+        assert algorithm._legacy_probe(parallel) is b
+    finally:algorithm.close()
 

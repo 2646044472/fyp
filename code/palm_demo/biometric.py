@@ -22,6 +22,9 @@ def load_algorithm(baseline_path: str | Path, name: str) -> Any:
         sys.path.insert(0, str(baseline_path))
     from palmprint.algorithms.registry import get_algorithm
 
+    if name == "FastCCQualityEvidence-v24-experimental":
+        from quality_evidence_matcher import QualityEvidenceMatcher
+        return QualityEvidenceMatcher(get_algorithm("FastCC"))
     if name == "FastCCPooledEnrollment-v20-experimental":
         from pooled_enrollment_matcher import PooledEnrollmentMatcher
         return PooledEnrollmentMatcher(get_algorithm("FastCC"))

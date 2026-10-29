@@ -125,7 +125,7 @@ class ReplayCamera:
 
 
 @contextmanager
-def http_app(app):
+def http_app(app, after_request=None):
     parent = debug_ui.make_handler(app)
 
     class QuietHandler(parent):
@@ -149,6 +149,8 @@ def http_app(app):
         trace.append(dict(route=route, status=response.status, ms=round((time.perf_counter()-start)*1000, 2),
                           message=result.get("message") if isinstance(result, dict) else None))
         connection.close()
+        if after_request is not None:
+            after_request(trace[-1], result)
         if expected is not None and response.status != expected:
             raise AssertionError(f"{route}: expected {expected}, got {response.status}: {str(result)[:300]}")
         return response.status, result
@@ -251,7 +253,7 @@ def extraction_audit(records, output, policies=("legacy", "heatmap", "aspect", "
     return extractors["illumination"], rows, results
 
 
-def demo_roundtrip(records, extractor, output, demo_matcher="DoN", *, native_registration=None, native_threads=4):
+def demo_roundtrip(records, extractor, output, demo_matcher="DoN", *, native_registration=None, native_threads=4, after_request=None):
     debug_ui.common.RUNTIME = output / "demo_runtime"
     camera = ReplayCamera(False, extractor)
     app = debug_ui.App(camera, demo_matcher=demo_matcher)
@@ -262,7 +264,7 @@ def demo_roundtrip(records, extractor, output, demo_matcher="DoN", *, native_reg
               for key in sorted({r["identity"] for r in records})}
     enrollments, probes, payments = [], [], []
     paid_identities = set()
-    with http_app(app) as (request, trace):
+    with http_app(app, after_request=after_request) as (request, trace):
         request("/demo", expected=200)
         for identity, samples in groups.items():
             camera.select(samples[:5])

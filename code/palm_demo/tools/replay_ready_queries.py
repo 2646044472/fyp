@@ -85,7 +85,7 @@ def main():
     result['opencv_version']=cv2.__version__
     app_root=Path(__file__).resolve().parents[1]
     result['runtime_code_sha256']={name:hashlib.sha256((app_root/name).read_bytes()).hexdigest()
-        for name in ('pooled_enrollment_matcher.py','affine_enrollment_matcher.py','linked_enrollment_matcher.py','staged_index_matcher.py',
+        for name in ('quality_evidence_matcher.py','pooled_enrollment_matcher.py','affine_enrollment_matcher.py','linked_enrollment_matcher.py','staged_index_matcher.py',
                      'native_registration.py','pklnet_roi.py','tools/replay_ready_queries.py') if (app_root/name).exists()}
     result['power_before_startup']=preflight
     result['enrollment_reused_from']=summary.get('enrollment_reused_from')

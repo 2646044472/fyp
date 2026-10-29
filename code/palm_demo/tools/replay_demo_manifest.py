@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--demo-matcher', default='FastCCDemo-v6')
     parser.add_argument('--native-registration', type=Path, help='Explicit experimental ARM64 library; disabled by default')
     parser.add_argument('--native-threads', type=int, choices=(1,2,4), default=4)
+    parser.add_argument('--record-power', action='store_true')
+    parser.add_argument('--abort-on-power-fault', action='store_true')
     args = parser.parse_args()
     if args.opencv_threads is not None:
         cv2.setNumThreads(args.opencv_threads)
@@ -51,11 +53,25 @@ def main():
     assert unchanged()
     args.output.mkdir(parents=True, exist_ok=False)
     save_json(args.output / 'input-manifest.json', rows)
+    power_samples=[];progress=[]
+    def checkpoint(trace=None,response=None):
+        from replay_ready_queries import power_sample,power_fault
+        if trace is not None:
+            item=dict(trace)
+            if isinstance(response,dict):item['result']={k:v for k,v in response.items() if k!='roi_image'}
+            progress.append(item)
+        sample=power_sample();power_samples.append(sample)
+        save_json(args.output/'request-progress.json',dict(power_samples=power_samples,requests=progress))
+        if args.abort_on_power_fault and power_fault(sample):
+            raise RuntimeError('Pi power/throttle fault; partial request evidence preserved')
+    monitoring=args.record_power or args.abort_on_power_fault
+    if monitoring:checkpoint()
     engine = (PKLNetROI(threads=args.onnx_threads) if args.localizer_root is None else
               PKLNetROI(root=args.localizer_root, weights=args.localizer_root/'net_params_500.pth', threads=args.onnx_threads))
     start = time.perf_counter()
     result = demo_roundtrip(rows, engine, args.output, args.demo_matcher,
-                            native_registration=args.native_registration,native_threads=args.native_threads)
+                            native_registration=args.native_registration,native_threads=args.native_threads,
+                            after_request=checkpoint if monitoring else None)
     save_json(args.output / 'demo.json', result)
     correct = sum(correct_identification(p) for p in result['probes'])
     times = lambda path: [r['ms'] for r in result['http_trace'] if r['route'] == path]
@@ -63,6 +79,8 @@ def main():
                    elapsed_s=time.perf_counter()-start, opencv_threads=cv2.getNumThreads(),
                    onnx_threads=args.onnx_threads, peak_rss_bytes=peak_rss_bytes(),
                    originals_unchanged=unchanged(), payment=result['payment'], live_camera_tested=False)
+    summary['power_samples']=power_samples
+    summary['fresh_enrollment_measured']=True
     summary['localizer_root'] = str(engine.root.resolve())
     summary['localizer_sha256'] = hashlib.sha256((engine.root/'pklnet-keypoints-diagnostics.onnx').read_bytes()).hexdigest()
     summary['acceptance_budget_ms'] = 2500

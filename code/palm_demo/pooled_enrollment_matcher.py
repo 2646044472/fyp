@@ -8,6 +8,7 @@ import numpy as np
 from affine_enrollment_matcher import AffineEnrollmentMatcher, affine_registration
 from registration_accelerated import estimate_pairs
 from pklnet_roi import normalize_roi_pixels
+from registered_matcher import local_features
 
 
 def pool_correspondences(samples, target_index, channel, query, correspondences, links):
@@ -31,14 +32,32 @@ def pool_correspondences(samples, target_index, channel, query, correspondences,
                 transferred.setdefault(qi,[]).append(point)
     ids=sorted(transferred)
     p=np.asarray([query[0][i] for i in ids],np.float32).reshape(-1,2)
-    q=np.asarray([transferred[i][0] if len(transferred[i])==1 else np.median(transferred[i],axis=0)
-                  for i in ids],np.float32).reshape(-1,2)
+    q=np.empty((len(ids),2),np.float32)
+    lengths={}
+    for out,i in enumerate(ids):lengths.setdefault(len(transferred[i]),[]).append(out)
+    for count,positions in lengths.items():
+        values=np.asarray([transferred[ids[out]] for out in positions])
+        q[positions]=values[:,0,:] if count==1 else np.median(values,axis=1)
     return p,q
 
 
 class PooledEnrollmentMatcher(AffineEnrollmentMatcher):
     name='FastCCPooledEnrollment-v20-experimental'
     magic=2801060
+
+    def _legacy_probe(self,probe):
+        if probe.legacy is None:
+            shift=np.asarray([[1.,0,192],[0,1.,192],[0,0,1.]])
+            context=cv2.warpPerspective(probe.native,shift@probe.source,(768,768))
+            pixels=normalize_roi_pixels(cv2.warpPerspective(probe.native,probe.source,(384,384)))
+            coarse=normalize_roi_pixels(context[192:576,192:576])
+            blurred=cv2.GaussianBlur(coarse,(0,0),2.)
+            # Called by the main scoring stage before per-enrollment worker jobs.
+            # Independent SIFT instances preserve features and use the idle core.
+            primary_features,secondary=self._workers.map(local_features,(pixels,blurred))
+            primary=(probe.bank,context,probe.source,probe.native.shape[::-1],*primary_features)
+            probe.legacy=primary,secondary
+        return probe.legacy
 
     def _pooled_views(self,samples,j,primary,secondary,probe,links):
         return [pool_correspondences(samples,j,channel,query,probe.affine_pairs,links)
