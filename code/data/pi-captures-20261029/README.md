@@ -1,5 +1,5 @@
-# Device captures 20261029
+# Device captures 2026-10-29
 
-One active original left-hand session, 10 images; deleted samples and the empty right-hand session are excluded.
+Two active billy sessions, left and right hands, 20 original images. Deleted samples are excluded.
 
-These ZIPs were reconstructed from original device session manifests and capture files; they are not the synthetic replay archives. Files are preserved byte-for-byte. Each archive contains the original session manifest and numbered sample directories; per-file and archive SHA-256 values are in entry-sha256.json and sessions.json. The source on the Pi was only read, and session manifests were checked unchanged during export.
+These ZIPs preserve the original device session manifests and sample files byte-for-byte. They are not synthetic replay archives. Per-file hashes are in entry-sha256.json; sessions.json records archive and original-manifest hashes. Source sessions were only read over Wi-Fi and verified unchanged during export.

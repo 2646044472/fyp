@@ -20,6 +20,27 @@
       "archive": "20261029T084632567557Z-d6732215.zip",
       "sha256": "a0e11982a67f5edcb6238c43c96b5cc5675caec46afb002ce98f9666775f0ee0",
       "original_manifest_sha256": "01d3edd60e9f6e29eb701329a003b3cfcc17507f1a7773e156c6183b72790862"
+    },
+    {
+      "session_id": "20261029T090112052961Z-b5bb025d",
+      "subject": "billy",
+      "hand": "right",
+      "sample_count": 10,
+      "sample_ids": [
+        "20261029T115928114981Z-89bd294d",
+        "20261029T115936292698Z-08ceb3b7",
+        "20261029T115948820474Z-6cca93ae",
+        "20261029T115959403756Z-91dfcd5f",
+        "20261029T120007874496Z-9dc3de45",
+        "20261029T120016111983Z-a4677ec5",
+        "20261029T120046474318Z-ca8afa27",
+        "20261029T120058102022Z-b1833ac3",
+        "20261029T120218620422Z-d1ef6e5a",
+        "20261029T120232269262Z-7fbcc798"
+      ],
+      "archive": "20261029T090112052961Z-b5bb025d.zip",
+      "sha256": "439dcd6c5edbfd3c35203b042e79fc7fb5a9ef66bea3152844620ed2f6a15081",
+      "original_manifest_sha256": "5af7be99dcccd026e821785ec4ba0b72297da77f7cfe567bc38ea33aa67e782f"
     }
   ]
 }

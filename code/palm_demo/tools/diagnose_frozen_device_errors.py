@@ -1,0 +1,124 @@
+"""Trace every frozen-cohort mistake and one fallback control per case.
+
+Only diagnostics are added. No candidate, transform, score or gate is changed.
+Instrumented time is not a replacement for the baseline HTTP latency evidence.
+"""
+import argparse,base64,hashlib,json
+import threading
+from pathlib import Path
+import cv2
+from replay_pi_pipeline import ReplayCamera,debug_ui,http_app,save_json
+from replay_ready_queries import power_sample,power_fault
+from replay_demo_manifest import correct_identification
+from evaluate_six_person_frozen import initialize,sanitized
+from anchored_matcher import FastCCAnchoredUnionMatcher
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('manifest',type=Path);p.add_argument('baseline',type=Path);p.add_argument('output',type=Path)
+    p.add_argument('--native-registration',type=Path,required=True)
+    p.add_argument('--wrong-only',action='store_true',help='Drill into only erroneous queries; omit correct controls')
+    args=p.parse_args();data=json.loads((args.baseline/'results.json').read_text());protocol=data['protocol']
+    assert data.get('complete') is True
+    app_root=Path(__file__).resolve().parents[1]
+    for name,value in protocol['code_hashes'].items():assert hashlib.sha256((app_root/name).read_bytes()).hexdigest()==value,name
+    assert hashlib.sha256(args.native_registration.read_bytes()).hexdigest()==protocol['native_sha256']
+    rows={r['sample']:r for r in json.loads(args.manifest.read_text())}
+    args.output.mkdir(exist_ok=False);(args.output/'rois').mkdir()
+    cv2.setNumThreads(1)
+    report=dict(timing_warning='Instrumented HTTP includes trace creation; use frozen baseline for latency.',
+        selection=('All incorrect main queries only.' if args.wrong_only else
+            'All incorrect main queries plus first correct fallback query per case (first correct query if none fall back).'),queries=[],power_samples=[])
+    def checkpoint():
+        sample=power_sample();report['power_samples'].append(sample);save_json(args.output/'diagnostics.json',report)
+        if power_fault(sample):raise RuntimeError('Power fault; partial diagnostics saved')
+    checkpoint()
+    for run in data['runs']:
+        selected=[q for q in run['queries'] if not q['correct']]
+        controls=[q for q in run['queries'] if q['correct'] and q['result'].get('recognition_route')=='exhaustive_fallback']
+        if not controls:controls=[q for q in run['queries'] if q['correct']]
+        if controls and not args.wrong_only:selected.append(min(controls,key=lambda q:q['sample']))
+        if not selected:continue
+        app,camera,startup=initialize(args.baseline/run['case']/'runtime',protocol['matcher'],args.native_registration)
+        original_pair=app.demo_algorithm._match_unpacked
+        original_score=app.demo_algorithm.score_gallery
+        original_decisions=FastCCAnchoredUnionMatcher.candidate_decisions
+        active=[None];target_ids={}
+        local=threading.local();native=app.demo_algorithm.registration;native_pairs=native.pairs
+        def counted_pairs(a,b):
+            values=native_pairs(a,b)
+            current=getattr(local,'registration',None)
+            if current is not None:current['mutual_pairs']=len(values)
+            elif active[0] is not None:active[0]['registrations'].append(dict(kind='direct_pairs',left_points=len(a),right_points=len(b),mutual_pairs=len(values)))
+            return values
+        native.pairs=counted_pairs
+        class RegistrationTrace:
+            def pairs(self,a,b):return native.pairs(a,b)
+            def __call__(self,left,right):
+                item=dict(kind='registration',left_points=len(left[1]),right_points=len(right[1]),target=getattr(local,'target',None))
+                previous=getattr(local,'registration',None);local.registration=item
+                try:
+                    value=native(left,right)
+                    item['accepted']=value is not None
+                    item['reason']=('accepted' if value is not None else 'too_few_descriptors' if min(len(left[1]),len(right[1]))<4
+                        else 'too_few_mutual_pairs' if item.get('mutual_pairs',0)<4 else 'ransac_or_geometric_guard')
+                    if active[0] is not None:active[0]['registrations'].append(item)
+                    return value
+                finally:local.registration=previous
+        app.demo_algorithm.registration=app.demo_algorithm.legacy.registration=RegistrationTrace()
+        def decisions(quad,hypotheses):
+            values=original_decisions(quad,hypotheses)
+            if active[0] is not None:active[0]['candidate_decisions'].append(dict(anchor=quad.tolist(),decisions=values))
+            return values
+        def pair(query,target,details=None):
+            entries=[] if details is None else details
+            previous=getattr(local,'target',None);local.target=target_ids.get(id(target))
+            try:score=original_pair(query,target,entries)
+            finally:local.target=previous
+            if active[0] is not None:
+                active[0]['pairs'].append(dict(target=target_ids.get(id(target)),score=score,attempts=entries))
+                if 'query_feature_counts' not in active[0]:active[0]['query_feature_counts']=dict(
+                    primary=len(query[1][4]),secondary=len(query[2][0]),
+                    views=[dict(sigma=sigma,points=len(points)) for sigma,source,points,desc in query[-1]])
+            return score
+        def scores(probe,groups):
+            target_ids.clear();target_ids.update({id(sample[3]):dict(identity=user,index=index)
+                for user,samples in groups.items() for index,sample in enumerate(samples)})
+            values=original_score(probe,groups)
+            if active[0] is not None:active[0].update(scores=dict(values),source_matrix=probe.source.tolist())
+            return values
+        app.demo_algorithm._match_unpacked=pair;app.demo_algorithm.score_gallery=scores
+        FastCCAnchoredUnionMatcher.candidate_decisions=staticmethod(decisions)
+        try:
+            before=app.demo.payments.transaction_count()
+            with http_app(app) as (request,trace):
+                for reference in selected:
+                    row=rows[reference['sample']]
+                    assert hashlib.sha256(Path(row['original']).read_bytes()).hexdigest()==row['sha256']
+                    checkpoint();camera.select([row]);active[0]=dict(pairs=[],candidate_decisions=[],registrations=[])
+                    status,response=request('/api/demo/identify',{},None)
+                    details=active[0];active[0]=None
+                    record=dict(case=run['case'],sample=row['sample'],identity=row['identity'],
+                        role='wrong' if not reference['correct'] else 'correct_control',http_status=status,
+                        result=sanitized(response),instrumented_http_ms=trace[-1]['ms'],baseline_ms=reference['ms'],
+                        correct=correct_identification(dict(http_status=status,result=response,identity=row['identity'])),
+                        reference_equal=status==reference['http_status'] and all(response.get(k)==reference['result'].get(k)
+                            for k in ('status','user_id','score','second_score','recognition_route')),**details)
+                    if response.get('roi_image'):
+                        value=base64.b64decode(response['roi_image'].split(',')[-1])
+                        path=args.output/'rois'/(run['case']+'-'+row['sample']+'.png');path.write_bytes(value)
+                        baseline_roi=args.baseline/run['case']/'query-rois'/(row['sample']+'.png')
+                        record['roi_byte_equal']=baseline_roi.read_bytes()==value
+                    if response.get('token'):request('/api/demo/cancel',dict(token=response['token']),200)
+                    report['queries'].append(record);checkpoint()
+                    print(run['case'],row['sample'],record['role'],record['reference_equal'],flush=True)
+            assert app.demo.payments.transaction_count()==before
+        finally:
+            FastCCAnchoredUnionMatcher.candidate_decisions=staticmethod(original_decisions)
+            app.demo_algorithm.close()
+    report['complete']=True;report['all_reference_equal']=all(q['reference_equal'] for q in report['queries'])
+    checkpoint()
+
+
+if __name__=='__main__':main()

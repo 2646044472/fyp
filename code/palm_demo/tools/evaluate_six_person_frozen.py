@@ -1,5 +1,6 @@
 """Frozen Pi HTTP evaluation of all six local subjects, with all failures retained."""
 import argparse
+import base64
 from collections import Counter
 import gc
 import hashlib
@@ -107,6 +108,20 @@ def run_case(args,protocol,rows,case,report,checkpoint):
         queries=[],payment_checks={},requests=[])
     report['runs'].append(run)
     lookup={r['sample']:r for r in rows}
+    score_trace={}
+    original_score=app.demo_algorithm.score_gallery
+    def traced_score(probe,groups):
+        scores=original_score(probe,groups)
+        score_trace.update(scores=dict(scores),source_matrix=probe.source.tolist(),native_shape=list(probe.native.shape))
+        return scores
+    app.demo_algorithm.score_gallery=traced_score
+    def attach_diagnostics(trial,response):
+        trial['diagnostics']=dict(score_trace)
+        if response.get('roi_image'):
+            folder=directory/'query-rois';folder.mkdir(exist_ok=True)
+            path=folder/(trial['sample']+'.png')
+            path.write_bytes(base64.b64decode(response['roi_image'].split(',')[-1]))
+            trial['roi_artifact']=str(path.relative_to(args.output))
     stages=EnrollmentStages();stages.install()
     def after_request(trace,response):
         completed=time.perf_counter()
@@ -128,18 +143,18 @@ def run_case(args,protocol,rows,case,report,checkpoint):
                 print(case['name'],'enroll',len(run['enrollments']),identity,status,round(entry['ms']),flush=True)
                 # A new query is recomputed immediately; no prebuilt identity template or query warmup.
                 row=min((r for r in rows if r['identity']==identity and r['sample'] in case['queries']),key=lambda r:r['sample'])
-                camera.select([row]);status,response=request('/api/demo/identify',{},None)
+                camera.select([row]);score_trace.clear();status,response=request('/api/demo/identify',{},None)
                 trial=dict(sample=row['sample'],identity=identity,http_status=status,result=sanitized(response),ms=trace[-1]['ms'])
-                trial['correct']=correct_identification(trial);run['immediate_queries'].append(trial)
+                trial['correct']=correct_identification(trial);attach_diagnostics(trial,response);run['immediate_queries'].append(trial)
                 if response.get('token'):request('/api/demo/cancel',dict(token=response['token']),200)
                 checkpoint()
             query_samples=list(case['queries']);random.Random(case['query_seed']).shuffle(query_samples)
             before=app.demo.payments.transaction_count()
             for sample in query_samples:
-                row=lookup[sample];camera.select([row]);status,response=request('/api/demo/identify',{},None)
+                row=lookup[sample];camera.select([row]);score_trace.clear();status,response=request('/api/demo/identify',{},None)
                 trial=dict(sample=sample,identity=row['identity'],session=row['session'],http_status=status,
                     result=sanitized(response),ms=trace[-1]['ms'])
-                trial['correct']=correct_identification(trial);run['queries'].append(trial)
+                trial['correct']=correct_identification(trial);attach_diagnostics(trial,response);run['queries'].append(trial)
                 token=response.get('token')
                 if token:
                     identity=row['identity'];checks=run['payment_checks'].setdefault(identity,{})
@@ -156,7 +171,7 @@ def run_case(args,protocol,rows,case,report,checkpoint):
                         if trial['correct']:checks.update(cancelled=cancelled_status==200,cancelled_confirmation_blocked=expired_status==400)
                 checkpoint()
                 print(case['name'],'query',len(run['queries']),trial['correct'],round(trial['ms']),flush=True)
-            assert len(run['queries'])==65 and len(run['enrollments'])==11
+            assert len(run['queries'])==len(case['queries']) and len(run['enrollments'])==len(case['enrollment'])
             run['summary']=timed_summary(run['queries'])
             run['summary']['immediate_queries']=timed_summary(run['immediate_queries'])
             run['summary']['successful_enrollments']=sum(e['http_status']==200 for e in run['enrollments'])
@@ -176,13 +191,13 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('manifest',type=Path);p.add_argument('protocol',type=Path);p.add_argument('output',type=Path)
     p.add_argument('--native-registration',type=Path,required=True)
-    p.add_argument('--restart-only',choices=('original','reverse'))
+    p.add_argument('--restart-only',help='Exact case name from the frozen protocol')
     args=p.parse_args();protocol=json.loads(args.protocol.read_text());rows=json.loads(args.manifest.read_text())
     app_root=Path(__file__).resolve().parents[1]
     for name,digest in protocol['code_hashes'].items():
         assert hashlib.sha256((app_root/name).read_bytes()).hexdigest()==digest,name
     assert hashlib.sha256(args.native_registration.read_bytes()).hexdigest()==protocol['native_sha256']
-    assert len(rows)==120 and len({r['identity'] for r in rows})==11
+    assert len(rows)==protocol['images'] and len({r['identity'] for r in rows})==protocol['palm_identities']
     assert all(hashlib.sha256(Path(r['original']).read_bytes()).hexdigest()==r['sha256'] for r in rows)
     cv2.setNumThreads(1)
     if args.restart_only:
