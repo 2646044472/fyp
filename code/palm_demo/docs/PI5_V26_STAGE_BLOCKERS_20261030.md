@@ -120,3 +120,7 @@ Tools: `profile_staged_queries.py --retain-reference-errors --warm-model` and
 selection/source hash, all ten profiles, interval summaries and HTML report.
 The ready-style JSON files are protocol adapters containing the original
 selected v26 observations; they do not invent new baseline measurements.
+
+The follow-up assessment of exact shared/lazy feature computation, including
+its scoped early-gate obstruction, is in
+[PI5_LAZY_SHARED_ARCHITECTURE_ASSESSMENT.md](PI5_LAZY_SHARED_ARCHITECTURE_ASSESSMENT.md).
