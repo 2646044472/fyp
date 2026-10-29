@@ -1,0 +1,19 @@
+{
+  "label": "Local clean PalmMatcher",
+  "architecture": "PalmMatcher",
+  "kind": "matcher",
+  "training_dataset": "PolyU-II palm-class ROI",
+  "seed": 2026,
+  "checkpoint_epoch": 4,
+  "checkpoint_sha256": "57f0eac5e89f7f3bfddceb9a119c3fc69c29bfa9360aaace6cada86fab1485ec",
+  "source_sha256": "edcecb9db27b949be1c4e1e2b3427bdb3c70d5052ce460a710632afa7cec43b8",
+  "onnx_sha256": "ebaa38339b142f16b509f80ede51451116aa0fcedd63639850d63178aa181d90",
+  "input_size": 128,
+  "preprocessing": "RGB, PIL bilinear resize, float32 NCHW /255",
+  "model_config": {
+    "embedding_dim": 128,
+    "width": 32
+  },
+  "export_max_abs_error": 1.4998018741607666e-05,
+  "limitations": "Local controlled baseline, not official PalmIR. Live camera domain is unvalidated."
+}

@@ -1,0 +1,21 @@
+{
+  "label": "Local PalmIR-style RIA",
+  "architecture": "CompactRestorer",
+  "kind": "restorer",
+  "training_dataset": "PolyU-II palm-class ROI",
+  "seed": 2026,
+  "checkpoint_epoch": 48,
+  "checkpoint_sha256": "1587baaad55e0eaa5394aa987590da955c4086467c8f0bc59a68558e5318709a",
+  "source_sha256": "edcecb9db27b949be1c4e1e2b3427bdb3c70d5052ce460a710632afa7cec43b8",
+  "onnx_sha256": "183d2a9075810fbab0ad3ee6dbc9858d1cdc3cb38633a1971c039afc72996634",
+  "input_size": 128,
+  "preprocessing": "RGB, PIL bilinear resize, float32 NCHW /255",
+  "model_config": {
+    "name": "compact_unet",
+    "width": 24
+  },
+  "training_matcher_checkpoint_sha256": "57f0eac5e89f7f3bfddceb9a119c3fc69c29bfa9360aaace6cada86fab1485ec",
+  "export_max_abs_error": 0.00011909008026123047,
+  "runtime_warning": "Random/constant parity is insufficient: low-contrast blur can be numerically sensitive. Do not transfer acceptance thresholds across runtimes without calibration.",
+  "limitations": "Local controlled baseline, not official PalmIR. Live camera domain is unvalidated."
+}

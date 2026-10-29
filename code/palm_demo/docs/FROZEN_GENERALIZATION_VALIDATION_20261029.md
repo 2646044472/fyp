@@ -2,7 +2,8 @@
 
 Algorithm commit: `a1e17f88b1fdd2c959c75539c836d35abf45e2ad`.
 The user requested evaluation only. No recognition implementation, model,
-threshold, alignment constraint or label was changed after seeing these results.
+threshold or alignment constraint was changed. Labels were unchanged during the
+original evaluation; a subsequent collector-confirmed correction is recorded below.
 The evaluation tools verify frozen algorithm source hashes before running.
 
 ## Reserved local captures: original-label results
@@ -39,11 +40,14 @@ Five of the eight original-label failures are one subject's left-to-right
 confusion. Post-result visual inspection of both labels' first enrollment image
 and sixth/query image showed closely matching thumb orientation, wristwatch and
 palm appearance, suggesting the same physical hand may have been assigned two
-labels. This is an unresolved annotation concern, not a confirmed relabeling.
+labels. On 2026-10-29 the collector explicitly confirmed that all ten images in
+session `20261013T111838871161Z-df3d072b` are right-hand captures. The dataset
+index now labels this session `syr:right`; original ZIP metadata is preserved.
 
 No classes were merged, no samples removed and no corrected accuracy calculated.
 The recorded result stays 32/40 under original metadata. It must not be treated
-as a clean estimate of algorithm-only error until the collector verifies labels.
+as a clean estimate of algorithm-only error. A fresh seven-identity evaluation
+is required; do not silently replace these historical scores.
 The private HTML report shows the inspected originals alongside the full failure
 list. Preserve the original reservation record and its evaluated-status successor.
 

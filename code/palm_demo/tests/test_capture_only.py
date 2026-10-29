@@ -55,6 +55,19 @@ def test_native_capture_saves_only_original_and_metadata_without_roi(tmp_path, m
     assert folder.is_dir()
 
 
+def test_failed_disk_sync_does_not_add_incomplete_photo_to_batch(tmp_path, monkeypatch):
+    app = make_app(tmp_path, monkeypatch)
+    app.start_highres_batch({"subject": "p01", "hand": "left", "background": "existing"})
+    def fail_sync(_):
+        raise OSError("disk sync failed")
+    monkeypatch.setattr(debug_ui.os, "fsync", fail_sync)
+    with pytest.raises(OSError, match="disk sync failed"):
+        app.capture_highres_batch()
+    assert app.highres_batch_status()["captured"] == 0
+    manifest = json.loads(next((tmp_path / "highres_sessions").glob("*/manifest.json")).read_text())
+    assert manifest["sample_ids"] == []
+
+
 def test_capture_page_and_status_work_but_recognition_is_disabled(tmp_path, monkeypatch):
     app = make_app(tmp_path, monkeypatch)
     server = ThreadingHTTPServer(("127.0.0.1", 0), debug_ui.make_handler(app))

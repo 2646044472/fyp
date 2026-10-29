@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-29",
+  "authority": "Collector explicitly confirmed all ten images in this session are right-hand captures.",
+  "sessions": [
+    {
+      "session_id": "20261013T111838871161Z-df3d072b",
+      "subject": "syr",
+      "original_hand": "left",
+      "corrected_hand": "right",
+      "sample_indices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "status": "removed_from_active_dataset"
+    }
+  ],
+  "archives": "The corrected session is no longer in the active dataset; its original ZIP is preserved separately for recovery and prior evaluations."
+}

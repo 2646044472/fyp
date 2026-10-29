@@ -12,6 +12,7 @@ import argparse
 import base64
 import io
 import json
+import os
 import re
 import shutil
 import threading
@@ -42,6 +43,16 @@ from live_roi import LiveROIOverlay
 from roi_quality import DebugDatasetWriter, ROIQualityGate
 from pklnet_tracker import PKLNetTracker
 from pklnet_roi import ROI_GEOMETRY_VERSION as PKLNET_GEOMETRY_VERSION, normalize_roi
+
+
+def _sync_directory(path: Path) -> None:
+    if os.name == "nt":
+        return
+    descriptor = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 def _roi_geometry(mode: str) -> str:
@@ -774,9 +785,21 @@ class App:
                 "image_color_order": "RGB",
                 "camera_array_format": "RGB888_BGR_bytes",
             }
-            (root / "metadata.json").write_text(
-                json.dumps(record, ensure_ascii=False, indent=2, default=str), encoding="utf-8"
-            )
+            # Persist image bytes before the session manifest can reference
+            # them. Keep a temporary metadata file out of the normal reader.
+            for path in root.iterdir():
+                if path.is_file():
+                    if path.stat().st_size == 0:
+                        raise OSError("A captured image is empty; please retake it.")
+                    with path.open("rb+") as stream:
+                        os.fsync(stream.fileno())
+            temporary = root / "metadata.json.tmp"
+            with temporary.open("w", encoding="utf-8") as stream:
+                json.dump(record, stream, ensure_ascii=False, indent=2, default=str)
+                stream.flush()
+                os.fsync(stream.fileno())
+            temporary.replace(root / "metadata.json")
+            _sync_directory(root)
             return {key: record[key] for key in ("sample_id", "subject", "hand", "background", "width", "height", "exposure_ms", "analogue_gain", "roi_available")}
         finally:
             self.collection_lock.release()
@@ -788,8 +811,15 @@ class App:
         samples = [path for path in root.iterdir() if path.is_dir() and (path / "metadata.json").is_file()]
         if not samples:
             return {}
-        record = json.loads(max(samples, key=lambda path: path.stat().st_mtime_ns).joinpath("metadata.json").read_text(encoding="utf-8"))
-        return {key: record.get(key) for key in ("sample_id", "subject", "hand", "background", "width", "height", "exposure_ms", "analogue_gain", "roi_available")}
+        for path in sorted(samples, key=lambda path: path.stat().st_mtime_ns, reverse=True):
+            try:
+                record = json.loads((path / "metadata.json").read_text(encoding="utf-8"))
+                if not isinstance(record, dict):
+                    continue
+            except (OSError, ValueError, UnicodeError):
+                continue
+            return {key: record.get(key) for key in ("sample_id", "subject", "hand", "background", "width", "height", "exposure_ms", "analogue_gain", "roi_available")}
+        return {}
 
     def list_highres_sessions(self) -> list[dict[str, Any]]:
         """List saved collection folders for the local collection manager."""
@@ -834,7 +864,7 @@ class App:
                     raise FileNotFoundError("Collection session not found.")
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
                 sample_ids = [str(sample_id) for sample_id in manifest.get("sample_ids", [])]
-                roots = [self._owned_highres_sample(session_id, sid) for sid in sample_ids]
+                roots = [self._owned_highres_sample(session_id, sid, allow_damaged=True) for sid in sample_ids]
                 trash = self._highres_trash("session", session_id, sample_ids)
                 moved = []
                 try:
@@ -853,12 +883,21 @@ class App:
         return {"status": "DELETED", "session_id": session_id, "deleted_samples": len(moved), "recoverable": True}
 
     @staticmethod
-    def _owned_highres_sample(session_id: str, sample_id: str) -> Path:
+    def _owned_highres_sample(session_id: str, sample_id: str, *, allow_damaged: bool = False) -> Path:
         if re.fullmatch(r"\d{8}T\d{12}Z-[0-9a-f]{8}", sample_id) is None:
             raise ValueError("Invalid sample ID.")
         root = palm_demo.RUNTIME / "highres_capture" / sample_id
         if root.exists():
-            metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+            try:
+                metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+                if not isinstance(metadata, dict):
+                    raise ValueError("Invalid photo metadata.")
+            except (OSError, ValueError, UnicodeError):
+                # Only deletion after manifest membership validation may use
+                # this path. Keep incomplete data intact until the user deletes.
+                if allow_damaged:
+                    return root
+                raise ValueError("Photo metadata is damaged; delete the photo and retake it.")
             if metadata.get("session_id") != session_id:
                 raise ValueError("Photo does not belong to this collection.")
         return root
@@ -883,24 +922,34 @@ class App:
                 batch = json.loads(original_manifest)
                 if sample_id not in batch["sample_ids"]:
                     raise ValueError("Photo does not belong to this collection.")
-                root = self._owned_highres_sample(session_id, sample_id)
+                root = self._owned_highres_sample(session_id, sample_id, allow_damaged=True)
                 if not root.is_dir():
                     raise FileNotFoundError("Photo not found.")
                 remaining = [sid for sid in batch["sample_ids"] if sid != sample_id]
                 metadata_before = {}
                 for sid in remaining:
-                    path = self._owned_highres_sample(session_id, sid) / "metadata.json"
-                    metadata_before[path] = path.read_bytes()
+                    path = self._owned_highres_sample(session_id, sid, allow_damaged=True) / "metadata.json"
+                    metadata_before[path] = path.read_bytes() if path.exists() else None
                 trash = self._highres_trash("sample", session_id, [sample_id])
                 (trash / "manifest_before.json").write_bytes(original_manifest)
                 # Preserve prior numbering as well as all original image bytes.
                 for path, content in metadata_before.items():
-                    (trash / (path.parent.name + "-metadata.json")).write_bytes(content)
+                    if content is not None:
+                        (trash / (path.parent.name + "-metadata.json")).write_bytes(content)
                 target = trash / sample_id
                 root.rename(target)
                 try:
                     for index, (path, content) in enumerate(metadata_before.items(), 1):
-                        metadata = json.loads(content)
+                        if content is None:
+                            continue
+                        try:
+                            metadata = json.loads(content)
+                            if not isinstance(metadata, dict):
+                                continue
+                        except (ValueError, UnicodeError):
+                            # Preserve corrupt metadata verbatim; it can be
+                            # selected and removed separately by the user.
+                            continue
                         metadata.setdefault("original_sample_index", metadata.get("sample_index"))
                         metadata["sample_index"] = index
                         temporary = path.with_suffix(".json.tmp")
@@ -918,7 +967,8 @@ class App:
                     root.parent.mkdir(parents=True, exist_ok=True)
                     target.rename(root)
                     for path, content in metadata_before.items():
-                        path.write_bytes(content)
+                        if content is not None:
+                            path.write_bytes(content)
                     manifest_path.write_bytes(original_manifest)
                     raise
                 if self.collection_batch is not None and self.collection_batch.get("session_id") == session_id:
@@ -975,8 +1025,12 @@ class App:
         record["roi_processing"] = batch.get("roi_processing", "deferred" if getattr(self, "capture_only", False) else "at_capture")
         record["deleted_samples"] = batch.get("deleted_samples", [])
         temporary = root / "manifest.json.tmp"
-        temporary.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        with temporary.open("w", encoding="utf-8") as stream:
+            json.dump(record, stream, ensure_ascii=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
         temporary.replace(root / "manifest.json")
+        _sync_directory(root)
 
     def start_highres_batch(self, payload: dict[str, Any]) -> dict[str, Any]:
         labels = self._highres_labels(payload)

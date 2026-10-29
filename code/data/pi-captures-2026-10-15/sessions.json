@@ -13,18 +13,6 @@
       "started_at_pi_utc": "2026-10-13T19:19:14.781934+08:00"
     },
     {
-      "session_id": "20261013T111838871161Z-df3d072b",
-      "subject": "syr",
-      "hand": "left",
-      "background": "existing",
-      "distance_cm": null,
-      "notes": "",
-      "phase": "complete",
-      "sample_count": 10,
-      "total": 10,
-      "started_at_pi_utc": "2026-10-13T19:18:38.871328+08:00"
-    },
-    {
       "session_id": "20261013T111748074392Z-46359232",
       "subject": "kss",
       "hand": "left",
