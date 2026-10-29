@@ -1,0 +1,18 @@
+{
+  "schema": "device-capture-sample-exclusions-v1",
+  "excluded_samples": [
+    {
+      "sample_id": "20261029T085720586167Z-7619919c",
+      "session_id": "20261029T084632567557Z-d6732215",
+      "subject": "billy",
+      "hand": "left",
+      "requested_by": "user",
+      "date": "2026-10-29",
+      "reason": "User explicitly excluded this oblique, strongly perspective-distorted capture after viewing its original image.",
+      "scope": "active_collection_and_future_experiments",
+      "historical_evaluations": "unchanged",
+      "original_archive": "removed_from_active_zip; previous_zip_retained_outside_active_dataset",
+      "device_collection": "deleted_using_recoverable_collection_deletion"
+    }
+  ]
+}

@@ -4,7 +4,7 @@
       "session_id": "20261029T084632567557Z-d6732215",
       "subject": "billy",
       "hand": "left",
-      "sample_count": 10,
+      "sample_count": 9,
       "sample_ids": [
         "20261029T084636155475Z-a2cfc985",
         "20261029T084641478660Z-bf449fa2",
@@ -13,13 +13,12 @@
         "20261029T085643105786Z-4f2e0151",
         "20261029T085652724678Z-f49459c4",
         "20261029T085703921613Z-2b2715ab",
-        "20261029T085720586167Z-7619919c",
         "20261029T085730816608Z-f255d596",
         "20261029T085739566995Z-d18bea6a"
       ],
       "archive": "20261029T084632567557Z-d6732215.zip",
-      "sha256": "a0e11982a67f5edcb6238c43c96b5cc5675caec46afb002ce98f9666775f0ee0",
-      "original_manifest_sha256": "01d3edd60e9f6e29eb701329a003b3cfcc17507f1a7773e156c6183b72790862"
+      "sha256": "ceebff48102d07b9733a31ee267911a135c8b8c97cb53e82963141048e0917ca",
+      "original_manifest_sha256": "65007c1f8da59ccfaf1444c7222071966d3061aead710a3e2c3447956eae66f6"
     },
     {
       "session_id": "20261029T090112052961Z-b5bb025d",
