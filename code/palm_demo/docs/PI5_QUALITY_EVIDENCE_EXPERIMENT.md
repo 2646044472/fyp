@@ -98,6 +98,52 @@ localization retries as separate causes, preserving rejection safeguards.
 
 ## Remaining limitations
 
+### Immediate query after each new enrollment
+
+Additional empty-gallery experiment on the new-device original split registers
+one identity, immediately queries its sixth image, then registers the next.
+No query input primes the model; generic zero-input startup took 1.379 s.
+Actual capture/hand-placement time remains unmeasured: frame reads are JPEG
+decode at the camera boundary. The current production flow processes each
+frame fully before taking the next frame, so the user must not assume a rapid
+five-frame burst followed by all processing in the background.
+
+| Gallery identities after registration | Five-frame enrollment HTTP s | Last frame read to ready s | Immediate first query s | Correct |
+| --- | ---: | ---: | ---: | --- |
+| 1 | 47.206 | 14.742 | 11.446 | Yes |
+| 2 | 45.849 | 15.382 | 1.133 | Yes |
+| 3 | 47.392 | 16.787 | 1.615 | Yes |
+| 4 | 51.338 | 20.193 | 2.320 | Yes |
+
+The one-identity case cannot pass the existing two-candidate margin gate and
+therefore uses complete fallback. This is a general gallery-size boundary,
+not an image-specific failure. It needs a separately justified verification
+policy or faster fallback, not removal of the confidence guard. Five-image
+registration itself is currently too slow to describe as a convenient instant
+on-site experience. Precomputation moves work into registration; it does not
+make that work disappear.
+
+Per-frame primary ROI, alternate ROI, complete feature, gallery preparation,
+descriptor-index and enrollment-link timers are saved in
+`quality-v24-on-site-new/result.json`. They overlap and should not be summed.
+Each frame took 7.108-8.684 s including primary ROI (usually about 1.04 s,
+occasionally 2.08 s), alternate ROI (about 3.07 s) and complete features
+(2.868-3.928 s). Gallery preparation after identities 1/2/3/4 took
+2.918/4.655/6.457/8.502 s respectively. Descriptor-index construction alone
+took 1.155/2.026/2.952/4.007 s; the enclosing index-plus-enrollment-link stage
+took 2.157/3.935/5.740/7.765 s. This confirms expanding-gallery rebuild costs,
+not merely a fixed per-person registration cost. Template persistence and
+remaining HTTP work are included in enrollment totals but not separately timed.
+
+A separate fresh Python process then loaded the four saved identities:
+generic model startup 1.385 s, app/gallery cache rebuild 13.780 s, followed by
+a correct first query in 1.848 s. This is process restart, not a Pi reboot.
+No query sample was used for warmup; simulated transactions were unchanged.
+The model and cache preparation time is paid before the first query and must
+be displayed as startup preparation, not hidden in a claim of instant readiness.
+
+### Capacity and independent validation
+
 Neither four palm identities nor repeated development splits establish
 40-person readiness. The current 256 MiB prepared-cache/index limits and
 gallery-wide registration must be addressed before claiming that capacity.
