@@ -1,0 +1,1377 @@
+{
+  "evaluator_sha256": "da799ba299ad4ff306e59b26f19b82351c0bcf85e16e4956250f522dae8d16e1",
+  "warning": "Pi HTTP timing tree with exclusive same-thread times and separate worker telemetry.\n\nInstrumented development diagnostics only. Worker intervals overlap the request\nthread and MUST NOT be added to HTTP wall time. --oracle-candidate skips retrieval\nusing known truth but keeps the actual exhaustive feature and five-frame matcher;\nits results are not identification accuracy or normal-gallery latency.\n",
+  "oracle_candidate": true,
+  "selection": [
+    [
+      "new-camera-original",
+      "20261029T120016111983Z-a4677ec5"
+    ],
+    [
+      "new-camera-reverse",
+      "20261020T165604274940Z-f7ec5fe1"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111358589224Z-37d0c433"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111553178583Z-61f30739"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111555214120Z-8d6441d2"
+    ]
+  ],
+  "baseline_sha256": "f9e9b39a8d37085318dd089309d975acec19ef1b5a826d813ae1f54af8828a09",
+  "queries": [
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "reference_correct": false,
+      "baseline_http_ms": 4344.12,
+      "http_ms": 3034.56,
+      "http_status": 200,
+      "result": {
+        "status": "MATCH",
+        "score": 0.3876953125,
+        "second_score": null,
+        "reason": null,
+        "roi_source": "pklnet",
+        "timing_ms": {
+          "capture_and_extract": 1255.8381150010973,
+          "gallery": 1776.8879419963923,
+          "total": 3032.7260569974896
+        },
+        "recognition_route": "oracle_true_candidate_full_features",
+        "user_id": "new-camera-billy-right",
+        "display_name": "EVAL new-camera:billy:right",
+        "amount_cents": 2000
+      },
+      "reference_equal": false,
+      "request_thread": 140732207772000,
+      "request_tree_exclusive_ms": {
+        "demo_identify": 0.4333729957579635,
+        "capture_extract": 23.630974981642794,
+        "read_original": 82.16985500621377,
+        "localization": 37.988814008713234,
+        "localizer_once": 1077.9970989970025,
+        "pose_features": 68.91534100577701,
+        "gallery": 48.61997700209031,
+        "extra_localization": 0.030706003599334508,
+        "fallback_features": 1670.574805000797,
+        "fallback_identity": 22.78387399564963
+      },
+      "request_tree_total_ms": 3033.1448189972434,
+      "http_outside_tree_ms": 1.4151810027565261,
+      "call_counts": {
+        "demo_identify": 1,
+        "capture_extract": 1,
+        "read_original": 1,
+        "localization": 1,
+        "localizer_once": 2,
+        "pose_features": 2,
+        "gallery": 1,
+        "extra_localization": 1,
+        "fallback_features": 1,
+        "hypothesis_features": 2,
+        "fallback_identity": 1,
+        "fallback_pair": 5
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "parent": null,
+          "thread": 140732207772000,
+          "label": "demo_identify",
+          "start_ms": 0.82391199975973,
+          "inclusive_ms": 3033.1448189972434,
+          "exclusive_ms": 0.4333729957579635
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "capture_extract",
+          "start_ms": 0.8348010014742613,
+          "inclusive_ms": 1255.8292629983043,
+          "exclusive_ms": 23.630974981642794
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "read_original",
+          "start_ms": 0.842486995679792,
+          "inclusive_ms": 82.16985500621377,
+          "exclusive_ms": 82.16985500621377
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "localization",
+          "start_ms": 83.0349909956567,
+          "inclusive_ms": 1115.9859130057157,
+          "exclusive_ms": 37.988814008713234
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 110.41539799771272,
+          "inclusive_ms": 540.2781939992565,
+          "exclusive_ms": 540.2781939992565
+        },
+        {
+          "id": 5,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 659.1366860011476,
+          "inclusive_ms": 537.718904997746,
+          "exclusive_ms": 537.718904997746
+        },
+        {
+          "id": 6,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1199.047812995559,
+          "inclusive_ms": 34.04252000473207,
+          "exclusive_ms": 34.04252000473207
+        },
+        {
+          "id": 7,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "gallery",
+          "start_ms": 1256.6741939954227,
+          "inclusive_ms": 1776.8821830031811,
+          "exclusive_ms": 48.61997700209031
+        },
+        {
+          "id": 8,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "extra_localization",
+          "start_ms": 1256.9448739959626,
+          "inclusive_ms": 0.030706003599334508,
+          "exclusive_ms": 0.030706003599334508
+        },
+        {
+          "id": 9,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_features",
+          "start_ms": 1257.1308839978883,
+          "inclusive_ms": 1705.4476260018419,
+          "exclusive_ms": 1670.574805000797
+        },
+        {
+          "id": 10,
+          "parent": 9,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1257.3571179964347,
+          "inclusive_ms": 34.87282100104494,
+          "exclusive_ms": 34.87282100104494
+        },
+        {
+          "id": 11,
+          "parent": null,
+          "thread": 140732199317856,
+          "label": "hypothesis_features",
+          "start_ms": 1965.4463619954186,
+          "inclusive_ms": 988.9048430050025,
+          "exclusive_ms": 988.9048430050025
+        },
+        {
+          "id": 12,
+          "parent": null,
+          "thread": 140732018946400,
+          "label": "hypothesis_features",
+          "start_ms": 1965.7234869955573,
+          "inclusive_ms": 994.1669610052486,
+          "exclusive_ms": 994.1669610052486
+        },
+        {
+          "id": 13,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_identity",
+          "start_ms": 3010.727704000601,
+          "inclusive_ms": 22.78387399564963,
+          "exclusive_ms": 22.78387399564963
+        },
+        {
+          "id": 14,
+          "parent": null,
+          "thread": 140732199317856,
+          "label": "fallback_pair",
+          "start_ms": 3010.825504999957,
+          "inclusive_ms": 6.487938997452147,
+          "exclusive_ms": 6.487938997452147
+        },
+        {
+          "id": 15,
+          "parent": null,
+          "thread": 140732018946400,
+          "label": "fallback_pair",
+          "start_ms": 3010.9383999952115,
+          "inclusive_ms": 10.626629002217669,
+          "exclusive_ms": 10.626629002217669
+        },
+        {
+          "id": 16,
+          "parent": null,
+          "thread": 140732199317856,
+          "label": "fallback_pair",
+          "start_ms": 3017.336315999273,
+          "inclusive_ms": 7.683609997911844,
+          "exclusive_ms": 7.683609997911844
+        },
+        {
+          "id": 17,
+          "parent": null,
+          "thread": 140732018946400,
+          "label": "fallback_pair",
+          "start_ms": 3021.5874380010064,
+          "inclusive_ms": 11.500284999783617,
+          "exclusive_ms": 11.500284999783617
+        },
+        {
+          "id": 18,
+          "parent": null,
+          "thread": 140732199317856,
+          "label": "fallback_pair",
+          "start_ms": 3025.0420390002546,
+          "inclusive_ms": 8.39609099784866,
+          "exclusive_ms": 8.39609099784866
+        }
+      ],
+      "truth": "new-camera-billy-right",
+      "expected_true_score": 0.3876953125,
+      "gallery_identities": 1,
+      "gallery_template_frames": 5,
+      "evaluated_identities": 1,
+      "evaluated_template_frames": 5,
+      "true_score_equal": true,
+      "interpretation": "Known true identity supplied by diagnostic; not an identification result. Original five-frame score verified exactly."
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "reference_correct": true,
+      "baseline_http_ms": 15225.0,
+      "http_ms": 9794.13,
+      "http_status": 200,
+      "result": {
+        "status": "MATCH",
+        "score": 0.3583984375,
+        "second_score": null,
+        "reason": null,
+        "roi_source": "pklnet",
+        "timing_ms": {
+          "capture_and_extract": 1108.0991130002076,
+          "gallery": 8684.538841000176,
+          "total": 9792.637954000384
+        },
+        "recognition_route": "oracle_true_candidate_full_features",
+        "user_id": "new-camera-stephen-left",
+        "display_name": "EVAL new-camera:stephen:left",
+        "amount_cents": 2000
+      },
+      "reference_equal": false,
+      "request_thread": 140732207772000,
+      "request_tree_exclusive_ms": {
+        "demo_identify": 0.4380589962238446,
+        "capture_extract": 11.1483549917466,
+        "read_original": 39.73391800536774,
+        "localization": 16.72850499744527,
+        "localizer_once": 4937.799701001495,
+        "pose_features": 42.53697500098497,
+        "gallery": 27.382912994653452,
+        "extra_localization": 39.771689000190236,
+        "fallback_features": 3453.150215005735,
+        "fallback_identity": 1224.3714979995275
+      },
+      "request_tree_total_ms": 9793.06182799337,
+      "http_outside_tree_ms": 1.0681720066295384,
+      "call_counts": {
+        "demo_identify": 1,
+        "capture_extract": 1,
+        "read_original": 1,
+        "localization": 1,
+        "localizer_once": 8,
+        "pose_features": 2,
+        "gallery": 1,
+        "extra_localization": 1,
+        "fallback_features": 1,
+        "hypothesis_features": 7,
+        "fallback_identity": 1,
+        "fallback_pair": 5
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "parent": null,
+          "thread": 140732207772000,
+          "label": "demo_identify",
+          "start_ms": 0.6219010028871708,
+          "inclusive_ms": 9793.06182799337,
+          "exclusive_ms": 0.4380589962238446
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "capture_extract",
+          "start_ms": 0.6314199999906123,
+          "inclusive_ms": 1108.090927999001,
+          "exclusive_ms": 11.1483549917466
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "read_original",
+          "start_ms": 0.6383649961207993,
+          "inclusive_ms": 39.73391800536774,
+          "exclusive_ms": 39.73391800536774
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "localization",
+          "start_ms": 40.39278400159674,
+          "inclusive_ms": 1036.3335729998653,
+          "exclusive_ms": 16.72850499744527
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 51.064485996903386,
+          "inclusive_ms": 510.3464010026073,
+          "exclusive_ms": 510.3464010026073
+        },
+        {
+          "id": 5,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 564.9474160018144,
+          "inclusive_ms": 509.2586669998127,
+          "exclusive_ms": 509.2586669998127
+        },
+        {
+          "id": 6,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1076.755283997045,
+          "inclusive_ms": 20.875082002021372,
+          "exclusive_ms": 20.875082002021372
+        },
+        {
+          "id": 7,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "gallery",
+          "start_ms": 1108.7323669999023,
+          "inclusive_ms": 8684.532840998145,
+          "exclusive_ms": 27.382912994653452
+        },
+        {
+          "id": 8,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "extra_localization",
+          "start_ms": 1109.0013060020283,
+          "inclusive_ms": 3957.9663219992653,
+          "exclusive_ms": 39.771689000190236
+        },
+        {
+          "id": 9,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 1110.6456109991996,
+          "inclusive_ms": 1387.1471610036679,
+          "exclusive_ms": 1387.1471610036679
+        },
+        {
+          "id": 10,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 2509.237270001904,
+          "inclusive_ms": 506.9160739949439,
+          "exclusive_ms": 506.9160739949439
+        },
+        {
+          "id": 11,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 3017.8440579984454,
+          "inclusive_ms": 505.2124990033917,
+          "exclusive_ms": 505.2124990033917
+        },
+        {
+          "id": 12,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 3534.6682480012532,
+          "inclusive_ms": 506.24746499670437,
+          "exclusive_ms": 506.24746499670437
+        },
+        {
+          "id": 13,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 4042.617983002856,
+          "inclusive_ms": 506.00353999470826,
+          "exclusive_ms": 506.00353999470826
+        },
+        {
+          "id": 14,
+          "parent": 8,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 4560.223007996683,
+          "inclusive_ms": 506.66789400565904,
+          "exclusive_ms": 506.66789400565904
+        },
+        {
+          "id": 15,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_features",
+          "start_ms": 5067.226029997983,
+          "inclusive_ms": 3474.8121080046985,
+          "exclusive_ms": 3453.150215005735
+        },
+        {
+          "id": 16,
+          "parent": 15,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 5067.524229998526,
+          "inclusive_ms": 21.661892998963594,
+          "exclusive_ms": 21.661892998963594
+        },
+        {
+          "id": 17,
+          "parent": null,
+          "thread": 140731872227680,
+          "label": "hypothesis_features",
+          "start_ms": 5792.20173000067,
+          "inclusive_ms": 1081.0654680026346,
+          "exclusive_ms": 1081.0654680026346
+        },
+        {
+          "id": 18,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "hypothesis_features",
+          "start_ms": 5792.432260001078,
+          "inclusive_ms": 1080.6205389962997,
+          "exclusive_ms": 1080.6205389962997
+        },
+        {
+          "id": 19,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "hypothesis_features",
+          "start_ms": 6873.083466998651,
+          "inclusive_ms": 572.7621179976268,
+          "exclusive_ms": 572.7621179976268
+        },
+        {
+          "id": 20,
+          "parent": null,
+          "thread": 140731872227680,
+          "label": "hypothesis_features",
+          "start_ms": 6873.287811002228,
+          "inclusive_ms": 572.4021549976896,
+          "exclusive_ms": 572.4021549976896
+        },
+        {
+          "id": 21,
+          "parent": null,
+          "thread": 140731872227680,
+          "label": "hypothesis_features",
+          "start_ms": 7445.719967996411,
+          "inclusive_ms": 588.852257002145,
+          "exclusive_ms": 588.852257002145
+        },
+        {
+          "id": 22,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "hypothesis_features",
+          "start_ms": 7445.864790002815,
+          "inclusive_ms": 583.0867299955571,
+          "exclusive_ms": 583.0867299955571
+        },
+        {
+          "id": 23,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "hypothesis_features",
+          "start_ms": 8028.983835996769,
+          "inclusive_ms": 509.14881200151285,
+          "exclusive_ms": 509.14881200151285
+        },
+        {
+          "id": 24,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_identity",
+          "start_ms": 8568.822947003355,
+          "inclusive_ms": 1224.3714979995275,
+          "exclusive_ms": 1224.3714979995275
+        },
+        {
+          "id": 25,
+          "parent": null,
+          "thread": 140731872227680,
+          "label": "fallback_pair",
+          "start_ms": 8568.932971000322,
+          "inclusive_ms": 375.80316200183006,
+          "exclusive_ms": 375.80316200183006
+        },
+        {
+          "id": 26,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "fallback_pair",
+          "start_ms": 8569.056478001585,
+          "inclusive_ms": 419.04924599657534,
+          "exclusive_ms": 419.04924599657534
+        },
+        {
+          "id": 27,
+          "parent": null,
+          "thread": 140731872227680,
+          "label": "fallback_pair",
+          "start_ms": 8944.76967099763,
+          "inclusive_ms": 473.83843600255204,
+          "exclusive_ms": 473.83843600255204
+        },
+        {
+          "id": 28,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "fallback_pair",
+          "start_ms": 8988.1384850014,
+          "inclusive_ms": 315.9018769947579,
+          "exclusive_ms": 315.9018769947579
+        },
+        {
+          "id": 29,
+          "parent": null,
+          "thread": 140731863773536,
+          "label": "fallback_pair",
+          "start_ms": 9304.066919001343,
+          "inclusive_ms": 489.02661399915814,
+          "exclusive_ms": 489.02661399915814
+        }
+      ],
+      "truth": "new-camera-stephen-left",
+      "expected_true_score": 0.3583984375,
+      "gallery_identities": 1,
+      "gallery_template_frames": 5,
+      "evaluated_identities": 1,
+      "evaluated_template_frames": 5,
+      "true_score_equal": true,
+      "interpretation": "Known true identity supplied by diagnostic; not an identification result. Original five-frame score verified exactly."
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "reference_correct": false,
+      "baseline_http_ms": 8080.53,
+      "http_ms": 3938.42,
+      "http_status": 200,
+      "result": {
+        "status": "MATCH",
+        "score": 0.37532433144725136,
+        "second_score": null,
+        "reason": null,
+        "roi_source": "pklnet",
+        "timing_ms": {
+          "capture_and_extract": 1460.5854979963624,
+          "gallery": 2476.2124650005717,
+          "total": 3936.797962996934
+        },
+        "recognition_route": "oracle_true_candidate_full_features",
+        "user_id": "old-camera-cyw-real-left",
+        "display_name": "EVAL old-camera:cyw-real:left",
+        "amount_cents": 2000
+      },
+      "reference_equal": false,
+      "request_thread": 140732207772000,
+      "request_tree_exclusive_ms": {
+        "demo_identify": 0.4407259984873235,
+        "capture_extract": 35.00561600958463,
+        "read_original": 169.00809299841058,
+        "localization": 68.97033299901523,
+        "localizer_once": 1137.5083629973233,
+        "pose_features": 100.22761300206184,
+        "gallery": 88.12315899558598,
+        "extra_localization": 0.024186003429349512,
+        "fallback_features": 1980.8011429995531,
+        "fallback_identity": 357.1168819980812
+      },
+      "request_tree_total_ms": 3937.2261140015326,
+      "http_outside_tree_ms": 1.1938859984675219,
+      "call_counts": {
+        "demo_identify": 1,
+        "capture_extract": 1,
+        "read_original": 1,
+        "localization": 1,
+        "localizer_once": 2,
+        "pose_features": 2,
+        "gallery": 1,
+        "extra_localization": 1,
+        "fallback_features": 1,
+        "hypothesis_features": 2,
+        "fallback_identity": 1,
+        "fallback_pair": 5
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "parent": null,
+          "thread": 140732207772000,
+          "label": "demo_identify",
+          "start_ms": 0.6642360021942295,
+          "inclusive_ms": 3937.2261140015326,
+          "exclusive_ms": 0.4407259984873235
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "capture_extract",
+          "start_ms": 0.6718660006299615,
+          "inclusive_ms": 1460.578053003701,
+          "exclusive_ms": 35.00561600958463
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "read_original",
+          "start_ms": 0.6773850036552176,
+          "inclusive_ms": 169.00809299841058,
+          "exclusive_ms": 169.00809299841058
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "localization",
+          "start_ms": 169.69992300437298,
+          "inclusive_ms": 1206.4786959963385,
+          "exclusive_ms": 68.97033299901523
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 216.063263003889,
+          "inclusive_ms": 571.0655889997724,
+          "exclusive_ms": 571.0655889997724
+        },
+        {
+          "id": 5,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 800.5529890069738,
+          "inclusive_ms": 566.4427739975508,
+          "exclusive_ms": 566.4427739975508
+        },
+        {
+          "id": 6,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1376.2044350005453,
+          "inclusive_ms": 50.08564799936721,
+          "exclusive_ms": 50.08564799936721
+        },
+        {
+          "id": 7,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "gallery",
+          "start_ms": 1461.2583270063624,
+          "inclusive_ms": 2476.2073349993443,
+          "exclusive_ms": 88.12315899558598
+        },
+        {
+          "id": 8,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "extra_localization",
+          "start_ms": 1461.565101002634,
+          "inclusive_ms": 0.024186003429349512,
+          "exclusive_ms": 0.024186003429349512
+        },
+        {
+          "id": 9,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_features",
+          "start_ms": 1461.722127001849,
+          "inclusive_ms": 2030.9431080022478,
+          "exclusive_ms": 1980.8011429995531
+        },
+        {
+          "id": 10,
+          "parent": 9,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1461.9519719999516,
+          "inclusive_ms": 50.14196500269463,
+          "exclusive_ms": 50.14196500269463
+        },
+        {
+          "id": 11,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "hypothesis_features",
+          "start_ms": 2429.3725800016546,
+          "inclusive_ms": 1059.8118380003143,
+          "exclusive_ms": 1059.8118380003143
+        },
+        {
+          "id": 12,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "hypothesis_features",
+          "start_ms": 2429.6023510032683,
+          "inclusive_ms": 1052.5697999983095,
+          "exclusive_ms": 1052.5697999983095
+        },
+        {
+          "id": 13,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_identity",
+          "start_ms": 3579.1759270068724,
+          "inclusive_ms": 357.1168819980812,
+          "exclusive_ms": 357.1168819980812
+        },
+        {
+          "id": 14,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3579.287544002,
+          "inclusive_ms": 122.99922600504942,
+          "exclusive_ms": 122.99922600504942
+        },
+        {
+          "id": 15,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3579.407290002564,
+          "inclusive_ms": 123.82602599973325,
+          "exclusive_ms": 123.82602599973325
+        },
+        {
+          "id": 16,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3702.31767900259,
+          "inclusive_ms": 120.01005400088616,
+          "exclusive_ms": 120.01005400088616
+        },
+        {
+          "id": 17,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3703.2554100005655,
+          "inclusive_ms": 115.47796400554944,
+          "exclusive_ms": 115.47796400554944
+        },
+        {
+          "id": 18,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3818.7583750041085,
+          "inclusive_ms": 117.44357799761929,
+          "exclusive_ms": 117.44357799761929
+        }
+      ],
+      "truth": "old-camera-cyw-real-left",
+      "expected_true_score": 0.37532433144725136,
+      "gallery_identities": 2,
+      "gallery_template_frames": 10,
+      "evaluated_identities": 1,
+      "evaluated_template_frames": 5,
+      "true_score_equal": true,
+      "interpretation": "Known true identity supplied by diagnostic; not an identification result. Original five-frame score verified exactly."
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "reference_correct": false,
+      "baseline_http_ms": 10257.49,
+      "http_ms": 4173.0,
+      "http_status": 200,
+      "result": {
+        "status": "MATCH",
+        "score": 0.3899589573732719,
+        "second_score": null,
+        "reason": null,
+        "roi_source": "pklnet",
+        "timing_ms": {
+          "capture_and_extract": 1441.8575630043051,
+          "gallery": 2729.627310996875,
+          "total": 4171.48487400118
+        },
+        "recognition_route": "oracle_true_candidate_full_features",
+        "user_id": "old-camera-xyt-right",
+        "display_name": "EVAL old-camera:xyt:right",
+        "amount_cents": 2000
+      },
+      "reference_equal": false,
+      "request_thread": 140732207772000,
+      "request_tree_exclusive_ms": {
+        "demo_identify": 0.43590899440459907,
+        "capture_extract": 34.43683800287545,
+        "read_original": 162.5024349996238,
+        "localization": 62.47525700018741,
+        "localizer_once": 1133.4418219994404,
+        "pose_features": 98.32153099705465,
+        "gallery": 88.62364100059494,
+        "extra_localization": 0.010055999155156314,
+        "fallback_features": 1993.577268003719,
+        "fallback_identity": 598.0831190026947
+      },
+      "request_tree_total_ms": 4171.90787599975,
+      "http_outside_tree_ms": 1.0921240002498962,
+      "call_counts": {
+        "demo_identify": 1,
+        "capture_extract": 1,
+        "read_original": 1,
+        "localization": 1,
+        "localizer_once": 2,
+        "pose_features": 2,
+        "gallery": 1,
+        "extra_localization": 1,
+        "fallback_features": 1,
+        "hypothesis_features": 2,
+        "fallback_identity": 1,
+        "fallback_pair": 5
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "parent": null,
+          "thread": 140732207772000,
+          "label": "demo_identify",
+          "start_ms": 0.5664350028382614,
+          "inclusive_ms": 4171.90787599975,
+          "exclusive_ms": 0.43590899440459907
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "capture_extract",
+          "start_ms": 0.5740650012739934,
+          "inclusive_ms": 1441.849804003141,
+          "exclusive_ms": 34.43683800287545
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "read_original",
+          "start_ms": 0.5796949990326539,
+          "inclusive_ms": 162.5024349996238,
+          "exclusive_ms": 162.5024349996238
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "localization",
+          "start_ms": 163.09775999980047,
+          "inclusive_ms": 1195.9170789996278,
+          "exclusive_ms": 62.47525700018741
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 208.9023750013439,
+          "inclusive_ms": 568.6745610000798,
+          "exclusive_ms": 568.6745610000798
+        },
+        {
+          "id": 5,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 791.118371002085,
+          "inclusive_ms": 564.7672609993606,
+          "exclusive_ms": 564.7672609993606
+        },
+        {
+          "id": 6,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1359.037932998035,
+          "inclusive_ms": 48.99345200101379,
+          "exclusive_ms": 48.99345200101379
+        },
+        {
+          "id": 7,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "gallery",
+          "start_ms": 1442.432739000651,
+          "inclusive_ms": 2729.6221630022046,
+          "exclusive_ms": 88.62364100059494
+        },
+        {
+          "id": 8,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "extra_localization",
+          "start_ms": 1442.7693670004373,
+          "inclusive_ms": 0.010055999155156314,
+          "exclusive_ms": 0.010055999155156314
+        },
+        {
+          "id": 9,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_features",
+          "start_ms": 1442.9197810022742,
+          "inclusive_ms": 2042.9053469997598,
+          "exclusive_ms": 1993.577268003719
+        },
+        {
+          "id": 10,
+          "parent": 9,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1443.1544780018157,
+          "inclusive_ms": 49.32807899604086,
+          "exclusive_ms": 49.32807899604086
+        },
+        {
+          "id": 11,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "hypothesis_features",
+          "start_ms": 2410.728057002416,
+          "inclusive_ms": 957.4336360019515,
+          "exclusive_ms": 957.4336360019515
+        },
+        {
+          "id": 12,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "hypothesis_features",
+          "start_ms": 2410.8224689989584,
+          "inclusive_ms": 1071.352797000145,
+          "exclusive_ms": 1071.352797000145
+        },
+        {
+          "id": 13,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_identity",
+          "start_ms": 3572.774075997586,
+          "inclusive_ms": 598.0831190026947,
+          "exclusive_ms": 598.0831190026947
+        },
+        {
+          "id": 14,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3572.8811739973025,
+          "inclusive_ms": 195.41610400483478,
+          "exclusive_ms": 195.41610400483478
+        },
+        {
+          "id": 15,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3573.0017540045083,
+          "inclusive_ms": 202.7097709942609,
+          "exclusive_ms": 202.7097709942609
+        },
+        {
+          "id": 16,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3768.3295940005337,
+          "inclusive_ms": 198.97665300231893,
+          "exclusive_ms": 198.97665300231893
+        },
+        {
+          "id": 17,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3775.7414340012474,
+          "inclusive_ms": 199.36105999659048,
+          "exclusive_ms": 199.36105999659048
+        },
+        {
+          "id": 18,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3967.3406750007416,
+          "inclusive_ms": 203.4249229982379,
+          "exclusive_ms": 203.4249229982379
+        }
+      ],
+      "truth": "old-camera-xyt-right",
+      "expected_true_score": 0.3899589573732719,
+      "gallery_identities": 2,
+      "gallery_template_frames": 10,
+      "evaluated_identities": 1,
+      "evaluated_template_frames": 5,
+      "true_score_equal": true,
+      "interpretation": "Known true identity supplied by diagnostic; not an identification result. Original five-frame score verified exactly."
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "reference_correct": false,
+      "baseline_http_ms": 9396.87,
+      "http_ms": 3919.12,
+      "http_status": 200,
+      "result": {
+        "status": "MATCH",
+        "score": 0.4058743759600615,
+        "second_score": null,
+        "reason": null,
+        "roi_source": "pklnet",
+        "timing_ms": {
+          "capture_and_extract": 1446.894605003763,
+          "gallery": 2470.646123998449,
+          "total": 3917.540729002212
+        },
+        "recognition_route": "oracle_true_candidate_full_features",
+        "user_id": "old-camera-xyt-right",
+        "display_name": "EVAL old-camera:xyt:right",
+        "amount_cents": 2000
+      },
+      "reference_equal": false,
+      "request_thread": 140732207772000,
+      "request_tree_exclusive_ms": {
+        "demo_identify": 0.436242000432685,
+        "capture_extract": 34.55357400525827,
+        "read_original": 162.96048699587118,
+        "localization": 68.16555299883476,
+        "localizer_once": 1133.9320050028618,
+        "pose_features": 94.96282399777556,
+        "gallery": 87.61304998915875,
+        "extra_localization": 0.009834002412389964,
+        "fallback_features": 1899.9780119993375,
+        "fallback_identity": 435.3527230050531
+      },
+      "request_tree_total_ms": 3917.964303996996,
+      "http_outside_tree_ms": 1.155696003003868,
+      "call_counts": {
+        "demo_identify": 1,
+        "capture_extract": 1,
+        "read_original": 1,
+        "localization": 1,
+        "localizer_once": 2,
+        "pose_features": 2,
+        "gallery": 1,
+        "extra_localization": 1,
+        "fallback_features": 1,
+        "hypothesis_features": 1,
+        "fallback_identity": 1,
+        "fallback_pair": 5
+      },
+      "nodes": [
+        {
+          "id": 0,
+          "parent": null,
+          "thread": 140732207772000,
+          "label": "demo_identify",
+          "start_ms": 0.6202160002430901,
+          "inclusive_ms": 3917.964303996996,
+          "exclusive_ms": 0.436242000432685
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "capture_extract",
+          "start_ms": 0.6282529939198866,
+          "inclusive_ms": 1446.8870860000607,
+          "exclusive_ms": 34.55357400525827
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "read_original",
+          "start_ms": 0.6333269993774593,
+          "inclusive_ms": 162.96048699587118,
+          "exclusive_ms": 162.96048699587118
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "localization",
+          "start_ms": 163.60899999563117,
+          "inclusive_ms": 1202.0975580016966,
+          "exclusive_ms": 68.16555299883476
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 209.92899799603038,
+          "inclusive_ms": 568.268799004727,
+          "exclusive_ms": 568.268799004727
+        },
+        {
+          "id": 5,
+          "parent": 3,
+          "thread": 140732207772000,
+          "label": "localizer_once",
+          "start_ms": 791.7850829981035,
+          "inclusive_ms": 565.6632059981348,
+          "exclusive_ms": 565.6632059981348
+        },
+        {
+          "id": 6,
+          "parent": 1,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1365.7329109992133,
+          "inclusive_ms": 47.275466997234616,
+          "exclusive_ms": 47.275466997234616
+        },
+        {
+          "id": 7,
+          "parent": 0,
+          "thread": 140732207772000,
+          "label": "gallery",
+          "start_ms": 1447.5239690000308,
+          "inclusive_ms": 2470.6409759965027,
+          "exclusive_ms": 87.61304998915875
+        },
+        {
+          "id": 8,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "extra_localization",
+          "start_ms": 1447.830298995541,
+          "inclusive_ms": 0.009834002412389964,
+          "exclusive_ms": 0.009834002412389964
+        },
+        {
+          "id": 9,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_features",
+          "start_ms": 1447.9436929977965,
+          "inclusive_ms": 1947.6653689998784,
+          "exclusive_ms": 1899.9780119993375
+        },
+        {
+          "id": 10,
+          "parent": 9,
+          "thread": 140732207772000,
+          "label": "pose_features",
+          "start_ms": 1448.1748709949898,
+          "inclusive_ms": 47.68735700054094,
+          "exclusive_ms": 47.68735700054094
+        },
+        {
+          "id": 11,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "hypothesis_features",
+          "start_ms": 2467.1925799993915,
+          "inclusive_ms": 924.7737689947826,
+          "exclusive_ms": 924.7737689947826
+        },
+        {
+          "id": 12,
+          "parent": 7,
+          "thread": 140732207772000,
+          "label": "fallback_identity",
+          "start_ms": 3481.5571239960263,
+          "inclusive_ms": 435.3527230050531,
+          "exclusive_ms": 435.3527230050531
+        },
+        {
+          "id": 13,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3481.6650549983024,
+          "inclusive_ms": 144.21988099638838,
+          "exclusive_ms": 144.21988099638838
+        },
+        {
+          "id": 14,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3481.793264996668,
+          "inclusive_ms": 147.66760200291174,
+          "exclusive_ms": 147.66760200291174
+        },
+        {
+          "id": 15,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3625.9175109953503,
+          "inclusive_ms": 144.98756100510946,
+          "exclusive_ms": 144.98756100510946
+        },
+        {
+          "id": 16,
+          "parent": null,
+          "thread": 140731414966624,
+          "label": "fallback_pair",
+          "start_ms": 3629.4886639952892,
+          "inclusive_ms": 143.8643770015915,
+          "exclusive_ms": 143.8643770015915
+        },
+        {
+          "id": 17,
+          "parent": null,
+          "thread": 140731406512480,
+          "label": "fallback_pair",
+          "start_ms": 3770.935702996212,
+          "inclusive_ms": 145.88030699815135,
+          "exclusive_ms": 145.88030699815135
+        }
+      ],
+      "truth": "old-camera-xyt-right",
+      "expected_true_score": 0.4058743759600615,
+      "gallery_identities": 2,
+      "gallery_template_frames": 10,
+      "evaluated_identities": 1,
+      "evaluated_template_frames": 5,
+      "true_score_equal": true,
+      "interpretation": "Known true identity supplied by diagnostic; not an identification result. Original five-frame score verified exactly."
+    }
+  ],
+  "initializations": [
+    {
+      "case": "new-camera-original",
+      "startup": {
+        "generic_model_startup_ms": 1423.5537100030342,
+        "app_and_gallery_ms": 983.5871219984256,
+        "total_ms": 2407.160778006073,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      }
+    },
+    {
+      "case": "new-camera-reverse",
+      "startup": {
+        "generic_model_startup_ms": 1406.047114993271,
+        "app_and_gallery_ms": 3129.681026999606,
+        "total_ms": 4535.751586998231,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "startup": {
+        "generic_model_startup_ms": 1359.4509739996283,
+        "app_and_gallery_ms": 6440.453320006782,
+        "total_ms": 7799.92097899958,
+        "localizer_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+      }
+    }
+  ],
+  "power_samples": [
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=50.5'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=49.4'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=52.7'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=51.0'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=52.7'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=53.8'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=52.1'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=52.1'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=54.3'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=53.2'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=56.0'C"
+    },
+    {
+      "get_throttled": "throttled=0x0",
+      "measure_temp": "temp=53.2'C"
+    }
+  ],
+  "complete": true,
+  "source_templates_unchanged": true,
+  "interpretation": "Skip retrieval and all other identity scoring, preserve same original-frame capture/localization, exhaustive feature extraction and true five-frame pair validation. No claim of a mathematical lower bound for every possible redesigned algorithm."
+}

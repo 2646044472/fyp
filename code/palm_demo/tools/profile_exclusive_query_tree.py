@@ -65,7 +65,7 @@ def main():
    q=min((q for q in run['queries']if q['correct']and q['ms']<=2500),key=lambda q:q['sample']);selected.add((run['case'],q['sample']))
  tree=TimingTree()
  for owner,name,label in [(DemoFlow,'identify','demo_identify'),(debug_ui.App,'capture_demo_feature','capture_extract'),(debug_ui.App,'detect_full_still','localization'),(ReplayCamera,'capture_highres','read_original'),(Gallery,'identify','gallery'),(PKLNetROI,'_extract_once','localizer_once'),(FastCCPoseMatcher,'extract_with_context','pose_features'),(StagedIndexMatcher,'score_gallery','staged_gallery'),(StagedIndexMatcher,'_stage_views','context_features'),(PooledEnrollmentMatcher,'_legacy_probe','legacy_features'),(LinkedEnrollmentMatcher,'_enrollment_link_stage','enrollment_links'),(AffineEnrollmentMatcher,'_enrollment_link_stage','links_affine'),(PooledEnrollmentMatcher,'_pool_stage','pool_stage'),(FastCCWindowUnionMatcher,'complete_hypotheses','extra_localization'),(FastCCWindowUnionMatcher,'extract_with_hypotheses','fallback_features'),(FastCCWindowUnionMatcher,'_hypothesis_views','hypothesis_features'),(FastCCWindowUnionMatcher,'_match_unpacked','fallback_pair'),(FastCCDemoMatcher,'score_prepared','fallback_identity'),(CompNetEvidenceMatcher,'_auxiliary_scores','primary_embedding'),(CompNetAlternateROIMatcher,'_auxiliary_scores','embedding_total')]:tree.wrap(owner,name,label)
- report=dict(warning=__doc__,oracle_candidate=a.oracle_candidate,selection=sorted(selected),baseline_sha256=sha(a.baseline/'results.json'),queries=[],initializations=[],power_samples=[],complete=False)
+ report=dict(evaluator_sha256=sha(Path(__file__)),warning=__doc__,oracle_candidate=a.oracle_candidate,selection=sorted(selected),baseline_sha256=sha(a.baseline/'results.json'),queries=[],initializations=[],power_samples=[],complete=False)
  source_hashes={str(p):sha(p) for p in a.baseline.glob('*/runtime/demo_templates/*')if p.is_file()}
  def checkpoint():
   power=power_sample();report['power_samples'].append(power);save_json(a.output/'results.json',report)
@@ -75,7 +75,17 @@ def main():
   for run in b['runs']:
    chosen=sorted(sample for case,sample in selected if case==run['case'])
    if not chosen:continue
-   runtime=a.output/run['case']/'runtime';runtime.parent.mkdir();shutil.copytree(a.baseline/run['case']/'runtime',runtime)
+   runtime=a.output/run['case']/'runtime';runtime.parent.mkdir()
+   source_runtime=a.baseline/run['case']/'runtime'
+   if a.oracle_candidate:
+    # Only the preselected true identities are needed by this oracle. Copy DBs
+    # normally; never hardlink a writable database or modify source templates.
+    shutil.copytree(source_runtime,runtime,ignore=shutil.ignore_patterns('demo_templates'))
+    target_store=runtime/'demo_templates';target_store.mkdir()
+    truth_users={rows[s]['identity'].replace(':','-') for s in chosen}
+    for user in truth_users:
+     for suffix in ('.npz','.json'):shutil.copy2(source_runtime/'demo_templates'/(user+suffix),target_store/(user+suffix))
+   else:shutil.copytree(source_runtime,runtime)
    app,camera,startup=initialize(runtime,b['matcher'],a.native_registration);report['initializations'].append(dict(case=run['case'],startup=startup));before=app.demo.payments.transaction_count();old=app.demo_algorithm.score_gallery;active={}
    def score(probe,groups):
     active['gallery_identities']=len(groups);active['gallery_template_frames']=sum(len(v)for v in groups.values())
