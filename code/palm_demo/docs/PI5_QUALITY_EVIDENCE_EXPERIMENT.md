@@ -210,6 +210,45 @@ These screens have no Pi timing or independent validation. Evidence:
 experiment is staged auxiliary-ROI geometric registration, with full fallback
 and fixed guards retained; direct code comparison alone was insufficient.
 
+The prior multiscale ECC experiment was checked before considering a rerun.
+All 80 images have bit-identical primary ROI matrices, context pixels and codes
+between that experiment and v24. Among the 30 v24 fallback trials, none of the
+historically accepted ECC proposals applied to an enrolled image in that trial.
+This is a reuse of the historical proposal output, not a fresh v24 ECC timing
+or a conclusion about differently configured dense-alignment methods. Evidence:
+`ecc-geometry-parity.json`, `ecc-historical-reuse.json`.
+
+Follow-up staged-geometry screen evaluated all 30 complete-fallback trials
+(three unique images) in the fixed 224 splits. It accumulated existing geometric
+registration candidates in their original groups. Final scores matched the
+original full fallback exactly. Twenty-five trials reached the unchanged gate
+before all groups; all those early leaders were correct. Five never reached
+the gate, including both cached original new-reverse failures. For the hardest
+one, even the complete scores were 0.356934 for the true identity versus
+0.392137 for the runner-up: neither <=0.32 nor >=0.08 margin holds. Therefore
+this early-stop route is not a demonstrated solution to that hard tail and
+has not been integrated. Evidence: `staged-geometry-screen.json`.
+
+The single-identity routing condition explicitly requires at least two scores.
+No fictitious second identity or margin relaxation is introduced. Separately,
+the current simulated demo's final Gallery policy is closed-set ranking
+(threshold 1.0, no calibrated unknown-person margin); thus a correct single-
+identity label is not evidence of reliable unknown-person rejection. A distinct
+verification policy needs its own calibration; the present work preserves it.
+
+A three-worker window-localization component pilot is also rejected. Each
+worker had an independent one-thread ONNX session, compared with the existing
+sequential three-thread session on the same three-core affinity. Input order
+alternated between methods; both used zero-input startup priming. After 36 of
+the planned 80 original frames, all 36 had coordinate differences (maximum
+absolute quad-coordinate delta 0.003845 pixels). Median six-window time was
+3.096 s sequential versus 3.160 s parallel. With neither exact-output parity
+nor speed benefit, the experiment was stopped and the remaining 44 frames
+were not run. No full-80 completion or memory-peak result is claimed. Power
+samples remained zero. Evidence: `window-parallel-quality-v24.json`; reproduce
+with `tools/benchmark_window_parallel_three.py`. The older two-worker tool is
+preserved separately. Neither variant is integrated into recognition.
+
 ### Capacity and independent validation (still pending)
 
 Neither four palm identities nor repeated development splits establish
