@@ -1,0 +1,12 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>v26 设备全流程电脑基准</title>
+<style>body{font:16px/1.7 system-ui;max-width:1250px;margin:40px auto;padding:0 24px;background:#111827;color:#e5edf8}table{border-collapse:collapse;font-size:14px}td,th{padding:6px;border:1px solid #526178}a{color:#8dd1ff}</style>
+<h1>版本已核实的 v26 设备全流程基准</h1>
+<p>Windows 原设备数据，四种同设备划分。实际 v26 + retained FastCC：<b>165/168 正确、3 误认、0 拒认、0 处理失败</b>。≤2.5秒正确 158/168。这是纠正实验版本标注后的基准，未引入新优化，标准版未变、未部署。</p>
+<table><tr><th>范围</th><th>查询</th><th>正确</th><th>误认</th><th>拒认</th><th>处理失败</th><th>≤2.5秒正确</th><th>P50秒</th><th>P95秒</th><th>最长秒</th></tr><tr><td>overall</td><td>168</td><td>165</td><td>3</td><td>0</td><td>0</td><td>158</td><td>0.724</td><td>3.270</td><td>7.946</td></tr><tr><td>new-camera-original</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>29</td><td>0.554</td><td>1.211</td><td>2.149</td></tr><tr><td>new-camera-reverse</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>28</td><td>0.564</td><td>1.983</td><td>7.946</td></tr><tr><td>old-camera-original</td><td>55</td><td>52</td><td>3</td><td>0</td><td>0</td><td>49</td><td>0.733</td><td>5.280</td><td>6.009</td></tr><tr><td>old-camera-reverse</td><td>55</td><td>55</td><td>0</td><td>0</td><td>0</td><td>52</td><td>0.727</td><td>2.320</td><td>5.598</td></tr></table>
+<p>最慢：20261020T165604274940Z-f7ec5fe1，7.946 秒，正确=True，路径=exhaustive_retained_fastcc_pilot。电脑数字不能替代 Pi 数字，也没有证明 40 人图库性能。</p>
+<h2>真实录入、ready 与支付检查</h2><p>重新执行 34 个五帧录入请求，170 次帧输入，全部成功且 ready。录入 HTTP P50/P95/最长为 11.740/19.802/22.106 秒；最后一帧读入结束到 ready 响应的 P50 为 4.393 秒。这些成本不混入单张查询。启动与录入后即时查询在 JSON 中另列。</p>
+<p>四组的确认扣款、重复确认拦截、取消、取消后确认拦截均通过。所有账号和交易库位于独立实验目录；没有调用摄像头或修改正式服务。</p>
+<h2>仍未解决的错误</h2><ul><li>(&#x27;old-camera-original&#x27;, &#x27;20261013T111553178583Z-61f30739&#x27;, &#x27;old-camera:xyt:right&#x27;, &#x27;old-camera-stephen-10-13-left&#x27;, 5998.44)</li><li>(&#x27;old-camera-original&#x27;, &#x27;20261013T111555214120Z-8d6441d2&#x27;, &#x27;old-camera:xyt:right&#x27;, &#x27;old-camera-kss-right&#x27;, 5678.69)</li><li>(&#x27;old-camera-original&#x27;, &#x27;20261013T111358589224Z-37d0c433&#x27;, &#x27;old-camera:cyw-real:left&#x27;, &#x27;old-camera-kss-left&#x27;, 4491.24)</li></ul>
+<p>19 张固定轮廓辅助 ROI 小试没有纠错，已淘汰；没有通过放宽阈值把拒认算成正确。两张 xyt 图原框偏向手腕/前臂，另一张原框大致在掌心，不能用同一个定位解释包办全部误认。</p>
+<p>早前半转 Windows 回归实际使用 v24，外层 v26 标签已更正。这次直接从原图重新录入，逐组记录实际类名、版本 magic 和完整流程，历史数据未覆盖。独立旧 Pi 基准仍为165/168、3误认、0拒认、145/168正确且≤2.5秒。</p>
+<p><a href="summary.json">完整标量证据</a> · <a href="decisions.csv">168条查询账本</a></p></html>

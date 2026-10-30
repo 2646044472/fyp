@@ -1,0 +1,3671 @@
+{
+  "matcher": "FastCCCompNetAlternateROI-v26-experimental",
+  "executed_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+  "standard_tag": "standard-device-20261030",
+  "manifest_sha256": "08a4fa9574f94023057efcf7aa7bee3b1d07625be91c2835ed9dab464a0472c4",
+  "protocol_sha256": "c23cc1d25db17065b2476cd6ce384bfa4c80201a19a23a4f0d2e16f8aa1d5a76",
+  "split_protocol_matcher": "FastCCQualityEvidence-v24-experimental",
+  "explicit_matcher_override": true,
+  "helper_sha256": "40088f3ddeeaf767a298fed1feed264edab273521a99e327ac8a0a60f9bd7ea0",
+  "evaluator_sha256": "5d83f55efebbc77b1ba3cb149ca408ba377ac64ac8fd61fb55e4449ad6c596dc",
+  "model_sha256": "b513e614a8b1a4448ef58c1b7f288f760fc991ce31d0a35079b4f9226146d1ea",
+  "host": "Windows PC; OpenCV BF reference; camera acquisition excluded. Not Pi latency.",
+  "thresholds": {
+    "early_distance": 0.32,
+    "early_margin": 0.08,
+    "final_distance": 1.0,
+    "final_margin": 0.0,
+    "rejection": false
+  },
+  "originals_unchanged": true,
+  "started_unix": 1793359408.935666,
+  "ended_unix": 1793360098.415833,
+  "complete": true,
+  "optimization_candidate": false,
+  "promoted": false,
+  "scope": "Fresh Windows v26 + retained FastCC original-device reference, four frozen same-device splits. Live capture excluded.",
+  "overall": {
+    "correct": 165,
+    "wrong_identity_accepted": 3,
+    "true_identity_nonunique": 0,
+    "rejected": 0,
+    "processing_failure": 0,
+    "total": 168,
+    "correct_within_2500": 158,
+    "accuracy": 0.9821428571428571,
+    "all_timing": {
+      "n": 168,
+      "p50_ms": 724.36,
+      "p95_ms": 3269.614000000006,
+      "max_ms": 7945.69
+    },
+    "correct_timing": {
+      "n": 165,
+      "p50_ms": 722.35,
+      "p95_ms": 2154.518,
+      "max_ms": 7945.69
+    },
+    "routes": {
+      "legacy_confident": 12,
+      "compnet_evidence_confident": 34,
+      "affine_confident": 3,
+      "pose_confident": 85,
+      "enrollment_link_confident": 4,
+      "pooled_enrollment_confident": 5,
+      "normal_index_confident": 3,
+      "exhaustive_retained_fastcc_pilot": 13,
+      "quality_evidence_confident": 4,
+      "compnet_alternate_roi_confident": 3,
+      "wide_index_confident": 2
+    }
+  },
+  "cases": {
+    "new-camera-original": {
+      "queries": {
+        "correct": 29,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 29,
+        "correct_within_2500": 29,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 29,
+          "p50_ms": 554.07,
+          "p95_ms": 1210.5099999999998,
+          "max_ms": 2149.43
+        },
+        "correct_timing": {
+          "n": 29,
+          "p50_ms": 554.07,
+          "p95_ms": 1210.5099999999998,
+          "max_ms": 2149.43
+        },
+        "routes": {
+          "legacy_confident": 4,
+          "compnet_evidence_confident": 12,
+          "affine_confident": 2,
+          "pose_confident": 4,
+          "enrollment_link_confident": 3,
+          "pooled_enrollment_confident": 2,
+          "normal_index_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 1
+        }
+      },
+      "startup": {
+        "total_ms": 1185.236099991016,
+        "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+        "actual_matcher_type": "CompNetAlternateROIMatcher",
+        "feature_magic": 2801066,
+        "registration": "Windows unchanged OpenCV BF reference"
+      },
+      "enrollment": {
+        "requests": 6,
+        "http_ms": {
+          "n": 6,
+          "p50_ms": 18903.254999999997,
+          "p95_ms": 21554.4425,
+          "max_ms": 22105.74
+        },
+        "last_frame_to_ready_response_ms": {
+          "n": 6,
+          "p50_ms": 5921.436500007985,
+          "p95_ms": 6588.917374960147,
+          "max_ms": 6683.931699953973
+        }
+      },
+      "immediate_after_enrollment": {
+        "correct": 6,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 6,
+        "correct_within_2500": 5,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 6,
+          "p50_ms": 837.71,
+          "p95_ms": 4681.212500000001,
+          "max_ms": 5530.89
+        },
+        "correct_timing": {
+          "n": 6,
+          "p50_ms": 837.71,
+          "p95_ms": 4681.212500000001,
+          "max_ms": 5530.89
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 2,
+          "pose_confident": 2,
+          "enrollment_link_confident": 1,
+          "legacy_confident": 1
+        }
+      },
+      "first_complete_gallery_query_ms": 991.85,
+      "gallery_identities": 6,
+      "payment_checks_complete": true
+    },
+    "new-camera-reverse": {
+      "queries": {
+        "correct": 29,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 29,
+        "correct_within_2500": 28,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 29,
+          "p50_ms": 563.99,
+          "p95_ms": 1983.184,
+          "max_ms": 7945.69
+        },
+        "correct_timing": {
+          "n": 29,
+          "p50_ms": 563.99,
+          "p95_ms": 1983.184,
+          "max_ms": 7945.69
+        },
+        "routes": {
+          "pose_confident": 3,
+          "compnet_evidence_confident": 15,
+          "affine_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 4,
+          "compnet_alternate_roi_confident": 1,
+          "pooled_enrollment_confident": 1
+        }
+      },
+      "startup": {
+        "total_ms": 926.8638000357896,
+        "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+        "actual_matcher_type": "CompNetAlternateROIMatcher",
+        "feature_magic": 2801066,
+        "registration": "Windows unchanged OpenCV BF reference"
+      },
+      "enrollment": {
+        "requests": 6,
+        "http_ms": {
+          "n": 6,
+          "p50_ms": 18151.96,
+          "p95_ms": 19528.322500000002,
+          "max_ms": 19748.75
+        },
+        "last_frame_to_ready_response_ms": {
+          "n": 6,
+          "p50_ms": 5762.268150021555,
+          "p95_ms": 6566.546474961797,
+          "max_ms": 6700.046799960546
+        }
+      },
+      "immediate_after_enrollment": {
+        "correct": 6,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 6,
+        "correct_within_2500": 4,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 6,
+          "p50_ms": 1338.895,
+          "p95_ms": 6077.037499999999,
+          "max_ms": 6488.15
+        },
+        "correct_timing": {
+          "n": 6,
+          "p50_ms": 1338.895,
+          "p95_ms": 6077.037499999999,
+          "max_ms": 6488.15
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 3,
+          "legacy_confident": 1,
+          "quality_evidence_confident": 1,
+          "pose_confident": 1
+        }
+      },
+      "first_complete_gallery_query_ms": 386.95,
+      "gallery_identities": 6,
+      "payment_checks_complete": true
+    },
+    "old-camera-original": {
+      "queries": {
+        "correct": 52,
+        "wrong_identity_accepted": 3,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 55,
+        "correct_within_2500": 49,
+        "accuracy": 0.9454545454545454,
+        "all_timing": {
+          "n": 55,
+          "p50_ms": 732.54,
+          "p95_ms": 5279.7249999999985,
+          "max_ms": 6008.85
+        },
+        "correct_timing": {
+          "n": 52,
+          "p50_ms": 729.3399999999999,
+          "p95_ms": 3045.209999999986,
+          "max_ms": 6008.85
+        },
+        "routes": {
+          "pose_confident": 37,
+          "compnet_alternate_roi_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 6,
+          "legacy_confident": 2,
+          "pooled_enrollment_confident": 2,
+          "quality_evidence_confident": 2,
+          "normal_index_confident": 1,
+          "compnet_evidence_confident": 3,
+          "enrollment_link_confident": 1
+        }
+      },
+      "startup": {
+        "total_ms": 878.7805000320077,
+        "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+        "actual_matcher_type": "CompNetAlternateROIMatcher",
+        "feature_magic": 2801066,
+        "registration": "Windows unchanged OpenCV BF reference"
+      },
+      "enrollment": {
+        "requests": 11,
+        "http_ms": {
+          "n": 11,
+          "p50_ms": 11686.56,
+          "p95_ms": 12314.275,
+          "max_ms": 12345.99
+        },
+        "last_frame_to_ready_response_ms": {
+          "n": 11,
+          "p50_ms": 4341.855900012888,
+          "p95_ms": 5015.359249984613,
+          "max_ms": 5079.192899982445
+        }
+      },
+      "immediate_after_enrollment": {
+        "correct": 11,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 11,
+        "correct_within_2500": 11,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 11,
+          "p50_ms": 736.55,
+          "p95_ms": 1848.9299999999998,
+          "max_ms": 2376.02
+        },
+        "correct_timing": {
+          "n": 11,
+          "p50_ms": 736.55,
+          "p95_ms": 1848.9299999999998,
+          "max_ms": 2376.02
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 1,
+          "compnet_evidence_confident": 2,
+          "pose_confident": 6,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 1
+        }
+      },
+      "first_complete_gallery_query_ms": 717.21,
+      "gallery_identities": 11,
+      "payment_checks_complete": true
+    },
+    "old-camera-reverse": {
+      "queries": {
+        "correct": 55,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 55,
+        "correct_within_2500": 52,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 55,
+          "p50_ms": 727.06,
+          "p95_ms": 2320.127999999999,
+          "max_ms": 5598.43
+        },
+        "correct_timing": {
+          "n": 55,
+          "p50_ms": 727.06,
+          "p95_ms": 2320.127999999999,
+          "max_ms": 5598.43
+        },
+        "routes": {
+          "pose_confident": 41,
+          "compnet_evidence_confident": 4,
+          "compnet_alternate_roi_confident": 1,
+          "normal_index_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 2,
+          "wide_index_confident": 2
+        }
+      },
+      "startup": {
+        "total_ms": 895.2387000317685,
+        "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+        "actual_matcher_type": "CompNetAlternateROIMatcher",
+        "feature_magic": 2801066,
+        "registration": "Windows unchanged OpenCV BF reference"
+      },
+      "enrollment": {
+        "requests": 11,
+        "http_ms": {
+          "n": 11,
+          "p50_ms": 11346.01,
+          "p95_ms": 12267.795,
+          "max_ms": 12520.18
+        },
+        "last_frame_to_ready_response_ms": {
+          "n": 11,
+          "p50_ms": 4376.51430000551,
+          "p95_ms": 4972.549599973718,
+          "max_ms": 5007.887699990533
+        }
+      },
+      "immediate_after_enrollment": {
+        "correct": 11,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 11,
+        "correct_within_2500": 10,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 11,
+          "p50_ms": 716.92,
+          "p95_ms": 3920.6049999999996,
+          "max_ms": 5421.07
+        },
+        "correct_timing": {
+          "n": 11,
+          "p50_ms": 716.92,
+          "p95_ms": 3920.6049999999996,
+          "max_ms": 5421.07
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 3,
+          "pose_confident": 7,
+          "compnet_evidence_confident": 1
+        }
+      },
+      "first_complete_gallery_query_ms": 690.28,
+      "gallery_identities": 11,
+      "payment_checks_complete": true
+    }
+  },
+  "enrollment": {
+    "requests": 34,
+    "frames": 170,
+    "failed": 0,
+    "recognition_ready": 34,
+    "http_ms": {
+      "n": 34,
+      "p50_ms": 11739.715,
+      "p95_ms": 19801.88,
+      "max_ms": 22105.74
+    },
+    "last_frame_to_ready_response_ms": {
+      "n": 34,
+      "p50_ms": 4393.153600016376,
+      "p95_ms": 6436.894454970024,
+      "max_ms": 6700.046799960546
+    }
+  },
+  "immediate_after_enrollment": {
+    "correct": 34,
+    "wrong_identity_accepted": 0,
+    "true_identity_nonunique": 0,
+    "rejected": 0,
+    "processing_failure": 0,
+    "total": 34,
+    "correct_within_2500": 30,
+    "accuracy": 1.0,
+    "all_timing": {
+      "n": 34,
+      "p50_ms": 731.26,
+      "p95_ms": 5459.507,
+      "max_ms": 6488.15
+    },
+    "correct_timing": {
+      "n": 34,
+      "p50_ms": 731.26,
+      "p95_ms": 5459.507,
+      "max_ms": 6488.15
+    },
+    "routes": {
+      "exhaustive_retained_fastcc_pilot": 9,
+      "pose_confident": 16,
+      "enrollment_link_confident": 1,
+      "legacy_confident": 3,
+      "quality_evidence_confident": 2,
+      "compnet_evidence_confident": 3
+    }
+  },
+  "all_payment_guards_complete": true,
+  "historical_pi_identity_comparison": {
+    "scope": "Identity coverage diagnostic only. Separate host, registration implementation and execution epoch; never compare these durations as acceleration.",
+    "previously_correct_lost": 0,
+    "wrong_to_correct": 0,
+    "transitions": [
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165712288733Z-fc94c36e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165640351881Z-dc8fc5c6",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165722356494Z-87253219",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165725521697Z-f818675b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165523131856Z-23aa84c8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165519774649Z-8ab53868",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T085730816608Z-f255d596",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165636416608Z-526288bd",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T120046474318Z-ca8afa27",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T120232269262Z-7fbcc798",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T120058102022Z-b1833ac3",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165532443740Z-564c828e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T085652724678Z-f49459c4",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165625070833Z-13cf34d4",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165425753833Z-cb7facb1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165536959656Z-b199fa06",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165736020744Z-5f1e0e29",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165434442181Z-59d77091",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165527743661Z-bc841602",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T085739566995Z-d18bea6a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165646467846Z-2239e833",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165422041006Z-fbfa000c",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165441455096Z-09b131a4",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165729877350Z-bd8b51dc",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T085703921613Z-2b2715ab",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165631315754Z-64b36032",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261020T165429663138Z-946a03e6",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T120016111983Z-a4677ec5",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-original",
+        "sample": "20261029T120218620422Z-d1ef6e5a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165657920733Z-0b5f30a0",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165616782627Z-47472168",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165700367937Z-df3290d2",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165702591731Z-68c0a512",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165459979411Z-634c1717",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165455166574Z-6ccc9000",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T084651163550Z-517d7b59",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165612961579Z-e6985fa6",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T115936292698Z-08ceb3b7",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T120007874496Z-9dc3de45",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T115948820474Z-6cca93ae",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165512159036Z-aea576c3",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T084636155475Z-a2cfc985",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165604274940Z-f7ec5fe1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165404296597Z-a0bde898",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165515658583Z-919f756e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165710063889Z-9dea7e47",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165412680639Z-ac4ce86e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165507437047Z-5f8da1e6",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T085633642548Z-f23933a9",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165620961797Z-e0767ce1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165359325609Z-e022bbe6",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165417609478Z-6316a7bf",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165704835778Z-7fb1121a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T084641478660Z-bf449fa2",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165608382486Z-7b596a31",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261020T165408872061Z-f81bc5de",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T115928114981Z-89bd294d",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "new-camera-reverse",
+        "sample": "20261029T115959403756Z-91dfcd5f",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T124958024176Z-98185319",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082138089350Z-79dc3604",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T125006458512Z-c5aff123",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111929802372Z-56718664",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111731282817Z-fa8b23e9",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111640091112Z-752e0af7",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111806724809Z-7baf26f9",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111356253239Z-0564e71f",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111553178583Z-61f30739",
+        "pi_correct": false,
+        "windows_correct": false
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082039727249Z-eeb4193e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111542924435Z-90b712df",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130426389329Z-283768e8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130552376961Z-60878b8e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111935173738Z-71b91d0b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082051788541Z-dda7da24",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111642473904Z-4bf8034e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082140510762Z-2845a645",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111931534936Z-9fedad7b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111438237239Z-4ab6388d",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130419109604Z-d633e529",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111800930620Z-aefee5a8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111555214120Z-8d6441d2",
+        "pi_correct": false,
+        "windows_correct": false
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082100423097Z-f4085295",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111733188749Z-3d650999",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111353868428Z-04ebece0",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082135028493Z-d298c05c",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082132268544Z-72d5eb51",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082128909456Z-fee64e87",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111759044661Z-431bc4e0",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111347556421Z-7a477730",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130409732550Z-575a2085",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111426234644Z-c6594831",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130549796887Z-322d99a8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111804740309Z-5306d8b1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111545334004Z-1b7c8120",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130559802159Z-b10ecb38",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082056597621Z-99b945b3",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111550241849Z-4585ab04",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111635331227Z-6639d661",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130614399378Z-1f13e30f",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111430291617Z-0bff21db",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111432156279Z-8a59d55e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261012T130545088031Z-18397071",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111735167080Z-e317bfc9",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111644465958Z-cfa70edd",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111933270445Z-7a018049",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111637953349Z-4b09a934",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111351000051Z-2363c7e8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111434892907Z-0d781b96",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111740780252Z-66e79f50",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111802734798Z-9b8235d7",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111927093074Z-b09b8f7e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111358589224Z-37d0c433",
+        "pi_correct": false,
+        "windows_correct": false
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T111738394029Z-aafcf553",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-original",
+        "sample": "20261013T082109260408Z-8c52d9d8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T124857785222Z-bf02ea6b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082124158830Z-6a700e24",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T124923298580Z-7e80cc93",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111917781672Z-9d883db3",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111708906917Z-940a9d81",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111625432403Z-20b4bcd4",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111757006912Z-1d8cd1aa",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111339367360Z-dfb1a66b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111539015821Z-05aa3c06",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082005694431Z-58963dad",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111522159214Z-91d208df",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T124942744406Z-41852bf9",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T130529755777Z-30fd2ef8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111924657508Z-5f3c696e",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082026749926Z-f869d493",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111629458051Z-fe5f9170",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082126601768Z-e895a589",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111920023870Z-12e20292",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111424165494Z-756c2f87",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T124934369105Z-cc29816b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111751209641Z-1ad4781a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111540820140Z-69ec8d28",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082032280959Z-22c77a55",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111710849894Z-6e1b5d74",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111336625012Z-117dbdbe",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082121861221Z-11a821ae",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082119351028Z-2e00302f",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082116253992Z-8095f8bc",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111749030606Z-0c109056",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111330469244Z-9bfc49eb",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T124930305497Z-4eb0654a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111409441196Z-fa7726ef",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T130522440167Z-7c00a71c",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111755068336Z-75ad5521",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111525321243Z-c61703d8",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T130537420338Z-daf65f91",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082028132967Z-7fddfb17",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111527204679Z-07a9123d",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111619166268Z-f2e33a13",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T130539932520Z-ece35adb",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111413583545Z-c9b60369",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111416775263Z-d2177065",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261012T130435840507Z-b83243b1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111719260485Z-eed340da",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111632763501Z-6b03fc0b",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111922288029Z-5ff88253",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111621909880Z-3964cccc",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111333606318Z-f23cb8a1",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111418951110Z-9cc52f1c",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111729585399Z-c5ed6dad",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111752979217Z-b4d7deaa",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111915542376Z-503281b0",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111344122830Z-2dbeb0cf",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T111721336447Z-affc191a",
+        "pi_correct": true,
+        "windows_correct": true
+      },
+      {
+        "case": "old-camera-reverse",
+        "sample": "20261013T082036425970Z-eca548a4",
+        "pi_correct": true,
+        "windows_correct": true
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165712288733Z-fc94c36e",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 991.85,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.2841796875,
+      "second_score": 0.36767578125,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165640351881Z-dc8fc5c6",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 720.83,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.29541015625,
+      "second_score": 0.38623046875,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165722356494Z-87253219",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 412.99,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.28403159976005554,
+      "second_score": 0.443739116191864,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165725521697Z-f818675b",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 408.24,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.2823805809020996,
+      "second_score": 0.4359416961669922,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165523131856Z-23aa84c8",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 817.7,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.20947265625,
+      "second_score": 0.36126077586206895,
+      "recognition_route": "affine_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165519774649Z-8ab53868",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 410.84,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.2630045413970947,
+      "second_score": 0.46126237511634827,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T085730816608Z-f255d596",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 553.6,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2027469128370285,
+      "second_score": 0.3554057478904724,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165636416608Z-526288bd",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 885.64,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.29052734375,
+      "second_score": 0.38599420362903225,
+      "recognition_route": "affine_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120046474318Z-ca8afa27",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 530.27,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.25653010606765747,
+      "second_score": 0.40191733837127686,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120232269262Z-7fbcc798",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 537.11,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.23581616580486298,
+      "second_score": 0.38124018907546997,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120058102022Z-b1833ac3",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 541.68,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.29939516129032256,
+      "second_score": 0.3876953125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165532443740Z-564c828e",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 454.09,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.2978813648223877,
+      "second_score": 0.43180543184280396,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T085652724678Z-f49459c4",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 554.07,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2905405542728928,
+      "second_score": 0.3837890625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165625070833Z-13cf34d4",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 838.98,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.27685546875,
+      "second_score": 0.3777276400862069,
+      "recognition_route": "enrollment_link_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165425753833Z-cb7facb1",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 881.7,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.26123046875,
+      "second_score": 0.39127079133064513,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165536959656Z-b199fa06",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1185.34,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.24658203125,
+      "second_score": 0.39427923387096775,
+      "recognition_route": "pooled_enrollment_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165736020744Z-5f1e0e29",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 391.95,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.25201612903225806,
+      "second_score": 0.3814871651785714,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165434442181Z-59d77091",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 949.36,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.28369140625,
+      "second_score": 0.36669921875,
+      "recognition_route": "enrollment_link_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165527743661Z-bc841602",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 839.1,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.25,
+      "second_score": 0.390317118226601,
+      "recognition_route": "enrollment_link_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T085739566995Z-d18bea6a",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 593.85,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.17345739901065826,
+      "second_score": 0.3019794225692749,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165646467846Z-2239e833",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1227.29,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.29736328125,
+      "second_score": 0.38790007560483875,
+      "recognition_route": "pooled_enrollment_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165422041006Z-fbfa000c",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 416.27,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.2769499747983871,
+      "second_score": 0.3759765625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165441455096Z-09b131a4",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 918.79,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.181640625,
+      "second_score": 0.37451171875,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165729877350Z-bd8b51dc",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 437.08,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.29741954803466797,
+      "second_score": 0.4627763330936432,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T085703921613Z-2b2715ab",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 544.7,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.20097970962524414,
+      "second_score": 0.3270660638809204,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165631315754Z-64b36032",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 427.13,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.2914140820503235,
+      "second_score": 0.42392003536224365,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261020T165429663138Z-946a03e6",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1168.68,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.28369140625,
+      "second_score": 0.396484375,
+      "recognition_route": "normal_index_confident"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2149.43,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.31396484375,
+      "second_score": 0.38254473286290325,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120218620422Z-d1ef6e5a",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 520.78,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.2681783437728882,
+      "second_score": 0.37457865476608276,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165657920733Z-0b5f30a0",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 386.95,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.25761088709677415,
+      "second_score": 0.35791015625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165616782627Z-47472168",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 413.56,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.31616607308387756,
+      "second_score": 0.44574570655822754,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165700367937Z-df3290d2",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 413.18,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.3016599714756012,
+      "second_score": 0.4327741265296936,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165702591731Z-68c0a512",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 387.66,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.2681748867034912,
+      "second_score": 0.41932815313339233,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165459979411Z-634c1717",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 419.43,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.28761252760887146,
+      "second_score": 0.45079368352890015,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165455166574Z-6ccc9000",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 862.52,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.2314453125,
+      "second_score": 0.37744140625,
+      "recognition_route": "affine_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T084651163550Z-517d7b59",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 534.55,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2945713996887207,
+      "second_score": 0.4636194705963135,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165612961579Z-e6985fa6",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 414.66,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.31146925687789917,
+      "second_score": 0.4342595338821411,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T115936292698Z-08ceb3b7",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1987.48,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3624455013872374,
+      "second_score": 0.3676915322580645,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T120007874496Z-9dc3de45",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 832.63,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.18359795212745667,
+      "second_score": 0.3403988182544708,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T115948820474Z-6cca93ae",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 562.97,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.22922870516777039,
+      "second_score": 0.3286077082157135,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165512159036Z-aea576c3",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 433.21,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.2858558120133482,
+      "second_score": 0.3837890625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T084636155475Z-a2cfc985",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 744.44,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.25285397173199775,
+      "second_score": 0.3664106042225007,
+      "recognition_route": "quality_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 7945.69,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.35693359375,
+      "second_score": 0.39213709677419356,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165404296597Z-a0bde898",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1085.26,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.24951171875,
+      "second_score": 0.37939453125,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165515658583Z-919f756e",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 563.99,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.2840532958507538,
+      "second_score": 0.4711804986000061,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165710063889Z-9dea7e47",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 929.44,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.3131774961948395,
+      "second_score": 0.4466990828514099,
+      "recognition_route": "compnet_alternate_roi_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165412680639Z-ac4ce86e",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1731.36,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.25634765625,
+      "second_score": 0.3724483366935484,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165507437047Z-5f8da1e6",
+      "identity": "new-camera:bankey:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 575.74,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-left",
+      "score": 0.3114471435546875,
+      "second_score": 0.44146180152893066,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T085633642548Z-f23933a9",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 682.12,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.28412938589360043,
+      "second_score": 0.37744140625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165620961797Z-e0767ce1",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1091.02,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.28076171875,
+      "second_score": 0.38232421875,
+      "recognition_route": "pooled_enrollment_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165359325609Z-e022bbe6",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 892.43,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.279296875,
+      "second_score": 0.3800560735887097,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165417609478Z-6316a7bf",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 412.66,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.28790292143821716,
+      "second_score": 0.4306394159793854,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165704835778Z-7fb1121a",
+      "identity": "new-camera:stephen:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 401.97,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-right",
+      "score": 0.2862403690814972,
+      "second_score": 0.43821778893470764,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T084641478660Z-bf449fa2",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 555.22,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2223350554704666,
+      "second_score": 0.4115619957447052,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165608382486Z-7b596a31",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 853.56,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.265625,
+      "second_score": 0.37066847278225806,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165408872061Z-f81bc5de",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 400.63,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.3079651892185211,
+      "second_score": 0.4361672103404999,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T115928114981Z-89bd294d",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1976.74,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3130040322580645,
+      "second_score": 0.3861862643080125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261029T115959403756Z-91dfcd5f",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 531.37,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.23178306221961975,
+      "second_score": 0.3529078960418701,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T124958024176Z-98185319",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 717.21,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.1875,
+      "second_score": 0.3840632697044335,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082138089350Z-79dc3604",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 760.44,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.21690713205645162,
+      "second_score": 0.36376953125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T125006458512Z-c5aff123",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 716.39,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.277315296566077,
+      "second_score": 0.3875693044354839,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111929802372Z-56718664",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 755.08,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.1357421875,
+      "second_score": 0.3518979795352064,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111731282817Z-fa8b23e9",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 781.49,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.15380859375,
+      "second_score": 0.3639286707452725,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111640091112Z-752e0af7",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 765.8,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.23102003528225806,
+      "second_score": 0.3744959677419355,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111806724809Z-7baf26f9",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 768.04,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.29976609349250793,
+      "second_score": 0.4449355900287628,
+      "recognition_route": "compnet_alternate_roi_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111356253239Z-0564e71f",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 705.8,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.29434780377668307,
+      "second_score": 0.3824659778225806,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5998.44,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.37353515625,
+      "second_score": 0.3885728686635945,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082039727249Z-eeb4193e",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 711.02,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.162109375,
+      "second_score": 0.38549017137096775,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111542924435Z-90b712df",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1317.77,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.2843624923029556,
+      "second_score": 0.3865297379032258,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130426389329Z-283768e8",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1213.04,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.24267578125,
+      "second_score": 0.37604166666666666,
+      "recognition_route": "pooled_enrollment_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130552376961Z-60878b8e",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 695.93,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.21673387096774194,
+      "second_score": 0.357421875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111935173738Z-71b91d0b",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 704.65,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.14306640625,
+      "second_score": 0.36458333333333337,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082051788541Z-dda7da24",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 683.6,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.27028729838709675,
+      "second_score": 0.3819304435483871,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111642473904Z-4bf8034e",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 731.25,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.26757771852237255,
+      "second_score": 0.36743951612903225,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082140510762Z-2845a645",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 725.65,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.2550403225806452,
+      "second_score": 0.3597530241935484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111931534936Z-9fedad7b",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 710.26,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.130859375,
+      "second_score": 0.3541666666666667,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111438237239Z-4ab6388d",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 4851.08,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.37034610215053765,
+      "second_score": 0.375,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130419109604Z-d633e529",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 751.2,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.2860068044354839,
+      "second_score": 0.375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111800930620Z-aefee5a8",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 737.97,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.2550327011251301,
+      "second_score": 0.3690303679435484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5678.69,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.3711635044642857,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082100423097Z-f4085295",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 704.37,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.2627898185483871,
+      "second_score": 0.3876953125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111733188749Z-3d650999",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 723.32,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.19091796875,
+      "second_score": 0.3684633316532258,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111353868428Z-04ebece0",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 711.33,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.2652545972619667,
+      "second_score": 0.3677083333333333,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082135028493Z-d298c05c",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 727.43,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.2236328125,
+      "second_score": 0.36962890625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082132268544Z-72d5eb51",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 681.68,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.1630859375,
+      "second_score": 0.36572265625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082128909456Z-fee64e87",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 701.61,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.19921875,
+      "second_score": 0.36865234375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111759044661Z-431bc4e0",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 691.06,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.23336693548387097,
+      "second_score": 0.380859375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111347556421Z-7a477730",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1263.67,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.2625882056451613,
+      "second_score": 0.3544921875,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130409732550Z-575a2085",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1455.46,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.18107439914173945,
+      "second_score": 0.32329271704003637,
+      "recognition_route": "quality_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111426234644Z-c6594831",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5108.74,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.36557459677419357,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130549796887Z-322d99a8",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 703.2,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.23034274193548387,
+      "second_score": 0.36434580088987767,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111804740309Z-5306d8b1",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 700.04,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.25,
+      "second_score": 0.369140625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111545334004Z-1b7c8120",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1194.03,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.18017578125,
+      "second_score": 0.3911290322580645,
+      "recognition_route": "normal_index_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130559802159Z-b10ecb38",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 716.59,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.2841639364919355,
+      "second_score": 0.3685586845300035,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082056597621Z-99b945b3",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 680.1,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.2412109375,
+      "second_score": 0.38427734375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111550241849Z-4585ab04",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1555.27,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.26220703125,
+      "second_score": 0.3710149949596774,
+      "recognition_route": "pooled_enrollment_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111635331227Z-6639d661",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 722.33,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.2910082936286926,
+      "second_score": 0.4315018653869629,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130614399378Z-1f13e30f",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 776.4,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.2879611551761627,
+      "second_score": 0.43692678213119507,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111430291617Z-0bff21db",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 738.27,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2709417273673257,
+      "second_score": 0.36055632560483875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111432156279Z-8a59d55e",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 744.51,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2252709173387097,
+      "second_score": 0.3671875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T130545088031Z-18397071",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1031.77,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.25732421875,
+      "second_score": 0.34603389616935487,
+      "recognition_route": "enrollment_link_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111735167080Z-e317bfc9",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 732.54,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.2099609375,
+      "second_score": 0.3649541156840934,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111644465958Z-cfa70edd",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1567.68,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.18041489593345367,
+      "second_score": 0.2965839484484703,
+      "recognition_route": "quality_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111933270445Z-7a018049",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 735.74,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.1513671875,
+      "second_score": 0.3591869363510233,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111637953349Z-4b09a934",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 740.45,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.28852696572580644,
+      "second_score": 0.3770036368534483,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111351000051Z-2363c7e8",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 758.39,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.3035542666912079,
+      "second_score": 0.44295912981033325,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111434892907Z-0d781b96",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 6008.85,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2666015625,
+      "second_score": 0.3779296875,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111740780252Z-66e79f50",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 694.1,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.17138671875,
+      "second_score": 0.3694904060066741,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111802734798Z-9b8235d7",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 716.51,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.24848790322580644,
+      "second_score": 0.37353515625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111927093074Z-b09b8f7e",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 709.92,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.12890625,
+      "second_score": 0.3709677419354839,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "identity": "old-camera:cyw-real:left",
+      "correct": false,
+      "http_status": 200,
+      "ms": 4491.24,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.34521484375,
+      "second_score": 0.3628717237903226,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111738394029Z-aafcf553",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 696.41,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.23530430947580644,
+      "second_score": 0.36643145161290325,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T082109260408Z-8c52d9d8",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 696.99,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.2935483870967742,
+      "second_score": 0.37841796875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T124857785222Z-bf02ea6b",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 690.28,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.2743983114919355,
+      "second_score": 0.3631709929435484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082124158830Z-6a700e24",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 727.06,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.18408203125,
+      "second_score": 0.37158203125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T124923298580Z-7e80cc93",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 703.83,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.23370837669094693,
+      "second_score": 0.380859375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111917781672Z-9d883db3",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 699.53,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.12548828125,
+      "second_score": 0.3704637096774194,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111708906917Z-940a9d81",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 700.52,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.3121464252471924,
+      "second_score": 0.43703603744506836,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111625432403Z-20b4bcd4",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 713.5,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.2788515016685206,
+      "second_score": 0.369140625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111757006912Z-1d8cd1aa",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 721.96,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.24957513809204102,
+      "second_score": 0.37276750802993774,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111339367360Z-dfb1a66b",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 711.87,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.31289076805114746,
+      "second_score": 0.4558819830417633,
+      "recognition_route": "compnet_alternate_roi_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111539015821Z-05aa3c06",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1883.29,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.28308526400862066,
+      "second_score": 0.37939453125,
+      "recognition_route": "normal_index_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082005694431Z-58963dad",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 699.31,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.22314453125,
+      "second_score": 0.38927801724137934,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111522159214Z-91d208df",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5598.43,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.3633352534562212,
+      "second_score": 0.37495274697580644,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T124942744406Z-41852bf9",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 733.04,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.27105174731182796,
+      "second_score": 0.3828125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T130529755777Z-30fd2ef8",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 927.25,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.19016378645089915,
+      "second_score": 0.34535111704912447,
+      "recognition_route": "quality_evidence_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111924657508Z-5f3c696e",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 776.11,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.14306640625,
+      "second_score": 0.3600904006243496,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082026749926Z-f869d493",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 695.26,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.24267578125,
+      "second_score": 0.37890625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111629458051Z-fe5f9170",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 734.45,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.22939412477237253,
+      "second_score": 0.3638640372983871,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082126601768Z-e895a589",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 764.9,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.17822265625,
+      "second_score": 0.369140625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111920023870Z-12e20292",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 826.99,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.13134765625,
+      "second_score": 0.3660954301075269,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111424165494Z-756c2f87",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 722.13,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2210425338189386,
+      "second_score": 0.37422820060483875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T124934369105Z-cc29816b",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 741.45,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.23034274193548387,
+      "second_score": 0.38699776785714285,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111751209641Z-1ad4781a",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 707.36,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.2132056451612903,
+      "second_score": 0.3689516129032258,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111540820140Z-69ec8d28",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1398.93,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.28076171875,
+      "second_score": 0.39425223214285715,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082032280959Z-22c77a55",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 714.49,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.20654296875,
+      "second_score": 0.37766927083333335,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111710849894Z-6e1b5d74",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 760.76,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.1845703125,
+      "second_score": 0.376953125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111336625012Z-117dbdbe",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 708.85,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.29387977382276603,
+      "second_score": 0.3814894153225806,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082121861221Z-11a821ae",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 700.56,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.22802734375,
+      "second_score": 0.361328125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082119351028Z-2e00302f",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 717.06,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.21826171875,
+      "second_score": 0.3505859375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082116253992Z-8095f8bc",
+      "identity": "old-camera:stephen-10-13:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 720.18,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-right",
+      "score": 0.21739541330645162,
+      "second_score": 0.35302734375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111749030606Z-0c109056",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 725.4,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.2752666493236212,
+      "second_score": 0.36279296875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111330469244Z-9bfc49eb",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 744.81,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.2865630341483353,
+      "second_score": 0.36794354838709675,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T124930305497Z-4eb0654a",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 688.02,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.2376593392299688,
+      "second_score": 0.3890260011123471,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111409441196Z-fa7726ef",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2596.11,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.3671614293659622,
+      "second_score": 0.3798828125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T130522440167Z-7c00a71c",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 706.09,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.25260416666666663,
+      "second_score": 0.3667363098335068,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111755068336Z-75ad5521",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 716.09,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.27066532258064513,
+      "second_score": 0.3583984375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111525321243Z-c61703d8",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2155.79,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.27232984846514047,
+      "second_score": 0.3953683035714286,
+      "recognition_route": "wide_index_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T130537420338Z-daf65f91",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 728.07,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.24747983870967744,
+      "second_score": 0.379426033266129,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082028132967Z-7fddfb17",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 783.79,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.20166015625,
+      "second_score": 0.37986709770114946,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111527204679Z-07a9123d",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2201.85,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.24329007056451613,
+      "second_score": 0.38306451612903225,
+      "recognition_route": "wide_index_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111619166268Z-f2e33a13",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 696.22,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.2789503528225806,
+      "second_score": 0.37006993447580644,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T130539932520Z-ece35adb",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 698.58,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.21473349294354838,
+      "second_score": 0.375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111413583545Z-c9b60369",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 708.15,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.28757622838020325,
+      "second_score": 0.38601920008659363,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111416775263Z-d2177065",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 836.56,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2412109375,
+      "second_score": 0.36658135775862066,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261012T130435840507Z-b83243b1",
+      "identity": "old-camera:bankey-10-12:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 919.93,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-right",
+      "score": 0.2801474294354839,
+      "second_score": 0.3700384324596774,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111719260485Z-eed340da",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 760.16,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.24365234375,
+      "second_score": 0.3740076864919355,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111632763501Z-6b03fc0b",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 758.36,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.2708333333333333,
+      "second_score": 0.3685420866935484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111922288029Z-5ff88253",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 722.35,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.1494140625,
+      "second_score": 0.3734391259105099,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111621909880Z-3964cccc",
+      "identity": "old-camera:xyt:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 697.08,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-left",
+      "score": 0.2747143817204301,
+      "second_score": 0.3755040322580645,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111333606318Z-f23cb8a1",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 803.04,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.2955917418003082,
+      "second_score": 0.4120933711528778,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111418951110Z-9cc52f1c",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 3632.27,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.328581779233871,
+      "second_score": 0.3837890625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111729585399Z-c5ed6dad",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 734.3,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.138671875,
+      "second_score": 0.36279296875,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111752979217Z-b4d7deaa",
+      "identity": "old-camera:kss:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 714.68,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.2559853830645161,
+      "second_score": 0.36376953125,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111915542376Z-503281b0",
+      "identity": "old-camera:syr:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 716.64,
+      "status": "MATCH",
+      "user_id": "old-camera-syr-right",
+      "score": 0.15869140625,
+      "second_score": 0.3714717741935484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111344122830Z-2dbeb0cf",
+      "identity": "old-camera:cyw-real:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 774.06,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-left",
+      "score": 0.25024388657648283,
+      "second_score": 0.3662109375,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T111721336447Z-affc191a",
+      "identity": "old-camera:kss:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 753.82,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.1904296875,
+      "second_score": 0.3707472278225806,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample": "20261013T082036425970Z-eca548a4",
+      "identity": "old-camera:stephen-10-13:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 768.44,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.23291015625,
+      "second_score": 0.3857421875,
+      "recognition_route": "pose_confident"
+    }
+  ],
+  "limitations": [
+    "Exposed device cohort, no independent new-session/unknown-person generalization claim.",
+    "PC timing is not Pi timing or 40-person capacity evidence.",
+    "No new accuracy or speed algorithm is introduced by this reference.",
+    "Immediate-after-enrollment probes use the gallery size available at that point; report separately from final complete-gallery queries.",
+    "Startup includes model initialization and an initially empty gallery; registration request includes its actual preparation/ready work."
+  ],
+  "source_report_sha256": "db438a49a4508bd108bcdb089c2db5f620cbeedb4157af7cf71ae78d7344f151"
+}

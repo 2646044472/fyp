@@ -15,3 +15,5 @@ Corrections:
 - Preserve the two aborted contour runs and their errors. The second records the actual `UNKNOWN / INCOMPATIBLE_TEMPLATES` response; no recognition improvement is claimed from either. No scoring or geometric parameter was changed to fit these runs.
 
 A full v26 fresh-enrollment four-case regression is required before a candidate can be qualified on that pipeline. A bounded unsuccessful contour pilot is rejected without a parameter scan. Windows results cannot establish Pi latency or unseen-person accuracy.
+
+The separate [verified v26 reference](V26_DEVICE_REFERENCE_20261030.md) has now completed fresh 34 five-frame enrollments and all168 queries: 165 correct, three wrong, zero rejection/processing failure, and all isolated payment guards passed. This confirms the actual v26 baseline; it does not retroactively qualify the historical half-turn candidate. The fixed contour pilot completed without a genuine correction and was rejected.
