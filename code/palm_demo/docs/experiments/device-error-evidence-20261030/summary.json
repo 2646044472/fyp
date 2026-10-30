@@ -1,0 +1,4880 @@
+{
+  "complete": true,
+  "matcher": "FastCCCompNetAlternateROI-v26-experimental",
+  "selection": [
+    [
+      "new-camera-original",
+      "20261029T120016111983Z-a4677ec5"
+    ],
+    [
+      "new-camera-reverse",
+      "20261020T165604274940Z-f7ec5fe1"
+    ],
+    [
+      "old-camera-original",
+      "20261012T124958024176Z-98185319"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111358589224Z-37d0c433"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111426234644Z-c6594831"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111553178583Z-61f30739"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111555214120Z-8d6441d2"
+    ]
+  ],
+  "scope": "Exposed original-device development diagnostics. Seven exact-parity observational HTTP queries; no independent generalization.",
+  "ordinary_calls": 8081,
+  "unknown_query_calls": 0,
+  "unknown_target_calls": 0,
+  "all_calls_geometrically_supported": true,
+  "exact_reference_parity": 7,
+  "atlas_enrollment_instances": 30,
+  "atlas_all_stored_codes_equal": true,
+  "pilot": {
+    "summary": {
+      "correct": 5,
+      "wrong_identity_accepted": 2,
+      "true_identity_nonunique": 0,
+      "rejected": 0,
+      "processing_failure": 0,
+      "total": 7,
+      "correct_within_2500": 2,
+      "accuracy": 0.7142857142857143,
+      "all_timing": {
+        "n": 7,
+        "p50_ms": 3584.39,
+        "p95_ms": 4839.442999999999,
+        "max_ms": 5297.72
+      },
+      "correct_timing": {
+        "n": 5,
+        "p50_ms": 3345.58,
+        "p95_ms": 4955.054,
+        "max_ms": 5297.72
+      },
+      "routes": {
+        "exhaustive_retained_fastcc_pilot": 6,
+        "pose_confident": 1
+      }
+    },
+    "genuine_corrections": 1,
+    "lost_correct": 0,
+    "pilot_pass": true,
+    "templates_unchanged": true,
+    "originals_unchanged": true
+  },
+  "pilot_decisions": [
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "identity": "new-camera:billy:right",
+      "before_correct": true,
+      "after_correct": true,
+      "user_id": "new-camera-billy-right",
+      "status": "MATCH",
+      "ms": 1839.48,
+      "rf_match_calls": 824
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "identity": "new-camera:stephen:left",
+      "before_correct": true,
+      "after_correct": true,
+      "user_id": "new-camera-stephen-left",
+      "status": "MATCH",
+      "ms": 5297.72,
+      "rf_match_calls": 814
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T124958024176Z-98185319",
+      "identity": "old-camera:bankey-10-12:left",
+      "before_correct": true,
+      "after_correct": true,
+      "user_id": "old-camera-bankey-10-12-left",
+      "status": "MATCH",
+      "ms": 693.57,
+      "rf_match_calls": 495
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "identity": "old-camera:cyw-real:left",
+      "before_correct": false,
+      "after_correct": true,
+      "user_id": "old-camera-cyw-real-left",
+      "status": "MATCH",
+      "ms": 3345.58,
+      "rf_match_calls": 1486
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111426234644Z-c6594831",
+      "identity": "old-camera:cyw-real:right",
+      "before_correct": true,
+      "after_correct": true,
+      "user_id": "old-camera-cyw-real-right",
+      "status": "MATCH",
+      "ms": 3584.39,
+      "rf_match_calls": 1489
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "identity": "old-camera:xyt:right",
+      "before_correct": false,
+      "after_correct": false,
+      "user_id": "old-camera-kss-right",
+      "status": "MATCH",
+      "ms": 3770.13,
+      "rf_match_calls": 1487
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "identity": "old-camera:xyt:right",
+      "before_correct": false,
+      "after_correct": false,
+      "user_id": "old-camera-bankey-10-12-right",
+      "status": "MATCH",
+      "ms": 3631.9,
+      "rf_match_calls": 1486
+    }
+  ],
+  "errors": [
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "identity": "old-camera:cyw-real:left",
+      "returned": "old-camera-kss-left",
+      "actual_full_gallery_scores": {
+        "old-camera-bankey-10-12-left": 0.4060142780172414,
+        "old-camera-bankey-10-12-right": 0.40870063959955505,
+        "old-camera-cyw-real-left": 0.3727624603646452,
+        "old-camera-cyw-real-right": 0.3992115495391705,
+        "old-camera-kss-left": 0.34521484375,
+        "old-camera-kss-right": 0.40743582589285715,
+        "old-camera-stephen-10-13-left": 0.38193478865406005,
+        "old-camera-stephen-10-13-right": 0.3949353448275862,
+        "old-camera-syr-right": 0.3939327116935484,
+        "old-camera-xyt-left": 0.3628717237903226,
+        "old-camera-xyt-right": 0.39235761088709675
+      },
+      "evidence": [
+        {
+          "identity": "old-camera-cyw-real-left",
+          "role": "true",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-cyw-real-left",
+              "frame_index": 0,
+              "pose_only_minimum": 0.38406658739595717,
+              "pose_only_supported_minimum": 0.3728,
+              "representative_best_pose_index": 3,
+              "angle": 0,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": -3,
+              "dy": 3,
+              "total_bits": 841,
+              "valid_bits": 625,
+              "invalid_bits": 216,
+              "invalid_agreements": 126,
+              "invalid_mismatches": 90,
+              "supported_at_original_winner": 0.3728
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-cyw-real-left",
+              "frame_index": 1,
+              "pose_only_minimum": 0.3912009512485137,
+              "pose_only_supported_minimum": 0.3824,
+              "representative_best_pose_index": 3,
+              "angle": 0,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": -3,
+              "dy": 3,
+              "total_bits": 841,
+              "valid_bits": 625,
+              "invalid_bits": 216,
+              "invalid_agreements": 126,
+              "invalid_mismatches": 90,
+              "supported_at_original_winner": 0.3824
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-cyw-real-left",
+              "frame_index": 2,
+              "pose_only_minimum": 0.3964285714285714,
+              "pose_only_supported_minimum": 0.40705128205128205,
+              "representative_best_pose_index": 3,
+              "angle": 0,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": -2,
+              "dy": 4,
+              "total_bits": 840,
+              "valid_bits": 624,
+              "invalid_bits": 216,
+              "invalid_agreements": 137,
+              "invalid_mismatches": 79,
+              "supported_at_original_winner": 0.40705128205128205
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-cyw-real-left",
+              "frame_index": 3,
+              "pose_only_minimum": 0.3984375,
+              "pose_only_supported_minimum": 0.40923076923076923,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 195,
+              "invalid_mismatches": 45,
+              "supported_at_original_winner": 0.4630102040816326
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-cyw-real-left",
+              "frame_index": 4,
+              "pose_only_minimum": 0.36420395421436,
+              "pose_only_supported_minimum": 0.3676268861454047,
+              "representative_best_pose_index": 0,
+              "angle": 0,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 1,
+              "dy": 1,
+              "total_bits": 961,
+              "valid_bits": 729,
+              "invalid_bits": 232,
+              "invalid_agreements": 150,
+              "invalid_mismatches": 82,
+              "supported_at_original_winner": 0.3676268861454047
+            }
+          ],
+          "pose_best_two_mean": 0.3741352708051586,
+          "supported_pose_best_two_mean": 0.3702134430727023,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 0,
+                "score": 0.38406658739595717
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 1,
+                "score": 0.3912009512485137
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 2,
+                "score": 0.3964285714285714
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 3,
+                "score": 0.3984375
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 4,
+                "score": 0.3614583333333333
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 0,
+                "score": 0.38406658739595717
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 1,
+                "score": 0.3912009512485137
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 2,
+                "score": 0.3964285714285714
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 3,
+                "score": 0.3984375
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 4,
+                "score": 0.36420395421436
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 0,
+                "score": 0.38406658739595717
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 1,
+                "score": 0.3912009512485137
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 2,
+                "score": 0.3964285714285714
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 3,
+                "score": 0.3984375
+              },
+              {
+                "identity": "old-camera-cyw-real-left",
+                "index": 4,
+                "score": 0.3614583333333333
+              }
+            ]
+          }
+        },
+        {
+          "identity": "old-camera-kss-left",
+          "role": "wrong",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-kss-left",
+              "frame_index": 0,
+              "pose_only_minimum": 0.373046875,
+              "pose_only_supported_minimum": 0.397037037037037,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 195,
+              "invalid_mismatches": 45,
+              "supported_at_original_winner": 0.4298469387755102
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-kss-left",
+              "frame_index": 1,
+              "pose_only_minimum": 0.3740234375,
+              "pose_only_supported_minimum": 0.4116809116809117,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 203,
+              "invalid_mismatches": 37,
+              "supported_at_original_winner": 0.4413265306122449
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-kss-left",
+              "frame_index": 2,
+              "pose_only_minimum": 0.37109375,
+              "pose_only_supported_minimum": 0.4007936507936508,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 203,
+              "invalid_mismatches": 37,
+              "supported_at_original_winner": 0.4375
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-kss-left",
+              "frame_index": 3,
+              "pose_only_minimum": 0.3447265625,
+              "pose_only_supported_minimum": 0.38492063492063494,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 199,
+              "invalid_mismatches": 41,
+              "supported_at_original_winner": 0.3979591836734694
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111358589224Z-37d0c433",
+              "identity": "old-camera-kss-left",
+              "frame_index": 4,
+              "pose_only_minimum": 0.345703125,
+              "pose_only_supported_minimum": 0.39886039886039887,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 205,
+              "invalid_mismatches": 35,
+              "supported_at_original_winner": 0.40688775510204084
+            }
+          ],
+          "pose_best_two_mean": 0.34521484375,
+          "supported_pose_best_two_mean": 0.390978835978836,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-kss-left",
+                "index": 0,
+                "score": 0.373046875
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 1,
+                "score": 0.3740234375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 2,
+                "score": 0.37109375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 3,
+                "score": 0.3447265625
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 4,
+                "score": 0.345703125
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-kss-left",
+                "index": 0,
+                "score": 0.373046875
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 1,
+                "score": 0.3740234375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 2,
+                "score": 0.37109375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 3,
+                "score": 0.3447265625
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 4,
+                "score": 0.345703125
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-kss-left",
+                "index": 0,
+                "score": 0.373046875
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 1,
+                "score": 0.3740234375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 2,
+                "score": 0.37109375
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 3,
+                "score": 0.3447265625
+              },
+              {
+                "identity": "old-camera-kss-left",
+                "index": 4,
+                "score": 0.345703125
+              }
+            ]
+          }
+        }
+      ],
+      "compnet": [
+        {
+          "kind": "primary",
+          "ranking": [
+            "old-camera-kss-left",
+            "old-camera-cyw-real-left",
+            "old-camera-syr-right",
+            "old-camera-stephen-10-13-right",
+            "old-camera-stephen-10-13-left",
+            "old-camera-cyw-real-right",
+            "old-camera-xyt-right",
+            "old-camera-xyt-left",
+            "old-camera-bankey-10-12-right",
+            "old-camera-bankey-10-12-left",
+            "old-camera-kss-right"
+          ],
+          "true_rank": 2,
+          "top1": "old-camera-kss-left",
+          "score": 0.374420166015625,
+          "gap": 0.04509669542312622,
+          "distance_pass": false,
+          "margin_pass": false,
+          "true_frames": [
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 0,
+              "score": 0.4818477928638458
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 1,
+              "score": 0.4674571752548218
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 2,
+              "score": 0.4792479872703552
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 3,
+              "score": 0.47348490357398987
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 4,
+              "score": 0.37157654762268066
+            }
+          ],
+          "wrong_frames": [
+            {
+              "identity": "old-camera-kss-left",
+              "index": 0,
+              "score": 0.39841702580451965
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 1,
+              "score": 0.384840726852417
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 2,
+              "score": 0.39040082693099976
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 3,
+              "score": 0.3725965619087219
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 4,
+              "score": 0.3762437701225281
+            }
+          ]
+        },
+        {
+          "kind": "alternate",
+          "ranking": [
+            "old-camera-kss-left",
+            "old-camera-cyw-real-left",
+            "old-camera-syr-right",
+            "old-camera-stephen-10-13-right",
+            "old-camera-cyw-real-right",
+            "old-camera-stephen-10-13-left",
+            "old-camera-xyt-right",
+            "old-camera-xyt-left",
+            "old-camera-bankey-10-12-right",
+            "old-camera-bankey-10-12-left",
+            "old-camera-kss-right"
+          ],
+          "true_rank": 2,
+          "top1": "old-camera-kss-left",
+          "score": 0.37934207916259766,
+          "gap": 0.04106608033180237,
+          "distance_pass": false,
+          "margin_pass": false,
+          "true_frames": [
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 0,
+              "score": 0.48248106241226196
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 1,
+              "score": 0.46823209524154663
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 2,
+              "score": 0.47733622789382935
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 3,
+              "score": 0.47878122329711914
+            },
+            {
+              "identity": "old-camera-cyw-real-left",
+              "index": 4,
+              "score": 0.3725842237472534
+            }
+          ],
+          "wrong_frames": [
+            {
+              "identity": "old-camera-kss-left",
+              "index": 0,
+              "score": 0.4023405909538269
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 1,
+              "score": 0.3908274471759796
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 2,
+              "score": 0.39705273509025574
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 3,
+              "score": 0.37805676460266113
+            },
+            {
+              "identity": "old-camera-kss-left",
+              "index": 4,
+              "score": 0.38062742352485657
+            }
+          ]
+        }
+      ],
+      "exhaustive_pairs": [
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            0
+          ],
+          "score": 0.400390625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.400390625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            1
+          ],
+          "score": 0.42439516129032256,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42439516129032256,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            2
+          ],
+          "score": 0.41163793103448276,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41163793103448276,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            3
+          ],
+          "score": 0.43080357142857145,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.43080357142857145,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            4
+          ],
+          "score": 0.4182027649769585,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4182027649769585,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            1
+          ],
+          "score": 0.4040948275862069,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4040948275862069,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            2
+          ],
+          "score": 0.41594827586206895,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41594827586206895,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            0
+          ],
+          "score": 0.4170258620689655,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4170258620689655,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            3
+          ],
+          "score": 0.4205069124423963,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4205069124423963,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            4
+          ],
+          "score": 0.41330645161290325,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41330645161290325,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            0
+          ],
+          "score": 0.38406658739595717,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38406658739595717,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            1
+          ],
+          "score": 0.3912009512485137,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3912009512485137,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            3
+          ],
+          "score": 0.3984375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3984375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            2
+          ],
+          "score": 0.3964285714285714,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3964285714285714,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            4
+          ],
+          "score": 0.36420395421436,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.36420395421436,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            0
+          ],
+          "score": 0.4022177419354839,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4022177419354839,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            2
+          ],
+          "score": 0.4040948275862069,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4040948275862069,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            1
+          ],
+          "score": 0.41431451612903225,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41431451612903225,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            3
+          ],
+          "score": 0.4183467741935484,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4183467741935484,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            4
+          ],
+          "score": 0.39620535714285715,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39620535714285715,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            0
+          ],
+          "score": 0.373046875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.373046875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            1
+          ],
+          "score": 0.3740234375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3740234375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            3
+          ],
+          "score": 0.3447265625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3447265625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            2
+          ],
+          "score": 0.37109375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.37109375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            4
+          ],
+          "score": 0.345703125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.345703125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            0
+          ],
+          "score": 0.4166666666666667,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4166666666666667,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            1
+          ],
+          "score": 0.4052734375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4052734375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            2
+          ],
+          "score": 0.4095982142857143,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4095982142857143,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            3
+          ],
+          "score": 0.4130859375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4130859375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            4
+          ],
+          "score": 0.4095982142857143,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4095982142857143,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            1
+          ],
+          "score": 0.37701612903225806,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.37701612903225806,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            0
+          ],
+          "score": 0.39213709677419356,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39213709677419356,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            2
+          ],
+          "score": 0.3901209677419355,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3901209677419355,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            3
+          ],
+          "score": 0.38685344827586204,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38685344827586204,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            4
+          ],
+          "score": 0.3935546875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3935546875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            0
+          ],
+          "score": 0.40086206896551724,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40086206896551724,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            1
+          ],
+          "score": 0.4010416666666667,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4010416666666667,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            2
+          ],
+          "score": 0.3890086206896552,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3890086206896552,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            3
+          ],
+          "score": 0.40301724137931033,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40301724137931033,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            4
+          ],
+          "score": 0.4019396551724138,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4019396551724138,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            1
+          ],
+          "score": 0.39919354838709675,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39919354838709675,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            0
+          ],
+          "score": 0.4022177419354839,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4022177419354839,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            3
+          ],
+          "score": 0.40725806451612906,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40725806451612906,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            2
+          ],
+          "score": 0.4092741935483871,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4092741935483871,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            4
+          ],
+          "score": 0.388671875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.388671875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            1
+          ],
+          "score": 0.3896484375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3896484375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            0
+          ],
+          "score": 0.3800403225806452,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3800403225806452,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            2
+          ],
+          "score": 0.38504464285714285,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38504464285714285,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            3
+          ],
+          "score": 0.3901209677419355,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3901209677419355,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            4
+          ],
+          "score": 0.345703125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.345703125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            0
+          ],
+          "score": 0.39213709677419356,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39213709677419356,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            1
+          ],
+          "score": 0.4244946492271106,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4244946492271106,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            2
+          ],
+          "score": 0.41379310344827586,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41379310344827586,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            3
+          ],
+          "score": 0.392578125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.392578125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            4
+          ],
+          "score": 0.4284274193548387,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4284274193548387,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "identity": "old-camera:xyt:right",
+      "returned": "old-camera-stephen-10-13-left",
+      "actual_full_gallery_scores": {
+        "old-camera-bankey-10-12-left": 0.41060267857142857,
+        "old-camera-bankey-10-12-right": 0.40380859375,
+        "old-camera-cyw-real-left": 0.400355222734255,
+        "old-camera-cyw-real-right": 0.3885728686635945,
+        "old-camera-kss-left": 0.39856583079381597,
+        "old-camera-kss-right": 0.39522879464285715,
+        "old-camera-stephen-10-13-left": 0.37353515625,
+        "old-camera-stephen-10-13-right": 0.40120967741935487,
+        "old-camera-syr-right": 0.40457589285714285,
+        "old-camera-xyt-left": 0.3922347530241935,
+        "old-camera-xyt-right": 0.39818548387096775
+      },
+      "evidence": [
+        {
+          "identity": "old-camera-xyt-right",
+          "role": "true",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 0,
+              "pose_only_minimum": 0.3901209677419355,
+              "pose_only_supported_minimum": 0.42450142450142453,
+              "representative_best_pose_index": 1,
+              "angle": -12,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 1,
+              "dy": 0,
+              "total_bits": 992,
+              "valid_bits": 756,
+              "invalid_bits": 236,
+              "invalid_agreements": 176,
+              "invalid_mismatches": 60,
+              "supported_at_original_winner": 0.43253968253968256
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 1,
+              "pose_only_minimum": 0.4224137931034483,
+              "pose_only_supported_minimum": 0.44,
+              "representative_best_pose_index": 8,
+              "angle": 12,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 3,
+              "total_bits": 928,
+              "valid_bits": 700,
+              "invalid_bits": 228,
+              "invalid_agreements": 149,
+              "invalid_mismatches": 79,
+              "supported_at_original_winner": 0.4471428571428571
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 2,
+              "pose_only_minimum": 0.4100985221674877,
+              "pose_only_supported_minimum": 0.42333333333333334,
+              "representative_best_pose_index": 0,
+              "angle": 0,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": -4,
+              "dy": 3,
+              "total_bits": 812,
+              "valid_bits": 600,
+              "invalid_bits": 212,
+              "invalid_agreements": 133,
+              "invalid_mismatches": 79,
+              "supported_at_original_winner": 0.42333333333333334
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 3,
+              "pose_only_minimum": 0.40625,
+              "pose_only_supported_minimum": 0.42962962962962964,
+              "representative_best_pose_index": 2,
+              "angle": 12,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 4,
+              "total_bits": 896,
+              "valid_bits": 672,
+              "invalid_bits": 224,
+              "invalid_agreements": 149,
+              "invalid_mismatches": 75,
+              "supported_at_original_winner": 0.43005952380952384
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 4,
+              "pose_only_minimum": 0.41713014460511677,
+              "pose_only_supported_minimum": 0.4246153846153846,
+              "representative_best_pose_index": 1,
+              "angle": -12,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 1,
+              "dy": 3,
+              "total_bits": 899,
+              "valid_bits": 675,
+              "invalid_bits": 224,
+              "invalid_agreements": 154,
+              "invalid_mismatches": 70,
+              "supported_at_original_winner": 0.45185185185185184
+            }
+          ],
+          "pose_best_two_mean": 0.39818548387096775,
+          "supported_pose_best_two_mean": 0.4239173789173789,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.3901209677419355
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4224137931034483
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.4100985221674877
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40625
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41713014460511677
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.3901209677419355
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4224137931034483
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.4100985221674877
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40625
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41713014460511677
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.3901209677419355
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4224137931034483
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.4100985221674877
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40625
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41713014460511677
+              }
+            ]
+          }
+        },
+        {
+          "identity": "old-camera-stephen-10-13-left",
+          "role": "wrong",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-stephen-10-13-left",
+              "frame_index": 0,
+              "pose_only_minimum": 0.3701171875,
+              "pose_only_supported_minimum": 0.4150641025641026,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 204,
+              "invalid_mismatches": 36,
+              "supported_at_original_winner": 0.4375
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-stephen-10-13-left",
+              "frame_index": 1,
+              "pose_only_minimum": 0.3828125,
+              "pose_only_supported_minimum": 0.44142857142857145,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 212,
+              "invalid_mismatches": 28,
+              "supported_at_original_winner": 0.4642857142857143
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-stephen-10-13-left",
+              "frame_index": 2,
+              "pose_only_minimum": 0.37890625,
+              "pose_only_supported_minimum": 0.4381868131868132,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 207,
+              "invalid_mismatches": 33,
+              "supported_at_original_winner": 0.4528061224489796
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-stephen-10-13-left",
+              "frame_index": 3,
+              "pose_only_minimum": 0.384765625,
+              "pose_only_supported_minimum": 0.4216666666666667,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 211,
+              "invalid_mismatches": 29,
+              "supported_at_original_winner": 0.4655612244897959
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111553178583Z-61f30739",
+              "identity": "old-camera-stephen-10-13-left",
+              "frame_index": 4,
+              "pose_only_minimum": 0.376953125,
+              "pose_only_supported_minimum": 0.4305555555555556,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 200,
+              "invalid_mismatches": 40,
+              "supported_at_original_winner": 0.4413265306122449
+            }
+          ],
+          "pose_best_two_mean": 0.37353515625,
+          "supported_pose_best_two_mean": 0.41836538461538464,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 0,
+                "score": 0.3701171875
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 1,
+                "score": 0.3828125
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 2,
+                "score": 0.37890625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 3,
+                "score": 0.384765625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 4,
+                "score": 0.376953125
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 0,
+                "score": 0.3701171875
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 1,
+                "score": 0.3828125
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 2,
+                "score": 0.37890625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 3,
+                "score": 0.384765625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 4,
+                "score": 0.376953125
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 0,
+                "score": 0.3701171875
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 1,
+                "score": 0.3828125
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 2,
+                "score": 0.37890625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 3,
+                "score": 0.384765625
+              },
+              {
+                "identity": "old-camera-stephen-10-13-left",
+                "index": 4,
+                "score": 0.376953125
+              }
+            ]
+          }
+        }
+      ],
+      "compnet": [
+        {
+          "kind": "primary",
+          "ranking": [
+            "old-camera-bankey-10-12-right",
+            "old-camera-bankey-10-12-left",
+            "old-camera-stephen-10-13-right",
+            "old-camera-cyw-real-right",
+            "old-camera-syr-right",
+            "old-camera-cyw-real-left",
+            "old-camera-xyt-right",
+            "old-camera-xyt-left",
+            "old-camera-kss-right",
+            "old-camera-kss-left",
+            "old-camera-stephen-10-13-left"
+          ],
+          "true_rank": 7,
+          "top1": "old-camera-bankey-10-12-right",
+          "score": 0.39112481474876404,
+          "gap": 0.03279349207878113,
+          "distance_pass": false,
+          "margin_pass": false,
+          "true_frames": [
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 0,
+              "score": 0.49437370896339417
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 1,
+              "score": 0.4799964129924774
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 2,
+              "score": 0.47563955187797546
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 3,
+              "score": 0.5133927464485168
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 4,
+              "score": 0.5121859312057495
+            }
+          ],
+          "wrong_frames": [
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 0,
+              "score": 0.506009042263031
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 1,
+              "score": 0.5085711479187012
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 2,
+              "score": 0.4929995536804199
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 3,
+              "score": 0.513401985168457
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 4,
+              "score": 0.49217894673347473
+            }
+          ]
+        },
+        {
+          "kind": "alternate",
+          "ranking": [
+            "old-camera-xyt-right",
+            "old-camera-stephen-10-13-right",
+            "old-camera-cyw-real-right",
+            "old-camera-syr-right",
+            "old-camera-kss-right",
+            "old-camera-bankey-10-12-right",
+            "old-camera-kss-left",
+            "old-camera-bankey-10-12-left",
+            "old-camera-xyt-left",
+            "old-camera-stephen-10-13-left",
+            "old-camera-cyw-real-left"
+          ],
+          "true_rank": 1,
+          "top1": "old-camera-xyt-right",
+          "score": 0.42635634541511536,
+          "gap": 0.015090018510818481,
+          "distance_pass": false,
+          "margin_pass": false,
+          "true_frames": [
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 0,
+              "score": 0.425905704498291
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 1,
+              "score": 0.4268069863319397
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 2,
+              "score": 0.43038883805274963
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 3,
+              "score": 0.4653981029987335
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 4,
+              "score": 0.4731716215610504
+            }
+          ],
+          "wrong_frames": [
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 0,
+              "score": 0.4974610209465027
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 1,
+              "score": 0.533840537071228
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 2,
+              "score": 0.5280629396438599
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 3,
+              "score": 0.5167160034179688
+            },
+            {
+              "identity": "old-camera-stephen-10-13-left",
+              "index": 4,
+              "score": 0.5174552798271179
+            }
+          ]
+        }
+      ],
+      "exhaustive_pairs": [
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            0
+          ],
+          "score": 0.42075892857142855,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42075892857142855,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            1
+          ],
+          "score": 0.4166666666666667,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4166666666666667,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            2
+          ],
+          "score": 0.409375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.409375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            3
+          ],
+          "score": 0.42299107142857145,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42299107142857145,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            4
+          ],
+          "score": 0.41183035714285715,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41183035714285715,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            1
+          ],
+          "score": 0.4073275862068966,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4073275862068966,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            2
+          ],
+          "score": 0.4122983870967742,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4122983870967742,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            0
+          ],
+          "score": 0.4107142857142857,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4107142857142857,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            3
+          ],
+          "score": 0.4013671875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4013671875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            4
+          ],
+          "score": 0.40625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            1
+          ],
+          "score": 0.4017857142857143,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4017857142857143,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            0
+          ],
+          "score": 0.4019396551724138,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4019396551724138,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            3
+          ],
+          "score": 0.4218390804597701,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4218390804597701,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            2
+          ],
+          "score": 0.3989247311827957,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3989247311827957,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            4
+          ],
+          "score": 0.40625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            0
+          ],
+          "score": 0.38205645161290325,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38205645161290325,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            2
+          ],
+          "score": 0.4032258064516129,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4032258064516129,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            1
+          ],
+          "score": 0.3984375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3984375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            3
+          ],
+          "score": 0.4107142857142857,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4107142857142857,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            4
+          ],
+          "score": 0.3950892857142857,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3950892857142857,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            0
+          ],
+          "score": 0.41354166666666664,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41354166666666664,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            1
+          ],
+          "score": 0.40066964285714285,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40066964285714285,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            3
+          ],
+          "score": 0.3964620187304891,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3964620187304891,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            2
+          ],
+          "score": 0.41103017689906346,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41103017689906346,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            4
+          ],
+          "score": 0.41103017689906346,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41103017689906346,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            0
+          ],
+          "score": 0.388671875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.388671875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            1
+          ],
+          "score": 0.41015625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41015625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            2
+          ],
+          "score": 0.4017857142857143,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4017857142857143,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            3
+          ],
+          "score": 0.4140625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4140625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            4
+          ],
+          "score": 0.4091796875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4091796875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            1
+          ],
+          "score": 0.3828125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3828125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            0
+          ],
+          "score": 0.3701171875,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3701171875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            2
+          ],
+          "score": 0.37890625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.37890625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            3
+          ],
+          "score": 0.384765625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.384765625,
+              "aligned_quad": null
+            },
+            {
+              "branch": "union",
+              "view_index": 11,
+              "sigma": 2,
+              "source_matrix": [
+                [
+                  -1.0260083430846416,
+                  0.35773006378641925,
+                  1349.9915219590036
+                ],
+                [
+                  -0.35773006378641886,
+                  -1.0260083430846416,
+                  2406.79759040187
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ],
+              "score": 0.404296875,
+              "aligned_quad": [
+                [
+                  1877.3908432167584,
+                  1973.856511984022
+                ],
+                [
+                  1296.4688502189995,
+                  1978.9137672451207
+                ],
+                [
+                  1291.411594957901,
+                  1397.9917742473617
+                ],
+                [
+                  1872.3335879556596,
+                  1392.9345189862634
+                ]
+              ]
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 17
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            4
+          ],
+          "score": 0.376953125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.376953125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            0
+          ],
+          "score": 0.4002016129032258,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4002016129032258,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            1
+          ],
+          "score": 0.4084051724137931,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4084051724137931,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            2
+          ],
+          "score": 0.4022177419354839,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4022177419354839,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            3
+          ],
+          "score": 0.412109375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.412109375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            4
+          ],
+          "score": 0.415625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.415625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            1
+          ],
+          "score": 0.409375,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.409375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            0
+          ],
+          "score": 0.40860215053763443,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40860215053763443,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            2
+          ],
+          "score": 0.4140625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4140625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            3
+          ],
+          "score": 0.40401785714285715,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40401785714285715,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            4
+          ],
+          "score": 0.40513392857142855,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40513392857142855,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            1
+          ],
+          "score": 0.4012096774193548,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4012096774193548,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            0
+          ],
+          "score": 0.3876953125,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3876953125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            2
+          ],
+          "score": 0.40625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            3
+          ],
+          "score": 0.4122983870967742,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4122983870967742,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            4
+          ],
+          "score": 0.3967741935483871,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3967741935483871,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            0
+          ],
+          "score": 0.3901209677419355,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3901209677419355,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            1
+          ],
+          "score": 0.4224137931034483,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4224137931034483,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            2
+          ],
+          "score": 0.4100985221674877,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4100985221674877,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            3
+          ],
+          "score": 0.40625,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            4
+          ],
+          "score": 0.41713014460511677,
+          "attempt_count": 19,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41713014460511677,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 18
+          }
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "identity": "old-camera:xyt:right",
+      "returned": "old-camera-kss-right",
+      "actual_full_gallery_scores": {
+        "old-camera-bankey-10-12-left": 0.41313319052419356,
+        "old-camera-bankey-10-12-right": 0.38818359375,
+        "old-camera-cyw-real-left": 0.39131804435483875,
+        "old-camera-cyw-real-right": 0.38818359375,
+        "old-camera-kss-left": 0.4041866179435484,
+        "old-camera-kss-right": 0.3711635044642857,
+        "old-camera-stephen-10-13-left": 0.38208795362903225,
+        "old-camera-stephen-10-13-right": 0.37890625,
+        "old-camera-syr-right": 0.40210013440860215,
+        "old-camera-xyt-left": 0.37744140625,
+        "old-camera-xyt-right": 0.4039554531490015
+      },
+      "evidence": [
+        {
+          "identity": "old-camera-xyt-right",
+          "role": "true",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 0,
+              "pose_only_minimum": 0.41271551724137934,
+              "pose_only_supported_minimum": 0.3958333333333333,
+              "representative_best_pose_index": 6,
+              "angle": -12,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": -3,
+              "dy": 0,
+              "total_bits": 928,
+              "valid_bits": 700,
+              "invalid_bits": 228,
+              "invalid_agreements": 152,
+              "invalid_mismatches": 76,
+              "supported_at_original_winner": 0.43857142857142856
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 1,
+              "pose_only_minimum": 0.4105603448275862,
+              "pose_only_supported_minimum": 0.41346153846153844,
+              "representative_best_pose_index": 0,
+              "angle": 0,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 3,
+              "total_bits": 928,
+              "valid_bits": 700,
+              "invalid_bits": 228,
+              "invalid_agreements": 154,
+              "invalid_mismatches": 74,
+              "supported_at_original_winner": 0.43857142857142856
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 2,
+              "pose_only_minimum": 0.3989247311827957,
+              "pose_only_supported_minimum": 0.3945868945868946,
+              "representative_best_pose_index": 0,
+              "angle": 0,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": -1,
+              "dy": 2,
+              "total_bits": 930,
+              "valid_bits": 702,
+              "invalid_bits": 228,
+              "invalid_agreements": 134,
+              "invalid_mismatches": 94,
+              "supported_at_original_winner": 0.3945868945868946
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 3,
+              "pose_only_minimum": 0.40898617511520735,
+              "pose_only_supported_minimum": 0.4182098765432099,
+              "representative_best_pose_index": 0,
+              "angle": 0,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 1,
+              "dy": -4,
+              "total_bits": 868,
+              "valid_bits": 648,
+              "invalid_bits": 220,
+              "invalid_agreements": 136,
+              "invalid_mismatches": 84,
+              "supported_at_original_winner": 0.4182098765432099
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-xyt-right",
+              "frame_index": 4,
+              "pose_only_minimum": 0.41594827586206895,
+              "pose_only_supported_minimum": 0.4216666666666667,
+              "representative_best_pose_index": 7,
+              "angle": 12,
+              "scale": 0.85,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 3,
+              "total_bits": 928,
+              "valid_bits": 700,
+              "invalid_bits": 228,
+              "invalid_agreements": 146,
+              "invalid_mismatches": 82,
+              "supported_at_original_winner": 0.4342857142857143
+            }
+          ],
+          "pose_best_two_mean": 0.4039554531490015,
+          "supported_pose_best_two_mean": 0.39521011396011396,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.41271551724137934
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4105603448275862
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.3989247311827957
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40898617511520735
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41594827586206895
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.41271551724137934
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4105603448275862
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.3989247311827957
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40898617511520735
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41594827586206895
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 0,
+                "score": 0.41271551724137934
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 1,
+                "score": 0.4105603448275862
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 2,
+                "score": 0.3989247311827957
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 3,
+                "score": 0.40898617511520735
+              },
+              {
+                "identity": "old-camera-xyt-right",
+                "index": 4,
+                "score": 0.41594827586206895
+              }
+            ]
+          }
+        },
+        {
+          "identity": "old-camera-kss-right",
+          "role": "wrong",
+          "frames": [
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-kss-right",
+              "frame_index": 0,
+              "pose_only_minimum": 0.400390625,
+              "pose_only_supported_minimum": 0.4177777777777778,
+              "representative_best_pose_index": 4,
+              "angle": 0,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 193,
+              "invalid_mismatches": 47,
+              "supported_at_original_winner": 0.4630102040816326
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-kss-right",
+              "frame_index": 1,
+              "pose_only_minimum": 0.38392857142857145,
+              "pose_only_supported_minimum": 0.4162962962962963,
+              "representative_best_pose_index": 2,
+              "angle": 12,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 4,
+              "dy": 0,
+              "total_bits": 896,
+              "valid_bits": 672,
+              "invalid_bits": 224,
+              "invalid_agreements": 169,
+              "invalid_mismatches": 55,
+              "supported_at_original_winner": 0.43005952380952384
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-kss-right",
+              "frame_index": 2,
+              "pose_only_minimum": 0.4111328125,
+              "pose_only_supported_minimum": 0.4144,
+              "representative_best_pose_index": 8,
+              "angle": 12,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 198,
+              "invalid_mismatches": 42,
+              "supported_at_original_winner": 0.48341836734693877
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-kss-right",
+              "frame_index": 3,
+              "pose_only_minimum": 0.40234375,
+              "pose_only_supported_minimum": 0.4045138888888889,
+              "representative_best_pose_index": 2,
+              "angle": 12,
+              "scale": 1,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 191,
+              "invalid_mismatches": 49,
+              "supported_at_original_winner": 0.4630102040816326
+            },
+            {
+              "case": "old-camera-original",
+              "sample": "20261013T111555214120Z-8d6441d2",
+              "identity": "old-camera-kss-right",
+              "frame_index": 4,
+              "pose_only_minimum": 0.3583984375,
+              "pose_only_supported_minimum": 0.4119897959183674,
+              "representative_best_pose_index": 8,
+              "angle": 12,
+              "scale": 1.15,
+              "tied_best_poses": 1,
+              "dx": 0,
+              "dy": 0,
+              "total_bits": 1024,
+              "valid_bits": 784,
+              "invalid_bits": 240,
+              "invalid_agreements": 196,
+              "invalid_mismatches": 44,
+              "supported_at_original_winner": 0.4119897959183674
+            }
+          ],
+          "pose_best_two_mean": 0.3711635044642857,
+          "supported_pose_best_two_mean": 0.4082518424036281,
+          "actual_retained_frames": {
+            "before": [
+              {
+                "identity": "old-camera-kss-right",
+                "index": 0,
+                "score": 0.400390625
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 1,
+                "score": 0.38392857142857145
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 2,
+                "score": 0.4111328125
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 3,
+                "score": 0.40234375
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 4,
+                "score": 0.3583984375
+              }
+            ],
+            "after": [
+              {
+                "identity": "old-camera-kss-right",
+                "index": 0,
+                "score": 0.400390625
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 1,
+                "score": 0.38392857142857145
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 2,
+                "score": 0.4111328125
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 3,
+                "score": 0.40234375
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 4,
+                "score": 0.3583984375
+              }
+            ],
+            "merged": [
+              {
+                "identity": "old-camera-kss-right",
+                "index": 0,
+                "score": 0.400390625
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 1,
+                "score": 0.38392857142857145
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 2,
+                "score": 0.4111328125
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 3,
+                "score": 0.40234375
+              },
+              {
+                "identity": "old-camera-kss-right",
+                "index": 4,
+                "score": 0.3583984375
+              }
+            ]
+          }
+        }
+      ],
+      "compnet": [
+        {
+          "kind": "primary",
+          "ranking": [
+            "old-camera-bankey-10-12-right",
+            "old-camera-bankey-10-12-left",
+            "old-camera-stephen-10-13-right",
+            "old-camera-cyw-real-right",
+            "old-camera-cyw-real-left",
+            "old-camera-kss-left",
+            "old-camera-kss-right",
+            "old-camera-xyt-left",
+            "old-camera-xyt-right",
+            "old-camera-syr-right",
+            "old-camera-stephen-10-13-left"
+          ],
+          "true_rank": 9,
+          "top1": "old-camera-bankey-10-12-right",
+          "score": 0.38309669494628906,
+          "gap": 0.016538143157958984,
+          "distance_pass": false,
+          "margin_pass": false,
+          "true_frames": [
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 0,
+              "score": 0.5113018155097961
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 1,
+              "score": 0.49435845017433167
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 2,
+              "score": 0.49388182163238525
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 3,
+              "score": 0.5033872127532959
+            },
+            {
+              "identity": "old-camera-xyt-right",
+              "index": 4,
+              "score": 0.5108424425125122
+            }
+          ],
+          "wrong_frames": [
+            {
+              "identity": "old-camera-kss-right",
+              "index": 0,
+              "score": 0.48884645104408264
+            },
+            {
+              "identity": "old-camera-kss-right",
+              "index": 1,
+              "score": 0.5106195211410522
+            },
+            {
+              "identity": "old-camera-kss-right",
+              "index": 2,
+              "score": 0.4735540449619293
+            },
+            {
+              "identity": "old-camera-kss-right",
+              "index": 3,
+              "score": 0.47205960750579834
+            },
+            {
+              "identity": "old-camera-kss-right",
+              "index": 4,
+              "score": 0.4888477921485901
+            }
+          ]
+        }
+      ],
+      "exhaustive_pairs": [
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            0
+          ],
+          "score": 0.42338709677419356,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42338709677419356,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            1
+          ],
+          "score": 0.4092741935483871,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4092741935483871,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            2
+          ],
+          "score": 0.42439516129032256,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42439516129032256,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            3
+          ],
+          "score": 0.42578125,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.42578125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-left",
+            4
+          ],
+          "score": 0.4169921875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4169921875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            1
+          ],
+          "score": 0.3779296875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3779296875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            2
+          ],
+          "score": 0.400390625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.400390625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            0
+          ],
+          "score": 0.40729166666666666,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40729166666666666,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            3
+          ],
+          "score": 0.3984375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3984375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-bankey-10-12-right",
+            4
+          ],
+          "score": 0.404786680541103,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.404786680541103,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            0
+          ],
+          "score": 0.4112903225806452,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4112903225806452,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            1
+          ],
+          "score": 0.4172736732570239,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4172736732570239,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            3
+          ],
+          "score": 0.39453125,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39453125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            2
+          ],
+          "score": 0.4091796875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4091796875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-left",
+            4
+          ],
+          "score": 0.38810483870967744,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38810483870967744,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            0
+          ],
+          "score": 0.3857421875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3857421875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            2
+          ],
+          "score": 0.390625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.390625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            1
+          ],
+          "score": 0.4029017857142857,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4029017857142857,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            3
+          ],
+          "score": 0.4073275862068966,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4073275862068966,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-cyw-real-right",
+            4
+          ],
+          "score": 0.4016649323621228,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4016649323621228,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            1
+          ],
+          "score": 0.4130859375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4130859375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            0
+          ],
+          "score": 0.4091796875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4091796875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            3
+          ],
+          "score": 0.4105603448275862,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4105603448275862,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            2
+          ],
+          "score": 0.412109375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.412109375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-left",
+            4
+          ],
+          "score": 0.39919354838709675,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39919354838709675,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            0
+          ],
+          "score": 0.400390625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.400390625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            1
+          ],
+          "score": 0.38392857142857145,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38392857142857145,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            2
+          ],
+          "score": 0.4111328125,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4111328125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            3
+          ],
+          "score": 0.40234375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40234375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-kss-right",
+            4
+          ],
+          "score": 0.3583984375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3583984375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            1
+          ],
+          "score": 0.373046875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.373046875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            0
+          ],
+          "score": 0.3994140625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3994140625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            2
+          ],
+          "score": 0.3911290322580645,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3911290322580645,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            3
+          ],
+          "score": 0.39919354838709675,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39919354838709675,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-left",
+            4
+          ],
+          "score": 0.392578125,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.392578125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            0
+          ],
+          "score": 0.38671875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38671875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            1
+          ],
+          "score": 0.38671875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38671875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            2
+          ],
+          "score": 0.37890625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.37890625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            3
+          ],
+          "score": 0.3984375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3984375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-stephen-10-13-right",
+            4
+          ],
+          "score": 0.37890625,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.37890625,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            0
+          ],
+          "score": 0.41330645161290325,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41330645161290325,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            1
+          ],
+          "score": 0.409375,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.409375,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            2
+          ],
+          "score": 0.40948275862068967,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40948275862068967,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            3
+          ],
+          "score": 0.39895833333333336,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39895833333333336,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-syr-right",
+            4
+          ],
+          "score": 0.40524193548387094,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40524193548387094,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            1
+          ],
+          "score": 0.39976958525345624,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.39976958525345624,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            0
+          ],
+          "score": 0.4032258064516129,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4032258064516129,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            2
+          ],
+          "score": 0.376953125,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.376953125,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            3
+          ],
+          "score": 0.3779296875,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3779296875,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-left",
+            4
+          ],
+          "score": 0.38958333333333334,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.38958333333333334,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            0
+          ],
+          "score": 0.41271551724137934,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41271551724137934,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            1
+          ],
+          "score": 0.4105603448275862,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.4105603448275862,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            2
+          ],
+          "score": 0.3989247311827957,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.3989247311827957,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            3
+          ],
+          "score": 0.40898617511520735,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.40898617511520735,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        },
+        {
+          "target": [
+            "old-camera-xyt-right",
+            4
+          ],
+          "score": 0.41594827586206895,
+          "attempt_count": 11,
+          "scored_attempts": [
+            {
+              "branch": "legacy_v2",
+              "score": 0.41594827586206895,
+              "aligned_quad": null
+            }
+          ],
+          "rejected": {
+            "correspondence_or_geometry": 10
+          }
+        }
+      ]
+    }
+  ],
+  "coverage_by_query": [
+    {
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 824,
+        "geometric_calls": 14,
+        "pose_calls": 810,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 14,
+      "poses": 270
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 814,
+        "geometric_calls": 4,
+        "pose_calls": 810,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 4,
+      "poses": 270
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261012T124958024176Z-98185319",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 495,
+        "geometric_calls": 0,
+        "pose_calls": 495,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 0,
+      "poses": 495
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 1486,
+        "geometric_calls": 1,
+        "pose_calls": 1485,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 1,
+      "poses": 495
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111426234644Z-c6594831",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 1489,
+        "geometric_calls": 4,
+        "pose_calls": 1485,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 4,
+      "poses": 495
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 1487,
+        "geometric_calls": 2,
+        "pose_calls": 1485,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 2,
+      "poses": 495
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "reference_equal": true,
+      "matching_coverage": {
+        "calls": 1486,
+        "geometric_calls": 1,
+        "pose_calls": 1485,
+        "unknown_target": 0,
+        "unknown_query": 0
+      },
+      "geometric_observations": 1,
+      "poses": 495
+    }
+  ],
+  "limits": [
+    "All queries were previously exposed development samples.",
+    "Pose-only supported scores are diagnostics; they are not full-pipeline counterfactual identity results.",
+    "Instrumented observational durations are not a speed baseline.",
+    "A successful bounded pilot does not qualify the candidate without full168 regression.",
+    "No raw images, masks, binary codes, descriptors or embeddings in these exports."
+  ],
+  "input_sha256": {
+    "audit": "ea49dceada759e875de6e48eeac37e3e0e141206ebfa2159de8141c940f2557a",
+    "pilot": "7aa83afe98b6713686c5cd2abcaab9f7971a10c64e8f661d440391b979c75929",
+    "atlas": "7f3e449ccfe1e32af7e07c67c3981a5e6b8ddea1283a7a15688930d99e22edf9"
+  }
+}
