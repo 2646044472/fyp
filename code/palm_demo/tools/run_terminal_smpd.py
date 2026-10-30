@@ -120,7 +120,10 @@ def initialize_protocol(a):
     for ordinal, row in enumerate(rows):
         row['inventory_ordinal'] = ordinal
         original = inside(row['original'], source)
-        if original.parent != (source/'inputs').resolve() or not original.is_file():
+        # Historical parallel extraction kept originals under both the root
+        # inputs/ and prepare-worker-N/inputs/. The immutable manifest fixes the
+        # exact source path; all must still be raw JPEGs inside the source root.
+        if original.parent.name != 'inputs' or original.suffix.lower() != '.jpg' or not original.is_file():
             raise ValueError('Raw original absent or outside source inputs')
         if original.stat().st_size != row['bytes']:
             raise ValueError('Original size mismatch')
