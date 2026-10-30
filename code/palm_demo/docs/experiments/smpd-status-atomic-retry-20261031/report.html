@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMPD 状态文件原子替换修复 · 2026-10-31</title>
+<style>
+body{font:17px/1.7 system-ui,sans-serif;color:#172233;background:#f3f5f8;margin:0}main{max-width:960px;margin:auto;padding:36px 24px}article{background:white;border:1px solid #dae0e8;border-radius:12px;padding:24px;margin:20px 0}h1{font-size:30px;line-height:1.3}h2{font-size:21px}code{overflow-wrap:anywhere;font-size:14px}table{border-collapse:collapse;width:100%}th,td{padding:10px;text-align:left;border-bottom:1px solid #dae0e8}small{color:#506073}a{color:#164da5}
+</style>
+<main>
+<h1>SMPD v27 状态文件原子替换：有限重试修复</h1>
+<p>2026-10-31 · Windows · 仅操作层修复与小范围测试</p>
+<article>
+<h2>已确认的故障</h2>
+<p>原运行提交第 216 条查询后，在发布下一次 <code>query_inflight</code> 状态时，<code>os.replace(temp, status.json)</code> 返回 <code>PermissionError: [WinError 5] 拒绝访问</code>。worker 退出码为 1，监督状态为 <code>worker_stopped_no_restart</code>。</p>
+<p>事后检查时，状态文件可独占读写，报错临时文件已不存在，相关实验进程已退出。现有证据无法确定当时是哪一个进程或系统条件引发访问拒绝。此次修复没有验证或宣称故障根因。</p>
+</article>
+<article>
+<h2>修复行为</h2>
+<p><code>tools/smpd_run_journal.py</code> 的通用 <code>atomic()</code> 保留同目录临时文件、完整 JSON 序列化、flush、fsync、关闭写句柄后调用 <code>os.replace</code> 的发布方式。</p>
+<p>仅在替换操作抛出的异常带有 <code>winerror == 5</code> 时重试。总计最多 6 次尝试，依次等待 0.05、0.1、0.2、0.4、0.8 秒，累计退避上限 1.55 秒；操作系统调用自身耗时另计。各次尝试复用同一个已完整写入的临时文件。持续失败后抛出异常，并清理临时文件。没有原地截断写入或非原子发布回退。</p>
+<p>独占记录在每次尝试前重复检查目标是否存在；这沿用原有单 runner 锁约束，不新增跨进程 compare-and-swap 保证。其他替换错误，以及序列化、写入、fsync 阶段的错误立即失败。永久访问拒绝也只会有限尝试后失败。</p>
+</article>
+<article>
+<h2>相关测试：30 passed in 3.70s</h2>
+<table>
+<tr><th>范围</th><th>验证内容</th></tr>
+<tr><td>新增 9 个用例</td><td>一次 WinError 5 后成功；持续 WinError 5 时旧状态逐字节不变；正常路径先 fsync 再完整替换；非 WinError 5 的三种错误不重试；退避期间出现已有记录时保留该记录；序列化及 fsync 失败不发布。</td></tr>
+<tr><td>既有 21 个用例</td><td>journal 顺序、摘要、失败记录保留、锁、故障不自动重启；v27 执行适配、画廊与运行锁检查。</td></tr>
+</table>
+<p>测试文件：<code>tests/test_smpd_atomic_retry.py</code>、<code>tests/test_terminal_smpd_journal.py</code>、<code>tests/test_lossless_smpd_execution.py</code>。</p>
+<p>命令：<code>export-env/Scripts/python.exe -B -m pytest -q -p no:cacheprovider</code>，随后显式传入上述三个文件。测试写入 pytest 临时目录。没有运行数据集推理、恢复评测或部署。</p>
+</article>
+<article>
+<h2>原始实验完整性</h2>
+<p>代码修复前后分别核验运行目录的 785 个 JSON、JSONL、日志、临时文件及锁文件，排序后的相对路径与逐文件 SHA-256 映射摘要完全相同。该摘要范围不包含模型、特征或模板二进制文件；本次操作未写入原实验目录。</p>
+<table>
+<tr><th>对象</th><th>结果</th></tr>
+<tr><td>注册记录</td><td>460 条；顺序、运行指纹、previous 链及各记录摘要均有效；前后逐文件摘要相同。</td></tr>
+<tr><td>查询记录</td><td>216 条；顺序、运行指纹、previous 链及各记录摘要均有效；前后逐文件摘要相同。</td></tr>
+<tr><td>全部受检文件摘要</td><td><code>dfb28a4e757395bbee4529bb068bd81e370131366d18f6acfd9ebdd49e4219ed</code></td></tr>
+<tr><td>查询链尾</td><td><code>37596064bdbbd510ca66451a0c2b95fd78066d6991110108b26e0e30d059ce39</code></td></tr>
+</table>
+<p><a href="verification.json">机器可读的修复前后证据</a>。基础提交为 <code>2a1b340844f2db707eabf1434e5710988bac4be0</code>。</p>
+</article>
+<article>
+<h2>当前状态与后续限制</h2>
+<p>原实验仍保留为失败的 216/3217 前缀。原协议将此次修改的 journal 源码纳入哈希锁，因此不能直接以旧指纹运行修改后的代码。未来若获授权恢复评测，需要先制定并记录显式版本与衔接方案。本次未改写协议或前缀，也未重新启动实验。</p>
+<p>这项操作层测试没有产生新的识别率、速度或泛化结果。它证明模拟的暂时访问拒绝可在有限等待后成功，不能保证 Windows 将来不再产生访问拒绝。</p>
+</article>
+</main>
+</html>

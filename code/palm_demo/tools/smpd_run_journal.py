@@ -8,6 +8,9 @@ import time
 import uuid
 
 
+_REPLACE_RETRY_DELAYS = (.05, .1, .2, .4, .8)
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
 
@@ -29,6 +32,7 @@ def load(path):
 
 
 def atomic(path, value, *, exclusive=False):
+    """Publish complete JSON; bound retries for Windows access-denied replaces."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if exclusive and path.exists():
@@ -39,9 +43,20 @@ def atomic(path, value, *, exclusive=False):
             stream.write(canonical(value) + b'\n')
             stream.flush()
             os.fsync(stream.fileno())
-        if exclusive and path.exists():
-            raise FileExistsError(path)
-        os.replace(temp, path)
+        for attempt in range(len(_REPLACE_RETRY_DELAYS) + 1):
+            if exclusive and path.exists():
+                raise FileExistsError(path)
+            try:
+                os.replace(temp, path)
+                break
+            except OSError as error:
+                # Access denial can be transient, but is not assumed to be so.
+                # Keep the same flushed file and never fall back to in-place writes.
+                if getattr(error, 'winerror', None) != 5:
+                    raise
+                if attempt == len(_REPLACE_RETRY_DELAYS):
+                    raise
+                time.sleep(_REPLACE_RETRY_DELAYS[attempt])
     finally:
         temp.unlink(missing_ok=True)
 

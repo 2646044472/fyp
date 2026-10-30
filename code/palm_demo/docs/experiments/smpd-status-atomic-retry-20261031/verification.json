@@ -1,0 +1,54 @@
+{
+  "checked_at_sgt": "2026-10-31T07:08:30.100000+08:00",
+  "base_commit": "2a1b340844f2db707eabf1434e5710988bac4be0",
+  "run_root": "code\\palm_demo\\runtime\\smpd-lossless-v27-20261031",
+  "before": {
+    "chains": {
+      "enrollment": {
+        "count": 460,
+        "files_sha256": "918668f1bf6ebf034bf82f45e2e9c44ce71bdc6c76c450dea04a38723a59f32b",
+        "tip": "5547a1ac6618ea64bd926720876c48c23d44e6e80e10717922d8ada9471be076"
+      },
+      "query": {
+        "count": 216,
+        "files_sha256": "77dc00b08a41dcd21f8d7a46bac27e40eae0e6cdcc6afdebef9955a98e42688a",
+        "tip": "37596064bdbbd510ca66451a0c2b95fd78066d6991110108b26e0e30d059ce39"
+      }
+    },
+    "fingerprint": "710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2",
+    "scalar_file_count": 785,
+    "scalar_files_sha256": "dfb28a4e757395bbee4529bb068bd81e370131366d18f6acfd9ebdd49e4219ed"
+  },
+  "after": {
+    "fingerprint": "710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2",
+    "scalar_file_count": 785,
+    "scalar_files_sha256": "dfb28a4e757395bbee4529bb068bd81e370131366d18f6acfd9ebdd49e4219ed",
+    "chains": {
+      "enrollment": {
+        "count": 460,
+        "tip": "5547a1ac6618ea64bd926720876c48c23d44e6e80e10717922d8ada9471be076",
+        "files_sha256": "918668f1bf6ebf034bf82f45e2e9c44ce71bdc6c76c450dea04a38723a59f32b"
+      },
+      "query": {
+        "count": 216,
+        "tip": "37596064bdbbd510ca66451a0c2b95fd78066d6991110108b26e0e30d059ce39",
+        "files_sha256": "77dc00b08a41dcd21f8d7a46bac27e40eae0e6cdcc6afdebef9955a98e42688a"
+      }
+    }
+  },
+  "identical": true,
+  "original_state": "failed_preserving_prefix",
+  "supervisor_state": "worker_stopped_no_restart",
+  "worker_exit_code": 1,
+  "tests": {
+    "passed": 30,
+    "elapsed_seconds": 3.7,
+    "files": [
+      "tests/test_smpd_atomic_retry.py",
+      "tests/test_terminal_smpd_journal.py",
+      "tests/test_lossless_smpd_execution.py"
+    ]
+  },
+  "original_run_writes": false,
+  "inference_started": false
+}
