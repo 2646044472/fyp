@@ -1,0 +1,9 @@
+sample,route,complete_gallery_score_vector_equal,all_prepared_tensors_byte_equal,comparison_provenance_equal
+20261020T165519774649Z-8ab53868,compnet_evidence_confident,True,True,True
+20261020T165523131856Z-23aa84c8,affine_confident,True,True,True
+20261020T165527743661Z-bc841602,enrollment_link_confident,True,True,True
+20261020T165536959656Z-b199fa06,pooled_enrollment_confident,True,True,True
+20261020T165422041006Z-fbfa000c,pose_confident,True,True,True
+20261020T165425753833Z-cb7facb1,legacy_confident,True,True,True
+20261020T165429663138Z-946a03e6,normal_index_confident,True,True,True
+20261029T120016111983Z-a4677ec5,exhaustive_terminal_rf_evidence,True,True,True

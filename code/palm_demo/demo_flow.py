@@ -23,12 +23,16 @@ class DemoFlow:
         self.capture_enrollment_feature = capture_enrollment_feature or capture_feature
         self.roi_geometry = roi_geometry
         acceptance_policy = load_acceptance_policy(runtime / "demo_acceptance_policy.json")
-        self.store = TemplateStore(runtime / "demo_templates",
+        store_factory = getattr(algorithm, 'template_store_factory', TemplateStore)
+        self.store = store_factory(runtime / "demo_templates",
                                    compression_level=getattr(algorithm, 'template_compression_level', None))
         self.payments = PaymentService(runtime / "demo_payment.sqlite3")
         # Ranking-only remains the default. Opt-in rejection is explicit and
         # keeps independent profiles for ordinary, angular and weighted scores.
         required = {"roi_geometry": roi_geometry, "algorithm": algorithm.name} if roi_geometry is not None else None
+        if getattr(algorithm, 'template_codec', None):
+            required = dict(required or {}, algorithm=algorithm.name, template_codec=algorithm.template_codec,
+                            template_storage_schema=algorithm.template_storage_schema)
         self.gallery = Gallery(self.store, algorithm, threshold=1.0, required_metadata=required, acceptance_policy=acceptance_policy)
         self.lock = threading.Lock()
         self.pending: dict[str, tuple[str, int, float]] = {}
@@ -58,7 +62,8 @@ class DemoFlow:
                 sources.append(source)
             # Persist only after all five captures pass geometry and quality.
             # On failure the old template and account remain usable for rollback.
-            self.store.save(user_id, np.stack(features), {
+            batch = getattr(self.store, 'batch_features', np.stack)(features)
+            self.store.save(user_id, batch, {
                 "user": user_id, "display_name": display_name, "algorithm": self.algorithm.name,
                 "capture_profile": "noir-ir", "samples": 5,
                 "source": "3280x2464-full-still",

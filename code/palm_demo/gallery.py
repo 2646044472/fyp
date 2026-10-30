@@ -47,8 +47,10 @@ class Gallery:
         self._prepared_cache_lock = threading.RLock()
 
     def _signature(self,user_id):
-        return tuple((s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
-                     for s in (p.stat() for p in self.store.paths(user_id)))
+        files = tuple((s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+                      for s in (p.stat() for p in self.store.paths(user_id)))
+        namespace = getattr(self.store, 'cache_namespace', None)
+        return (namespace, files) if namespace is not None else files
 
     def _load_prepared(self,user_id):
         with self._prepared_cache_lock:
