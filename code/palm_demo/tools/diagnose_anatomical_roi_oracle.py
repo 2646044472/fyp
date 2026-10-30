@@ -1,6 +1,7 @@
 """Locked anatomical ROI 2x2 diagnostic using frozen v26 pair matcher.
 
-One preregistered first enrollment frame per true/competing identity. This is
+Preregistered enrollment frames per true/competing identity; string selects
+its original first frame, list selects protocol frames in their saved order. This is
 not gallery accuracy or HTTP latency; manual ROI is an oracle diagnostic only.
 No writes to templates, no live camera and no localizer/model retraining.
 """
@@ -77,23 +78,24 @@ def main():
     pixels=np.asarray(Image.open(a.baseline/case/'query-rois'/(sample+'.png')).convert('L'))if qmode=='original'else roi(image,quad)
     features=algorithm.extract_with_hypotheses(image,np.asarray(quad,np.float32),pixels,hypotheses)
     queries[qmode]=algorithm._unpack(features)
-   for identity,enrolled_sample in selection['enrollments'].items():
-    user=identity.replace(':','-');key=(case,user);path=a.baseline/case/'runtime/demo_templates'/(user+'.npz');template_hashes[str(path)]=sha(path)
-    if key not in gallery:
-     with np.load(path,allow_pickle=False)as z:original=z['features'][0].copy()
-     gallery[key]={'original':algorithm._unpack(original,decode_native=False)}
-     if locked[enrolled_sample]['available']:
-      enrolled_image=full(enrolled_sample);quad=locked[enrolled_sample]['quad'];features=algorithm.extract_gallery_with_context(enrolled_image,np.asarray(quad,np.float32),roi(enrolled_image,quad));gallery[key]['oracle']=algorithm._unpack(features,decode_native=False)
-    for qmode,query in queries.items():
-     for emode in ('original','oracle'):
-      if emode not in gallery[key]:entry['skipped'].append(dict(query=qmode,enrollment=emode,identity=identity,reason=locked[enrolled_sample]['reason']));continue
-      checkpoint();details=dict(pose=[],legacy_alignment=[],estimates=[]);current[0]=details;attempts=[];start=time.perf_counter()
-      score=algorithm._match_unpacked(query,gallery[key][emode],attempts);current[0]=None
-      cell=dict(identity=identity,enrollment_sample=enrolled_sample,query_roi=qmode,enrollment_roi=emode,score=score,winner=min((v for v in attempts if 'score'in v),key=lambda v:v['score']),attempts=attempts,diagnostic_pair_ms=(time.perf_counter()-start)*1000,**details)
-      entry['cells'].append(cell)
-      if trace and qmode==emode=='original':
-       expected=next(v['score']for v in trace['pairs']if v['target']==dict(identity=user,index=0));entry['reference_pair_parity'].append(dict(identity=identity,expected=expected,actual=score,equal=score==expected))
-      checkpoint()
+   for identity,enrolled_samples in selection['enrollments'].items():
+    for enrollment_index,enrolled_sample in enumerate(enrolled_samples if isinstance(enrolled_samples,list)else[enrolled_samples]):
+     user=identity.replace(':','-');key=(case,user,enrollment_index);path=a.baseline/case/'runtime/demo_templates'/(user+'.npz');template_hashes[str(path)]=sha(path)
+     if key not in gallery:
+      with np.load(path,allow_pickle=False)as z:original=z['features'][enrollment_index].copy()
+      gallery[key]={'original':algorithm._unpack(original,decode_native=False)}
+      if locked[enrolled_sample]['available']:
+       enrolled_image=full(enrolled_sample);quad=locked[enrolled_sample]['quad'];features=algorithm.extract_gallery_with_context(enrolled_image,np.asarray(quad,np.float32),roi(enrolled_image,quad));gallery[key]['oracle']=algorithm._unpack(features,decode_native=False)
+     for qmode,query in queries.items():
+      for emode in ('original','oracle'):
+       if emode not in gallery[key]:entry['skipped'].append(dict(query=qmode,enrollment=emode,identity=identity,reason=locked[enrolled_sample]['reason']));continue
+       checkpoint();details=dict(pose=[],legacy_alignment=[],estimates=[]);current[0]=details;attempts=[];start=time.perf_counter()
+       score=algorithm._match_unpacked(query,gallery[key][emode],attempts);current[0]=None
+       cell=dict(identity=identity,enrollment_index=enrollment_index,enrollment_sample=enrolled_sample,query_roi=qmode,enrollment_roi=emode,score=score,winner=min((v for v in attempts if 'score'in v),key=lambda v:v['score']),attempts=attempts,diagnostic_pair_ms=(time.perf_counter()-start)*1000,**details)
+       entry['cells'].append(cell)
+       if trace and qmode==emode=='original':
+        expected=next(v['score']for v in trace['pairs']if v['target']==dict(identity=user,index=enrollment_index));entry['reference_pair_parity'].append(dict(identity=identity,expected=expected,actual=score,equal=score==expected))
+       checkpoint()
    print(case,sample,'cells',len(entry['cells']),'parity',entry['reference_pair_parity'],flush=True)
   report['templates_unchanged']=all(sha(Path(path))==value for path,value in template_hashes.items());assert report['templates_unchanged']
   report['all_reference_pair_equal']=all(v['equal']for q in report['queries']for v in q['reference_pair_parity']);report['complete']=True;checkpoint()
