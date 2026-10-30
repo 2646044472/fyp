@@ -1,0 +1,81 @@
+{
+  "complete": false,
+  "kind": "Initial active v27 registration snapshot; not query accuracy or completed preflight",
+  "client_date": "2026-10-31",
+  "snapshot_unix": 1793389247.0823286,
+  "run_fingerprint": "710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2",
+  "operator_fingerprint": "5c14bd3662f12b153fd75e614cb21729fb674ce745d7c0be0c50e94aab96e280",
+  "runner_commit": "3e66335ac7f22668a13d56521c0b3ef6a50eef44",
+  "tests": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "registration_attempts": 43,
+  "feature_success": 42,
+  "feature_failure": 1,
+  "decoded_rgb_hashes": 43,
+  "maximum_observed_payload_bytes": 16831794,
+  "queries": 0,
+  "expected_registrations": 460,
+  "expected_queries": 3217,
+  "worker": {
+    "active_sample": "smpd-009-F-03",
+    "complete": false,
+    "completed_queries": 0,
+    "enrollment_completed": 43,
+    "epoch": "84c85ecea8594147930661a508606d9f",
+    "epoch_elapsed_s": 160.22521309996955,
+    "memory": {
+      "available_bytes": 15654309888,
+      "peak_rss_bytes": 945700864,
+      "private_bytes": 597008384,
+      "process_cpu_s": 336.40625,
+      "rss_bytes": 614322176
+    },
+    "pid": 49820,
+    "run_fingerprint": "710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2",
+    "state": "extracting_fixed_enrollment",
+    "total_queries": 3217,
+    "updated_unix": 1793389245.0527694
+  },
+  "supervisor": {
+    "completed_queries": 0,
+    "enrollment_completed": 42,
+    "pid": 53004,
+    "started_unix": 1793389123.5276778,
+    "state": "waiting_for_current_preflight",
+    "updated_unix": 1793389243.9960349
+  },
+  "reuse_audit": {
+    "decision": "Regenerate all460 fixed originals: historical records contain no decoded RGB byte hashes for a whole-batch comparison.",
+    "decoded_rgb_hash_present": 0,
+    "failed": 43,
+    "feature_reuse": false,
+    "historical_feature_arrays_loaded": 0,
+    "historical_schema": "fixed v26; logical codec equality on a pilot does not certify all417 frames",
+    "raw_input_hash_present": 417,
+    "records": 460,
+    "source_protocol_sha256": "c500dd6a606dbb8aacba34860ddc40b46d3d0290219b1379a3232c9fa1b4d77f",
+    "successful": 417
+  },
+  "old70_or241_prefix_imported": false,
+  "actual_smpd_registration_worker_started": true,
+  "formal_two_query_preflight_completed": false,
+  "full_query_continuation_started": false,
+  "heartbeat": {
+    "id": "smpd-v27-20",
+    "interval_minutes": 20,
+    "status": "ACTIVE",
+    "scope": "Current thread read-only progress; no inference restart/tuning"
+  },
+  "query_speed": null,
+  "query_eta": null,
+  "standard_commit": "9d9bb43e909e992765bf586da13a3b881e3dc481",
+  "limitations": [
+    "Registration progress is not query correctness or full-run completion.",
+    "No query speed or ETA until this run produces new query records.",
+    "Public data have development exposure; Windows timing is not Pi latency or exclusive-CPU timing."
+  ]
+}
