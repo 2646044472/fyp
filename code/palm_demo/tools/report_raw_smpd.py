@@ -145,6 +145,9 @@ def build_summary(root, partial=False):
         frozen_preexisting_policy_shadow=frozen_policy_shadow(queries),
         concurrent_localization_diagnostics=load(root/'localization-diagnostic-concurrency.json')
             if (root/'localization-diagnostic-concurrency.json').exists() else [],
+        resume_epochs=results.get('resume_epochs',[]),
+        interruption_evidence=load(root/'interruption-detected-20261030.json')
+            if (root/'interruption-detected-20261030.json').exists() else None,
         original_integrity=results.get('originals_unchanged'), transactions_unchanged=results.get('transactions_unchanged'),
         archive_sha256=results['archive_sha256'], protocol_sha256=results['protocol_sha256'],
         results_sha256=hashlib.sha256(result_bytes).hexdigest(),

@@ -1,0 +1,529 @@
+{
+  "complete": true,
+  "standard_tag": "standard-device-20261030",
+  "candidate": "out-of-bounds-halfturn-recovery-pilot-v1",
+  "candidate_sha256": "d3256e91e70411b88b9b59e9f1da635be1cb52871132e6057d4b5fc4dac63544",
+  "evaluator_sha256": "af847402150dccd9fb1de75c18320a2818b083bae268f31e437707e58c1f98c1",
+  "device_geometry": {
+    "total": 169,
+    "primary_valid": 169,
+    "candidate_valid": 169,
+    "retries": 0,
+    "recoveries": 0,
+    "changed_valid": 0
+  },
+  "device_http": {
+    "standard": {
+      "overall": {
+        "correct": 165,
+        "wrong_identity_accepted": 3,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 168,
+        "correct_within_2500": 156,
+        "accuracy": 0.9821428571428571,
+        "all_timing": {
+          "n": 168,
+          "p50_ms": 745.9100000000001,
+          "p95_ms": 4713.883500000006,
+          "max_ms": 8581.55
+        },
+        "correct_timing": {
+          "n": 165,
+          "p50_ms": 740.44,
+          "p95_ms": 2682.5459999999925,
+          "max_ms": 8581.55
+        },
+        "routes": {
+          "legacy_confident": 35,
+          "affine_confident": 3,
+          "quality_evidence_confident": 12,
+          "normal_index_confident": 4,
+          "pose_confident": 85,
+          "enrollment_link_confident": 6,
+          "pooled_enrollment_confident": 6,
+          "exhaustive_retained_fastcc_pilot": 15,
+          "wide_index_confident": 2
+        }
+      },
+      "cases": {
+        "new-camera-original": {
+          "correct": 29,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 29,
+          "correct_within_2500": 29,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 29,
+            "p50_ms": 901.06,
+            "p95_ms": 1219.724,
+            "max_ms": 2195.73
+          },
+          "correct_timing": {
+            "n": 29,
+            "p50_ms": 901.06,
+            "p95_ms": 1219.724,
+            "max_ms": 2195.73
+          },
+          "routes": {
+            "legacy_confident": 11,
+            "affine_confident": 2,
+            "quality_evidence_confident": 4,
+            "normal_index_confident": 2,
+            "pose_confident": 4,
+            "enrollment_link_confident": 3,
+            "pooled_enrollment_confident": 2,
+            "exhaustive_retained_fastcc_pilot": 1
+          }
+        },
+        "new-camera-reverse": {
+          "correct": 29,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 29,
+          "correct_within_2500": 26,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 29,
+            "p50_ms": 939.93,
+            "p95_ms": 6191.409999999989,
+            "max_ms": 8581.55
+          },
+          "correct_timing": {
+            "n": 29,
+            "p50_ms": 939.93,
+            "p95_ms": 6191.409999999989,
+            "max_ms": 8581.55
+          },
+          "routes": {
+            "pose_confident": 3,
+            "exhaustive_retained_fastcc_pilot": 5,
+            "legacy_confident": 12,
+            "affine_confident": 1,
+            "quality_evidence_confident": 5,
+            "pooled_enrollment_confident": 2,
+            "enrollment_link_confident": 1
+          }
+        },
+        "old-camera-original": {
+          "correct": 52,
+          "wrong_identity_accepted": 3,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 55,
+          "correct_within_2500": 49,
+          "accuracy": 0.9454545454545454,
+          "all_timing": {
+            "n": 55,
+            "p50_ms": 720.75,
+            "p95_ms": 5610.775999999998,
+            "max_ms": 7620.78
+          },
+          "correct_timing": {
+            "n": 52,
+            "p50_ms": 707.145,
+            "p95_ms": 3183.131999999985,
+            "max_ms": 6228.85
+          },
+          "routes": {
+            "pose_confident": 37,
+            "legacy_confident": 5,
+            "exhaustive_retained_fastcc_pilot": 6,
+            "pooled_enrollment_confident": 2,
+            "quality_evidence_confident": 2,
+            "normal_index_confident": 1,
+            "enrollment_link_confident": 2
+          }
+        },
+        "old-camera-reverse": {
+          "correct": 55,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 55,
+          "correct_within_2500": 52,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 55,
+            "p50_ms": 706.29,
+            "p95_ms": 2467.435999999999,
+            "max_ms": 6535.15
+          },
+          "correct_timing": {
+            "n": 55,
+            "p50_ms": 706.29,
+            "p95_ms": 2467.435999999999,
+            "max_ms": 6535.15
+          },
+          "routes": {
+            "pose_confident": 41,
+            "legacy_confident": 7,
+            "normal_index_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3,
+            "quality_evidence_confident": 1,
+            "wide_index_confident": 2
+          }
+        }
+      },
+      "enrollment_count": 34,
+      "failed_enrollments": 0,
+      "enrollment_timing": {
+        "n": 34,
+        "p50_ms": 11908.8,
+        "p95_ms": 19565.737999999998,
+        "max_ms": 20261.84
+      },
+      "immediate_queries": {
+        "correct": 34,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 34,
+        "correct_within_2500": 30,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 34,
+          "p50_ms": 698.47,
+          "p95_ms": 5871.917999999999,
+          "max_ms": 7317.65
+        },
+        "correct_timing": {
+          "n": 34,
+          "p50_ms": 698.47,
+          "p95_ms": 5871.917999999999,
+          "max_ms": 7317.65
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 9,
+          "pose_confident": 16,
+          "enrollment_link_confident": 1,
+          "legacy_confident": 6,
+          "quality_evidence_confident": 2
+        }
+      },
+      "startup_by_case": {
+        "new-camera-original": {
+          "total_ms": 772.5585000007413,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "new-camera-reverse": {
+          "total_ms": 928.9510000380687,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "old-camera-original": {
+          "total_ms": 1030.7831999962218,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "old-camera-reverse": {
+          "total_ms": 959.6595999901183,
+          "registration": "Windows unchanged OpenCV BF reference"
+        }
+      },
+      "payment_checks_complete": true
+    },
+    "candidate": {
+      "overall": {
+        "correct": 165,
+        "wrong_identity_accepted": 3,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 168,
+        "correct_within_2500": 156,
+        "accuracy": 0.9821428571428571,
+        "all_timing": {
+          "n": 168,
+          "p50_ms": 752.56,
+          "p95_ms": 4741.4680000000035,
+          "max_ms": 8544.45
+        },
+        "correct_timing": {
+          "n": 165,
+          "p50_ms": 744.95,
+          "p95_ms": 2670.567999999993,
+          "max_ms": 8544.45
+        },
+        "routes": {
+          "legacy_confident": 35,
+          "affine_confident": 3,
+          "quality_evidence_confident": 12,
+          "normal_index_confident": 4,
+          "pose_confident": 85,
+          "enrollment_link_confident": 6,
+          "pooled_enrollment_confident": 6,
+          "exhaustive_retained_fastcc_pilot": 15,
+          "wide_index_confident": 2
+        }
+      },
+      "cases": {
+        "new-camera-original": {
+          "correct": 29,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 29,
+          "correct_within_2500": 29,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 29,
+            "p50_ms": 932.46,
+            "p95_ms": 1244.3279999999997,
+            "max_ms": 2175.55
+          },
+          "correct_timing": {
+            "n": 29,
+            "p50_ms": 932.46,
+            "p95_ms": 1244.3279999999997,
+            "max_ms": 2175.55
+          },
+          "routes": {
+            "legacy_confident": 11,
+            "affine_confident": 2,
+            "quality_evidence_confident": 4,
+            "normal_index_confident": 2,
+            "pose_confident": 4,
+            "enrollment_link_confident": 3,
+            "pooled_enrollment_confident": 2,
+            "exhaustive_retained_fastcc_pilot": 1
+          }
+        },
+        "new-camera-reverse": {
+          "correct": 29,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 29,
+          "correct_within_2500": 26,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 29,
+            "p50_ms": 940.52,
+            "p95_ms": 6018.125999999988,
+            "max_ms": 8544.45
+          },
+          "correct_timing": {
+            "n": 29,
+            "p50_ms": 940.52,
+            "p95_ms": 6018.125999999988,
+            "max_ms": 8544.45
+          },
+          "routes": {
+            "pose_confident": 3,
+            "exhaustive_retained_fastcc_pilot": 5,
+            "legacy_confident": 12,
+            "affine_confident": 1,
+            "quality_evidence_confident": 5,
+            "pooled_enrollment_confident": 2,
+            "enrollment_link_confident": 1
+          }
+        },
+        "old-camera-original": {
+          "correct": 52,
+          "wrong_identity_accepted": 3,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 55,
+          "correct_within_2500": 49,
+          "accuracy": 0.9454545454545454,
+          "all_timing": {
+            "n": 55,
+            "p50_ms": 696.06,
+            "p95_ms": 6017.066,
+            "max_ms": 6851.93
+          },
+          "correct_timing": {
+            "n": 52,
+            "p50_ms": 695.065,
+            "p95_ms": 3258.4369999999853,
+            "max_ms": 6520.41
+          },
+          "routes": {
+            "pose_confident": 37,
+            "legacy_confident": 5,
+            "exhaustive_retained_fastcc_pilot": 6,
+            "pooled_enrollment_confident": 2,
+            "quality_evidence_confident": 2,
+            "normal_index_confident": 1,
+            "enrollment_link_confident": 2
+          }
+        },
+        "old-camera-reverse": {
+          "correct": 55,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 55,
+          "correct_within_2500": 52,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 55,
+            "p50_ms": 728.0,
+            "p95_ms": 2472.3049999999985,
+            "max_ms": 6363.06
+          },
+          "correct_timing": {
+            "n": 55,
+            "p50_ms": 728.0,
+            "p95_ms": 2472.3049999999985,
+            "max_ms": 6363.06
+          },
+          "routes": {
+            "pose_confident": 41,
+            "legacy_confident": 7,
+            "normal_index_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3,
+            "quality_evidence_confident": 1,
+            "wide_index_confident": 2
+          }
+        }
+      },
+      "enrollment_count": 34,
+      "failed_enrollments": 0,
+      "enrollment_timing": {
+        "n": 34,
+        "p50_ms": 11583.275,
+        "p95_ms": 19488.777,
+        "max_ms": 19696.64
+      },
+      "immediate_queries": {
+        "correct": 34,
+        "wrong_identity_accepted": 0,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 34,
+        "correct_within_2500": 30,
+        "accuracy": 1.0,
+        "all_timing": {
+          "n": 34,
+          "p50_ms": 782.63,
+          "p95_ms": 6008.808499999997,
+          "max_ms": 7309.46
+        },
+        "correct_timing": {
+          "n": 34,
+          "p50_ms": 782.63,
+          "p95_ms": 6008.808499999997,
+          "max_ms": 7309.46
+        },
+        "routes": {
+          "exhaustive_retained_fastcc_pilot": 9,
+          "pose_confident": 16,
+          "enrollment_link_confident": 1,
+          "legacy_confident": 6,
+          "quality_evidence_confident": 2
+        }
+      },
+      "startup_by_case": {
+        "new-camera-original": {
+          "total_ms": 868.1101000402123,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "new-camera-reverse": {
+          "total_ms": 977.6802000124007,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "old-camera-original": {
+          "total_ms": 968.8771000364795,
+          "registration": "Windows unchanged OpenCV BF reference"
+        },
+        "old-camera-reverse": {
+          "total_ms": 1052.4451000383124,
+          "registration": "Windows unchanged OpenCV BF reference"
+        }
+      },
+      "payment_checks_complete": true
+    }
+  },
+  "exact_device_decisions": 168,
+  "lost_correct": 0,
+  "full_capture_roi_hashes_equal": true,
+  "original_captures_per_variant": [
+    372,
+    372
+  ],
+  "genuine_device_corrections": 0,
+  "device_regression_pass": true,
+  "public_mechanism_pilot": {
+    "scope": "Single development person, five fixed enrollment originals and five later frontal queries in the complete 76/77 eligible gallery. Not full-cohort validation.",
+    "registered_before": false,
+    "registered_after": true,
+    "standard_enrollment": {
+      "http_status": 400,
+      "result": {
+        "message": "\u638c\u5fc3\u5b9a\u4f4d\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u5c55\u5f00\u624b\u638c\uff0c\u8c03\u6574\u8ddd\u79bb\u548c\u89d2\u5ea6\u540e\u91cd\u62cd\u3002"
+      }
+    },
+    "candidate_enrollment": {
+      "http_status": 200,
+      "result": {
+        "user_id": "smpd-008-right",
+        "display_name": "EVAL smpd:008:right",
+        "balance_cents": 10000,
+        "reenrolled": false,
+        "recognition_ready": true
+      }
+    },
+    "standard_enrollment_ms": 11672.887399967294,
+    "candidate_enrollment_ms": 181048.86740003712,
+    "query_summary": {
+      "correct": 5,
+      "wrong_identity_accepted": 0,
+      "true_identity_nonunique": 0,
+      "rejected": 0,
+      "processing_failure": 0,
+      "total": 5,
+      "correct_within_2500": 5,
+      "accuracy": 1.0,
+      "all_timing": {
+        "n": 5,
+        "p50_ms": 856.5260000177659,
+        "p95_ms": 945.4176200088114,
+        "max_ms": 948.3104000100866
+      },
+      "correct_timing": {
+        "n": 5,
+        "p50_ms": 856.5260000177659,
+        "p95_ms": 945.4176200088114,
+        "max_ms": 948.3104000100866
+      },
+      "routes": {
+        "pose_confident": 4,
+        "compnet_evidence_confident": 1
+      }
+    },
+    "pilot_pass": true,
+    "query_enrollment_byte_overlap": 0,
+    "payment_checks": {
+      "confirmed": true,
+      "duplicate_blocked": true,
+      "cancelled": true,
+      "cancelled_confirmation_blocked": true
+    },
+    "payment_transactions": 1
+  },
+  "candidate_retained_for_further_evaluation": true,
+  "promoted_to_standard": false,
+  "limits": [
+    "Frozen standard is unchanged; this remains an experiment.",
+    "ROI recovery is not identity recognition and does not establish anatomical ground truth.",
+    "Original-device cohort is exposed development data; no independent-device generalization claim.",
+    "Public pilot is one development person and five same-view queries; no full-release or reserved-person success claim.",
+    "Windows CPU inference overlapped the full public baseline. No exclusive-CPU or Pi speed improvement claim.",
+    "This failure-only recovery does not repair the existing valid-ROI mistakes or prove that long search tails are solved.",
+    "Pi regression is still required before any device performance/promotion claim."
+  ]
+}

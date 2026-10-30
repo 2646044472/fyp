@@ -22,15 +22,19 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('root',type=Path)
     p.add_argument('--inference-pid',required=True,type=int);p.add_argument('--final-scalars',required=True,type=Path)
     a=p.parse_args();process=psutil.Process(a.inference_pid);created=process.create_time()
-    assert 'run_locked_smpd.py' in ' '.join(process.cmdline())
+    assert any(name in ' '.join(process.cmdline()) for name in ('run_locked_smpd.py','resume_raw_smpd.py'))
     previous=-1;rendered=0
     while True:
         file=a.root/'evaluation/results.json'
         result=json.loads(file.read_text(encoding='utf-8')) if file.exists() else None
         count=len(result['queries']) if result else 0
-        alive=process.is_running() and process.create_time()==created
+        try:
+            alive=process.is_running() and process.create_time()==created
+            rss=process.memory_info().rss if alive else None
+        except psutil.NoSuchProcess:
+            alive=False;rss=None
         status=dict(complete=False,inference_pid=a.inference_pid,process_alive=alive,queries=count,expected_queries=3217,
-            inference_rss_bytes=process.memory_info().rss if alive else None,updated_at_unix=time.time())
+            inference_rss_bytes=rss,updated_at_unix=time.time())
         if result and result['complete']:
             summary,rows,queries=build_summary(a.root)
             write_scalars(a.final_scalars,summary,rows,queries)

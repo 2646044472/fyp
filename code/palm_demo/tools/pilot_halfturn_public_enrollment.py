@@ -58,11 +58,13 @@ def main():
         threshold_changes=False,model_training=False,source_selection_uses_identity_scores=False,
         limits='Development-only single-person pilot, not full generalization accuracy, unseen-person FAR, Pi timing or proof of 40-person device capacity. Missing-valley captures are not recovery targets.')
     save(a.output/'protocol.json',protocol)
-    process=psutil.Process(a.regression_pid);created=process.create_time()
+    process=None;created=None
     while True:
         regression=json.loads((a.regression/'results.json').read_text())
         if regression.get('failure'):raise RuntimeError('Original-device regression failed: '+regression['failure'])
         if regression['complete']:break
+        if process is None:
+            process=psutil.Process(a.regression_pid);created=process.create_time()
         if not process.is_running() or process.create_time()!=created:raise RuntimeError('Original-device regression process exited incomplete')
         save(a.output/'progress.json',dict(complete=False,state='waiting_for_original_device_regression'))
         time.sleep(20)
@@ -95,6 +97,7 @@ def main():
             app=debug_ui.App(camera,demo_matcher=MATCHER);app.demo_algorithm._retain_fastcc_evidence_pilot=True
             assert app.demo.gallery.acceptance_policy is None
             # Read-only hard links to frozen template bytes; independent accounts.
+            (runtime/'demo_templates').mkdir(parents=True,exist_ok=True)
             for f in files:os.link(f,(runtime/'demo_templates')/f.name)
             for user in users:app.demo.payments.create_account(user,'EVAL '+user,10000)
             trace=[];item=dict(http_trace=trace);report['variants'][variant]=item
