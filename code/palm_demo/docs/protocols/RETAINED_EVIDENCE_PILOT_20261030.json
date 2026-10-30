@@ -1,0 +1,3296 @@
+{
+  "input_sha256": {
+    "baseline": "f9e9b39a8d37085318dd089309d975acec19ef1b5a826d813ae1f54af8828a09",
+    "pilot": "32cd7a3fda269a103d0dbcc8a91473936b8f20f86928858f084cfd46d4183e1c",
+    "full": "080de1f2a871f61565ab77b22099bc5e0075ddfd869f4dcc3ea5148caf9e69ea"
+  },
+  "patch": {
+    "source_sha256": "7561ddb7cfe005d80dc50a4377cbe52cc594481932cb7fbced1ce86402578598",
+    "candidate_sha256": "b74a0116587de27e9f6d0e7563f8fc3c7f04f9331a6c2de2c4dbc57dec8b5ffb"
+  },
+  "pilot_summary": {
+    "total": 17,
+    "correct": 14,
+    "correct_within_2_5s": 4,
+    "median_ms": 6450.52,
+    "p95_ms": 11182.949999999995,
+    "max_ms": 15082.91,
+    "routes": {
+      "exhaustive_retained_fastcc_pilot": 13,
+      "pose_confident": 3,
+      "legacy_confident": 1
+    },
+    "corrections": 1,
+    "regressions": 0,
+    "wrong_matches": 3,
+    "retries_or_rejections": 0
+  },
+  "baseline": {
+    "total": 168,
+    "correct": 164,
+    "correct_within_2_5s": 146,
+    "median_ms": 1540.17,
+    "p95_ms": 6019.318500000008,
+    "max_ms": 15225.0,
+    "routes": {
+      "legacy_confident": 12,
+      "compnet_evidence_confident": 33,
+      "affine_confident": 4,
+      "pose_confident": 86,
+      "enrollment_link_confident": 6,
+      "normal_index_confident": 3,
+      "exhaustive_fallback": 13,
+      "quality_evidence_confident": 5,
+      "compnet_alternate_roi_confident": 3,
+      "pooled_enrollment_confident": 1,
+      "wide_index_confident": 2
+    },
+    "wrong_match": 4,
+    "retry_or_reject": 0
+  },
+  "candidate": {
+    "total": 168,
+    "correct": 165,
+    "correct_within_2_5s": 145,
+    "median_ms": 1517.4250000000002,
+    "p95_ms": 5906.6755000000085,
+    "max_ms": 15234.24,
+    "routes": {
+      "legacy_confident": 12,
+      "compnet_evidence_confident": 33,
+      "affine_confident": 4,
+      "pose_confident": 86,
+      "enrollment_link_confident": 6,
+      "normal_index_confident": 3,
+      "exhaustive_retained_fastcc_pilot": 13,
+      "quality_evidence_confident": 5,
+      "compnet_alternate_roi_confident": 3,
+      "pooled_enrollment_confident": 1,
+      "wide_index_confident": 2
+    },
+    "wrong_match": 3,
+    "retry_or_reject": 0
+  },
+  "corrections": 1,
+  "regressions": 0,
+  "cases": [
+    {
+      "case": "new-camera-original",
+      "baseline": {
+        "total": 29,
+        "correct": 28,
+        "correct_within_2_5s": 27,
+        "median_ms": 1315.63,
+        "p95_ms": 2506.034,
+        "max_ms": 4344.12,
+        "routes": {
+          "legacy_confident": 4,
+          "compnet_evidence_confident": 11,
+          "affine_confident": 3,
+          "pose_confident": 5,
+          "enrollment_link_confident": 4,
+          "normal_index_confident": 1,
+          "exhaustive_fallback": 1
+        },
+        "wrong_match": 1,
+        "retry_or_reject": 0
+      },
+      "candidate": {
+        "total": 29,
+        "correct": 29,
+        "correct_within_2_5s": 26,
+        "median_ms": 1323.9,
+        "p95_ms": 2519.006,
+        "max_ms": 4305.49,
+        "routes": {
+          "legacy_confident": 4,
+          "compnet_evidence_confident": 11,
+          "affine_confident": 3,
+          "pose_confident": 5,
+          "enrollment_link_confident": 4,
+          "normal_index_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 1
+        },
+        "wrong_match": 0,
+        "retry_or_reject": 0
+      }
+    },
+    {
+      "case": "new-camera-reverse",
+      "baseline": {
+        "total": 29,
+        "correct": 29,
+        "correct_within_2_5s": 25,
+        "median_ms": 1315.83,
+        "p95_ms": 3990.538,
+        "max_ms": 15225.0,
+        "routes": {
+          "pose_confident": 3,
+          "compnet_evidence_confident": 15,
+          "affine_confident": 1,
+          "exhaustive_fallback": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 3,
+          "compnet_alternate_roi_confident": 1,
+          "enrollment_link_confident": 2
+        },
+        "wrong_match": 0,
+        "retry_or_reject": 0
+      },
+      "candidate": {
+        "total": 29,
+        "correct": 29,
+        "correct_within_2_5s": 25,
+        "median_ms": 1313.79,
+        "p95_ms": 3993.658,
+        "max_ms": 15234.24,
+        "routes": {
+          "pose_confident": 3,
+          "compnet_evidence_confident": 15,
+          "affine_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 3,
+          "compnet_alternate_roi_confident": 1,
+          "enrollment_link_confident": 2
+        },
+        "wrong_match": 0,
+        "retry_or_reject": 0
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "baseline": {
+        "total": 55,
+        "correct": 52,
+        "correct_within_2_5s": 46,
+        "median_ms": 1538.93,
+        "p95_ms": 9127.713,
+        "max_ms": 10257.49,
+        "routes": {
+          "pose_confident": 37,
+          "compnet_alternate_roi_confident": 1,
+          "exhaustive_fallback": 6,
+          "legacy_confident": 3,
+          "quality_evidence_confident": 3,
+          "normal_index_confident": 1,
+          "compnet_evidence_confident": 3,
+          "pooled_enrollment_confident": 1
+        },
+        "wrong_match": 3,
+        "retry_or_reject": 0
+      },
+      "candidate": {
+        "total": 55,
+        "correct": 52,
+        "correct_within_2_5s": 46,
+        "median_ms": 1519.58,
+        "p95_ms": 9027.382999999998,
+        "max_ms": 10213.17,
+        "routes": {
+          "pose_confident": 37,
+          "compnet_alternate_roi_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 6,
+          "legacy_confident": 3,
+          "quality_evidence_confident": 3,
+          "normal_index_confident": 1,
+          "compnet_evidence_confident": 3,
+          "pooled_enrollment_confident": 1
+        },
+        "wrong_match": 3,
+        "retry_or_reject": 0
+      }
+    },
+    {
+      "case": "old-camera-reverse",
+      "baseline": {
+        "total": 55,
+        "correct": 55,
+        "correct_within_2_5s": 48,
+        "median_ms": 1542.34,
+        "p95_ms": 4316.791999999997,
+        "max_ms": 9637.81,
+        "routes": {
+          "pose_confident": 41,
+          "compnet_evidence_confident": 4,
+          "compnet_alternate_roi_confident": 1,
+          "normal_index_confident": 1,
+          "exhaustive_fallback": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 2,
+          "wide_index_confident": 2
+        },
+        "wrong_match": 0,
+        "retry_or_reject": 0
+      },
+      "candidate": {
+        "total": 55,
+        "correct": 55,
+        "correct_within_2_5s": 48,
+        "median_ms": 1519.19,
+        "p95_ms": 4270.880999999998,
+        "max_ms": 9491.66,
+        "routes": {
+          "pose_confident": 41,
+          "compnet_evidence_confident": 4,
+          "compnet_alternate_roi_confident": 1,
+          "normal_index_confident": 1,
+          "exhaustive_retained_fastcc_pilot": 3,
+          "quality_evidence_confident": 1,
+          "legacy_confident": 2,
+          "wide_index_confident": 2
+        },
+        "wrong_match": 0,
+        "retry_or_reject": 0
+      }
+    }
+  ],
+  "exhaustive_queries": [
+    {
+      "case": "new-camera-original",
+      "sample_suffix": "a4677ec5",
+      "reference_correct": false,
+      "correct": true,
+      "baseline_ms": 4344.12,
+      "candidate_ms": 4305.49,
+      "baseline_winner_score": 0.3836000504032258,
+      "candidate_winner_score": 0.3084353298611111,
+      "candidate_second_score": 0.3836000504032258,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.3522222222222222
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.2646484375
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3941532258064516
+            },
+            {
+              "index": 1,
+              "score": 0.3955078125
+            },
+            {
+              "index": 2,
+              "score": 0.4208984375
+            },
+            {
+              "index": 3,
+              "score": 0.40524193548387094
+            },
+            {
+              "index": 4,
+              "score": 0.373046875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.3522222222222222
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.2646484375
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.41271551724137934
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.41041666666666665
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3941532258064516
+            },
+            {
+              "index": 1,
+              "score": 0.3955078125
+            },
+            {
+              "index": 2,
+              "score": 0.4208984375
+            },
+            {
+              "index": 3,
+              "score": 0.40524193548387094
+            },
+            {
+              "index": 4,
+              "score": 0.373046875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.41271551724137934
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.41041666666666665
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.3522222222222222
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.2646484375
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3941532258064516
+            },
+            {
+              "index": 1,
+              "score": 0.3955078125
+            },
+            {
+              "index": 2,
+              "score": 0.4208984375
+            },
+            {
+              "index": 3,
+              "score": 0.40524193548387094
+            },
+            {
+              "index": 4,
+              "score": 0.373046875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3701171875
+            },
+            {
+              "index": 1,
+              "score": 0.4202586206896552
+            },
+            {
+              "index": 2,
+              "score": 0.3522222222222222
+            },
+            {
+              "index": 3,
+              "score": 0.4052734375
+            },
+            {
+              "index": 4,
+              "score": 0.2646484375
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.3084353298611111,
+          "baseline_winner": 0.3836000504032258,
+          "candidate_winner": 0.3084353298611111
+        },
+        "after": {
+          "true": 0.3876953125,
+          "baseline_winner": 0.3836000504032258,
+          "candidate_winner": 0.3876953125
+        },
+        "merged": {
+          "true": 0.3084353298611111,
+          "baseline_winner": 0.3836000504032258,
+          "candidate_winner": 0.3084353298611111
+        }
+      }
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample_suffix": "08ceb3b7",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 4008.19,
+      "candidate_ms": 4029.01,
+      "baseline_winner_score": 0.36302021403091556,
+      "candidate_winner_score": 0.36302021403091556,
+      "candidate_second_score": 0.37018019153225806,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.423828125
+            },
+            {
+              "index": 1,
+              "score": 0.36794354838709675
+            },
+            {
+              "index": 2,
+              "score": 0.36741973840665876
+            },
+            {
+              "index": 3,
+              "score": 0.3586206896551724
+            },
+            {
+              "index": 4,
+              "score": 0.3967741935483871
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.36302021403091556,
+          "baseline_winner": 0.36302021403091556,
+          "candidate_winner": 0.36302021403091556
+        },
+        "after": {
+          "true": 0.36302021403091556,
+          "baseline_winner": 0.36302021403091556,
+          "candidate_winner": 0.36302021403091556
+        },
+        "merged": {
+          "true": 0.36302021403091556,
+          "baseline_winner": 0.36302021403091556,
+          "candidate_winner": 0.36302021403091556
+        }
+      }
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample_suffix": "f7ec5fe1",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 15225.0,
+      "candidate_ms": 15234.24,
+      "baseline_winner_score": 0.3583984375,
+      "candidate_winner_score": 0.3583984375,
+      "candidate_second_score": 0.3936491935483871,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.4091796875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.4091796875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.4091796875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.4102822580645161
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.4102822580645161
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.4102822580645161
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.392578125
+            },
+            {
+              "index": 1,
+              "score": 0.4041666666666667
+            },
+            {
+              "index": 2,
+              "score": 0.40625
+            },
+            {
+              "index": 3,
+              "score": 0.32421875
+            },
+            {
+              "index": 4,
+              "score": 0.41517857142857145
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.39837239583333334,
+          "baseline_winner": 0.39837239583333334,
+          "candidate_winner": 0.39837239583333334
+        },
+        "after": {
+          "true": 0.3583984375,
+          "baseline_winner": 0.3583984375,
+          "candidate_winner": 0.3583984375
+        },
+        "merged": {
+          "true": 0.3583984375,
+          "baseline_winner": 0.3583984375,
+          "candidate_winner": 0.3583984375
+        }
+      }
+    },
+    {
+      "case": "new-camera-reverse",
+      "sample_suffix": "89bd294d",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 3964.06,
+      "candidate_ms": 3940.63,
+      "baseline_winner_score": 0.3155241935483871,
+      "candidate_winner_score": 0.3155241935483871,
+      "candidate_second_score": 0.38627772177419356,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.4112903225806452
+            },
+            {
+              "index": 1,
+              "score": 0.3326612903225806
+            },
+            {
+              "index": 2,
+              "score": 0.29838709677419356
+            },
+            {
+              "index": 3,
+              "score": 0.36189516129032256
+            },
+            {
+              "index": 4,
+              "score": 0.3659274193548387
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.3155241935483871,
+          "baseline_winner": 0.3155241935483871,
+          "candidate_winner": 0.3155241935483871
+        },
+        "after": {
+          "true": 0.3155241935483871,
+          "baseline_winner": 0.3155241935483871,
+          "candidate_winner": 0.3155241935483871
+        },
+        "merged": {
+          "true": 0.3155241935483871,
+          "baseline_winner": 0.3155241935483871,
+          "candidate_winner": 0.3155241935483871
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "61f30739",
+      "reference_correct": false,
+      "correct": false,
+      "baseline_ms": 10257.49,
+      "candidate_ms": 10213.17,
+      "baseline_winner_score": 0.3740234375,
+      "candidate_winner_score": 0.3740234375,
+      "candidate_second_score": 0.389346918202765,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.37701612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.41487068965517243
+            },
+            {
+              "index": 2,
+              "score": 0.41502463054187194
+            },
+            {
+              "index": 3,
+              "score": 0.4029017857142857
+            },
+            {
+              "index": 4,
+              "score": 0.41713014460511677
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.37701612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.41487068965517243
+            },
+            {
+              "index": 2,
+              "score": 0.41502463054187194
+            },
+            {
+              "index": 3,
+              "score": 0.4029017857142857
+            },
+            {
+              "index": 4,
+              "score": 0.41713014460511677
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.37701612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.41487068965517243
+            },
+            {
+              "index": 2,
+              "score": 0.41502463054187194
+            },
+            {
+              "index": 3,
+              "score": 0.4029017857142857
+            },
+            {
+              "index": 4,
+              "score": 0.41713014460511677
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3740234375
+            },
+            {
+              "index": 1,
+              "score": 0.3740234375
+            },
+            {
+              "index": 2,
+              "score": 0.380859375
+            },
+            {
+              "index": 3,
+              "score": 0.3896484375
+            },
+            {
+              "index": 4,
+              "score": 0.3740234375
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.3899589573732719,
+          "baseline_winner": 0.3740234375,
+          "candidate_winner": 0.3740234375
+        },
+        "after": {
+          "true": 0.3899589573732719,
+          "baseline_winner": 0.3740234375,
+          "candidate_winner": 0.3740234375
+        },
+        "merged": {
+          "true": 0.3899589573732719,
+          "baseline_winner": 0.3740234375,
+          "candidate_winner": 0.3740234375
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "4ab6388d",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 8336.12,
+      "candidate_ms": 8253.76,
+      "baseline_winner_score": 0.37190860215053767,
+      "candidate_winner_score": 0.37190860215053767,
+      "candidate_second_score": 0.3759765625,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.375
+            },
+            {
+              "index": 1,
+              "score": 0.38911290322580644
+            },
+            {
+              "index": 2,
+              "score": 0.3935546875
+            },
+            {
+              "index": 3,
+              "score": 0.396484375
+            },
+            {
+              "index": 4,
+              "score": 0.3688172043010753
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.37190860215053767,
+          "baseline_winner": 0.37190860215053767,
+          "candidate_winner": 0.37190860215053767
+        },
+        "after": {
+          "true": 0.37190860215053767,
+          "baseline_winner": 0.37190860215053767,
+          "candidate_winner": 0.37190860215053767
+        },
+        "merged": {
+          "true": 0.37190860215053767,
+          "baseline_winner": 0.37190860215053767,
+          "candidate_winner": 0.37190860215053767
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "8d6441d2",
+      "reference_correct": false,
+      "correct": false,
+      "baseline_ms": 9396.87,
+      "candidate_ms": 9293.32,
+      "baseline_winner_score": 0.37472098214285715,
+      "candidate_winner_score": 0.37472098214285715,
+      "candidate_second_score": 0.375,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41271551724137934
+            },
+            {
+              "index": 1,
+              "score": 0.4170258620689655
+            },
+            {
+              "index": 2,
+              "score": 0.4021505376344086
+            },
+            {
+              "index": 3,
+              "score": 0.4095982142857143
+            },
+            {
+              "index": 4,
+              "score": 0.4105603448275862
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41271551724137934
+            },
+            {
+              "index": 1,
+              "score": 0.4170258620689655
+            },
+            {
+              "index": 2,
+              "score": 0.4021505376344086
+            },
+            {
+              "index": 3,
+              "score": 0.4095982142857143
+            },
+            {
+              "index": 4,
+              "score": 0.4105603448275862
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41271551724137934
+            },
+            {
+              "index": 1,
+              "score": 0.4170258620689655
+            },
+            {
+              "index": 2,
+              "score": 0.4021505376344086
+            },
+            {
+              "index": 3,
+              "score": 0.4095982142857143
+            },
+            {
+              "index": 4,
+              "score": 0.4105603448275862
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.40234375
+            },
+            {
+              "index": 1,
+              "score": 0.3939732142857143
+            },
+            {
+              "index": 2,
+              "score": 0.4072265625
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.35546875
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.4058743759600615,
+          "baseline_winner": 0.37472098214285715,
+          "candidate_winner": 0.37472098214285715
+        },
+        "after": {
+          "true": 0.4058743759600615,
+          "baseline_winner": 0.37472098214285715,
+          "candidate_winner": 0.37472098214285715
+        },
+        "merged": {
+          "true": 0.4058743759600615,
+          "baseline_winner": 0.37472098214285715,
+          "candidate_winner": 0.37472098214285715
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "c6594831",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 9012.36,
+      "candidate_ms": 8913.41,
+      "baseline_winner_score": 0.36449932795698925,
+      "candidate_winner_score": 0.36449932795698925,
+      "candidate_second_score": 0.37515751008064513,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.36770833333333336
+            },
+            {
+              "index": 1,
+              "score": 0.38038793103448276
+            },
+            {
+              "index": 2,
+              "score": 0.375
+            },
+            {
+              "index": 3,
+              "score": 0.4033203125
+            },
+            {
+              "index": 4,
+              "score": 0.36129032258064514
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.36449932795698925,
+          "baseline_winner": 0.36449932795698925,
+          "candidate_winner": 0.36449932795698925
+        },
+        "after": {
+          "true": 0.36449932795698925,
+          "baseline_winner": 0.36449932795698925,
+          "candidate_winner": 0.36449932795698925
+        },
+        "merged": {
+          "true": 0.36449932795698925,
+          "baseline_winner": 0.36449932795698925,
+          "candidate_winner": 0.36449932795698925
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "0d781b96",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 10221.26,
+      "candidate_ms": 10072.49,
+      "baseline_winner_score": 0.314453125,
+      "candidate_winner_score": 0.28076171875,
+      "candidate_second_score": 0.380859375,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.39400921658986177
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.39400921658986177
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.39400921658986177
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.3583984375
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.3583984375
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.3583984375
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3951612903225806
+            },
+            {
+              "index": 1,
+              "score": 0.38810483870967744
+            },
+            {
+              "index": 2,
+              "score": 0.2705078125
+            },
+            {
+              "index": 3,
+              "score": 0.291015625
+            },
+            {
+              "index": 4,
+              "score": 0.3951612903225806
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.33956023185483875,
+          "baseline_winner": 0.33956023185483875,
+          "candidate_winner": 0.33956023185483875
+        },
+        "after": {
+          "true": 0.314453125,
+          "baseline_winner": 0.314453125,
+          "candidate_winner": 0.314453125
+        },
+        "merged": {
+          "true": 0.28076171875,
+          "baseline_winner": 0.28076171875,
+          "candidate_winner": 0.28076171875
+        }
+      }
+    },
+    {
+      "case": "old-camera-original",
+      "sample_suffix": "37d0c433",
+      "reference_correct": false,
+      "correct": false,
+      "baseline_ms": 8080.53,
+      "candidate_ms": 7954.62,
+      "baseline_winner_score": 0.345703125,
+      "candidate_winner_score": 0.345703125,
+      "candidate_second_score": 0.360871345766129,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3864447086801427
+            },
+            {
+              "index": 1,
+              "score": 0.3935790725326992
+            },
+            {
+              "index": 2,
+              "score": 0.3976190476190476
+            },
+            {
+              "index": 3,
+              "score": 0.3955078125
+            },
+            {
+              "index": 4,
+              "score": 0.36420395421436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3864447086801427
+            },
+            {
+              "index": 1,
+              "score": 0.3935790725326992
+            },
+            {
+              "index": 2,
+              "score": 0.3976190476190476
+            },
+            {
+              "index": 3,
+              "score": 0.3955078125
+            },
+            {
+              "index": 4,
+              "score": 0.36420395421436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3864447086801427
+            },
+            {
+              "index": 1,
+              "score": 0.3935790725326992
+            },
+            {
+              "index": 2,
+              "score": 0.3976190476190476
+            },
+            {
+              "index": 3,
+              "score": 0.3955078125
+            },
+            {
+              "index": 4,
+              "score": 0.36420395421436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.373046875
+            },
+            {
+              "index": 1,
+              "score": 0.3720703125
+            },
+            {
+              "index": 2,
+              "score": 0.369140625
+            },
+            {
+              "index": 3,
+              "score": 0.3447265625
+            },
+            {
+              "index": 4,
+              "score": 0.3466796875
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.37532433144725136,
+          "baseline_winner": 0.345703125,
+          "candidate_winner": 0.345703125
+        },
+        "after": {
+          "true": 0.37532433144725136,
+          "baseline_winner": 0.345703125,
+          "candidate_winner": 0.345703125
+        },
+        "merged": {
+          "true": 0.37532433144725136,
+          "baseline_winner": 0.345703125,
+          "candidate_winner": 0.345703125
+        }
+      }
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample_suffix": "91d208df",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 9637.81,
+      "candidate_ms": 9491.66,
+      "baseline_winner_score": 0.35346837197580644,
+      "candidate_winner_score": 0.35346837197580644,
+      "candidate_second_score": 0.3800560735887097,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.41163793103448276
+            },
+            {
+              "index": 1,
+              "score": 0.4274193548387097
+            },
+            {
+              "index": 2,
+              "score": 0.3037109375
+            },
+            {
+              "index": 3,
+              "score": 0.408203125
+            },
+            {
+              "index": 4,
+              "score": 0.4032258064516129
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.35346837197580644,
+          "baseline_winner": 0.35346837197580644,
+          "candidate_winner": 0.35346837197580644
+        },
+        "after": {
+          "true": 0.35346837197580644,
+          "baseline_winner": 0.35346837197580644,
+          "candidate_winner": 0.35346837197580644
+        },
+        "merged": {
+          "true": 0.35346837197580644,
+          "baseline_winner": 0.35346837197580644,
+          "candidate_winner": 0.35346837197580644
+        }
+      }
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample_suffix": "fa7726ef",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 5113.42,
+      "candidate_ms": 4955.81,
+      "baseline_winner_score": 0.36928184093437155,
+      "candidate_winner_score": 0.36928184093437155,
+      "candidate_second_score": 0.37646484375,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3659274193548387
+            },
+            {
+              "index": 1,
+              "score": 0.3821428571428571
+            },
+            {
+              "index": 2,
+              "score": 0.39532019704433496
+            },
+            {
+              "index": 3,
+              "score": 0.39620535714285715
+            },
+            {
+              "index": 4,
+              "score": 0.37263626251390436
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.36928184093437155,
+          "baseline_winner": 0.36928184093437155,
+          "candidate_winner": 0.36928184093437155
+        },
+        "after": {
+          "true": 0.36928184093437155,
+          "baseline_winner": 0.36928184093437155,
+          "candidate_winner": 0.36928184093437155
+        },
+        "merged": {
+          "true": 0.36928184093437155,
+          "baseline_winner": 0.36928184093437155,
+          "candidate_winner": 0.36928184093437155
+        }
+      }
+    },
+    {
+      "case": "old-camera-reverse",
+      "sample_suffix": "9cc52f1c",
+      "reference_correct": true,
+      "correct": true,
+      "baseline_ms": 6507.11,
+      "candidate_ms": 6418.68,
+      "baseline_winner_score": 0.36225743447580644,
+      "candidate_winner_score": 0.31001134072580644,
+      "candidate_second_score": 0.38155241935483875,
+      "frames": {
+        "before": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ]
+        },
+        "after": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.3525390625
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.3525390625
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.3525390625
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ]
+        },
+        "merged": {
+          "true": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "baseline_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ],
+          "candidate_winner": [
+            {
+              "index": 0,
+              "score": 0.3719758064516129
+            },
+            {
+              "index": 1,
+              "score": 0.41594827586206895
+            },
+            {
+              "index": 2,
+              "score": 0.39978448275862066
+            },
+            {
+              "index": 3,
+              "score": 0.248046875
+            },
+            {
+              "index": 4,
+              "score": 0.380859375
+            }
+          ]
+        }
+      },
+      "identity_scores": {
+        "before": {
+          "true": 0.31001134072580644,
+          "baseline_winner": 0.31001134072580644,
+          "candidate_winner": 0.31001134072580644
+        },
+        "after": {
+          "true": 0.36225743447580644,
+          "baseline_winner": 0.36225743447580644,
+          "candidate_winner": 0.36225743447580644
+        },
+        "merged": {
+          "true": 0.31001134072580644,
+          "baseline_winner": 0.31001134072580644,
+          "candidate_winner": 0.31001134072580644
+        }
+      }
+    }
+  ],
+  "unchanged_early_routes": 155,
+  "power_samples": 374,
+  "source_templates_unchanged": true,
+  "limits": "Development cohort replay, no independent generalization or live camera claim; unknown-person rejection remains uncalibrated; not production deployed. RETRY never counts as correct. Timings include read/ROI/features/matching/HTTP, exclude camera acquisition and external upload."
+}
