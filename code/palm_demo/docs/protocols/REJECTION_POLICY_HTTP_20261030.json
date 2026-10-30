@@ -1,0 +1,677 @@
+{
+  "http_sha256": "f307a6a33bbeade63f329e2dd029d72e9855446a24d993b68ba49867a4579cab",
+  "audit_sha256": "cdeabcac14ddf9c501c3c510741b90a2b0c558e2ecc2d764bdd13c61bd3be848",
+  "policy": {
+    "version": 1,
+    "name": "development-margin-0.02-v1",
+    "profiles": {
+      "fastcc": {
+        "max_distance": 1.0,
+        "min_margin": 0.02
+      },
+      "compnet": {
+        "max_distance": 0.32,
+        "min_margin": 0.08
+      },
+      "quality": {
+        "max_distance": 0.32,
+        "min_margin": 0.08
+      }
+    }
+  },
+  "gateway_code_sha256": {
+    "gallery.py": "bb356e01502f7f70cb328d1dea82ed88506d5aa9f33ffda4ac2546a76af02e58",
+    "demo_flow.py": "1c86a60fe107fe54505035011623d316e77c5cbdf54d1938fcd3e162c9712968"
+  },
+  "policy_code_sha256": "bc2bcc9e13593fdf382d8509517eb2dac78055a9ed9e1da74a5d04f296e8bc87",
+  "evaluator_sha256": "f761f30b77fa90f800adbe75768fc675b0ba953cc3480eb884118f797ecf7220",
+  "summary": {
+    "known": {
+      "total": 17,
+      "correct_accept": 10,
+      "wrong_accept": 0,
+      "correct_falsely_rejected": 4,
+      "rejected": 7
+    },
+    "unknown": {
+      "total": 17,
+      "accepted": 1,
+      "rejected": 16
+    }
+  },
+  "groups": [
+    {
+      "case": "new-camera-original",
+      "mode": "known",
+      "removed_labels": 0,
+      "retained_labels": 6,
+      "queries": [
+        {
+          "sample_suffix": "a4677ec5",
+          "http_status": 200,
+          "http_ms": 4298.97,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3084353298611111,
+          "second_score": 0.3836000504032258,
+          "gap": 0.0751647205421147,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "fbfa000c",
+          "http_status": 200,
+          "http_ms": 1160.95,
+          "status": "MATCH",
+          "reason": null,
+          "route": "pose_confident",
+          "score": 0.2759734122983871,
+          "second_score": 0.37646484375,
+          "gap": 0.10049143145161288,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        }
+      ]
+    },
+    {
+      "case": "new-camera-reverse",
+      "mode": "known",
+      "removed_labels": 0,
+      "retained_labels": 6,
+      "queries": [
+        {
+          "sample_suffix": "08ceb3b7",
+          "http_status": 200,
+          "http_ms": 3958.4,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.36302021403091556,
+          "second_score": 0.37018019153225806,
+          "gap": 0.007159977501342507,
+          "previously_correct": true,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "f7ec5fe1",
+          "http_status": 200,
+          "http_ms": 15218.56,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3583984375,
+          "second_score": 0.3936491935483871,
+          "gap": 0.03525075604838712,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "89bd294d",
+          "http_status": 200,
+          "http_ms": 3945.3,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3155241935483871,
+          "second_score": 0.38627772177419356,
+          "gap": 0.07075352822580644,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "e022bbe6",
+          "http_status": 200,
+          "http_ms": 1818.36,
+          "status": "MATCH",
+          "reason": null,
+          "route": "legacy_confident",
+          "score": 0.28466796875,
+          "second_score": 0.3795677923387097,
+          "gap": 0.09489982358870969,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "known",
+      "removed_labels": 0,
+      "retained_labels": 11,
+      "queries": [
+        {
+          "sample_suffix": "61f30739",
+          "http_status": 200,
+          "http_ms": 10306.34,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3740234375,
+          "second_score": 0.389346918202765,
+          "gap": 0.015323480702765013,
+          "previously_correct": false,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "4ab6388d",
+          "http_status": 200,
+          "http_ms": 8199.59,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.37190860215053767,
+          "second_score": 0.3759765625,
+          "gap": 0.0040679603494623295,
+          "previously_correct": true,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "8d6441d2",
+          "http_status": 200,
+          "http_ms": 9290.98,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.37472098214285715,
+          "second_score": 0.375,
+          "gap": 0.0002790178571428492,
+          "previously_correct": false,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "c6594831",
+          "http_status": 200,
+          "http_ms": 8957.72,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.36449932795698925,
+          "second_score": 0.37515751008064513,
+          "gap": 0.01065818212365588,
+          "previously_correct": true,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "0d781b96",
+          "http_status": 200,
+          "http_ms": 10059.87,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.28076171875,
+          "second_score": 0.380859375,
+          "gap": 0.10009765625,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "37d0c433",
+          "http_status": 200,
+          "http_ms": 8000.61,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.345703125,
+          "second_score": 0.360871345766129,
+          "gap": 0.015168220766129004,
+          "previously_correct": false,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "98185319",
+          "http_status": 200,
+          "http_ms": 1508.92,
+          "status": "MATCH",
+          "reason": null,
+          "route": "pose_confident",
+          "score": 0.18598790322580644,
+          "second_score": 0.38733451354679804,
+          "gap": 0.2013466103209916,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        }
+      ]
+    },
+    {
+      "case": "old-camera-reverse",
+      "mode": "known",
+      "removed_labels": 0,
+      "retained_labels": 11,
+      "queries": [
+        {
+          "sample_suffix": "91d208df",
+          "http_status": 200,
+          "http_ms": 9493.95,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.35346837197580644,
+          "second_score": 0.3800560735887097,
+          "gap": 0.026587701612903247,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "fa7726ef",
+          "http_status": 200,
+          "http_ms": 4993.23,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.36928184093437155,
+          "second_score": 0.37646484375,
+          "gap": 0.0071830028156284476,
+          "previously_correct": true,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "9cc52f1c",
+          "http_status": 200,
+          "http_ms": 6372.0,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.31001134072580644,
+          "second_score": 0.38155241935483875,
+          "gap": 0.0715410786290323,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        },
+        {
+          "sample_suffix": "bf02ea6b",
+          "http_status": 200,
+          "http_ms": 1506.42,
+          "status": "MATCH",
+          "reason": null,
+          "route": "pose_confident",
+          "score": 0.273894279233871,
+          "second_score": 0.3641475554435484,
+          "gap": 0.09025327620967738,
+          "previously_correct": true,
+          "correct": true,
+          "no_payment_token": false
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 4,
+      "queries": [
+        {
+          "sample_suffix": "8ab53868",
+          "http_status": 200,
+          "http_ms": 14305.26,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3883253528225806,
+          "second_score": 0.3909449084051724,
+          "gap": 0.0026195555825917483,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "fbfa000c",
+          "http_status": 200,
+          "http_ms": 14478.61,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.380859375,
+          "second_score": 0.3837890625,
+          "gap": 0.0029296875,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 4,
+      "queries": [
+        {
+          "sample_suffix": "f49459c4",
+          "http_status": 200,
+          "http_ms": 5256.17,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.38330078125,
+          "second_score": 0.3974609375,
+          "gap": 0.01416015625,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "a4677ec5",
+          "http_status": 200,
+          "http_ms": 4188.35,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3876953125,
+          "second_score": 0.3878370715725806,
+          "gap": 0.00014175907258062725,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "new-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 4,
+      "queries": [
+        {
+          "sample_suffix": "13cf34d4",
+          "http_status": 200,
+          "http_ms": 12079.41,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3798828125,
+          "second_score": 0.38427734375,
+          "gap": 0.00439453125,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "fc94c36e",
+          "http_status": 200,
+          "http_ms": 10944.05,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.3858524445564516,
+          "second_score": 0.38744329637096775,
+          "gap": 0.0015908518145161255,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 9,
+      "queries": [
+        {
+          "sample_suffix": "98185319",
+          "http_status": 200,
+          "http_ms": 6145.23,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.38733451354679804,
+          "second_score": 0.3878024193548387,
+          "gap": 0.0004679058080406806,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "18397071",
+          "http_status": 200,
+          "http_ms": 6878.21,
+          "status": "MATCH",
+          "reason": null,
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.34554561491935487,
+          "second_score": 0.37451171875,
+          "gap": 0.02896610383064513,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": false
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 9,
+      "queries": [
+        {
+          "sample_suffix": "7a477730",
+          "http_status": 200,
+          "http_ms": 8715.24,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.35302734375,
+          "second_score": 0.36643145161290325,
+          "gap": 0.013404107862903247,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "c6594831",
+          "http_status": 200,
+          "http_ms": 8292.99,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.37515751008064513,
+          "second_score": 0.38101688508064513,
+          "gap": 0.005859375,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 9,
+      "queries": [
+        {
+          "sample_suffix": "431bc4e0",
+          "http_status": 200,
+          "http_ms": 10305.52,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.37890625,
+          "second_score": 0.38623046875,
+          "gap": 0.00732421875,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "fa8b23e9",
+          "http_status": 200,
+          "http_ms": 10778.76,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.36865234375,
+          "second_score": 0.3691427975528365,
+          "gap": 0.0004904538028365213,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 9,
+      "queries": [
+        {
+          "sample_suffix": "eeb4193e",
+          "http_status": 200,
+          "http_ms": 8074.69,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.38330078125,
+          "second_score": 0.3881138392857143,
+          "gap": 0.004813058035714302,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "fee64e87",
+          "http_status": 200,
+          "http_ms": 8023.73,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.369140625,
+          "second_score": 0.3740591397849462,
+          "gap": 0.004918514784946204,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 1,
+      "retained_labels": 10,
+      "queries": [
+        {
+          "sample_suffix": "b09b8f7e",
+          "http_status": 200,
+          "http_ms": 10228.86,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.373764308012487,
+          "second_score": 0.3795047883064516,
+          "gap": 0.005740480293964623,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "mode": "whole_person_removed",
+      "removed_labels": 2,
+      "retained_labels": 9,
+      "queries": [
+        {
+          "sample_suffix": "6639d661",
+          "http_status": 200,
+          "http_ms": 10330.22,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.37913411458333335,
+          "second_score": 0.3795362903225806,
+          "gap": 0.0004021757392472791,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        },
+        {
+          "sample_suffix": "90b712df",
+          "http_status": 200,
+          "http_ms": 8507.1,
+          "status": "RETRY",
+          "reason": "POLICY_AMBIGUOUS_MARGIN",
+          "route": "exhaustive_retained_fastcc_pilot",
+          "score": 0.38330078125,
+          "second_score": 0.38732489224137934,
+          "gap": 0.004024110991379337,
+          "previously_correct": null,
+          "correct": false,
+          "no_payment_token": true
+        }
+      ]
+    }
+  ],
+  "full168_postranking": {
+    "correct_accept": 161,
+    "wrong_accept": 0,
+    "correct_falsely_rejected": 4,
+    "wrong_blocked": 3,
+    "rejected": 7
+  },
+  "fixed_grid_unknown": [
+    {
+      "margin": 0.01,
+      "correct_accept": 162,
+      "known_wrong_accept": 2,
+      "known_rejected": 4,
+      "correct_falsely_rejected": 3,
+      "unknown_accepted": 3,
+      "unknown_rejected": 14,
+      "scope": "Same preregistered four margin points applied post hoc to all 17 recorded removal-query scores; only .02 was exercised as the live HTTP policy; no independent calibration"
+    },
+    {
+      "margin": 0.02,
+      "correct_accept": 161,
+      "known_wrong_accept": 0,
+      "known_rejected": 7,
+      "correct_falsely_rejected": 4,
+      "unknown_accepted": 1,
+      "unknown_rejected": 16,
+      "scope": "Same preregistered four margin points applied post hoc to all 17 recorded removal-query scores; only .02 was exercised as the live HTTP policy; no independent calibration"
+    },
+    {
+      "margin": 0.04,
+      "correct_accept": 159,
+      "known_wrong_accept": 0,
+      "known_rejected": 9,
+      "correct_falsely_rejected": 6,
+      "unknown_accepted": 0,
+      "unknown_rejected": 17,
+      "scope": "Same preregistered four margin points applied post hoc to all 17 recorded removal-query scores; only .02 was exercised as the live HTTP policy; no independent calibration"
+    },
+    {
+      "margin": 0.08,
+      "correct_accept": 156,
+      "known_wrong_accept": 0,
+      "known_rejected": 12,
+      "correct_falsely_rejected": 9,
+      "unknown_accepted": 0,
+      "unknown_rejected": 17,
+      "scope": "Same preregistered four margin points applied post hoc to all 17 recorded removal-query scores; only .02 was exercised as the live HTTP policy; no independent calibration"
+    }
+  ],
+  "warning": "Full168 figures use saved retained-evidence scores through the actual policy; 17 known plus 17 person-removed original-image HTTP requests are new observations. Person removal uses already-exposed development images, not independently collected strangers or an unseen-training-person claim. No rejection is counted as correct recognition.",
+  "source_templates_unchanged": true,
+  "all_transactions_unchanged": true,
+  "power_samples": 70
+}

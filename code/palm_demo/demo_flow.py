@@ -11,6 +11,7 @@ from typing import Any, Callable
 import numpy as np
 
 from gallery import Gallery
+from acceptance_policy import load_acceptance_policy
 from payment import PaymentService
 from templates import TemplateStore, safe_user_id
 
@@ -21,12 +22,14 @@ class DemoFlow:
         self.capture_feature = capture_feature
         self.capture_enrollment_feature = capture_enrollment_feature or capture_feature
         self.roi_geometry = roi_geometry
+        acceptance_policy = load_acceptance_policy(runtime / "demo_acceptance_policy.json")
         self.store = TemplateStore(runtime / "demo_templates",
                                    compression_level=getattr(algorithm, 'template_compression_level', None))
         self.payments = PaymentService(runtime / "demo_payment.sqlite3")
-        # Ranking only; no open-set threshold can be calibrated from one person's two hands.
+        # Ranking-only remains the default. Opt-in rejection is explicit and
+        # keeps independent profiles for ordinary, angular and weighted scores.
         required = {"roi_geometry": roi_geometry, "algorithm": algorithm.name} if roi_geometry is not None else None
-        self.gallery = Gallery(self.store, algorithm, threshold=1.0, required_metadata=required)
+        self.gallery = Gallery(self.store, algorithm, threshold=1.0, required_metadata=required, acceptance_policy=acceptance_policy)
         self.lock = threading.Lock()
         self.pending: dict[str, tuple[str, int, float]] = {}
 

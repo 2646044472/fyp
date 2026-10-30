@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 import threading
 from collections import OrderedDict
@@ -29,7 +30,7 @@ def load_policy(path: str | Path | None = None) -> dict[str, Any]:
 
 
 class Gallery:
-    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0, *, required_metadata: dict[str, Any] | None = None) -> None:
+    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0, *, required_metadata: dict[str, Any] | None = None, acceptance_policy=None) -> None:
         if isinstance(threshold, dict):
             policy = threshold
             threshold = float(policy.get("threshold", 0.28))
@@ -39,6 +40,7 @@ class Gallery:
         self.threshold = float(threshold)
         self.min_margin = float(min_margin)
         self.required_metadata = dict(required_metadata or {})
+        self.acceptance_policy = acceptance_policy
         self._prepared_cache = OrderedDict()
         self._prepared_cache_bytes = 0
         self.prepared_cache_limit_bytes = getattr(algorithm, 'prepared_cache_limit_bytes', 64 * 1024 * 1024)
@@ -120,6 +122,8 @@ class Gallery:
             ranked.append((float(score), user_id))
         if global_mode and groups:
             ranked.extend((float(score),user_id) for user_id,score in self.algorithm.score_gallery(prepared_probe,groups).items())
+        if any(not math.isfinite(score) for score, user_id in ranked):
+            return IdentificationResult("RETRY", None, None, None, (time.perf_counter() - started) * 1000, "INVALID_MATCH_SCORES")
         ranked.sort(key=lambda item: item[0])
         elapsed = (time.perf_counter() - started) * 1000
         if not ranked:
@@ -130,4 +134,9 @@ class Gallery:
             return IdentificationResult("UNKNOWN", None, best, second, elapsed, "SCORE_ABOVE_THRESHOLD")
         if second is not None and self.min_margin > 0 and second - best < self.min_margin:
             return IdentificationResult("RETRY", None, best, second, elapsed, "AMBIGUOUS_MARGIN")
+        if self.acceptance_policy is not None:
+            rejection = self.acceptance_policy.rejection(best, second, getattr(prepared_probe, 'route', None))
+            if rejection is not None:
+                status, reason = rejection
+                return IdentificationResult(status, None, best, second, elapsed, reason)
         return IdentificationResult("MATCH", user_id, best, second, elapsed)

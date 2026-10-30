@@ -234,7 +234,13 @@ Pi 4, excluding ROI extraction. EDM had a wider 0.02890 gap but took about
 218 ms per extraction and 25 ms per comparison. OC was selected for the original
 snapshot for its lower CPU cost; this single-person snapshot does not establish general
 recognition accuracy. The demo continues to rank compatible enrolled templates
-without a calibrated open-set acceptance threshold.
+without a calibrated open-set acceptance threshold by default. Optional staged-matcher
+rejection is configured with `runtime/demo_acceptance_policy.json`; it keeps separate
+FastCC, CompNet and quality-score profiles and suppresses identity/payment tokens on
+rejection. The development example loses four previously correct decisions while
+blocking three wrong decisions on the retained-evidence cohort; it is not a calibrated
+default. See [rejection policy and validation](docs/PI5_REJECTION_POLICY_20261030.md)
+before enabling it. Missing files keep ranking-only mode; malformed files fail startup.
 
 The expanded 2026-10-13 snapshot contains two participants, four labelled palms
 and 40 full-resolution originals. All 40 ONNX crops passed the geometry guard;
