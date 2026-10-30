@@ -39,6 +39,14 @@ Wrong suffix `37d0c433` has distance **.3457031250** and gap **.0151682208**. It
 
 The earlier geometric-support rejection rule remains rejected: it falsely blocked eight originally correct exhaustive decisions and was not adopted as this mechanism.
 
+## Accuracy improvements versus threshold calibration
+
+The user's constraint is to allow modest threshold calibration while **not relying on threshold changes as the main fix**. The .01/.02/.04/.08 rows are diagnostic sensitivity results; none was selected as the production default. This post-ranking layer does not improve genuine recognition: the .02 point loses four correct results while converting three errors to RETRY. It must not replace the primary goal of improving ROI, correspondence/registration and identity evidence so difficult queries become correct MATCHes.
+
+For subsequent algorithm candidates, first hold the scoring acceptance policy fixed and measure genuine wrong-to-correct changes alongside correct-to-wrong and correct-to-rejected losses. Report algorithm gains separately from any later small threshold calibration. If calibration is justified, declare a limited range and the score family before testing, use development/calibration data only, and lock the resulting policy before a separate evaluation. Do not widen the search until familiar failures disappear, make person/image exceptions, or tune on the new 17 removal queries now that their outcomes are known. Unknown-person errors, all rejected correct queries and timing tails remain visible.
+
+Future evidence-consistency or quality rules also require this accounting; calling a rule structural does not guarantee generalization. Previously rejected geometric-support rules demonstrate that risk. Independent people/sessions and realistic gallery size are needed to assess whether a new rule improves the tradeoff.
+
 ![Development FastCC rejection tradeoff](figures/rejection_policy_20261030.png)
 
 The plot excludes the 36 angular and five weighted-score decisions rather than mixing their scales. Red crosses are the three wrong identities; orange points are correct identities blocked by the .02 margin. The lower shaded area is rejected. This is the same saved-score audit, not additional independent observations.
@@ -85,4 +93,4 @@ Actual source hashes, all 34 scalar outcomes (including the leaked unknown), and
 - [DEVELOPMENT_REJECTION_POLICY_20261030.json](protocols/DEVELOPMENT_REJECTION_POLICY_20261030.json): **experimental .02 example**, not a calibrated recommended default.
 - [REJECTION_POLICY_HTTP_20261030.json](protocols/REJECTION_POLICY_HTTP_20261030.json): actual HTTP validation and the preserved unknown failure.
 
-To opt in, copy an evaluated policy to the intended runtime as `demo_acceptance_policy.json` and restart that service. Remove that file and restart to return to ranking-only behavior. The policy is independent of the retained-evidence repair: reproducing the table requires that repair's identical scoring reference, not an older production matcher. The committed example is not copied into production by this experiment. A one-candidate gallery cannot supply a margin and is intentionally rejected under this mechanism.
+To opt in, supply a separately validated policy to the intended runtime as `demo_acceptance_policy.json` and restart that service. The committed development .02 file reproduces this experiment and is not a recommended deployment configuration. Remove the runtime file and restart to return to ranking-only behavior. The policy is independent of the retained-evidence repair: reproducing the table requires that repair's identical scoring reference, not an older production matcher. The committed example is not copied into production by this experiment. A one-candidate gallery cannot supply a margin and is intentionally rejected under this mechanism.
