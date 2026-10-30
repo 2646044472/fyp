@@ -113,3 +113,35 @@ def test_report_keeps_primary_duplicates_and_unregistered_failures(modules,tmp_p
     value=report.summarize(rows)
     assert value['total']==3 and sum(value['outcomes'].values())==3
     assert value['accuracy']==1/3 and value['correct_within_2500']==1
+
+
+def test_supervisor_continuation_does_not_select_on_correctness(modules,monkeypatch,tmp_path):
+    _,runner=modules;supervisor=importlib.import_module('supervise_terminal_smpd')
+    report=importlib.import_module('report_terminal_smpd')
+    p={'run_fingerprint':'F'};op={'operator_fingerprint':'O','selection':'operational only'}
+    monkeypatch.setattr(supervisor,'validate_lock',lambda root:(p,op))
+    monkeypatch.setattr(runner,'verify',lambda *args,**kwargs:None)
+    monkeypatch.setattr(runner,'resources_ok',lambda *args,**kwargs:{'available_bytes':12*1024**3})
+    values=[dict(capture={'input_sha256':'S'},source_sha256='S',http_status=200,
+        terminal_rf={'policy':runner.POLICY,'unknown_calls':0},ms=4000,correct=False),
+        dict(capture={'input_sha256':'T'},source_sha256='T',http_status=400,terminal_rf=None,ms=500,correct=False)]
+    summary=dict(status={'state':'paused_preflight'},completed_queries=2,
+        fixed_registration_attempts_completed=460,registered_identities=76,journal_tip='J',
+        overall={'correct':0,'wrong':1,'processing_failure':1})
+    monkeypatch.setattr(report,'snapshot',lambda root:(summary,values))
+    receipt=supervisor.validate_preflight(tmp_path)
+    assert receipt['allowed'] and receipt['completed_prefix']==2
+    values[0]['terminal_rf']['unknown_calls']=1
+    with pytest.raises(ValueError,match='trace'):supervisor.validate_preflight(tmp_path)
+
+
+@pytest.mark.parametrize('state,stop', [('failed_preserving_prefix',False),('query_checkpoint',True)])
+def test_supervisor_never_restarts_failure_or_user_stop(modules,monkeypatch,tmp_path,state,stop):
+    j,_=modules;s=importlib.import_module('supervise_terminal_smpd');(tmp_path/'supervision').mkdir()
+    j.atomic(tmp_path/'status.json',dict(state=state,completed_queries=0))
+    if stop:(tmp_path/'STOP').touch()
+    monkeypatch.setattr(s,'validate_lock',lambda root:None)
+    def forbidden(*args,**kwargs):raise AssertionError('Must not start a worker')
+    monkeypatch.setattr(s.subprocess,'Popen',forbidden)
+    s.watch(tmp_path)
+    assert j.load(tmp_path/'supervisor-status.json')['state'] in ('stopped_by_STOP','worker_failed_no_restart')
