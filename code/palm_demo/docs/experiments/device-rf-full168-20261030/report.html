@@ -1,0 +1,28 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>滤波有效支持完整回归</title>
+<style>body{font:16px/1.7 system-ui;max-width:1400px;margin:40px auto;padding:0 24px;background:#101722;color:#e9eff8}table{border-collapse:collapse;font-size:13px}td,th{border:1px solid #536780;padding:6px}a{color:#95d1ff}</style>
+<h1>统一排除滤波补零响应：完整 168 张设备回归</h1>
+<p><b>真正纠错 1，原正确损失 0。</b>裁定：Windows paired accuracy regression passed; latency tradeoff remains, no demo replacement or Pi speed claim。标准版未改、未部署。拒认不计正确。</p>
+<p>保持原 ROI、特征、所有身份、五帧聚合和全部阈值；唯一变化是在普通 FastCC 的所有阶段中，只比较具有完整 17×17 原图支持的编码响应，并使用每个位移实际有效重叠数作分母。七张只读观测的8081次比较均验证了支持范围；固定小试纠正一张且不损失正确，才进入本次回归。</p>
+<table><tr><th>版本</th><th>范围</th><th>查询</th><th>正确</th><th>误认</th><th>拒认</th><th>处理失败</th><th>≤2.5秒正确</th><th>P50秒</th><th>P95秒</th><th>最长秒</th></tr><tr><td>frozen-standard</td><td>overall</td><td>168</td><td>165</td><td>3</td><td>0</td><td>0</td><td>158</td><td>0.724</td><td>3.270</td><td>7.946</td></tr><tr><td>frozen-standard</td><td>new-camera-original</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>29</td><td>0.554</td><td>1.211</td><td>2.149</td></tr><tr><td>frozen-standard</td><td>new-camera-reverse</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>28</td><td>0.564</td><td>1.983</td><td>7.946</td></tr><tr><td>frozen-standard</td><td>old-camera-original</td><td>55</td><td>52</td><td>3</td><td>0</td><td>0</td><td>49</td><td>0.733</td><td>5.280</td><td>6.009</td></tr><tr><td>frozen-standard</td><td>old-camera-reverse</td><td>55</td><td>55</td><td>0</td><td>0</td><td>0</td><td>52</td><td>0.727</td><td>2.320</td><td>5.598</td></tr><tr><td>candidate</td><td>overall</td><td>168</td><td>166</td><td>2</td><td>0</td><td>0</td><td>156</td><td>0.741</td><td>4.616</td><td>7.580</td></tr><tr><td>candidate</td><td>new-camera-original</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>27</td><td>0.593</td><td>5.189</td><td>7.508</td></tr><tr><td>candidate</td><td>new-camera-reverse</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>28</td><td>0.551</td><td>1.992</td><td>7.580</td></tr><tr><td>candidate</td><td>old-camera-original</td><td>55</td><td>53</td><td>2</td><td>0</td><td>0</td><td>49</td><td>0.740</td><td>5.431</td><td>6.462</td></tr><tr><td>candidate</td><td>old-camera-reverse</td><td>55</td><td>55</td><td>0</td><td>0</td><td>0</td><td>52</td><td>0.753</td><td>2.356</td><td>6.213</td></tr><tr><td>fresh-standard</td><td>overall</td><td>168</td><td>165</td><td>3</td><td>0</td><td>0</td><td>158</td><td>0.719</td><td>3.246</td><td>7.290</td></tr><tr><td>fresh-standard</td><td>new-camera-original</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>29</td><td>0.552</td><td>1.124</td><td>2.117</td></tr><tr><td>fresh-standard</td><td>new-camera-reverse</td><td>29</td><td>29</td><td>0</td><td>0</td><td>0</td><td>28</td><td>0.529</td><td>1.971</td><td>7.290</td></tr><tr><td>fresh-standard</td><td>old-camera-original</td><td>55</td><td>52</td><td>3</td><td>0</td><td>0</td><td>49</td><td>0.715</td><td>5.118</td><td>5.781</td></tr><tr><td>fresh-standard</td><td>old-camera-reverse</td><td>55</td><td>55</td><td>0</td><td>0</td><td>0</td><td>52</td><td>0.737</td><td>2.328</td><td>5.549</td></tr></table>
+<p>每个完整运行均重新执行34个五帧录入请求，启动、录入HTTP、最后帧到ready响应、录入后即时查询及完整图库首查询分别在 summary.json 中。候选的34组注册特征数组与原基准全部逐字节相同；没有因结果调整注册数据。</p>
+<p>新的标准复跑是否完成：True；与冻结电脑基准逐条整库分数、身份和路径完全一致：168/168。先候选、后标准的顺序已在完整回归前固定。表中是电脑时长，不能声称Pi加速，也不能把小幅波动当成显著差异。</p>
+<h2>全部纠错与损失</h2><pre>{
+  &quot;corrected&quot;: [
+    {
+      &quot;case&quot;: &quot;old-camera-original&quot;,
+      &quot;sample&quot;: &quot;20261013T111358589224Z-37d0c433&quot;,
+      &quot;before_correct&quot;: false,
+      &quot;after_correct&quot;: true,
+      &quot;before_status&quot;: &quot;MATCH&quot;,
+      &quot;after_status&quot;: &quot;MATCH&quot;,
+      &quot;before_user&quot;: &quot;old-camera-kss-left&quot;,
+      &quot;after_user&quot;: &quot;old-camera-cyw-real-left&quot;,
+      &quot;before_route&quot;: &quot;exhaustive_retained_fastcc_pilot&quot;,
+      &quot;after_route&quot;: &quot;exhaustive_retained_fastcc_pilot&quot;,
+      &quot;reference_ms&quot;: 4491.24,
+      &quot;candidate_ms&quot;: 4541.84
+    }
+  ],
+  &quot;lost_correct&quot;: []
+}</pre>
+<p><a href="summary.json">完整标量报告</a> · <a href="decisions.csv">全部查询账本</a>。这是已暴露开发数据；新会话、陌生人拒识、Pi速度和40人规模均须另行验证。</p></html>

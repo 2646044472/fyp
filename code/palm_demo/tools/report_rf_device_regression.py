@@ -41,15 +41,19 @@ def build(reference,candidate,fresh=None):
         transitions.append(dict(case=key[0],sample=key[1],before_correct=before['correct'],after_correct=after['correct'],
             before_status=before['result'].get('status'),after_status=after['result'].get('status'),
             before_user=before['result'].get('user_id'),after_user=after['result'].get('user_id'),
-            candidate_ms=after['ms']))
+            before_route=before['result'].get('recognition_route'),after_route=after['result'].get('recognition_route'),
+            reference_ms=before['ms'],candidate_ms=after['ms']))
     corrections=sum(not t['before_correct'] and t['after_correct'] for t in transitions)
     losses=sum(t['before_correct'] and not t['after_correct'] for t in transitions)
+    timely_lost=[t for t in transitions if t['before_correct'] and t['reference_ms']<=2500 and not (t['after_correct'] and t['candidate_ms']<=2500)]
+    timely_gained=[t for t in transitions if t['after_correct'] and t['candidate_ms']<=2500 and not (t['before_correct'] and t['reference_ms']<=2500)]
     result=dict(complete=True,scope='Windows same-device full168 RF-distance experiment; not Pi latency or independent generalization.',
         standard_tag='standard-device-20261030',distance_policy=candidate['distance_policy'],
         thresholds=candidate['thresholds'],kernel_sha256=candidate['kernel_sha256'],evaluator_sha256=candidate['evaluator_sha256'],
         variants=variants,transitions=transitions,genuine_corrections=corrections,lost_correct=losses,
         all34_enrollment_feature_arrays_equal=True,originals_unchanged=True,
         fresh_standard_run=fresh is not None,fresh_standard_exact_decisions=None,
+        timely_correct_lost_vs_frozen=timely_lost,timely_correct_gained_vs_frozen=timely_gained,
         accuracy_gate=corrections>0 and losses==0 and variants['candidate']['payment_guards_complete'] and variants['candidate']['enrollment']['ready']==34,
         promoted=False,decisions=[],
         limits=['Entire cohort is exposed development data; no unseen-session/unknown-person validation.',
@@ -63,8 +67,11 @@ def build(reference,candidate,fresh=None):
         result['fresh_standard_exact_decisions']=sum(refs[key]['http_status']==q['http_status'] and all(refs[key]['result'].get(k)==q['result'].get(k) for k in fields)
             and refs[key]['diagnostics']['scores']==q['diagnostics']['scores'] for key,q in freshmap.items())
     result['paired_regression_qualified']=result['accuracy_gate'] and fresh is not None and result['fresh_standard_exact_decisions']==168
+    result['paired_accuracy_regression_pass']=result['paired_regression_qualified']
+    result['timely_coverage_nonregression']=None if fresh is None else variants['candidate']['overall']['correct_within_2500']>=variants['fresh-standard']['overall']['correct_within_2500']
+    result['demo_replacement_qualified']=False  # No Pi regression/promotion; exposed-PC accuracy alone is insufficient.
     result['disposition']='Reject without parameter scan' if not result['accuracy_gate'] else (
-        'Full Windows paired regression qualified; Pi regression still required, standard remains frozen' if result['paired_regression_qualified'] else 'Accuracy gate passed; fresh standard/pipeline parity still required')
+        'Windows paired accuracy regression passed; latency tradeoff remains, no demo replacement or Pi speed claim' if result['paired_regression_qualified'] else 'Accuracy gate passed; fresh standard/pipeline parity still required')
     for name,report in [('frozen-standard',reference),('candidate',candidate)]+([('fresh-standard',fresh)] if fresh is not None else []):
         for key,q in mapping(report).items():
             result['decisions'].append(dict(variant=name,case=key[0],sample=key[1],identity=q['identity'],correct=q['correct'],http_status=q['http_status'],ms=q['ms'],
