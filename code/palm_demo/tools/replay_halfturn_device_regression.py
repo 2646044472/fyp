@@ -54,11 +54,14 @@ def main():
     verify_sources();rows=json.loads((a.audit/'device-manifest-local.json').read_text());assert len(rows)==169
     assert all(sha(r['original'])==r['sha256'] for r in rows)
     source=json.loads((APP/'runtime/pi5-under2-20261028/active169-baseline-20261029/protocol.json').read_text())
+    # The historical split protocol names v24. This replay explicitly tests v26.
+    # Never let an outer report label disagree with the actual run_case argument.
+    source=dict(source,matcher=MATCHER)
     assert sum(len(c['queries']) for c in source['cases'])==168
     a.output.mkdir(exist_ok=False);os.environ['PALM_COMPNET_MODEL_ROOT']=str(a.model.resolve());cv2.setNumThreads(1)
     if os.name=='nt':psutil.Process().nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     installed=install_retained_evidence_pilot()
-    report=dict(complete=False,standard_tag='standard-device-20261030',matcher=MATCHER,
+    report=dict(complete=False,standard_tag='standard-device-20261030',matcher=MATCHER,executed_matcher=source['matcher'],
         scope=__doc__,audit_sha256=sha(a.audit/'results.json'),evaluator_sha256=source_sha(__file__),
         candidate_sha256=audit['candidate_sha256'],model_sha256=sha(a.model/'compnet-tongji.onnx'),
         variants={name:dict(runs=[],localizations=[]) for name in ('standard','candidate')},
@@ -80,6 +83,8 @@ def main():
         candidate=HalfTurnROIRecovery(engine) if active[0]=='candidate' else engine
         camera=ReplayCamera(False,candidate);debug_ui.common.RUNTIME=runtime
         app=debug_ui.App(camera,demo_matcher=matcher);app.demo_algorithm._retain_fastcc_evidence_pilot=True
+        assert matcher==MATCHER and app.demo_algorithm.name==MATCHER
+        assert type(app.demo_algorithm).__name__=='CompNetAlternateROIMatcher'
         assert app.demo.gallery.acceptance_policy is None
         original=candidate.extract
         def observe(image,*,side=128):
@@ -90,7 +95,8 @@ def main():
             return result
         # Object-local instrumentation; no class/source/production change.
         candidate.extract=observe
-        return app,camera,dict(total_ms=(time.perf_counter()-tick)*1000,registration='Windows unchanged OpenCV BF reference')
+        return app,camera,dict(total_ms=(time.perf_counter()-tick)*1000,registration='Windows unchanged OpenCV BF reference',
+            actual_matcher=app.demo_algorithm.name,actual_matcher_type=type(app.demo_algorithm).__name__)
     frozen.initialize=initialize
     try:
         for index,case in enumerate(source['cases']):

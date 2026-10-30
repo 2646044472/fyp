@@ -15,6 +15,11 @@ def load(path):return json.loads(path.read_text(encoding='utf-8'))
 
 def build(audit,regression,pilot):
     assert audit['complete'] and regression['complete'] and pilot['complete']
+    assert regression.get('executed_matcher')=='FastCCCompNetAlternateROI-v26-experimental', (
+        'Missing verified executed matcher: historical half-turn replay inherited v24 from the split protocol. '
+        'Its top-level v26 label is insufficient; see MATCHER_PROVENANCE_CORRECTION_20261030.md.')
+    assert all(run['startup'].get('actual_matcher')==regression['executed_matcher']
+        for variant in regression['variants'].values() for run in variant['runs'])
     assert audit['originals_unchanged'] and regression['originals_unchanged']
     assert pilot['originals_unchanged'] and pilot['source_templates_unchanged']
     results={}

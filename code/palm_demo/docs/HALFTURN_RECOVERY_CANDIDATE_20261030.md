@@ -1,5 +1,7 @@
 # Out-of-bounds half-turn ROI recovery — isolated candidate
 
+**2026-10-30 provenance correction:** the completed historical Windows HTTP run below actually executed **v24 + retained FastCC**, inherited from the nested split protocol, despite its outer report naming v26. Its numerical outcomes remain preserved but do **not** satisfy v26 device-regression requirements. The independent 169-frame ROI equality audit and the public v26 registration pilot remain observations within their stated scope. No candidate is cleared for promotion. See [correction](MATCHER_PROVENANCE_CORRECTION_20261030.md). The evaluator now passes the matcher explicitly and checks the instantiated class and per-case startup provenance; a verified v26 full168 run is still required.
+
 Prospective candidate fixed before its original-device audit. Standard remains tag `standard-device-20261030`; no standard/core source, model, acceptance threshold or runtime policy is changed. New implementation lives only in `tools/halfturn_roi_recovery.py` on the experiment branch, is never imported by production and has no identity/filename/score input.
 
 Motivation: development SMPD 008 F03 visibly includes the reference finger valleys but the original crop is just outside image bounds. Mapping a 180-degree input's prediction back produces an in-bounds, substantially overlapping crop. The matched 008 F00 control is already valid. This is a localization observation, not a recognition correction. Missing-valley side views are not required repair targets.
@@ -17,7 +19,7 @@ First audit all 169 unchanged original-device photos and the fixed development c
 
 The full public baseline continues on its separately locked source. Any overlapping local audit load must be disclosed alongside its Windows timing record. No exclusivity or measured acceleration is assumed.
 
-## Completed Windows evidence
+## Historical Windows v24 evidence (outer v26 label corrected above)
 
 All **169 original-device frames** retained their original raw ROI bytes, coordinates and diagnostics exactly; no retry triggered on those images. The paired real-HTTP regression then independently enrolled and queried both variants through all four frozen cases, **168 queries and 34 five-frame enrollments per variant**. Both gave **165 correct, three wrong, zero rejected, zero processing failures**. All 168 identity/score/runner-up/route decisions were exactly equal; no previously correct query was lost and no original mistake was corrected. Registration, confirmation, duplicate-confirmation blocking, cancellation and canceled-confirmation blocking passed in all cases. Source files and original bytes stayed unchanged.
 

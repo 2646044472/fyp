@@ -456,7 +456,7 @@
     372
   ],
   "genuine_device_corrections": 0,
-  "device_regression_pass": true,
+  "device_regression_pass": false,
   "public_mechanism_pilot": {
     "scope": "Single development person, five fixed enrollment originals and five later frontal queries in the complete 76/77 eligible gallery. Not full-cohort validation.",
     "registered_before": false,
@@ -515,7 +515,7 @@
     },
     "payment_transactions": 1
   },
-  "candidate_retained_for_further_evaluation": true,
+  "candidate_retained_for_further_evaluation": false,
   "promoted_to_standard": false,
   "limits": [
     "Frozen standard is unchanged; this remains an experiment.",
@@ -525,5 +525,15 @@
     "Windows CPU inference overlapped the full public baseline. No exclusive-CPU or Pi speed improvement claim.",
     "This failure-only recovery does not repair the existing valid-ROI mistakes or prove that long search tails are solved.",
     "Pi regression is still required before any device performance/promotion claim."
-  ]
+  ],
+  "provenance_correction": {
+    "date": "2026-10-30",
+    "declared_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+    "executed_device_http_matcher": "FastCCQualityEvidence-v24-experimental",
+    "retained_fastcc_enabled": true,
+    "v26_device_regression_qualified": false,
+    "numerical_results_preserved": true,
+    "reason": "Evaluator forwarded the unchanged nested split protocol matcher, which names v24; saved enrollment metadata confirms it. See docs/MATCHER_PROVENANCE_CORRECTION_20261030.md."
+  },
+  "historical_device_regression_pass": true
 }

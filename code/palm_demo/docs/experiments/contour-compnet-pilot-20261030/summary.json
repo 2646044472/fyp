@@ -1,0 +1,1183 @@
+{
+  "policy": "four-web-silhouette-compnet-pilot-v1",
+  "matcher": "FastCCCompNetAlternateROI-v26-experimental",
+  "selection": [
+    [
+      "new-camera-original",
+      "20261020T165422041006Z-fbfa000c"
+    ],
+    [
+      "new-camera-original",
+      "20261029T120016111983Z-a4677ec5"
+    ],
+    [
+      "new-camera-reverse",
+      "20261020T165359325609Z-e022bbe6"
+    ],
+    [
+      "new-camera-reverse",
+      "20261020T165604274940Z-f7ec5fe1"
+    ],
+    [
+      "new-camera-reverse",
+      "20261020T165616782627Z-47472168"
+    ],
+    [
+      "new-camera-reverse",
+      "20261029T084641478660Z-bf449fa2"
+    ],
+    [
+      "new-camera-reverse",
+      "20261029T115928114981Z-89bd294d"
+    ],
+    [
+      "new-camera-reverse",
+      "20261029T115936292698Z-08ceb3b7"
+    ],
+    [
+      "old-camera-original",
+      "20261012T124958024176Z-98185319"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111358589224Z-37d0c433"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111426234644Z-c6594831"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111434892907Z-0d781b96"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111438237239Z-4ab6388d"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111553178583Z-61f30739"
+    ],
+    [
+      "old-camera-original",
+      "20261013T111555214120Z-8d6441d2"
+    ],
+    [
+      "old-camera-reverse",
+      "20261012T124857785222Z-bf02ea6b"
+    ],
+    [
+      "old-camera-reverse",
+      "20261013T111409441196Z-fa7726ef"
+    ],
+    [
+      "old-camera-reverse",
+      "20261013T111418951110Z-9cc52f1c"
+    ],
+    [
+      "old-camera-reverse",
+      "20261013T111522159214Z-91d208df"
+    ]
+  ],
+  "selection_rule": "Every saved Windows-standard exhaustive query and wrong query, plus first timely correct per case; frozen before candidate scoring.",
+  "selection_reference_sha256": "e39412f12a56883c1c65ebf94fc1a137e0a32ce2166bd99ed692d9eb72235590",
+  "historical_reference_warning": "Selection reference was mislabeled v26 but executed the v24 matcher from its nested protocol. Its scores are not a v26 baseline; compare only fresh paired v26 executions here.",
+  "helper_sha256": "4201ec5239d92898ece21dda892d4bf8221785206405680b104fd7a24e654950",
+  "runner_sha256": "da32da87186cd726713591951fbd41ce9537c2b57cc6268a4b433ed6aba226b5",
+  "model_sha256": "b513e614a8b1a4448ef58c1b7f288f760fc991ce31d0a35079b4f9226146d1ea",
+  "host": "Windows PC; no Pi timing claim",
+  "thresholds": {
+    "early_distance": 0.32,
+    "early_margin": 0.08,
+    "final_distance": 1.0,
+    "final_margin": 0.0,
+    "rejection": false
+  },
+  "lost_correct": 0,
+  "genuine_corrections": 0,
+  "pilot_pass": false,
+  "next_step": "Reject candidate without parameter scan",
+  "originals_unchanged": true,
+  "templates_unchanged": true,
+  "complete": true,
+  "promoted": false,
+  "full168_candidate_regression_run": false,
+  "limitations": [
+    "Fixed exposed development pilot, not full168 accuracy or independent generalization.",
+    "Windows HTTP timing; no Pi acceleration or 40-person capacity claim.",
+    "Original five-frame enrollment payload reused; enrollment requests and incremental enrollment timing not measured.",
+    "Only cancellation/unchanged transaction count tested here; full payment guards require later full regression."
+  ],
+  "variants": {
+    "standard": {
+      "overall": {
+        "correct": 16,
+        "wrong_identity_accepted": 3,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 19,
+        "correct_within_2500": 9,
+        "accuracy": 0.8421052631578947,
+        "all_timing": {
+          "n": 19,
+          "p50_ms": 2766.88,
+          "p95_ms": 6189.446999999994,
+          "max_ms": 8656.59
+        },
+        "correct_timing": {
+          "n": 16,
+          "p50_ms": 2180.115,
+          "p95_ms": 6600.6375,
+          "max_ms": 8656.59
+        },
+        "routes": {
+          "pose_confident": 3,
+          "exhaustive_retained_fastcc_pilot": 13,
+          "legacy_confident": 1,
+          "compnet_evidence_confident": 2
+        }
+      },
+      "cases": {
+        "new-camera-original": {
+          "correct": 2,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 2,
+          "correct_within_2500": 2,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 2,
+            "p50_ms": 1326.305,
+            "p95_ms": 2164.4975,
+            "max_ms": 2257.63
+          },
+          "correct_timing": {
+            "n": 2,
+            "p50_ms": 1326.305,
+            "p95_ms": 2164.4975,
+            "max_ms": 2257.63
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 1
+          }
+        },
+        "new-camera-reverse": {
+          "correct": 6,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 6,
+          "correct_within_2500": 5,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 6,
+            "p50_ms": 1463.08,
+            "p95_ms": 7018.092500000001,
+            "max_ms": 8656.59
+          },
+          "correct_timing": {
+            "n": 6,
+            "p50_ms": 1463.08,
+            "p95_ms": 7018.092500000001,
+            "max_ms": 8656.59
+          },
+          "routes": {
+            "legacy_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3,
+            "compnet_evidence_confident": 2
+          }
+        },
+        "old-camera-original": {
+          "correct": 4,
+          "wrong_identity_accepted": 3,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 7,
+          "correct_within_2500": 1,
+          "accuracy": 0.5714285714285714,
+          "all_timing": {
+            "n": 7,
+            "p50_ms": 5178.58,
+            "p95_ms": 5873.821,
+            "max_ms": 5915.32
+          },
+          "correct_timing": {
+            "n": 4,
+            "p50_ms": 4910.29,
+            "p95_ms": 5804.808999999999,
+            "max_ms": 5915.32
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 6
+          }
+        },
+        "old-camera-reverse": {
+          "correct": 4,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 4,
+          "correct_within_2500": 1,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 4,
+            "p50_ms": 3226.205,
+            "p95_ms": 5240.749499999999,
+            "max_ms": 5515.2
+          },
+          "correct_timing": {
+            "n": 4,
+            "p50_ms": 3226.205,
+            "p95_ms": 5240.749499999999,
+            "max_ms": 5515.2
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3
+          }
+        }
+      },
+      "ready_by_case": {
+        "new-camera-original": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 6,
+          "startup_and_gallery_ready_ms": 8720.101699989755,
+          "offline_enrollment_copy_ms": 6429.72340004053,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 0,
+          "total_enrollment_frames": 30
+        },
+        "new-camera-reverse": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 6,
+          "startup_and_gallery_ready_ms": 8172.538099985104,
+          "offline_enrollment_copy_ms": 5984.846399980597,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 0,
+          "total_enrollment_frames": 30
+        },
+        "old-camera-original": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 11,
+          "startup_and_gallery_ready_ms": 15068.110499996692,
+          "offline_enrollment_copy_ms": 12891.381499997806,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 0,
+          "total_enrollment_frames": 55
+        },
+        "old-camera-reverse": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 11,
+          "startup_and_gallery_ready_ms": 15272.672899998724,
+          "offline_enrollment_copy_ms": 12472.954700002447,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 0,
+          "total_enrollment_frames": 55
+        }
+      }
+    },
+    "candidate": {
+      "overall": {
+        "correct": 16,
+        "wrong_identity_accepted": 3,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0,
+        "total": 19,
+        "correct_within_2500": 8,
+        "accuracy": 0.8421052631578947,
+        "all_timing": {
+          "n": 19,
+          "p50_ms": 2639.36,
+          "p95_ms": 6073.0939999999955,
+          "max_ms": 8000.57
+        },
+        "correct_timing": {
+          "n": 16,
+          "p50_ms": 2365.02,
+          "p95_ms": 6374.69,
+          "max_ms": 8000.57
+        },
+        "routes": {
+          "pose_confident": 3,
+          "exhaustive_retained_fastcc_pilot": 13,
+          "legacy_confident": 1,
+          "compnet_evidence_confident": 2
+        }
+      },
+      "cases": {
+        "new-camera-original": {
+          "correct": 2,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 2,
+          "correct_within_2500": 1,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 2,
+            "p50_ms": 1505.44,
+            "p95_ms": 2463.04,
+            "max_ms": 2569.44
+          },
+          "correct_timing": {
+            "n": 2,
+            "p50_ms": 1505.44,
+            "p95_ms": 2463.04,
+            "max_ms": 2569.44
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 1
+          }
+        },
+        "new-camera-reverse": {
+          "correct": 6,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 6,
+          "correct_within_2500": 5,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 6,
+            "p50_ms": 1389.06,
+            "p95_ms": 6540.577499999999,
+            "max_ms": 8000.57
+          },
+          "correct_timing": {
+            "n": 6,
+            "p50_ms": 1389.06,
+            "p95_ms": 6540.577499999999,
+            "max_ms": 8000.57
+          },
+          "routes": {
+            "legacy_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3,
+            "compnet_evidence_confident": 2
+          }
+        },
+        "old-camera-original": {
+          "correct": 4,
+          "wrong_identity_accepted": 3,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 7,
+          "correct_within_2500": 1,
+          "accuracy": 0.5714285714285714,
+          "all_timing": {
+            "n": 7,
+            "p50_ms": 5523.67,
+            "p95_ms": 5857.733,
+            "max_ms": 5858.93
+          },
+          "correct_timing": {
+            "n": 4,
+            "p50_ms": 4997.05,
+            "p95_ms": 5755.2609999999995,
+            "max_ms": 5832.73
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 6
+          }
+        },
+        "old-camera-reverse": {
+          "correct": 4,
+          "wrong_identity_accepted": 0,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0,
+          "total": 4,
+          "correct_within_2500": 1,
+          "accuracy": 1.0,
+          "all_timing": {
+            "n": 4,
+            "p50_ms": 3066.16,
+            "p95_ms": 5136.196999999999,
+            "max_ms": 5426.18
+          },
+          "correct_timing": {
+            "n": 4,
+            "p50_ms": 3066.16,
+            "p95_ms": 5136.196999999999,
+            "max_ms": 5426.18
+          },
+          "routes": {
+            "pose_confident": 1,
+            "exhaustive_retained_fastcc_pilot": 3
+          }
+        }
+      },
+      "ready_by_case": {
+        "new-camera-original": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 6,
+          "startup_and_gallery_ready_ms": 9488.92460000934,
+          "offline_enrollment_copy_ms": 6328.576100000646,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 1,
+          "total_enrollment_frames": 30
+        },
+        "new-camera-reverse": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 6,
+          "startup_and_gallery_ready_ms": 8491.180999961216,
+          "offline_enrollment_copy_ms": 6148.902699991595,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 0,
+          "total_enrollment_frames": 30
+        },
+        "old-camera-original": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 11,
+          "startup_and_gallery_ready_ms": 20526.893300004303,
+          "offline_enrollment_copy_ms": 12062.467299983837,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 14,
+          "total_enrollment_frames": 55
+        },
+        "old-camera-reverse": {
+          "actual_matcher": "FastCCCompNetAlternateROI-v26-experimental",
+          "actual_matcher_type": "CompNetAlternateROIMatcher",
+          "gallery_size": 11,
+          "startup_and_gallery_ready_ms": 20430.43820001185,
+          "offline_enrollment_copy_ms": 12193.00959998509,
+          "enrollment_requests": 0,
+          "transactions_unchanged": true,
+          "contour_prepared_frames": 17,
+          "total_enrollment_frames": 55
+        }
+      }
+    }
+  },
+  "mistake_traces": [
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "trace": [
+        {
+          "policy": "four-web-silhouette-compnet-pilot-v1",
+          "polarities": [
+            {
+              "polarity": "bright",
+              "candidate_count": 4,
+              "accepted": true,
+              "row_residual": 0.1514860977948226,
+              "row_cosine": 0.8312762776619356,
+              "keypoints": [
+                1831.6875,
+                1651.5582120582121,
+                2190.4375,
+                1400.547817047817,
+                1672.8125,
+                1246.8679833679835
+              ],
+              "reason": "geometric_candidate_only",
+              "quad": [
+                [
+                  1758.160888671875,
+                  1622.8468017578125
+                ],
+                [
+                  2188.660888671875,
+                  1321.63427734375
+                ],
+                [
+                  1887.448486328125,
+                  891.13427734375
+                ],
+                [
+                  1456.948486328125,
+                  1192.3468017578125
+                ]
+              ]
+            },
+            {
+              "polarity": "dark",
+              "candidate_count": 0,
+              "accepted": false,
+              "reason": "noncanonical_or_background_component"
+            }
+          ],
+          "reason": "unique_candidate",
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.5050581693649292,
+            "old-camera-bankey-10-12-right": 0.47227972745895386,
+            "old-camera-cyw-real-left": 0.4397037625312805,
+            "old-camera-cyw-real-right": 0.47652342915534973,
+            "old-camera-kss-left": 0.3866775929927826,
+            "old-camera-kss-right": 0.5260336995124817,
+            "old-camera-stephen-10-13-left": 0.46714499592781067,
+            "old-camera-stephen-10-13-right": 0.44438207149505615,
+            "old-camera-syr-right": 0.4601458013057709,
+            "old-camera-xyt-left": 0.47168588638305664,
+            "old-camera-xyt-right": 0.49539339542388916
+          },
+          "confident": false
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "trace": [
+        {
+          "policy": "four-web-silhouette-compnet-pilot-v1",
+          "polarities": [
+            {
+              "polarity": "bright",
+              "candidate_count": 4,
+              "accepted": true,
+              "row_residual": 0.12671480144404335,
+              "row_cosine": 0.879291966536774,
+              "keypoints": [
+                1606.1875,
+                1830.8513513513515,
+                1867.5625,
+                1764.2567567567569,
+                1657.4375,
+                1451.7744282744284
+              ],
+              "reason": "geometric_candidate_only",
+              "quad": [
+                [
+                  1570.060791015625,
+                  1798.3045654296875
+                ],
+                [
+                  1883.7108154296875,
+                  1718.3909912109375
+                ],
+                [
+                  1803.7972412109375,
+                  1404.7410888671875
+                ],
+                [
+                  1490.1473388671875,
+                  1484.654541015625
+                ]
+              ]
+            },
+            {
+              "polarity": "dark",
+              "candidate_count": 0,
+              "accepted": false,
+              "reason": "noncanonical_or_background_component"
+            }
+          ],
+          "reason": "unique_candidate",
+          "scores": {
+            "old-camera-bankey-10-12-left": 0.47948771715164185,
+            "old-camera-bankey-10-12-right": 0.48122072219848633,
+            "old-camera-cyw-real-left": 0.5208233594894409,
+            "old-camera-cyw-real-right": 0.4850141108036041,
+            "old-camera-kss-left": 0.48174914717674255,
+            "old-camera-kss-right": 0.5006581544876099,
+            "old-camera-stephen-10-13-left": 0.5062160491943359,
+            "old-camera-stephen-10-13-right": 0.4825875163078308,
+            "old-camera-syr-right": 0.48016494512557983,
+            "old-camera-xyt-left": 0.5299761891365051,
+            "old-camera-xyt-right": 0.4152507781982422
+          },
+          "confident": false
+        }
+      ]
+    },
+    {
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "trace": [
+        {
+          "policy": "four-web-silhouette-compnet-pilot-v1",
+          "polarities": [
+            {
+              "polarity": "bright",
+              "candidate_count": 4,
+              "accepted": false,
+              "row_residual": 0.0912863070539419,
+              "row_cosine": 0.935445860809678,
+              "keypoints": [
+                1652.3125,
+                1426.1611226611228,
+                1882.9375,
+                1364.6891891891892,
+                1693.3125,
+                1093.1881496881497
+              ],
+              "reason": "span_too_small"
+            },
+            {
+              "polarity": "dark",
+              "candidate_count": 1,
+              "accepted": false,
+              "reason": "noncanonical_or_background_component"
+            }
+          ],
+          "reason": "none_or_ambiguous_polarity"
+        }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "variant": "standard",
+      "case": "new-camera-original",
+      "sample": "20261020T165422041006Z-fbfa000c",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 394.98,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.2769499747983871,
+      "second_score": 0.3759765625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2257.63,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.31396484375,
+      "second_score": 0.38254473286290325,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165359325609Z-e022bbe6",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 873.69,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.279296875,
+      "second_score": 0.3800560735887097,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 8656.59,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.35693359375,
+      "second_score": 0.39213709677419356,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165616782627Z-47472168",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 438.76,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.31616607308387756,
+      "second_score": 0.44574570655822754,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261029T084641478660Z-bf449fa2",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 558.47,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2223350554704666,
+      "second_score": 0.4115619957447052,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261029T115928114981Z-89bd294d",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2052.47,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3130040322580645,
+      "second_score": 0.3861862643080125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "new-camera-reverse",
+      "sample": "20261029T115936292698Z-08ceb3b7",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2102.6,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3624455013872374,
+      "second_score": 0.3676915322580645,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261012T124958024176Z-98185319",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 707.03,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.1875,
+      "second_score": 0.3840632697044335,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "identity": "old-camera:cyw-real:left",
+      "correct": false,
+      "http_status": 200,
+      "ms": 4468.34,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.34521484375,
+      "second_score": 0.3628717237903226,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111426234644Z-c6594831",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5178.58,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.36557459677419357,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111434892907Z-0d781b96",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5915.32,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2666015625,
+      "second_score": 0.3779296875,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111438237239Z-4ab6388d",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 4642.0,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.37034610215053765,
+      "second_score": 0.375,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5776.99,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.37353515625,
+      "second_score": 0.3885728686635945,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5395.58,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.3711635044642857,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-reverse",
+      "sample": "20261012T124857785222Z-bf02ea6b",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 746.95,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.2743983114919355,
+      "second_score": 0.3631709929435484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111409441196Z-fa7726ef",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2766.88,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.3671614293659622,
+      "second_score": 0.3798828125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111418951110Z-9cc52f1c",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 3685.53,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.328581779233871,
+      "second_score": 0.3837890625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "standard",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111522159214Z-91d208df",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5515.2,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.3633352534562212,
+      "second_score": 0.37495274697580644,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-original",
+      "sample": "20261020T165422041006Z-fbfa000c",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 441.44,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.2769499747983871,
+      "second_score": 0.3759765625,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-original",
+      "sample": "20261029T120016111983Z-a4677ec5",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2569.44,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.31396484375,
+      "second_score": 0.38254473286290325,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165359325609Z-e022bbe6",
+      "identity": "new-camera:bankey:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 817.46,
+      "status": "MATCH",
+      "user_id": "new-camera-bankey-right",
+      "score": 0.279296875,
+      "second_score": 0.3800560735887097,
+      "recognition_route": "legacy_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165604274940Z-f7ec5fe1",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 8000.57,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.35693359375,
+      "second_score": 0.39213709677419356,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261020T165616782627Z-47472168",
+      "identity": "new-camera:stephen:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 383.39,
+      "status": "MATCH",
+      "user_id": "new-camera-stephen-left",
+      "score": 0.31616607308387756,
+      "second_score": 0.44574570655822754,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261029T084641478660Z-bf449fa2",
+      "identity": "new-camera:billy:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 515.06,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-left",
+      "score": 0.2223350554704666,
+      "second_score": 0.4115619957447052,
+      "recognition_route": "compnet_evidence_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261029T115928114981Z-89bd294d",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2160.6,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3130040322580645,
+      "second_score": 0.3861862643080125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "new-camera-reverse",
+      "sample": "20261029T115936292698Z-08ceb3b7",
+      "identity": "new-camera:billy:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 1960.66,
+      "status": "MATCH",
+      "user_id": "new-camera-billy-right",
+      "score": 0.3624455013872374,
+      "second_score": 0.3676915322580645,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261012T124958024176Z-98185319",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 905.16,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.1875,
+      "second_score": 0.3840632697044335,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111358589224Z-37d0c433",
+      "identity": "old-camera:cyw-real:left",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5854.94,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-left",
+      "score": 0.34521484375,
+      "second_score": 0.3628717237903226,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111426234644Z-c6594831",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5316.27,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.36557459677419357,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111434892907Z-0d781b96",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5832.73,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.2666015625,
+      "second_score": 0.3779296875,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111438237239Z-4ab6388d",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 4677.83,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.37034610215053765,
+      "second_score": 0.375,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111553178583Z-61f30739",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5858.93,
+      "status": "MATCH",
+      "user_id": "old-camera-stephen-10-13-left",
+      "score": 0.37353515625,
+      "second_score": 0.3885728686635945,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-original",
+      "sample": "20261013T111555214120Z-8d6441d2",
+      "identity": "old-camera:xyt:right",
+      "correct": false,
+      "http_status": 200,
+      "ms": 5523.67,
+      "status": "MATCH",
+      "user_id": "old-camera-kss-right",
+      "score": 0.3711635044642857,
+      "second_score": 0.37744140625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-reverse",
+      "sample": "20261012T124857785222Z-bf02ea6b",
+      "identity": "old-camera:bankey-10-12:left",
+      "correct": true,
+      "http_status": 200,
+      "ms": 692.32,
+      "status": "MATCH",
+      "user_id": "old-camera-bankey-10-12-left",
+      "score": 0.2743983114919355,
+      "second_score": 0.3631709929435484,
+      "recognition_route": "pose_confident"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111409441196Z-fa7726ef",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 2639.36,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.3671614293659622,
+      "second_score": 0.3798828125,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111418951110Z-9cc52f1c",
+      "identity": "old-camera:cyw-real:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 3492.96,
+      "status": "MATCH",
+      "user_id": "old-camera-cyw-real-right",
+      "score": 0.328581779233871,
+      "second_score": 0.3837890625,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    },
+    {
+      "variant": "candidate",
+      "case": "old-camera-reverse",
+      "sample": "20261013T111522159214Z-91d208df",
+      "identity": "old-camera:xyt:right",
+      "correct": true,
+      "http_status": 200,
+      "ms": 5426.18,
+      "status": "MATCH",
+      "user_id": "old-camera-xyt-right",
+      "score": 0.3633352534562212,
+      "second_score": 0.37495274697580644,
+      "recognition_route": "exhaustive_retained_fastcc_pilot"
+    }
+  ],
+  "exact_decisions": 19,
+  "source_report_sha256": "fa166002c28eb3f35a061bdd3ed7fe9a8fbe1f9864f43f69cc4ab9d1b6e12245"
+}
