@@ -90,6 +90,11 @@ def test_fixed_order_keeps_all_failures_and_inventory_tie_order(modules):
     assert [r['sample'] for r in runner.ordered_rows(p,False)]==['b','a']
 
 
+def test_environment_lock_survives_json_round_trip(modules):
+    _,runner=modules;value=runner.environment()
+    assert json.loads(json.dumps(value))==value
+
+
 def test_outcomes_are_disjoint_and_rejection_is_not_correct(modules):
     _,r=modules
     q=dict(http_status=200,identity='smpd:001:right',result=dict(status='MATCH',user_id='smpd-001-right',score=.2,second_score=.3))

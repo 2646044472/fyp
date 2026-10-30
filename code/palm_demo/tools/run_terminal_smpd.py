@@ -58,7 +58,7 @@ def source_files():
 def environment():
     return dict(python=sys.version, executable=str(Path(sys.executable).resolve()),
                 platform=platform.platform(), machine=platform.machine(),
-                packages=sorted((d.metadata['Name'], d.version) for d in importlib.metadata.distributions()),
+                packages=sorted([d.metadata['Name'], d.version] for d in importlib.metadata.distributions()),
                 relevant_environment={k: v for k, v in os.environ.items()
                     if k.startswith(('PALM_', 'OMP_', 'MKL_', 'OPENBLAS_', 'ORT_'))
                     and k != 'PALM_COMPNET_MODEL_ROOT'})
