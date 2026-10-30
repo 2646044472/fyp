@@ -1,0 +1,177 @@
+{
+  "complete": true,
+  "read_only": true,
+  "checkpoint_queries": 241,
+  "expected_queries": 3217,
+  "remaining_queries": 2976,
+  "last_completed": "smpd-007-RP-36",
+  "next_original_baseline": "smpd-007-RP-37",
+  "result_sha256": "19dbd849fc65b09c2a42045975e5a2ccf267e07352a9450b0a467153efdc48fa",
+  "ledger_sha256": "a9d967c51197f471f2cdde02d428d26131358304741bf552af389291abbf9eaf",
+  "receipt_sha256": "f3b78a0f354bf2e857e9bee3a3caa588bacab72f38914aa08a1ff87b66242c79",
+  "source_and_dependency_locks_valid": true,
+  "archive_crc_verified_at_download": true,
+  "archive_crc_rechecked_by_this_audit": false,
+  "prepared_feature_files_hashed": 417,
+  "historical_protocol_sha256": "80805215650bf89a0f3c14aff6875cf00f20b4b727bc7bac6caf3f708e264abb",
+  "historical_archive_sha256": "747df91abb1e0449777ad95d1627fbcc4e651b223d8a155c450d709dab1932ab",
+  "checkpoint_record_fields": [
+    "condition",
+    "correct",
+    "duplicates_enrollment",
+    "http_status",
+    "identity",
+    "ms",
+    "result",
+    "roi_audit_valid",
+    "sample",
+    "scores",
+    "truth_enrolled"
+  ],
+  "checkpoint_result_fields": [
+    "amount_cents",
+    "display_name",
+    "message",
+    "reason",
+    "recognition_route",
+    "roi_source",
+    "score",
+    "second_score",
+    "status",
+    "timing_ms",
+    "user_id"
+  ],
+  "protocol_manifest_equal": true,
+  "gallery_registration_manifest_equal": true,
+  "registered_identities": 76,
+  "feature_protocol": {
+    "roi_geometry": "pklnet-illumination-consistent-v5",
+    "schemas": [
+      {
+        "schema": {
+          "dtype": "|u1",
+          "fortran_order": false,
+          "magic": 2801066,
+          "npy_version": [
+            1,
+            0
+          ],
+          "shape": [
+            16777216
+          ]
+        },
+        "files": 417
+      }
+    ],
+    "prepared_manifest_sha256": "289a647e301246f2f53afdcfb66d57c02aa78d909558c9d80318b238982c30f1",
+    "feature_container_manifest_sha256": "d8b868d8daf8bea9e646f66d3f96e454bfa58285fc119db178ff3f3a2e97c735"
+  },
+  "feature_protocol_sha256": "b86ed5e207da2bafc41c6ec0938beebf0bee940caeca33e11d39050aac86e352",
+  "audit_source_sha256": "db8da4ab477417161a57df978faf620976086a09b9ce8e369a49c7f5e0f532af",
+  "remaining_validator_sha256": "4f81c3aeddf6ffabe203a637069e8080dda9214acb1657415c7bd05bfc119e41",
+  "strict_unique_ordered_prefix_validated": true,
+  "prospective_split": {
+    "sha256": "ae0ac3e1539208799291dd2561c3ef3068c7352a601d67713548f4b0edc6511c",
+    "development_people": 74,
+    "reserved_people": 18,
+    "development_queries": 2588,
+    "reserved_queries": 629,
+    "source_inventory_and_manifest_match": true,
+    "meaning": "Prospective protection from later tuning, not a never-evaluated blind cohort. Entire SMPD treated as seen public data."
+  },
+  "duplicates": {
+    "unique_file_contents": 3591,
+    "redundant_files": 86,
+    "duplicate_groups": 62,
+    "cross_identity_byte_conflicts": 0,
+    "query_files_overlapping_enrollment": 2,
+    "unique_query_byte_contents": 3137,
+    "method": "Existing source-byte SHA256 metadata only, not a new pixel/perceptual duplicate audit.",
+    "primary_denominator": "All original release files; no outcome-driven removal."
+  },
+  "current_environment": {
+    "python": "3.13.9 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 19:09:58) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "numpy": "2.3.5",
+    "opencv": "5.0.0"
+  },
+  "historical_environment": {
+    "python": "3.13.9 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 19:09:58) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "opencv": "5.0.0",
+    "numpy": "2.3.5",
+    "registration": "Unchanged original OpenCV BF reference; ARM64 NEON acceleration cannot load on Windows. Not a Pi numeric/latency claim."
+  },
+  "recorded_python_numpy_opencv_equal": true,
+  "old_scoring_policy": "v26 retained ordinary FastCC, including ordinary terminal score vector",
+  "candidate": {
+    "policy": "original-confident-paths-terminal-rf-v1",
+    "helper_sha256": {
+      "terminal_rf_evidence.py": "cbca2f347d5cb77ca8e84281b51b0f2f6ad4aeb96b926585826ded90fd2934c2",
+      "fastcc_valid_support.py": "eaab385cc6aa4f842ec0fae3d82b1a53adfaea6a9e089def8d3a003256496c3f",
+      "retained_evidence_pilot.py": "40088f3ddeeaf767a298fed1feed264edab273521a99e327ac8a0a60f9bd7ea0"
+    },
+    "model_sha256": {
+      "compnet": "b513e614a8b1a4448ef58c1b7f288f760fc991ce31d0a35079b4f9226146d1ea",
+      "pklnet": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f"
+    },
+    "original_source_sha256": {
+      "biometric.py": "d93bbcaa4b5fcc9009d172c9ca85f9fe3bc57fe0a49c6b0ad22a62a727a28b21",
+      "compnet_pilot.py": "a1deb731f2cbfcfdf9aa639432036166529ed786088932cd2a07c01873b8328c",
+      "compnet_evidence_matcher.py": "9c90f157d075b480feb13a05ad476727dee97714a56929a16e69c198d133cec3",
+      "compnet_alternate_roi_matcher.py": "dd8212b15cc2210a559b3af1b4a3e2750569f0926d128a833e4d9b5d6ea9418c",
+      "quality_evidence_matcher.py": "9246104f3ce9980aff8f5ffd957e5e591685630d6fd30eb374ed8b5396bb56ec",
+      "pooled_enrollment_matcher.py": "726916767e91492e78a8dc00c523bbc4c13598e0fb429bfc576c69efce976165",
+      "affine_enrollment_matcher.py": "b3322b8fd3c3ffc42ed52de862ebc6e3cbddd8d1b77639484e46dd195fd1aa7d",
+      "linked_enrollment_matcher.py": "fa5b3309ae497562acbeae1c7bcedba3c1ee525c25a48e46cb57c01c22345ee5",
+      "staged_index_matcher.py": "d9a17b834f17c720d27fc4865961a5f7117edce6ddd62c926178d65d3b7821f2",
+      "guarded_index_matcher.py": "6e88d7f1adb9a3e24ec689d7bf1589edcfd39d62078e83a6bdefe8ef9c32f912",
+      "proposed_index_matcher.py": "94a5349daaf4e302435ec294c65d2a07ae92fe87b489bf707782d0082946898e",
+      "indexed_demo_matcher.py": "5c685a138b8fea348ba5a1965e06d8b6c5577b9963c4b723cc0714f5f988511b",
+      "demo_matcher.py": "f85cbf129acec672769ee85e7a2d993fb58478e68ca562cecab5db8ede156a42",
+      "anchored_matcher.py": "6e4d41b5e21f28db73ce2d0e1fdac8bd42c1b561f12850eef97b6ee74a6391b6",
+      "union_matcher.py": "1902ac2d6bb479e762c6632f64c9c47e867fcb0001ce1ca1aec42b66a4e0940a",
+      "registered_matcher.py": "e8ba65c6de25841da87db3700eae5a401f8349ef1c6396e7b0c6010776595fe0",
+      "pose_matcher.py": "2c244591663b064bd7708b537e11b5227742caba604bbaea55fe2732e43bd1c1",
+      "fastcc_accelerated.py": "3a78d250b6d3961a7d52cd7bb6008838a09f780d50351a492731d5038c07c4bc",
+      "registration_accelerated.py": "1e291044cd701f43b601f259ad2c5230a5c235c8293789112aa44239727ae5c9",
+      "pklnet_roi.py": "bd98068d54dd0d65ffdac9ac98581fd8e62749504d09ddcb326681aa5c890e23",
+      "pklnet_policy.py": "afc1cc9d3826d1764d5b208757e9d73025a886c74171c7d46fd3910960ea4e70",
+      "window_roi.py": "b4ae036e54d36aa6b3557cf5a8b9f186143f0a13165e9fb915b69bcc1cd32b8c",
+      "gallery.py": "d9be9ba022c332518c28ee7c5d993ff09a796c1afb4809e88e730ae963e4a7bf",
+      "templates.py": "d66177cb9dee9aceac7ab07725b813912e3b455c4a6970d1f478c79f51a4ee99",
+      "demo_flow.py": "47b08e8419686441dcf9ba6c0330b3ec7f115c722999f05bf97be7dc8e2ad11e",
+      "acceptance_policy.py": "bc2bcc9e13593fdf382d8509517eb2dac78055a9ed9e1da74a5d04f296e8bc87",
+      "palm_app/debug_ui.py": "54f01f69576d2a335ca77ec4e84529efb67c0852772b27b00513d8d9e14aa72b"
+    },
+    "thresholds": {
+      "early_distance": 0.32,
+      "early_margin": 0.08,
+      "final_distance": 1.0,
+      "final_margin": 0.0
+    },
+    "rejection": false
+  },
+  "candidate_fingerprint": "a09904ff41d14698f420f598f92e767a3df4b8302d50362ac50dd4685ba60c1d",
+  "score_prefix_compatible_with_candidate": false,
+  "reason": "Terminal score definition changed while original confident paths are preserved. Same models/feature representation do not make old query scores candidate outcomes.",
+  "feature_representation_sources_equal": true,
+  "candidate_feature_reuse": false,
+  "action": "Future protocol requirement: preserve old241; a separate frozen candidate evaluation needs fresh original-image enrollments and all3217 queries. No append/merge of old scores. Not launched by this audit.",
+  "public_evaluation_started": false,
+  "future_execution_lock_complete": false,
+  "future_execution_isolation_enforced": false,
+  "local_candidate_qualified": true,
+  "local_result_sha256": "c8e987b5e53ba8e0aa66b1d19b1100153ca15b3ec4992c839da17c93d36db53a",
+  "public_tuning_allowed": false,
+  "pi_timing_claim": false,
+  "limits": [
+    "This audit inspects checkpoint equality/order/hashes, not per-query correctness or reserved failure images.",
+    "Read-only source-data audit writes a new scalar report; it does not alter old checkpoint, feature containers or manifest.",
+    "No fresh whole-archive CRC or every-original-image byte scan is performed here; historical CRC record and metadata provenance are disclosed.",
+    "Same feature extractor/model sources are established, but old feature arrays are not reused for the new candidate protocol.",
+    "Known development exposure includes source images001, partial scalar outputs002 and half-turn analysis/pilot008. No independent generalization claim.",
+    "This boundary audit is not a complete frozen public execution protocol: future evaluation/resume scripts and environment locks must be finalized before first query.",
+    "CASIA/PalmBig completed same-version protocols are not reused for tuning; closed set does not establish stranger rejection."
+  ]
+}
