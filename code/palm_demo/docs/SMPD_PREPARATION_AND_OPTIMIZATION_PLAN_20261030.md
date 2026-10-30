@@ -33,6 +33,12 @@ Source-image review of development subject 001 found that `smpd-001-RP-30` is a 
 
 The same subject's frontal and perspective examples have visibly larger central-palm coverage. Original/ROI comparisons are saved privately in `runtime/smpd-full-20261030/report-images/`. Images were selected in fixed filename order by diagnostic category, not removed from scoring or used as manual replacement query ROIs.
 
+The user subsequently narrowed optimization to captures with the required finger valleys visible. The side-on 001 RP30 and finger-cropped 002 RF10 are therefore not targets that must be repaired. They remain in the original full-run accounting. A complete release-wide visibility annotation does not exist, so the all-file geometry/recognition figures must not be described as conditional on usable finger valleys.
+
+A targeted manual development review found a relevant pair, 008 F00/F03: both required reference valleys appear visible in the original images, but F03 fails the existing ROI bounds guard while F00 passes. Quarter-turn observation, using no identity scores, produced validity `[true,true,true,true]` for F00 and `[false,false,true,true]` for F03 after mapping every result back. This is a possible localization-recovery lead, not a correct identification, a speed improvement, anatomical ground truth or an adopted fixed-rotation strategy. Existing evidence against rotating every device image remains applicable.
+
+These short localization observations ran in a low-priority process alongside baseline queries; exact overlapping query-index intervals are retained in the private concurrency JSON and final scalar summary. Primary timings keep those queries and do not claim exclusive CPU or a paired acceleration effect. [Scalar orientation/visibility observations](protocols/SMPD_LOCALIZER_ORIENTATION_OBSERVATIONS_20261030.json) preserve the narrow scope and source hashes.
+
 No claim is made that these early subjects represent the entire release. Recognition remains in progress. In particular, neither early latency nor a partial accuracy fraction is a full-dataset result.
 
 ## Prospective protection from target-specific fixes

@@ -1,0 +1,305 @@
+{
+  "complete": true,
+  "scope": "Development-only localization observation. No matcher, no identity scores, no candidate adoption or recognition improvement claim.",
+  "user_scope": "Do not make missing-reference-valley captures repair targets. Keep original full-release accounting separate from any future annotated eligibility subset.",
+  "annotation_limit": "One agent manual original-image review, not independent blinded anatomical ground truth; only six selected development images, no release-wide conditional accuracy claim.",
+  "selection": "Historical pre-steering four-image control/failure observation plus visible-valley 008 F00 control and F03 geometry failure, fixed before new rotation predictions.",
+  "turns_degrees": [
+    0,
+    90,
+    180,
+    270
+  ],
+  "records": [
+    {
+      "sample": "smpd-001-F-00",
+      "geometry_valid": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          0.9999999932190191,
+          0.6485146374463093,
+          0.6485147018086744,
+          0.9999997986309724
+        ],
+        [
+          0.6485146374463093,
+          0.9999999340060928,
+          0.9999998684950323,
+          0.6485146317333258
+        ],
+        [
+          0.6485147018086744,
+          0.9999998684950323,
+          0.9999999367004613,
+          0.6485146960956905
+        ],
+        [
+          0.9999997986309724,
+          0.6485146317333258,
+          0.6485146960956905,
+          0.9999999679868781
+        ]
+      ],
+      "executed_evaluator_sha256": "d78dc686effab66ec1510dfb953082277a6473b91c6027405ace9b5c514b88eb",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "visible"
+    },
+    {
+      "sample": "smpd-001-RP-30",
+      "geometry_valid": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          0.9999999806801972,
+          0.9999994595601333,
+          0.5738020458683174,
+          0.5738020081152864
+        ],
+        [
+          0.9999994595601333,
+          1.0000000143339547,
+          0.573801854138527,
+          0.5738018890666814
+        ],
+        [
+          0.5738020458683174,
+          0.573801854138527,
+          1.000000070307878,
+          0.999999930675195
+        ],
+        [
+          0.5738020081152864,
+          0.5738018890666814,
+          0.999999930675195,
+          0.9999999993002966
+        ]
+      ],
+      "executed_evaluator_sha256": "d78dc686effab66ec1510dfb953082277a6473b91c6027405ace9b5c514b88eb",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "insufficient"
+    },
+    {
+      "sample": "smpd-002-F-00",
+      "geometry_valid": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          1.0000000358545909,
+          0.9999999812442695,
+          0.9755119174460247,
+          0.975511992622099
+        ],
+        [
+          0.9999999812442695,
+          1.0000000568851983,
+          0.9755118646855585,
+          0.9755119398616316
+        ],
+        [
+          0.9755119174460247,
+          0.9755118646855585,
+          0.9999999838017951,
+          0.9999996659065277
+        ],
+        [
+          0.975511992622099,
+          0.9755119398616316,
+          0.9999996659065277,
+          1.0000000027351867
+        ]
+      ],
+      "executed_evaluator_sha256": "d78dc686effab66ec1510dfb953082277a6473b91c6027405ace9b5c514b88eb",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "visible"
+    },
+    {
+      "sample": "smpd-002-RF-10",
+      "geometry_valid": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          0.9999999892206681,
+          0.999999303716539,
+          0.0,
+          0.0
+        ],
+        [
+          0.999999303716539,
+          1.0000000043080208,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.999999993773287,
+          0.9999993566381936
+        ],
+        [
+          0.0,
+          0.0,
+          0.9999993566381936,
+          1.0000000049882127
+        ]
+      ],
+      "executed_evaluator_sha256": "d78dc686effab66ec1510dfb953082277a6473b91c6027405ace9b5c514b88eb",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "insufficient"
+    },
+    {
+      "sample": "smpd-008-F-00",
+      "geometry_valid": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          1.0000000035318872,
+          0.9999998758956962,
+          0.9682025991430094,
+          0.9682027776017733
+        ],
+        [
+          0.9999998758956962,
+          0.9999999635973226,
+          0.9682024728806863,
+          0.9682026513394373
+        ],
+        [
+          0.9682025991430094,
+          0.9682024728806863,
+          0.9999999626211735,
+          0.9999997086579703
+        ],
+        [
+          0.9682027776017733,
+          0.9682026513394373,
+          0.9999997086579703,
+          0.9999998942844838
+        ]
+      ],
+      "executed_evaluator_sha256": "74c30144e5c35911834d80cc7c842e8561cb864f5bd481df97092c5e0be73c2b",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "visible"
+    },
+    {
+      "sample": "smpd-008-F-03",
+      "geometry_valid": [
+        false,
+        false,
+        true,
+        true
+      ],
+      "geometry_reasons": [
+        "roi_out_of_bounds",
+        "roi_out_of_bounds",
+        null,
+        null
+      ],
+      "iou_matrix": [
+        [
+          1.0000000666364866,
+          0.9999999668880134,
+          0.9058612604553213,
+          0.9058610959287926
+        ],
+        [
+          0.9999999668880134,
+          1.000000053603836,
+          0.9058611711423993,
+          0.905861182247749
+        ],
+        [
+          0.9058612604553213,
+          0.9058611711423993,
+          0.9999999043330291,
+          0.9999999176958319
+        ],
+        [
+          0.9058610959287926,
+          0.905861182247749,
+          0.9999999176958319,
+          0.999999931058635
+        ]
+      ],
+      "executed_evaluator_sha256": "74c30144e5c35911834d80cc7c842e8561cb864f5bd481df97092c5e0be73c2b",
+      "model_sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "manual_reference_valley_visibility": "visible"
+    }
+  ],
+  "interpretation": "008 F03 becomes geometrically in-bounds at 180/270 degrees, with no identity score selection. This does not establish correct full-gallery recognition or justify uniform rotation of valid originals.",
+  "concurrency": [
+    {
+      "start_unix": 1793334170.3488543,
+      "queries_completed_before": 52,
+      "scope": "Four development-image localization observations, low-priority CPU process, no matching. Windows baseline timings in overlapping query interval may include contention; no queries removed.",
+      "end_unix": 1793334185.4743845,
+      "queries_completed_after": 53,
+      "potentially_overlapping_query_indices": [
+        53,
+        54
+      ]
+    },
+    {
+      "start_unix": 1793334385.0384462,
+      "queries_completed_before": 55,
+      "output": "visible-webs-rotation-observation",
+      "scope": "Development-image localization observations, low-priority CPU process, no matching. Windows baseline timings in overlapping query interval may include contention; no queries removed.",
+      "end_unix": 1793334392.442124,
+      "queries_completed_after": 55,
+      "potentially_overlapping_query_indices": [
+        56,
+        56
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "user_requirement": "Freeze the previously usable standard; after every public-dataset candidate, also retest the original device data and speed.",
+  "standard_tag": "standard-device-20261030",
+  "standard_commit": "9d9bb43e909e992765bf586da13a3b881e3dc481",
+  "candidate_branch": "experiment/smpd-roi-20261030",
+  "original_manifest": "code/palm_demo/runtime/pi5-under2-20261028/active169-baseline-20261029/manifest.json",
+  "manifest_sha256": "08a4fa9574f94023057efcf7aa7bee3b1d07625be91c2835ed9dab464a0472c4",
+  "original_images": 169,
+  "query_outcomes_required": 168,
+  "cases": [
+    "new-camera-original",
+    "new-camera-reverse",
+    "old-camera-original",
+    "old-camera-reverse"
+  ],
+  "historical_retained_reference": "code/palm_demo/runtime/pi5-under2-20261028/retained-evidence-full168-results-20261030.json",
+  "reference_sha256": "080de1f2a871f61565ab77b22099bc5e0075ddfd869f4dcc3ea5148caf9e69ea",
+  "historical_pi_reference": {
+    "correct": 165,
+    "wrong_accepted": 3,
+    "rejected": 0,
+    "correct_within_2500": 145,
+    "p50_ms": 1517.425,
+    "p95_ms": 5906.6755,
+    "max_ms": 15234.24
+  },
+  "required_accounting": [
+    "Every original query, including all known difficult and previously incorrect images; no outcome-driven deletion, label change or enrollment replacement.",
+    "Correct, wrong identity accepted, rejection and processing failure separately, overall and for every case.",
+    "Per-query transitions: correct-to-correct, correct-to-wrong, correct-to-rejected, wrong-to-correct, wrong-to-rejected, remaining wrong.",
+    "Counts correct within 2.0 and 2.5 seconds; P50, P95, maximum and first/warm query timing, with model/gallery ready and enrollment costs separate.",
+    "Original bytes and source template integrity; isolated payment databases, simulated transaction/cancellation guards and no production data overwrite.",
+    "Preserve all observations and exact candidate/model/configuration hashes, including failed candidates."
+  ],
+  "promotion_gates": [
+    "All 168 outcomes complete; no previously correct identity becomes wrong, rejected or a processing failure.",
+    "Do not call wrong-to-rejected a genuine identification correction or count retry as correct.",
+    "An accuracy-improvement claim requires at least one genuine wrong-to-correct transition and no losses of previously correct cases.",
+    "A safety/rejection-only candidate must be labeled as such, with any correct-coverage loss explicit; it cannot be advertised as improved recognition accuracy or reduced matching work.",
+    "A speed-improvement claim needs same-host standard/candidate timing with matching runtime, gallery, thread/power conditions and complete accuracy accounting. Ambiguous timing warrants a bounded paired repeat, not repeat-until-pass selection.",
+    "First compare standard and candidate on Windows; do not assume historical Pi scores/times are bit-identical to Windows OpenCV reference registration.",
+    "Repeat original-data regression and timing on the reconnected Pi before claiming device improvement or promoting a candidate.",
+    "Leave standard branch/tag unchanged; promotion requires explicit user authorization even after regression passes."
+  ],
+  "scope_note": "No new candidate is adopted by this protocol. The current full SMPD baseline remains frozen. Its missing-finger-valley examples are not required repair targets, but this does not authorize removing original-device regression queries."
+}

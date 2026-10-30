@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "name": "Standard device source snapshot before public-dataset experiments",
+  "standard_tag": "standard-device-20261030",
+  "standard_branch": "standard",
+  "source_commit": "9d9bb43e909e992765bf586da13a3b881e3dc481",
+  "freeze_rule": "Never advance standard branch or replace/move standard tag for an experiment. New candidate commits belong to experiment branches. Promotion requires explicit user authorization and device regression.",
+  "core_sources": {
+    "code/palm_demo/acceptance_policy.py": {
+      "git_blob": "834da3f0e13db6d9f49e06be018d99a0167d869c",
+      "sha256_lf": "bc2bcc9e13593fdf382d8509517eb2dac78055a9ed9e1da74a5d04f296e8bc87"
+    },
+    "code/palm_demo/affine_enrollment_matcher.py": {
+      "git_blob": "b689f310d2d6b6d5e347c4f40f6bc459d9916e0a",
+      "sha256_lf": "b3322b8fd3c3ffc42ed52de862ebc6e3cbddd8d1b77639484e46dd195fd1aa7d"
+    },
+    "code/palm_demo/anchored_matcher.py": {
+      "git_blob": "2240ad846f9e9ed6aefad140a571d80f2ac50537",
+      "sha256_lf": "6e4d41b5e21f28db73ce2d0e1fdac8bd42c1b561f12850eef97b6ee74a6391b6"
+    },
+    "code/palm_demo/biometric.py": {
+      "git_blob": "83f4326655f83f55c30ec1512d7b05909ba66b99",
+      "sha256_lf": "d93bbcaa4b5fcc9009d172c9ca85f9fe3bc57fe0a49c6b0ad22a62a727a28b21"
+    },
+    "code/palm_demo/compnet_alternate_roi_matcher.py": {
+      "git_blob": "bf780c79e03398bc487a1778b9450e26911e281d",
+      "sha256_lf": "dd8212b15cc2210a559b3af1b4a3e2750569f0926d128a833e4d9b5d6ea9418c"
+    },
+    "code/palm_demo/compnet_evidence_matcher.py": {
+      "git_blob": "9e358697a81f56473d073e824cf38c6470cb36a8",
+      "sha256_lf": "9c90f157d075b480feb13a05ad476727dee97714a56929a16e69c198d133cec3"
+    },
+    "code/palm_demo/compnet_pilot.py": {
+      "git_blob": "879466138e0e1ae49d84b9176e7f0ac3ca8e8db4",
+      "sha256_lf": "a1deb731f2cbfcfdf9aa639432036166529ed786088932cd2a07c01873b8328c"
+    },
+    "code/palm_demo/demo_flow.py": {
+      "git_blob": "78316d35fb0dd60422f082fb563f045d7b234a93",
+      "sha256_lf": "47b08e8419686441dcf9ba6c0330b3ec7f115c722999f05bf97be7dc8e2ad11e"
+    },
+    "code/palm_demo/demo_matcher.py": {
+      "git_blob": "db27449859ea79abfce47f3fac20db22a5cbba22",
+      "sha256_lf": "f85cbf129acec672769ee85e7a2d993fb58478e68ca562cecab5db8ede156a42"
+    },
+    "code/palm_demo/fastcc_accelerated.py": {
+      "git_blob": "3b1260cede308bdf0895878d08faaacc03b266cf",
+      "sha256_lf": "3a78d250b6d3961a7d52cd7bb6008838a09f780d50351a492731d5038c07c4bc"
+    },
+    "code/palm_demo/gallery.py": {
+      "git_blob": "d78778870f90e13c86ce1a2182335f14720c3b85",
+      "sha256_lf": "d9be9ba022c332518c28ee7c5d993ff09a796c1afb4809e88e730ae963e4a7bf"
+    },
+    "code/palm_demo/guarded_index_matcher.py": {
+      "git_blob": "1ad6423b401b3e77a99957edf9712efd51f2cb53",
+      "sha256_lf": "6e88d7f1adb9a3e24ec689d7bf1589edcfd39d62078e83a6bdefe8ef9c32f912"
+    },
+    "code/palm_demo/indexed_demo_matcher.py": {
+      "git_blob": "7400aa6333aea6bd171db0db0a2a53a158cc9f67",
+      "sha256_lf": "5c685a138b8fea348ba5a1965e06d8b6c5577b9963c4b723cc0714f5f988511b"
+    },
+    "code/palm_demo/linked_enrollment_matcher.py": {
+      "git_blob": "be8868e3608e9eff15104981a8de2950ae309a6e",
+      "sha256_lf": "fa5b3309ae497562acbeae1c7bcedba3c1ee525c25a48e46cb57c01c22345ee5"
+    },
+    "code/palm_demo/models.py": {
+      "git_blob": "9b5985c25a8c74df5b9cc1046521df826749a0dd",
+      "sha256_lf": "c5d009cb6ace5438f38d161ba0dc686659f55e34e1ef1776efbe14d7e0f6d7c3"
+    },
+    "code/palm_demo/native_registration.py": {
+      "git_blob": "ac2564ed1a6dc51b440ec3ecae63298d71436396",
+      "sha256_lf": "9a8af90121826e4801dd8b8e6d997de9f6f3e73e9d3fa5e9b77c5ff2135923d8"
+    },
+    "code/palm_demo/palm_app/common.py": {
+      "git_blob": "73e5371cdf699ab0a0e9e1872f082c0d7e9a1bb6",
+      "sha256_lf": "dcd10be3aef197bbb7c0bef79c87b0ccb6c7906a5e929797dbd9fb03a42c6885"
+    },
+    "code/palm_demo/palm_app/debug_ui.py": {
+      "git_blob": "e5b37b0d152186d5b4bb71c22d3e28d20e7a2cbc",
+      "sha256_lf": "54f01f69576d2a335ca77ec4e84529efb67c0852772b27b00513d8d9e14aa72b"
+    },
+    "code/palm_demo/palm_roi.py": {
+      "git_blob": "1007c6522cc8f5ff7ad46edafede149205019a49",
+      "sha256_lf": "087edce86dd0c1a4c2f0025e9d9db0c5959971f0ebf52b7f3848ae2184391e44"
+    },
+    "code/palm_demo/pklnet_policy.py": {
+      "git_blob": "983e90348416d6c5d4ee09e1f398d908cf44e230",
+      "sha256_lf": "afc1cc9d3826d1764d5b208757e9d73025a886c74171c7d46fd3910960ea4e70"
+    },
+    "code/palm_demo/pklnet_roi.py": {
+      "git_blob": "f20c92117df564ddc08d4e479b315446a60a8d5f",
+      "sha256_lf": "bd98068d54dd0d65ffdac9ac98581fd8e62749504d09ddcb326681aa5c890e23"
+    },
+    "code/palm_demo/pooled_enrollment_matcher.py": {
+      "git_blob": "85f97128087abcc08dacbafe5f1df5f2cc6019a9",
+      "sha256_lf": "726916767e91492e78a8dc00c523bbc4c13598e0fb429bfc576c69efce976165"
+    },
+    "code/palm_demo/pose_matcher.py": {
+      "git_blob": "ca870d16b53b2b41e96a9f5571d41eef18ce9093",
+      "sha256_lf": "2c244591663b064bd7708b537e11b5227742caba604bbaea55fe2732e43bd1c1"
+    },
+    "code/palm_demo/proposed_index_matcher.py": {
+      "git_blob": "ffd2a7719eb50a6a792021670bd74415d38b78a1",
+      "sha256_lf": "94a5349daaf4e302435ec294c65d2a07ae92fe87b489bf707782d0082946898e"
+    },
+    "code/palm_demo/quality_evidence_matcher.py": {
+      "git_blob": "e06f46a2e24c3669ad24854f41cca2be91f1aefd",
+      "sha256_lf": "9246104f3ce9980aff8f5ffd957e5e591685630d6fd30eb374ed8b5396bb56ec"
+    },
+    "code/palm_demo/registered_matcher.py": {
+      "git_blob": "ac7ca053b2ce6a01556205d994eba2b1dfba7f0c",
+      "sha256_lf": "e8ba65c6de25841da87db3700eae5a401f8349ef1c6396e7b0c6010776595fe0"
+    },
+    "code/palm_demo/registration_accelerated.py": {
+      "git_blob": "7d647224774b0fa161e6718a6e548624eb78e525",
+      "sha256_lf": "1e291044cd701f43b601f259ad2c5230a5c235c8293789112aa44239727ae5c9"
+    },
+    "code/palm_demo/roi_quality.py": {
+      "git_blob": "f2840402e04268b9be86e516aede66f6191d68a1",
+      "sha256_lf": "80babf6350c894e06e7631426cb6ace2848a1cae48f5718313875136fb64d670"
+    },
+    "code/palm_demo/staged_index_matcher.py": {
+      "git_blob": "b83135c954d1e07abc3e8125322069b0261bf90b",
+      "sha256_lf": "d9a17b834f17c720d27fc4865961a5f7117edce6ddd62c926178d65d3b7821f2"
+    },
+    "code/palm_demo/templates.py": {
+      "git_blob": "503923b33f95d57b4d823e0d5ed578f1bc1cdcca",
+      "sha256_lf": "d66177cb9dee9aceac7ab07725b813912e3b455c4a6970d1f478c79f51a4ee99"
+    },
+    "code/palm_demo/tools/evaluate_retained_evidence.py": {
+      "git_blob": "54377c2c1779a96f9ec259e61f47400151a54e76",
+      "sha256_lf": "77eb09274a340af5cf3dd36fa752fb56f5fc5286785845eac82bc06588eecffe"
+    },
+    "code/palm_demo/tools/evaluate_six_person_frozen.py": {
+      "git_blob": "0d2252d525e414c7f51bf05cca4d1758fd49959e",
+      "sha256_lf": "51f1e2b5bcb58cef95cd43d479e5dd3f3a22f65d072a098546601b4c4cc3b180"
+    },
+    "code/palm_demo/tools/replay_pi_pipeline.py": {
+      "git_blob": "3cc3997f6bec27d64d04c1f44e52a93d504d139d",
+      "sha256_lf": "ffea582a7b76dc734e8964714da9fdbe9255a7269465e08602f4a61fb66acbde"
+    },
+    "code/palm_demo/tools/replay_ready_queries.py": {
+      "git_blob": "ed2302abcfbe61b43959cd982c5e7c1e28161691",
+      "sha256_lf": "9da0ad1d6c03654dde5d4404720ca862f3f0181c04fd4b739a113e58558f437a"
+    },
+    "code/palm_demo/tools/retained_evidence_pilot.py": {
+      "git_blob": "643d0dba1add6585e086fc8b482d781d0cc1745c",
+      "sha256_lf": "40088f3ddeeaf767a298fed1feed264edab273521a99e327ac8a0a60f9bd7ea0"
+    },
+    "code/palm_demo/union_matcher.py": {
+      "git_blob": "677e8241e79679722138877932ff82e1af7d7f95",
+      "sha256_lf": "1902ac2d6bb479e762c6632f64c9c47e867fcb0001ce1ca1aec42b66a4e0940a"
+    },
+    "code/palm_demo/window_roi.py": {
+      "git_blob": "11e349d3f3a0f0168915a1b8f03e2e86a538ad4f",
+      "sha256_lf": "b4ae036e54d36aa6b3557cf5a8b9f186143f0a13165e9fb915b69bcc1cd32b8c"
+    }
+  },
+  "local_artifacts": {
+    "pklnet_diagnostic_onnx": {
+      "local_relative_path": "code/pklnet/pklnet-keypoints-diagnostics.onnx",
+      "sha256": "bf477f1778f03ccc203b64dd0c84d418c9bb22839a23ba923f479ab991aa067f",
+      "bytes": 67688734
+    },
+    "pklnet_weights": {
+      "local_relative_path": "code/pklnet/net_params_500.pth",
+      "sha256": "f10ee752b1a728067cf37d51836ecb18cc02105e2691d0925bf9816511eb7f33",
+      "bytes": 66908252
+    },
+    "pklnet_onnx_metadata": {
+      "local_relative_path": "code/pklnet/pklnet-keypoints-diagnostics.json",
+      "sha256": "ae182b1a212c031251dd923de3313264a9aa795e003883cec6cbb45b0be98514",
+      "bytes": 637
+    },
+    "pklnet_roi_geometry": {
+      "local_relative_path": "code/pklnet/roiExtractor.py",
+      "sha256": "4df9f85daabe4dc0834b46b9bd752e50a75d6c60a1b5e7376a57d08770b6a1d9",
+      "bytes": 5095
+    },
+    "compnet_tongji_onnx": {
+      "local_relative_path": "code/palm_demo/runtime/pi5-under2-20261028/paper-baseline-pilots-20261029/compnet/onnx/compnet-tongji.onnx",
+      "sha256": "b513e614a8b1a4448ef58c1b7f288f760fc991ce31d0a35079b4f9226146d1ea",
+      "bytes": 20036926
+    },
+    "compnet_metadata": {
+      "local_relative_path": "code/palm_demo/runtime/pi5-under2-20261028/paper-baseline-pilots-20261029/compnet/onnx/metadata.json",
+      "sha256": "a189aa32cb76ba5ba904441e3c194372a5aa9081b8acac839d23f3cc4504f1ef",
+      "bytes": 961
+    }
+  },
+  "pre_public_source_parity": true,
+  "source_hash_mode": "LF-normalized SHA256 plus exact Git blob ID; Git tag pins entire repository tree.",
+  "last_validated_configuration": {
+    "matcher": "FastCCCompNetAlternateROI-v26-experimental",
+    "retained_fastcc_evidence": true,
+    "activation": "Source-checked isolated retained_evidence_pilot plus _retain_fastcc_evidence_pilot=True, as in tools/evaluate_retained_evidence.py. This is not the default CLI behavior.",
+    "pklnet_policy": "illumination",
+    "opencv_threads": 1,
+    "pklnet_threads": 3,
+    "native_registration_threads": 1,
+    "early_distance": 0.32,
+    "early_margin": 0.08,
+    "final_distance": 1.0,
+    "final_margin": 0.0,
+    "runtime_rejection_policy": false,
+    "native_arm64_library_sha256": "272857b624cad687b7d87a32eb79ac0124f3d782be3e3a2b0ca092c92d87e600"
+  },
+  "reference_device_result": {
+    "total": 168,
+    "correct": 165,
+    "wrong": 3,
+    "rejected": 0,
+    "correct_within_2500": 145,
+    "median_ms": 1517.425,
+    "p95_ms": 5906.6755,
+    "max_ms": 15234.24,
+    "evidence_sha256": "080de1f2a871f61565ab77b22099bc5e0075ddfd869f4dcc3ea5148caf9e69ea",
+    "scalar_evidence": "code/palm_demo/docs/protocols/RETAINED_EVIDENCE_PILOT_20261030.json",
+    "scope": "Previous completed Pi original-image HTTP regression. No fresh speed/camera/deployment test during this freeze."
+  },
+  "original_v26_rollback": {
+    "retained_fastcc_evidence": false,
+    "total": 168,
+    "correct": 164,
+    "wrong": 4,
+    "correct_within_2500": 146
+  },
+  "boundaries": [
+    "Default production configuration not changed or claimed to equal the isolated retained-evidence run.",
+    "Experimental .02 rejection profile stays off; no SMPD threshold or model fitting in standard.",
+    "Public images/archives/templates/features/models are not included in this Git freeze.",
+    "Local model files and own-device runtime data must remain available separately; SHA256 alone is not a model backup."
+  ]
+}

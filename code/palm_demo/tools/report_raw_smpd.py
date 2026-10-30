@@ -143,6 +143,8 @@ def build_summary(root, partial=False):
             r['condition']==c and not r['roi_valid'] for r in rows)) for c in ('F','RF','P','RP')},
         duplicates=duplicate_audit(rows, queries), startup_and_gallery_ready_ms=results['startup_and_gallery_ready_ms'],
         frozen_preexisting_policy_shadow=frozen_policy_shadow(queries),
+        concurrent_localization_diagnostics=load(root/'localization-diagnostic-concurrency.json')
+            if (root/'localization-diagnostic-concurrency.json').exists() else [],
         original_integrity=results.get('originals_unchanged'), transactions_unchanged=results.get('transactions_unchanged'),
         archive_sha256=results['archive_sha256'], protocol_sha256=results['protocol_sha256'],
         results_sha256=hashlib.sha256(result_bytes).hexdigest(),
@@ -225,8 +227,10 @@ def render_html(root, summary, rows, queries):
 <h1>SMPD：原图 → ROI → 特征 → 同库识别</h1><p><b>{state}</b> · {len(queries)}/3217 次查询 · Windows 电脑测试</p>
 <p>作者公开 ZIP 实际有 92 人 / 3,677 张，{summary['duplicates']['unique_byte_contents']} 个不同字节内容。固定 F0–F4 注册，剩余全部查询。注册成功 {summary['gallery_identities']}/92 人；失败 {summary['registration_failures']} 人的查询也留在总分母。单一完整图库，不分小组。</p>
 <p>ROI 几何检查失败 {summary['roi_geometry_fail']}/3677。没有解剖标注，几何通过率不能当 ROI 准确率。全图库启动准备 {summary['startup_and_gallery_ready_ms']/1000:.2f} 秒，单独计量。</p>
+<p>优化范围按用户要求收窄到参考指缝可见的图片。没有全量指缝可见性标注，以下全量统计含定位前提不满足的原图；不能直接当成“指缝可见条件下”的性能。</p>
 <table><tr><th>范围</th><th>查询</th><th>正确</th><th>错身份接受</th><th>真身份但非唯一</th><th>拒认</th><th>处理失败</th><th>≤2.5秒正确</th><th>P50秒</th><th>P95秒</th><th>最长秒</th></tr>{table}</table>
 <p>正确必须是唯一正确身份；拒认、ROI/特征失败都不算正确。耗时包含原图读取、校验、EXIF 解码、ROI、特征、匹配及本机 HTTP；不含拍摄/外部上传。电脑扩大了内存容量，不能据此声称 Pi 的速度或人数容量。</p>
+<p>电脑运行期间有两次短暂、低优先级的开发图定位观察。重叠查询范围保存在 summary.json 的 concurrent_localization_diagnostics 字段；这些查询保留统计。没有独占 CPU 计时或成对加速结论。</p>
 <h2>已有拒认机制的迁移检查</h2><p>只检查下载 SMPD 前已有的 .02 示例策略，不扫描新阈值。保存分数上的影子结果：正确 {summary['frozen_preexisting_policy_shadow']['correct']}、错误接受 {summary['frozen_preexisting_policy_shadow']['wrong_identity_accepted']}、拒认 {summary['frozen_preexisting_policy_shadow']['rejected']}；损失原本正确 {len(summary['frozen_preexisting_policy_shadow']['lost_previously_correct'])} 张，真正由错变对 0 张。这不是新一轮 HTTP 或速度改善，未启用到基线。</p>
 <h2>重复与完整性</h2><pre>{html.escape(json.dumps({k:v for k,v in summary['duplicates'].items() if k!='unique_content_diagnostic'},indent=2,ensure_ascii=False))}</pre>
 <p>原图最终校验：{summary['original_integrity']}；交易记录保持不变：{summary['transactions_unchanged']}。全量基线参数冻结；本数据集未用于训练或阈值拟合。局部定位器原训练暴露未知。</p>
@@ -255,6 +259,9 @@ def write_markdown(destination, summary):
     d=summary['duplicates']
     policy=summary['frozen_preexisting_policy_shadow']
     lines += ['', f"Geometry audit: {summary['roi_geometry_fail']}/3677 failed; no anatomical ground truth.", '',
+        'User-scoped optimization targets images with both required finger valleys visible. '
+        'The full release has no complete visibility annotation; primary results include out-of-scope originals '
+        'and must not be presented as performance conditional on visible valleys.', '',
         f"Byte-content audit: {d['unique_byte_contents']} unique originals, {d['redundant_files']} redundant files "
         f"in {d['duplicate_groups']} groups; {len(d['conflicting_identity_groups'])} cross-identity byte conflicts. "
         f"Query/enrollment byte overlap: {d['query_files_overlapping_enrollment']} query files. "
@@ -266,6 +273,9 @@ def write_markdown(destination, summary):
         f"{len(policy['lost_previously_correct'])} previously correct decisions lost. "
         'Zero genuine wrong-to-correct changes; no measured speed improvement or new HTTP run.', '',
         f"Windows model/gallery ready time: {summary['startup_and_gallery_ready_ms']/1000:.3f} s, separate from query timing.", '',
+        'Two short, low-priority development localization observations overlapped the Windows baseline. '
+        'Exact affected query-index intervals are retained in summary.json; no queries are excluded. '
+        'This is not exclusive-CPU timing or paired acceleration evidence.', '',
         f"Final original-integrity flag: {summary['original_integrity']}; transactions unchanged: {summary['transactions_unchanged']}.", '',
         'Limits:', '']+[f'- {item}' for item in summary['limitations']]
     lines += ['', 'Archive SHA256: `'+summary['archive_sha256']+'`.', '',
