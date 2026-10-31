@@ -1,0 +1,25 @@
+{
+  "scope": "Read-only binary and scalar audit before explicit v27 operational continuation; no inference",
+  "parent_run_fingerprint": "710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2",
+  "parent_source_commit": "3e66335ac7f22668a13d56521c0b3ef6a50eef44",
+  "complete": true,
+  "no_parent_writes": true,
+  "no_inference": true,
+  "parent_files": 1322,
+  "parent_bytes": 6567808424,
+  "parent_inventory_sha256": "04b38cb105659db58a844f36ac1a07bfe051d3d0015f656ec06be0e91e720551",
+  "registration_feature_containers_verified": 447,
+  "gallery_containers_verified": 86,
+  "gallery_frames_verified_against_registration": 430,
+  "enrollment_prefix": 460,
+  "query_prefix": 216,
+  "next_sample": "smpd-007-RF-12",
+  "next_global_sequence": 216,
+  "tests": {
+    "passed": 47,
+    "elapsed_s": 10.09,
+    "files": ["test_smpd_continuation.py", "test_smpd_atomic_retry.py", "test_terminal_smpd_journal.py", "test_lossless_smpd_execution.py"],
+    "biometric_inference_in_tests": false,
+    "actual_http_fixture_next_query_count": 1
+  }
+}

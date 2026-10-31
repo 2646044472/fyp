@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMPD v27 · 显式版本衔接</title>
+<style>body{font:17px/1.7 system-ui,sans-serif;max-width:1000px;margin:36px auto;padding:0 24px;color:#18283a}section{padding:20px;background:#f3f5f8;border-radius:10px;margin:18px 0}h1{line-height:1.35}h2{font-size:21px}code{overflow-wrap:anywhere;font-size:14px}table{border-collapse:collapse;width:100%}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd4df}</style>
+<h1>SMPD v27：保留父前缀的操作层续跑</h1>
+<p>2026-10-31 · Windows · 已见公开开发数据</p>
+<section><h2>为什么需要新执行指纹</h2>
+<p>父运行在提交 216 条查询后，发布下一次状态时遭遇 Windows <code>os.replace</code> 的 WinError 5。已推送修复 <code>aedb2fb</code> 只对该访问拒绝作有限退避，没有改动识别、ROI、模型、评分或序列化。</p>
+<p>父协议记录 source commit <code>3e66335</code>；<code>2a1b340</code> 只是后续报告提交。父指纹 <code>710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2</code> 始终保留。新控制程序和 journal 修复形成新的执行版本，不能冒称同一源代码指纹。</p></section>
+<section><h2>不可变输入与版本衔接</h2>
+<p>父目录不改 ACL、属性或安全配置。Windows 读取句柄以 FILE_SHARE_READ 持有全部文件及目录，拒绝已有文件的写入/删除；Python 审计钩子拒绝父路径写操作。每个记录边界检查树结构与文件身份，启动和退出核对完整逐文件 SHA 清单。父 SQLite 仅以只读 immutable URI 检查，不交给正式应用写入。</p>
+<p>全部旧记录以父指纹验证；新记录使用新指纹，保留全局序号，第一条新记录的 previous hash 等于父查询链尾。父注册只读继承 460 次，查询累计为 216 + 新后缀，分母始终是 3217。旧 70 或 241 条不导入。</p>
+<p>86 个原图库容器与隔离支付数据库逐字节复制至 continuation runtime，原嵌入元数据保持父来源。复制容器摘要与父 seal 必须一致；模板目录在工作期间也被只读句柄保护。原 whole-gallery HTTP work 函数的代码体保持相同，新增控制层只负责版本、路径、日志和报告。</p>
+<p>父 inflight <code>smpd-007-RF-12</code> 保留不动。其原日志显示异常发生在 HTTP 调用之前。子目录保存中断来源凭据，再从全局序号 216 开始。已提交失败也不重复；若新版本在提交后留下 inflight，恢复按已提交记录处理，避免再发同一 HTTP 请求。</p></section>
+<section><h2>完成的准备验证</h2>
+<table><tr><th>对象</th><th>实测检查</th></tr>
+<tr><td>原标量前缀</td><td>460 注册、216 查询；序号、样本、源输入哈希、捕获输入哈希、运行指纹和记录链均有效；785 个原标量文件摘要仍相同。</td></tr>
+<tr><td>二进制容器</td><td>447 个注册特征逐个核对容器 SHA 与格式；86 个图库容器核对 SHA、seal、嵌入元数据，430 个帧逐个与注册特征内容摘要相同。</td></tr>
+<tr><td>父完整目录</td><td>1322 文件，6,567,808,424 字节；完整清单摘要 <code>04b38cb105659db58a844f36ac1a07bfe051d3d0015f656ec06be0e91e720551</code>。</td></tr>
+<tr><td>相关测试</td><td>47 passed in 10.09s。模拟跨版本边界、错误摘要/指纹/次序、重复样本、提交后残留 inflight；独立进程写入被拒绝；原 HTTP 循环在非生物 fixture 中只发出第 217 项一次，父字节未变。</td></tr></table>
+<p><a href="asset-audit.json">准备验证摘要</a>。详细父清单和新旧代码/依赖摘要留在本地 continuation 的 <code>parent-inventory.json</code>、<code>compatibility.json</code>、<code>protocol.json</code>、<code>lineage.json</code> 中。新协议绑定兼容声明，lineage 回执反向绑定新协议及新指纹，避免自引用哈希。</p></section>
+<section><h2>固定条件与速度口径</h2>
+<p>92 身份、固定 F0–F4 共 460 注册尝试、全部 3217 查询和原顺序不变。原 447 成功提取、13 失败和实际 86 个入库身份全部保留。提前返回 .32/.08、最终 1.0/0、拒识关闭、模型/依赖/线程/资源参数保持父协议内容。</p>
+<p>HTTP P50/P95/max、正确且 ≤2.5 秒和各类结果分别报告父前缀、新后缀及累计值。墙钟吞吐按每个 epoch 完整图库 ready 后计时，排除暂停空档与图库启动；新版本未满 20 条不外推剩余 ETA。重试或检查点可能增加墙钟成本，不修改旧 HTTP 耗时。</p>
+<p>这些是 Windows 上已见公开数据结果，不是 Pi 实测、独立泛化或陌生人 FAR。Pi 拍摄外 pipeline 与录入 ready 仍需独立验证。</p></section>
+<section><h2>执行状态</h2><p>此提交冻结控制代码与准备证据。正式 continuation 创建后，在独立目录保存新指纹、版本边界、status、query records、日志及 live report；没有自动崩溃重启，STOP 在记录边界生效。任何资产、环境或校验不符即保留证据并失败。</p></section>
+</html>
