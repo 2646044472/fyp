@@ -2,7 +2,7 @@
 <title>SMPD v27 · 显式版本衔接</title>
 <style>body{font:17px/1.7 system-ui,sans-serif;max-width:1000px;margin:36px auto;padding:0 24px;color:#18283a}section{padding:20px;background:#f3f5f8;border-radius:10px;margin:18px 0}h1{line-height:1.35}h2{font-size:21px}code{overflow-wrap:anywhere;font-size:14px}table{border-collapse:collapse;width:100%}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd4df}</style>
 <h1>SMPD v27：保留父前缀的操作层续跑</h1>
-<p>2026-10-31 · Windows · 已见公开开发数据</p>
+<p>2026-10-31 准备 · 2026-11-01 恢复 · Windows · 已见公开开发数据</p>
 <section><h2>为什么需要新执行指纹</h2>
 <p>父运行在提交 216 条查询后，发布下一次状态时遭遇 Windows <code>os.replace</code> 的 WinError 5。已推送修复 <code>aedb2fb</code> 只对该访问拒绝作有限退避，没有改动识别、ROI、模型、评分或序列化。</p>
 <p>父协议记录 source commit <code>3e66335</code>；<code>2a1b340</code> 只是后续报告提交。父指纹 <code>710aac923ffd87b71a20716c494000ae9e3302056218dbd879a6a0b4b711cdd2</code> 始终保留。新控制程序和 journal 修复形成新的执行版本，不能冒称同一源代码指纹。</p></section>
@@ -22,5 +22,16 @@
 <p>92 身份、固定 F0–F4 共 460 注册尝试、全部 3217 查询和原顺序不变。原 447 成功提取、13 失败和实际 86 个入库身份全部保留。提前返回 .32/.08、最终 1.0/0、拒识关闭、模型/依赖/线程/资源参数保持父协议内容。</p>
 <p>HTTP P50/P95/max、正确且 ≤2.5 秒和各类结果分别报告父前缀、新后缀及累计值。墙钟吞吐按每个 epoch 完整图库 ready 后计时，排除暂停空档与图库启动；新版本未满 20 条不外推剩余 ETA。重试或检查点可能增加墙钟成本，不修改旧 HTTP 耗时。</p>
 <p>这些是 Windows 上已见公开数据结果，不是 Pi 实测、独立泛化或陌生人 FAR。Pi 拍摄外 pipeline 与录入 ready 仍需独立验证。</p></section>
-<section><h2>执行状态</h2><p>此提交冻结控制代码与准备证据。正式 continuation 创建后，在独立目录保存新指纹、版本边界、status、query records、日志及 live report；没有自动崩溃重启，STOP 在记录边界生效。任何资产、环境或校验不符即保留证据并失败。</p></section>
+<section><h2>2026-11-01 00:06:35 +08:00 执行快照：225/3217，仍在运行</h2>
+<p>控制代码提交 <code>a4fbb287bca32b284fced6b91e357854e6cbe363</code>；新指纹 <code>23778a4613d516f39138b3487238bad813484800c238d8b3916318bd19795e47</code>。正式续跑目录为 <code>runtime/smpd-v27-continuation-20261031-r1</code>。父指纹和父216条保持原样，continuation只保存00216起的新记录。</p>
+<p>保留的两条运行检查查询：217 / RF-12 正确，0.806秒；218 / RF-13 正确，8.530秒。输入哈希、86人完整评分、来源、模型依赖和复制容器均通过，父全目录字节未变。允许继续仅依据操作完整性，不依据识别是否正确。</p>
+<table><tr><th>口径</th><th>结果</th></tr>
+<tr><td>累计225查询</td><td>正确91，误认103，并列0，拒识0，处理失败31；正确且≤2.5秒58。</td></tr>
+<tr><td>新增9查询（含两条检查）</td><td>正确8，误认1；正确且≤2.5秒2。新增误认耗时44.920秒，仍保留。</td></tr>
+<tr><td>累计HTTP耗时</td><td>P50 11.739秒 / P95 112.011秒 / max 166.913秒。</td></tr>
+<tr><td>新增HTTP耗时</td><td>P50 8.346秒 / P95 31.086秒 / max 44.920秒。前缀很短，不代表后续稳定表现。</td></tr>
+<tr><td>查询墙钟吞吐</td><td>累计99.83条/小时；新增296.01条/小时（图库ready后计时，含inflight等待及检查点）。新增不足20条，不给ETA。</td></tr>
+<tr><td>实际进程</td><td>worker44204 / launcher13868；创建时间2026-11-01 00:02:14 +08:00。新日志与提交记录持续增加；当前峰值约10.14GiB，可用内存约7.45GiB。</td></tr></table>
+<p><a href="execution-snapshot.json">静态执行快照</a> · <a href="preflight-receipt.json">两条检查的保留凭据</a> · <a href="../../../runtime/smpd-v27-continuation-20261031-r1/report/report.html">本机运行报告</a>。本页面为静态快照；实时状态以continuation目录下status和records为准。</p>
+<p>只读监控 <code>smpd-v27</code> 已激活，每20分钟检查本次续跑。没有自动崩溃重启；STOP在记录边界生效。任何资产、环境或校验不符即保留证据并失败。本次恢复解决操作中断，识别算法没有调整，误认和长尾仍待完整评估。</p></section>
 </html>
