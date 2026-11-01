@@ -134,7 +134,9 @@ def prepare(root):
              *[Path(r['record_path']) for r in items if 'record_path' in r]]
     sources = dict(old['source_sha256'])
     for path in [Path(__file__), APP/'tools/terminal_rotation_consensus.py',
-                 APP/'tests/test_terminal_rotation_consensus.py', APP/'tests/test_terminal_rotation_pilot.py']:
+                 APP/'tools/pilot_epoch_cleanup.py', APP/'tests/test_pilot_epoch_cleanup.py',
+                 APP/'tests/test_terminal_rotation_consensus.py', APP/'tests/test_terminal_rotation_pilot.py',
+                 APP/'tests/test_pklnet_rotation_inputs.py']:
         sources[str(path.resolve())] = sha(path)
     p = dict(schema=1, policy=POLICY, model_setting='gpt-6.1-sol (developer-supplied identifier; no independent tool runtime-model receipt)',
         scope='One six-query Windows CPU seen-development pilot; no full evaluation/deployment/generalization qualification',
@@ -352,6 +354,13 @@ def run(root):
             for domain in ('device', 'public'):
                 for variant in ('baseline', 'candidate'):
                     run_group(root, p, domain, variant, report, check)
+                    # run_group's HTTP handler/server/closure locals are gone
+                    # only now. Its inner gc.collect still sees those owners.
+                    from pilot_epoch_cleanup import collect_finished_epoch
+                    cleanup = dict(domain=domain, variant=variant, **collect_finished_epoch())
+                    report.setdefault('epoch_cleanup', []).append(cleanup)
+                    save(root/'progress.json', report)
+                    print(json.dumps(dict(stage='finished_epoch_cleanup', **cleanup)), flush=True)
         report['gates'] = gates(report['queries'])
         report.update(complete=report['gates']['all_six_paired'], pilot_pass=all(report['gates'].values()))
     except Exception as error:

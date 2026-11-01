@@ -1,14 +1,50 @@
-# Terminal rotation-consensus pilot: implementation ready, image run blocked
+# Terminal rotation-consensus pilot: no device correction; resource-stopped prefix
 
 2026-11-01. Windows CPU, previously seen device/public development data. No Pi
 timing, independent generalization or stranger FAR qualification.
 
-The candidate and fixed six-query paired protocol were prepared. The formal
-startup check observed **11.132935 GiB available RAM**, below the frozen **12 GiB**
-requirement, and raised `MemoryError: Frozen available-memory/RSS limit`.
-**Zero image queries, zero model inference and zero gallery initializations were
-attempted.** This is an operational block, not candidate success or failure.
-No full168 regression was started. SMPD remains paused at1239/3217 with STOP.
+The explicitly authorized recheck met the unchanged12 GiB startup requirement,
+and the once-only pilot actually ran **10/12 HTTP queries**: all four device
+baseline/candidate pairs and both public baselines. The public candidate epoch
+then failed the12 GiB startup gate before loading its gallery or sending a query.
+The saved result remains `complete:false`, `pilot_pass:false`, with
+`MemoryError: Frozen available-memory/RSS limit`. No retry or168 regression ran.
+SMPD remains independently paused at1239/3217 with STOP and identical public bytes.
+
+The **device subset has no accuracy gain**: both arms have2 correct/2 wrong,
+0 rejected/tied/processing failures. Both previously correct controls survived;
+the two existing errors remained wrong. These two controls do not certify the
+other164 device queries. Public candidate accuracy and timing are **unmeasured**.
+The candidate does not qualify for expansion or deployment.
+
+|Role|Baseline outcome / HTTP seconds|Candidate outcome / HTTP seconds|Candidate mechanism|
+|---|---|---|---|
+|D1 device error|wrong /5.856|wrong /13.473|Four-view quorum; rescore once, no correction|
+|D2 device error|wrong /5.187|wrong /6.558|No three-view quorum; primary retained|
+|D3 correct terminal conflict|correct /5.759|correct /6.936|No three-view quorum; primary retained|
+|D4 correct fast conflict|correct /1.311|correct /1.246|Original early path; no retry|
+|P1 public frontal error|wrong /14.956|not attempted|Candidate startup memory gate|
+|P2 public fast correct|correct /.953|not attempted|Candidate startup memory gate|
+
+All six baseline complete-gallery vectors, routes, decisions and primary ROI
+diagnostics reproduced their stored references. The four candidate original-score
+shadows matched their references. D2/D3/D4 final vectors exactly matched their
+paired baselines. D1 retained the same wrong identity and winning distance .391827,
+while the true-identity distance changed .423917 to .424808. Its medoid differed
+from the original quad by only **.0001220703125 pixels** at most: a floating-point
+round-trip difference rather than demonstrated anatomical repair. That triggered
+a second complete scoring pass and altered some scores. The frozen rule was not
+changed afterward to suppress this result or fit the observed samples.
+
+Device initialization/gallery-ready took15.700 seconds baseline and14.960
+candidate; public baseline took179.114 seconds. These are **copied-template
+loading/preparation**, with zero fresh enrollment attempts. They are separate
+from HTTP times. Sequential epochs and host load do not establish causal timing
+effects, but the measured device candidate did not meet a speed/accuracy objective.
+
+The original11.132935 GiB failed preflight and its zero-attempt receipt are still
+preserved. That historical preflight is not the final state after the new,
+explicitly authorized check and ten-query execution.
 
 ## Evidence and mechanism
 
@@ -46,11 +82,11 @@ The wrapper is installed only by the isolated pilot, not the service.
 
 |Private role label|Selection rule|Stored baseline outcome|New observations|
 |---|---|---|---|
-|D1,D2|Both remaining device errors, sorted by original case/query key|2 wrong|0|
-|D3|First correct terminal query with conflicting heads in that case|correct|0|
-|D4|First correct early-exit query with conflicting heads in that case|correct|0|
-|P1|First eligible completed development F/frontal query, enrolled truth, wrong terminal route, conflicting heads|wrong|0|
-|P2|First eligible completed development query with correct early exit|correct|0|
+|D1,D2|Both remaining device errors, sorted by original case/query key|2 wrong|2 per arm|
+|D3|First correct terminal query with conflicting heads in that case|correct|1 per arm|
+|D4|First correct early-exit query with conflicting heads in that case|correct|1 per arm|
+|P1|First eligible completed development F/frontal query, enrolled truth, wrong terminal route, conflicting heads|wrong|baseline1 / candidate0|
+|P2|First eligible completed development query with correct early exit|correct|baseline1 / candidate0|
 
 Public selection excludes the previous eight-image pilot and the prospectively
 reserved subjects before reading query-result payloads. F/frontal selection avoids
@@ -85,16 +121,29 @@ transactions recorded. This does not test positive payment confirmation.
 ## Resource and protocol limits
 
 Single CPU worker; startup>=12 GiB free, running>=2 GiB free and RSS<=14 GiB.
-No app termination or lowering memory gates. The one-shot startup receipt failed
-the first gate. No retry or automatic resumption was scheduled. The local
-`RUN_STARTED.json` marker does not exist because inference never began.
+No app termination or lowering memory gates. The new startup receipt passed;
+the local `RUN_STARTED.json` binds the actual process and protocol. The final
+public-candidate startup gate failed. No query was in flight at that boundary.
+All issued tokens were canceled, transactions stayed zero and balances unchanged.
+
+Across281 telemetry samples, minimum available RAM was3.194 GiB and sampled peak
+RSS10.298 GiB; the live process peak counter saved at exit was10.298504 GiB.
+The running2 GiB floor and14 GiB RSS ceiling were not violated in those samples.
+The end-of-run observation was10.520969 GiB available (1.479031 GiB below startup)
+and3.022110 GiB RSS. The exact instant of the failed gate was not separately
+sampled; the end observation must not be presented as that exact gate reading.
+Total process wall time, including integrity hashing and gallery preparation,
+was325.287 seconds. The process exited normally after preserving its failure.
 
 The source-bound protocol fingerprint is
 `73ebec4ba28743bbeadf3eef48a72f42c70b2e83aaa96c1bcf6b46b3ad768214`.
-The private protocol, fixed role bindings and startup receipt remain local.
-If the already fixed pilot is explicitly continued later, it must recheck the
-same source/model/template hashes and12 GiB gate; sample/parameter reselection
-is not an operational continuation.
+The private protocol, fixed role bindings, ten atomic records, original driver
+and both startup receipts remain local. The ten record digests, protocol/source
+locks and original public bytes were verified before any later code edit.
+The driver actually executed was archived byte-for-byte against the frozen source
+hash. The historical protocol/result are not rewritten to mark six pairs complete.
+This run is non-resumable; the later cleanup patch does not authorize a suffix
+run, repeated query or new sample selection.
 
 The prior device168 logical evaluation used a reviewed **8 GiB** startup gate for
 the final55 candidate queries after the original **12 GiB** gate stopped the first
@@ -102,20 +151,48 @@ epoch. This historical difference is preserved; it was not an all-epochs pass
 under12 GiB. Its159 vs153 timely-correct observations have epoch/host-load
 confounding and do not establish algorithmic acceleration.
 
-Old error requests took approximately5.6–5.8 seconds on Windows; adding three
-localizations and possibly a second full score pass may increase that cost.
-Public difficult queries can take over a minute. The pilot freezes a30-minute
-wall budget checked at completed boundaries and a600-second HTTP timeout; neither
-is a completion guarantee or Pi speed estimate. No new timing result exists.
+The pilot froze a30-minute wall budget checked at completed boundaries and a
+600-second HTTP timeout. The resource gate, not the wall budget, stopped it.
+All timings above are actual Windows observations; none is a Pi speed estimate.
+
+## Post-run mechanism and owner-lifetime checks
+
+PKLNet's existing `_prepare` rotates a landscape image clockwise into portrait.
+With synthetic non-square images, the nominal four right-angle views therefore
+produce **two unique network input tensors**: views0/270 and90/180 for landscape,
+or0/90 and180/270 for portrait. Square images have four distinct tensors in the
+synthetic check. Thus the detector-view quorum is correlated; it is not four
+independent localization observations. This existing preprocessing was not changed,
+and no image was reinferred for this analysis.
+
+The executed harness collected garbage while its HTTP epoch stack still owned
+handler classes/server closures/App. A synthetic test using the actual handler
+factory and an App-to-bound-capture owner cycle confirms that collecting there
+cannot release those live owners, but collecting **after the epoch returns** can.
+The driver now calls an isolated cleanup helper at that later boundary and records
+its own RSS/available-memory receipt. It only collects unreachable objects in its
+own process. No other process, OS setting or native allocator is manipulated.
+
+This is a harness cleanup correction, not a recognition-policy change. It is
+**synthetic-tested only**, was not used for the ten saved queries and does not
+prove all3 GiB residual RSS or the actual startup deficit would disappear.
+Allocator/native caches and other host activity were not causally isolated.
+No image test or resource retry followed the patch. The candidate itself, labels,
+confidence gates and geometric quorum remain unchanged; lack of device correction
+and absent public candidate results are retained.
 
 ## Validation and model evidence
 
-**15 synthetic tests passed**. They check non-square image coordinate inverses
+**19 synthetic tests passed** (the original15 plus four post-run checks).
+They check non-square image coordinate inverses
 against every pixel under PIL right-angle transforms, unique/ambiguous/insufficient
 geometric quorums, medoid selection, original-pixel sampling and anatomical corner
 order, unchanged early/invalid/agreed paths, single rescoring without score-based
 selection, fixed control roles, rejection accounting, correct losses, duplicate
 queries, incomplete coverage and shadow-parity failures.
+New checks cover closed HTTP owner collection after epoch return and duplicate
+effective PKLNet network inputs for landscape, portrait and square synthetic
+images. No model/session/weights are loaded by those new checks.
 
 The developer-supplied current model identifier is `gpt-6.1-sol`. There is no
 independent tool-returned runtime-model receipt. The preceding planning text was
