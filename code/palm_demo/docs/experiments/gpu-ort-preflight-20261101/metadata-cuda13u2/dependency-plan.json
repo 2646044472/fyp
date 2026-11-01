@@ -1,0 +1,269 @@
+{
+  "schema": 1,
+  "source": "Official PyPI metadata and wheel SHA-256",
+  "python": "3.13.9",
+  "platform": "win32",
+  "root_pins": [
+    "onnxruntime-gpu[cuda,cudnn]==1.31.1",
+    "numpy==2.3.5",
+    "scipy==1.16.3",
+    "Pillow==12.0.0",
+    "opencv-contrib-python-headless==5.0.0.93",
+    "psutil==7.0.0",
+    "flatbuffers==25.12.19",
+    "packaging==25.0",
+    "protobuf==7.36.2",
+    "nvidia-cuda-runtime==13.0.96",
+    "nvidia-cuda-nvrtc==13.0.88",
+    "nvidia-cublas==13.1.0.3",
+    "nvidia-cufft==12.0.0.61",
+    "nvidia-curand==10.4.0.35",
+    "nvidia-cudnn-cu13==9.13.1.26",
+    "nvidia-nvjitlink==13.0.88"
+  ],
+  "packages": {
+    "flatbuffers": {
+      "version": "25.12.19",
+      "filename": "flatbuffers-25.12.19-py2.py3-none-any.whl",
+      "sha256": "7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4",
+      "size": 26661,
+      "url": "https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl",
+      "requires_dist": []
+    },
+    "numpy": {
+      "version": "2.3.5",
+      "filename": "numpy-2.3.5-cp313-cp313-win_amd64.whl",
+      "sha256": "00dc4e846108a382c5869e77c6ed514394bdeb3403461d25a829711041217d5b",
+      "size": 12779090,
+      "url": "https://files.pythonhosted.org/packages/0c/88/e2eaa6cffb115b85ed7c7c87775cb8bcf0816816bc98ca8dbfa2ee33fe6e/numpy-2.3.5-cp313-cp313-win_amd64.whl",
+      "requires_dist": []
+    },
+    "nvidia-cublas": {
+      "version": "13.1.0.3",
+      "filename": "nvidia_cublas-13.1.0.3-py3-none-win_amd64.whl",
+      "sha256": "2a3b94a37def342471c59fad7856caee4926809a72dd5270155d6a31b5b277be",
+      "size": 404355960,
+      "url": "https://files.pythonhosted.org/packages/10/f5/f50bc3f5c2bb57ab8f5b4d78bc1146b57810d42cb8fcb28cbe2e14050376/nvidia_cublas-13.1.0.3-py3-none-win_amd64.whl",
+      "requires_dist": []
+    },
+    "nvidia-cuda-nvrtc": {
+      "version": "13.0.88",
+      "filename": "nvidia_cuda_nvrtc-13.0.88-py3-none-win_amd64.whl",
+      "sha256": "6bcd4e7f8e205cbe644f5a98f2f799bef9556fefc89dd786e79a16312ce49872",
+      "size": 76807835,
+      "url": "https://files.pythonhosted.org/packages/4a/af/345fedb9f4c76c84ab4fa445b36bd4048a4d9db60e6bc76b4f913ff4b852/nvidia_cuda_nvrtc-13.0.88-py3-none-win_amd64.whl",
+      "requires_dist": []
+    },
+    "nvidia-cuda-runtime": {
+      "version": "13.0.96",
+      "filename": "nvidia_cuda_runtime-13.0.96-py3-none-win_amd64.whl",
+      "sha256": "f79298c8a098cec150a597c8eba58ecdab96e3bdc4b9bc4f9983635031740492",
+      "size": 2927037,
+      "url": "https://files.pythonhosted.org/packages/b7/94/6b867483bec07da24ffa32736c79fabb94ef3a7af4d787a9d4a974868576/nvidia_cuda_runtime-13.0.96-py3-none-win_amd64.whl",
+      "requires_dist": []
+    },
+    "nvidia-cudnn-cu13": {
+      "version": "9.13.1.26",
+      "filename": "nvidia_cudnn_cu13-9.13.1.26-py3-none-win_amd64.whl",
+      "sha256": "829ada5fd649e6ad81f5e3968d9ca03c73e90de3fa67295c5dbb13926d09852a",
+      "size": 338693303,
+      "url": "https://files.pythonhosted.org/packages/39/36/d4bbaf3ca78fee690bb3eaf315dadff57187ae1f905ccb4abd031c2211d6/nvidia_cudnn_cu13-9.13.1.26-py3-none-win_amd64.whl",
+      "requires_dist": [
+        "nvidia-cublas"
+      ]
+    },
+    "nvidia-cufft": {
+      "version": "12.0.0.61",
+      "filename": "nvidia_cufft-12.0.0.61-py3-none-win_amd64.whl",
+      "sha256": "2abce5b39d2f5ae12730fb7e5db6696533e36c26e2d3e8fd1750bdd2853364eb",
+      "size": 213342123,
+      "url": "https://files.pythonhosted.org/packages/85/b2/f8af21a2ed1beed337a6a02c5a28aeb85441f4d578ec3d529543c775ea4b/nvidia_cufft-12.0.0.61-py3-none-win_amd64.whl",
+      "requires_dist": [
+        "nvidia-nvjitlink"
+      ]
+    },
+    "nvidia-curand": {
+      "version": "10.4.0.35",
+      "filename": "nvidia_curand-10.4.0.35-py3-none-win_amd64.whl",
+      "sha256": "65b1710aa6961d326b411e314b374290904c5ddf41dc3f766ebc3f1d7d4ca69f",
+      "size": 55242481,
+      "url": "https://files.pythonhosted.org/packages/99/27/72103153b1ffc00e09fdc40ac970235343dcd1ea8bd762e84d2d73219ffa/nvidia_curand-10.4.0.35-py3-none-win_amd64.whl",
+      "requires_dist": []
+    },
+    "nvidia-nvjitlink": {
+      "version": "13.0.88",
+      "filename": "nvidia_nvjitlink-13.0.88-py3-none-win_amd64.whl",
+      "sha256": "634e96e3da9ef845ae744097a1f289238ecf946ce0b82e93cdce14b9782e682f",
+      "size": 36035115,
+      "url": "https://files.pythonhosted.org/packages/e4/01/07530b0e37546231052e30234540289c42eaffa486f1a34a87fed340157b/nvidia_nvjitlink-13.0.88-py3-none-win_amd64.whl",
+      "requires_dist": []
+    },
+    "onnxruntime-gpu": {
+      "version": "1.31.1",
+      "filename": "onnxruntime_gpu-1.31.1-cp313-cp313-win_amd64.whl",
+      "sha256": "1a667241591c89c516b43689a0ae38c4d99d0cb45a2220e95a9f822aeb6887c4",
+      "size": 168097596,
+      "url": "https://files.pythonhosted.org/packages/23/3a/1a2305f400b97fa401e8249002c04040ce28ae21a96588667bcd1cb83d05/onnxruntime_gpu-1.31.1-cp313-cp313-win_amd64.whl",
+      "requires_dist": [
+        "flatbuffers",
+        "numpy>=1.21.6",
+        "packaging",
+        "protobuf>=4.25.8",
+        "nvidia-cuda-nvrtc~=13.0; extra == \"cuda\"",
+        "nvidia-cuda-runtime~=13.0; extra == \"cuda\"",
+        "nvidia-cufft~=12.0; extra == \"cuda\"",
+        "nvidia-curand~=10.0; extra == \"cuda\"",
+        "nvidia-cudnn-cu13~=9.0; extra == \"cudnn\"",
+        "ml-dtypes; extra == \"quantization\"",
+        "sympy; extra == \"symbolic\""
+      ]
+    },
+    "opencv-contrib-python-headless": {
+      "version": "5.0.0.93",
+      "filename": "opencv_contrib_python_headless-5.0.0.93-cp37-abi3-win_amd64.whl",
+      "sha256": "72605e3ae78f66592705b1abe62e60f57dd9050787fdd99711b85a02760d5259",
+      "size": 53654741,
+      "url": "https://files.pythonhosted.org/packages/9e/f3/6d7a7e512d88df0358c09c36cfac1a9050c50df547c64d32dc5f82fade49/opencv_contrib_python_headless-5.0.0.93-cp37-abi3-win_amd64.whl",
+      "requires_dist": [
+        "numpy<2.0; python_version < \"3.9\"",
+        "numpy>=2; python_version >= \"3.9\""
+      ]
+    },
+    "packaging": {
+      "version": "25.0",
+      "filename": "packaging-25.0-py3-none-any.whl",
+      "sha256": "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484",
+      "size": 66469,
+      "url": "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl",
+      "requires_dist": []
+    },
+    "pillow": {
+      "version": "12.0.0",
+      "filename": "pillow-12.0.0-cp313-cp313-win_amd64.whl",
+      "sha256": "4cf7fed4b4580601c4345ceb5d4cbf5a980d030fd5ad07c4d2ec589f95f09905",
+      "size": 7007477,
+      "url": "https://files.pythonhosted.org/packages/6d/2a/dd43dcfd6dae9b6a49ee28a8eedb98c7d5ff2de94a5d834565164667b97b/pillow-12.0.0-cp313-cp313-win_amd64.whl",
+      "requires_dist": [
+        "furo; extra == \"docs\"",
+        "olefile; extra == \"docs\"",
+        "sphinx>=8.2; extra == \"docs\"",
+        "sphinx-autobuild; extra == \"docs\"",
+        "sphinx-copybutton; extra == \"docs\"",
+        "sphinx-inline-tabs; extra == \"docs\"",
+        "sphinxext-opengraph; extra == \"docs\"",
+        "olefile; extra == \"fpx\"",
+        "olefile; extra == \"mic\"",
+        "arro3-compute; extra == \"test-arrow\"",
+        "arro3-core; extra == \"test-arrow\"",
+        "nanoarrow; extra == \"test-arrow\"",
+        "pyarrow; extra == \"test-arrow\"",
+        "check-manifest; extra == \"tests\"",
+        "coverage>=7.4.2; extra == \"tests\"",
+        "defusedxml; extra == \"tests\"",
+        "markdown2; extra == \"tests\"",
+        "olefile; extra == \"tests\"",
+        "packaging; extra == \"tests\"",
+        "pyroma>=5; extra == \"tests\"",
+        "pytest; extra == \"tests\"",
+        "pytest-cov; extra == \"tests\"",
+        "pytest-timeout; extra == \"tests\"",
+        "pytest-xdist; extra == \"tests\"",
+        "trove-classifiers>=2024.10.12; extra == \"tests\"",
+        "defusedxml; extra == \"xmp\""
+      ]
+    },
+    "protobuf": {
+      "version": "7.36.2",
+      "filename": "protobuf-7.36.2-cp310-abi3-win_amd64.whl",
+      "sha256": "a300819d441e078a5608c0d3c709796bb548136058fda017ae51d425b44fd353",
+      "size": 456514,
+      "url": "https://files.pythonhosted.org/packages/8a/55/b77bda4e5e5f5971fb51b07663694690e9afdb9402136c16a522bd621cad/protobuf-7.36.2-cp310-abi3-win_amd64.whl",
+      "requires_dist": []
+    },
+    "psutil": {
+      "version": "7.0.0",
+      "filename": "psutil-7.0.0-cp37-abi3-win_amd64.whl",
+      "sha256": "4cf3d4eb1aa9b348dec30105c55cd9b7d4629285735a102beb4441e38db90553",
+      "size": 244885,
+      "url": "https://files.pythonhosted.org/packages/50/1b/6921afe68c74868b4c9fa424dad3be35b095e16687989ebbb50ce4fceb7c/psutil-7.0.0-cp37-abi3-win_amd64.whl",
+      "requires_dist": [
+        "pytest; extra == \"dev\"",
+        "pytest-xdist; extra == \"dev\"",
+        "setuptools; extra == \"dev\"",
+        "abi3audit; extra == \"dev\"",
+        "black==24.10.0; extra == \"dev\"",
+        "check-manifest; extra == \"dev\"",
+        "coverage; extra == \"dev\"",
+        "packaging; extra == \"dev\"",
+        "pylint; extra == \"dev\"",
+        "pyperf; extra == \"dev\"",
+        "pypinfo; extra == \"dev\"",
+        "pytest-cov; extra == \"dev\"",
+        "requests; extra == \"dev\"",
+        "rstcheck; extra == \"dev\"",
+        "ruff; extra == \"dev\"",
+        "sphinx; extra == \"dev\"",
+        "sphinx_rtd_theme; extra == \"dev\"",
+        "toml-sort; extra == \"dev\"",
+        "twine; extra == \"dev\"",
+        "virtualenv; extra == \"dev\"",
+        "vulture; extra == \"dev\"",
+        "wheel; extra == \"dev\"",
+        "pytest; extra == \"test\"",
+        "pytest-xdist; extra == \"test\"",
+        "setuptools; extra == \"test\""
+      ]
+    },
+    "scipy": {
+      "version": "1.16.3",
+      "filename": "scipy-1.16.3-cp313-cp313-win_amd64.whl",
+      "sha256": "062246acacbe9f8210de8e751b16fc37458213f124bef161a5a02c7a39284304",
+      "size": 38529877,
+      "url": "https://files.pythonhosted.org/packages/cd/01/1204382461fcbfeb05b6161b594f4007e78b6eba9b375382f79153172b4d/scipy-1.16.3-cp313-cp313-win_amd64.whl",
+      "requires_dist": [
+        "numpy<2.6,>=1.25.2",
+        "pytest>=8.0.0; extra == \"test\"",
+        "pytest-cov; extra == \"test\"",
+        "pytest-timeout; extra == \"test\"",
+        "pytest-xdist; extra == \"test\"",
+        "asv; extra == \"test\"",
+        "mpmath; extra == \"test\"",
+        "gmpy2; extra == \"test\"",
+        "threadpoolctl; extra == \"test\"",
+        "scikit-umfpack; extra == \"test\"",
+        "pooch; extra == \"test\"",
+        "hypothesis>=6.30; extra == \"test\"",
+        "array-api-strict>=2.3.1; extra == \"test\"",
+        "Cython; extra == \"test\"",
+        "meson; extra == \"test\"",
+        "ninja; sys_platform != \"emscripten\" and extra == \"test\"",
+        "sphinx<8.2.0,>=5.0.0; extra == \"doc\"",
+        "intersphinx_registry; extra == \"doc\"",
+        "pydata-sphinx-theme>=0.15.2; extra == \"doc\"",
+        "sphinx-copybutton; extra == \"doc\"",
+        "sphinx-design>=0.4.0; extra == \"doc\"",
+        "matplotlib>=3.5; extra == \"doc\"",
+        "numpydoc; extra == \"doc\"",
+        "jupytext; extra == \"doc\"",
+        "myst-nb>=1.2.0; extra == \"doc\"",
+        "pooch; extra == \"doc\"",
+        "jupyterlite-sphinx>=0.19.1; extra == \"doc\"",
+        "jupyterlite-pyodide-kernel; extra == \"doc\"",
+        "linkify-it-py; extra == \"doc\"",
+        "mypy==1.10.0; extra == \"dev\"",
+        "typing_extensions; extra == \"dev\"",
+        "types-psutil; extra == \"dev\"",
+        "pycodestyle; extra == \"dev\"",
+        "ruff>=0.0.292; extra == \"dev\"",
+        "cython-lint>=0.12.2; extra == \"dev\"",
+        "rich-click; extra == \"dev\"",
+        "doit>=0.36.0; extra == \"dev\"",
+        "pydevtool; extra == \"dev\""
+      ]
+    }
+  },
+  "metadata_consistent": true,
+  "installation_tested": false,
+  "gpu_inference_tested": false,
+  "system_site_packages": false
+}

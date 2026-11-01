@@ -1,0 +1,19 @@
+# Planned lock only: installation and inference remain unverified.
+# Official PyPI; CPython 3.13 Windows x64; no system-site-packages.
+# Install only into the separate project venv after the blocker is resolved.
+flatbuffers==25.12.19 --hash=sha256:7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4
+numpy==2.3.5 --hash=sha256:00dc4e846108a382c5869e77c6ed514394bdeb3403461d25a829711041217d5b
+nvidia-cublas==13.1.0.3 --hash=sha256:2a3b94a37def342471c59fad7856caee4926809a72dd5270155d6a31b5b277be
+nvidia-cuda-nvrtc==13.0.88 --hash=sha256:6bcd4e7f8e205cbe644f5a98f2f799bef9556fefc89dd786e79a16312ce49872
+nvidia-cuda-runtime==13.0.96 --hash=sha256:f79298c8a098cec150a597c8eba58ecdab96e3bdc4b9bc4f9983635031740492
+nvidia-cudnn-cu13==9.13.1.26 --hash=sha256:829ada5fd649e6ad81f5e3968d9ca03c73e90de3fa67295c5dbb13926d09852a
+nvidia-cufft==12.0.0.61 --hash=sha256:2abce5b39d2f5ae12730fb7e5db6696533e36c26e2d3e8fd1750bdd2853364eb
+nvidia-curand==10.4.0.35 --hash=sha256:65b1710aa6961d326b411e314b374290904c5ddf41dc3f766ebc3f1d7d4ca69f
+nvidia-nvjitlink==13.0.88 --hash=sha256:634e96e3da9ef845ae744097a1f289238ecf946ce0b82e93cdce14b9782e682f
+onnxruntime-gpu==1.31.1 --hash=sha256:1a667241591c89c516b43689a0ae38c4d99d0cb45a2220e95a9f822aeb6887c4
+opencv-contrib-python-headless==5.0.0.93 --hash=sha256:72605e3ae78f66592705b1abe62e60f57dd9050787fdd99711b85a02760d5259
+packaging==25.0 --hash=sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484
+pillow==12.0.0 --hash=sha256:4cf7fed4b4580601c4345ceb5d4cbf5a980d030fd5ad07c4d2ec589f95f09905
+protobuf==7.36.2 --hash=sha256:a300819d441e078a5608c0d3c709796bb548136058fda017ae51d425b44fd353
+psutil==7.0.0 --hash=sha256:4cf3d4eb1aa9b348dec30105c55cd9b7d4629285735a102beb4441e38db90553
+scipy==1.16.3 --hash=sha256:062246acacbe9f8210de8e751b16fc37458213f124bef161a5a02c7a39284304
