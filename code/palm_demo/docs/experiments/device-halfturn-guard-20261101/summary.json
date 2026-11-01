@@ -1,0 +1,309 @@
+{
+  "complete": true,
+  "all_guards_pass": true,
+  "guards": {
+    "exact_case_variant_set": true,
+    "fixed_query_keys": true,
+    "fixed_five_frame_enrollments": true,
+    "ready_all": true,
+    "zero_transactions": true,
+    "expected_168_each": true,
+    "expected_34_enrollments_each": true,
+    "168_complete_pairs": true,
+    "all_decisions_scores_exact": true,
+    "all_roi_exact": true,
+    "historical_terminal_decisions_exact": true,
+    "all_166_old_correct_retained": true,
+    "all_34_five_frame_arrays_exact": true,
+    "public_pause_preserved": true,
+    "original_images_preserved": true,
+    "logical_execution_pass": true
+  },
+  "variants": {
+    "baseline": {
+      "summary": {
+        "total": 168,
+        "outcomes": {
+          "correct": 166,
+          "wrong_identity_accepted": 2,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0
+        },
+        "correct_within_2500": 153,
+        "p50_ms": 711.13,
+        "p95_ms": 4402.637500000002,
+        "max_ms": 7717.7
+      },
+      "cases": {
+        "new-camera-original": {
+          "total": 29,
+          "outcomes": {
+            "correct": 29,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 29,
+          "p50_ms": 438.64,
+          "p95_ms": 1047.8159999999998,
+          "max_ms": 1748.74
+        },
+        "new-camera-reverse": {
+          "total": 29,
+          "outcomes": {
+            "correct": 29,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 28,
+          "p50_ms": 435.26,
+          "p95_ms": 1613.932,
+          "max_ms": 6672.01
+        },
+        "old-camera-original": {
+          "total": 55,
+          "outcomes": {
+            "correct": 53,
+            "wrong_identity_accepted": 2,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 49,
+          "p50_ms": 666.45,
+          "p95_ms": 5363.786999999999,
+          "max_ms": 6064.5
+        },
+        "old-camera-reverse": {
+          "total": 55,
+          "outcomes": {
+            "correct": 55,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 47,
+          "p50_ms": 954.66,
+          "p95_ms": 3949.9719999999993,
+          "max_ms": 7717.7
+        }
+      },
+      "fresh_enrollments": 34,
+      "enrollment_request_s": 379.32649,
+      "enrollment_ready_count": 34,
+      "enrollment_gallery_ready_nested_s": 57.56746729987208,
+      "startup_ready_s": 2.944135500001721,
+      "query_http_s": 188.64695999999998,
+      "capture_extract_s": 102.70171419903636,
+      "gallery_s": 83.82049240008928,
+      "original_scoring_s": 82.43137030000798,
+      "appended_rf_s": 0.82772009994369,
+      "query_stage_nested_s": {
+        "frame_file_read": 16.86613179987762,
+        "primary_roi": 76.86685080023017,
+        "descriptor_index": 0.000582399545237422,
+        "index_and_enrollment_links": 0.0009181998902931809,
+        "alternate_roi": 0.7704333998262882,
+        "complete_features": 12.8638573999051
+      }
+    },
+    "candidate": {
+      "summary": {
+        "total": 168,
+        "outcomes": {
+          "correct": 166,
+          "wrong_identity_accepted": 2,
+          "true_identity_nonunique": 0,
+          "rejected": 0,
+          "processing_failure": 0
+        },
+        "correct_within_2500": 159,
+        "p50_ms": 578.69,
+        "p95_ms": 2948.6850000000068,
+        "max_ms": 7443.84
+      },
+      "cases": {
+        "new-camera-original": {
+          "total": 29,
+          "outcomes": {
+            "correct": 29,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 29,
+          "p50_ms": 440.73,
+          "p95_ms": 1041.302,
+          "max_ms": 1769.52
+        },
+        "new-camera-reverse": {
+          "total": 29,
+          "outcomes": {
+            "correct": 29,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 28,
+          "p50_ms": 501.37,
+          "p95_ms": 1842.562,
+          "max_ms": 7443.84
+        },
+        "old-camera-original": {
+          "total": 55,
+          "outcomes": {
+            "correct": 53,
+            "wrong_identity_accepted": 2,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 49,
+          "p50_ms": 585.44,
+          "p95_ms": 4826.986999999999,
+          "max_ms": 5495.32
+        },
+        "old-camera-reverse": {
+          "total": 55,
+          "outcomes": {
+            "correct": 55,
+            "wrong_identity_accepted": 0,
+            "true_identity_nonunique": 0,
+            "rejected": 0,
+            "processing_failure": 0
+          },
+          "correct_within_2500": 53,
+          "p50_ms": 572.44,
+          "p95_ms": 1933.126999999999,
+          "max_ms": 5462.37
+        }
+      },
+      "fresh_enrollments": 34,
+      "enrollment_request_s": 397.68554,
+      "enrollment_ready_count": 34,
+      "enrollment_gallery_ready_nested_s": 59.82247520016972,
+      "startup_ready_s": 3.4214001001091674,
+      "query_http_s": 152.07666,
+      "capture_extract_s": 80.67817810061388,
+      "gallery_s": 69.14737789984792,
+      "original_scoring_s": 68.11625939980149,
+      "appended_rf_s": 0.5963761999737471,
+      "query_stage_nested_s": {
+        "frame_file_read": 13.119028900167905,
+        "primary_roi": 60.60704590100795,
+        "descriptor_index": 0.0006391002098098397,
+        "index_and_enrollment_links": 0.0009561002952978015,
+        "alternate_roi": 0.8919346999609843,
+        "complete_features": 11.801215400104411
+      }
+    }
+  },
+  "resources": {
+    "samples": 979,
+    "peak_sampled_RSS_GiB": 1.7352981567382812,
+    "min_available_GiB": 10.105064392089844,
+    "cpu_mean_percent_per_core": [
+      55.9050051072523,
+      58.178447395301326,
+      60.060674157303374,
+      84.23401430030644,
+      23.795607763023494,
+      23.7120531154239,
+      22.81450459652707,
+      24.136261491317672,
+      30.524004085801838,
+      30.26373850868233,
+      32.21746680286006,
+      31.32614913176711
+    ],
+    "process_cpu_s_delta": 2097.59375,
+    "sampled_wall_s": 986.8728020191193,
+    "host_disk_read_bytes_delta": 4093050368,
+    "host_disk_write_bytes_delta": 3006899200,
+    "last_sample_available_GiB": 10.69161605834961,
+    "last_sample_RSS_GiB": 1.1123390197753906,
+    "last_sample_time": 1793498695.4345565,
+    "observed_peak_counter_GiB": 1.7853584289550781,
+    "peak_counter_scope": "Live Windows peak-working-set observations; last observation before final baseline finished, not a post-exit final counter",
+    "continuation": {
+      "samples": 171,
+      "sampled_wall_s": 171.33040356636047,
+      "peak_sampled_RSS_GiB": 1.41473388671875,
+      "min_available_GiB": 9.200576782226562,
+      "process_cpu_s_delta": 335.078125,
+      "host_disk_read_bytes_delta": 1709987840,
+      "host_disk_write_bytes_delta": 1302089216
+    },
+    "epoch_note": "Original stopped run and reviewed continuation are separate epochs/processes; original resource counters are retained separately"
+  },
+  "paired_subset_summaries": {
+    "baseline": {
+      "total": 168,
+      "outcomes": {
+        "correct": 166,
+        "wrong_identity_accepted": 2,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0
+      },
+      "correct_within_2500": 153,
+      "p50_ms": 711.13,
+      "p95_ms": 4402.637500000002,
+      "max_ms": 7717.7
+    },
+    "candidate": {
+      "total": 168,
+      "outcomes": {
+        "correct": 166,
+        "wrong_identity_accepted": 2,
+        "true_identity_nonunique": 0,
+        "rejected": 0,
+        "processing_failure": 0
+      },
+      "correct_within_2500": 159,
+      "p50_ms": 578.69,
+      "p95_ms": 2948.6850000000068,
+      "max_ms": 7443.84
+    }
+  },
+  "completed_template_array_audit": {
+    "paired_groups": 34,
+    "all_five_exact": true
+  },
+  "continuation": {
+    "original_run_complete": false,
+    "resource_stop_preserved": true,
+    "reviewed_continuation_complete": true,
+    "new_candidate_queries": 55,
+    "new_candidate_enrollments": 11,
+    "startup_free_GiB": 8,
+    "recognition_changes": false,
+    "no_completed_query_retries": true,
+    "parent_files_unchanged": true,
+    "peak_RSS_GiB": 1.4673118591308594
+  },
+  "paired_timely_transitions": {
+    "timely_correct_to_late_or_incorrect": 0,
+    "late_or_incorrect_to_timely_correct": 6
+  },
+  "partial_coverage": {
+    "paired_queries": 168,
+    "stored_correct_checked": 166,
+    "stored_correct_lost": 0,
+    "stored_correct_untested": 0
+  },
+  "scope": "Previously seen Windows device regression. No Pi timing, independent generalization, GPU or speedup claim.",
+  "timing_note": "Sequential fresh variants; enrollment/ready separate. Stage timers are nested, do not add. CPU/disk counters include host activity.",
+  "public_state": "paused_STOP 1239/3217, unchanged",
+  "harness_note": "Prior observer attribute-forwarding failure retained; zero identify requests in that invalid run.",
+  "payment_scope": "All tokens canceled, zero transactions; positive payment-confirmation tests not executed.",
+  "model_evidence": "Current session system identifier gpt-6.1-sol; no additional tool-returned runtime-model receipt.",
+  "failure": null
+}
