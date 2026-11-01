@@ -129,3 +129,21 @@ denied ensurepip operation must not be retried or rerouted without materially
 new evidence addressing that denial. Once permitted, installation and DLL
 qualification must succeed before implementing/running the supervised query
 runner. No model experiment, Pi measurement, promotion or deployment is claimed.
+
+## Remote publication block
+
+The six reviewed files were committed locally as
+`039ec7c89042a297a90fd9255dcd123fc94b4ae8`. Automatic approval review rejected
+`git push origin HEAD:refs/heads/experiment/smpd-roi-20261030` before command
+execution. Its stated reason was that remote publication is an external
+commitment and the available evidence did not explicitly authorize publishing
+these changes. No alternative push route or retry was attempted.
+
+Read-only review of recent original-task messages did not supply an explicit
+user push authorization; Personal Context retrieval was unavailable. Publication
+therefore remains blocked pending explicit user authorization evidence. A local
+follow-up commit records this block; local commits are not remote delivery.
+An independent read-only `git ls-remote` attempt failed with
+`schannel: failed to receive handshake, SSL/TLS connection failed`.
+The current remote SHA is consequently unverified; the last earlier verified
+SHA must not be represented as a fresh verification.

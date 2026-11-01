@@ -24,5 +24,12 @@
   "sandbox_temporary_cleanup_outcome": "uncertain",
   "full168_or_public_run_started": false,
   "pi_measurement": false,
-  "optimization_complete": false
+  "optimization_complete": false,
+  "publication_state": "blocked_auto_review_before_execution",
+  "publication_rejection_reason": "Remote publication lacked explicit user authorization in available evidence",
+  "push_command_executed": false,
+  "push_retried": false,
+  "initial_local_commit": "039ec7c89042a297a90fd9255dcd123fc94b4ae8",
+  "current_remote_sha_verified": false,
+  "remote_read_failure": "schannel: failed to receive handshake, SSL/TLS connection failed"
 }
