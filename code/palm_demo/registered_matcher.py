@@ -38,34 +38,90 @@ def local_features(pixels):
     return np.asarray([k.pt for k in keys], np.float32), descriptors
 
 
-def registration(left, right):
+def registration(left, right, *, diagnostics=None):
+    """Return the unchanged similarity fit, optionally recording scalar gates.
+
+    An unfinished or exceptional stage has no inferred rejection reason. The
+    optional caller-owned mapping is reset on each call and contains no images,
+    descriptors, identity labels or score/ROI selection instructions.
+    """
+    if diagnostics is not None:
+        diagnostics.clear()
+        diagnostics.update(schema='similarity-registration-v1', stage='input',
+                           outcome='unknown', reason=None, failed_gates=[],
+                           query_descriptors=None, enrollment_descriptors=None,
+                           mutual_matches=None, inliers=None,
+                           coverage=None, scale=None, angle_degrees=None)
+    try:
+        return _registration(left, right, diagnostics)
+    except Exception as error:
+        if diagnostics is not None:
+            diagnostics.update(outcome='error', reason=None, error_type=type(error).__name__)
+        raise
+
+
+def _registration(left, right, diagnostics=None):
     pa, da = left
     pb, db = right
+    if diagnostics is not None:
+        diagnostics.update(stage='descriptor_count', query_descriptors=len(da),
+                           enrollment_descriptors=len(db))
     if len(da) < 4 or len(db) < 4:
+        if diagnostics is not None:
+            diagnostics.update(outcome='rejected', reason='insufficient_descriptors')
         return None
+    if diagnostics is not None:
+        diagnostics['stage'] = 'correspondence'
     forward = cv2.BFMatcher().knnMatch(da, db, k=2)
     reverse = cv2.BFMatcher().knnMatch(db, da, k=1)
     good = [a for a, b in forward if a.distance < .85*b.distance
             and reverse[a.trainIdx][0].trainIdx == a.queryIdx]
+    if diagnostics is not None:
+        diagnostics['mutual_matches'] = len(good)
     if len(good) < 4:
+        if diagnostics is not None:
+            diagnostics.update(outcome='rejected', reason='insufficient_mutual_matches')
         return None
     p = np.asarray([pa[m.queryIdx] for m in good], np.float32)
     q = np.asarray([pb[m.trainIdx] for m in good], np.float32)
+    if diagnostics is not None:
+        diagnostics['stage'] = 'similarity_fit'
     with _RANSAC_LOCK:
         cv2.setRNGSeed(20261028)
         transform, mask = cv2.estimateAffinePartial2D(p, q, method=cv2.RANSAC,
                                                    ransacReprojThreshold=3., maxIters=2000,
                                                    confidence=.99, refineIters=10)
     if transform is None or not np.isfinite(transform).all():
+        if diagnostics is not None:
+            diagnostics.update(outcome='rejected', reason='no_transform' if transform is None else 'nonfinite_transform')
         return None
+    if diagnostics is not None:
+        diagnostics['stage'] = 'inlier_count'
     keep = mask.ravel().astype(bool)
+    if diagnostics is not None:
+        diagnostics['inliers'] = int(keep.sum())
     if keep.sum() < 4:
+        if diagnostics is not None:
+            diagnostics.update(outcome='rejected', reason='insufficient_inliers')
         return None
     coverage = min(cv2.contourArea(cv2.convexHull(v[keep])) for v in (p, q))/(SIDE*SIDE)
     scale = float(np.hypot(transform[0, 0], transform[1, 0]))
     angle = float(np.rad2deg(np.arctan2(transform[1, 0], transform[0, 0])))
+    if diagnostics is not None:
+        diagnostics.update(stage='geometry', coverage=float(coverage), scale=scale, angle_degrees=angle)
     if coverage < .02 or not .5 <= scale <= 2 or abs(angle) > 40:
+        if diagnostics is not None:
+            failed = []
+            if coverage < .02:
+                failed.append('coverage')
+            if not .5 <= scale <= 2:
+                failed.append('scale')
+            if abs(angle) > 40:
+                failed.append('angle')
+            diagnostics.update(outcome='rejected', reason='geometry_limits', failed_gates=failed)
         return None
+    if diagnostics is not None:
+        diagnostics.update(stage='complete', outcome='accepted', reason='accepted')
     return np.vstack([transform, [0., 0., 1.]])
 
 

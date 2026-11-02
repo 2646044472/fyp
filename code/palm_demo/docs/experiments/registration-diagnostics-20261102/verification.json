@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "verified_utc": "2026-11-02T07:39:18.674885+00:00",
+  "baseline_commit": "2d49e2e389a094a720e711daeef7d6ee4a8ef36b",
+  "test_scope": "Synthetic registration/resource/Gallery checks only; no image feature extraction, real gallery or model inference",
+  "tests": 24,
+  "failures_or_errors": 0,
+  "unchanged_registration_core_ast_sha256": "8e8b6798f1f93365420b34bb1f3c4534821630a742d01238ed40dfd9e83441b1",
+  "archived_morning_artifacts_unchanged": {
+    "gallery-lifecycle-20261102-r1": {
+      "driver": "26306871328515d857ae6b3afdfb07f2a19f1808ae1395f4dfd3e9ac2b16e8d7",
+      "results": "708746caef658cd5ad6c7348ec86449304c38321c47b6167a2bb3c15a7bfc3ff"
+    },
+    "global-sift-geometry-20261102-r1": {
+      "driver": "1bfc7bd279caccfdca01918bcc6f3ca0fe61177b12c6cb19803713461ca22006",
+      "results": "c0f9de935ffe882d2fbc335dd1711ec69bf224b8c049cd6756d3285242ec00cc"
+    }
+  },
+  "legacy_220_substage_attribution": "unknown; not backfilled",
+  "limits": {
+    "startup_available_GiB_min_inclusive": 12,
+    "running_available_GiB_min_inclusive": 2,
+    "worker_RSS_GiB_max_inclusive": 14
+  },
+  "public_pause_boundary_unchanged": true,
+  "GPU_installation_retried": false,
+  "real_experiment_started": false,
+  "recognition_accuracy_improvement_established": false
+}
