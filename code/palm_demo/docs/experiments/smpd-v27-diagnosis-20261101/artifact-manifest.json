@@ -1,0 +1,13 @@
+{
+  "files": {
+    "REPORT.md": "74301e0e936be61fc85d9728e03689ba3cbea4f894d640496e84383d86fb5a54",
+    "build_diagnosis.py": "00d12638714b6221ccf4a00f806f4a3ab62207ef9ccb6f2f2255f648f6c74a74",
+    "by-identity.csv": "a16a05737b55a1cc4900ca3183c838b56482717399c8e1a3450f4bd360b6ebcc",
+    "by-partition.csv": "f8a92f0a073fb8faead8fddc68d93c7e9de68ea9d409fc2c2b5b88f63da79b3c",
+    "by-pose.csv": "965c26f3f4b51e79e0667aef0bcb8f9872f5603631ebee13b269b2cbf5dedf80",
+    "enrollment-failures.csv": "a0edcb03e653a79f4dfc04224f15a293d463ac5750201dc57f39eced824ac3b2",
+    "query-diagnosis.csv": "064c2a1eb4879a9cf156f5f22f65c251bd1aa6161c3ce264593e8adbc7179afb",
+    "summary.json": "1f8eea1870b40c7a5f3333ad560faccfed265d4c565666ba7dcbedf68845812f"
+  },
+  "scope": "Hashes of new diagnosis artifacts; no original runtime file written"
+}

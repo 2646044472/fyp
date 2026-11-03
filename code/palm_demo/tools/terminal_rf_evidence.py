@@ -23,7 +23,12 @@ def packed(code):
     return np.packbits(code.astype(bool),bitorder='little').tobytes()
 
 
-def install(algorithm):
+def install(algorithm, *, capture=None):
+    """Install the original metric, optionally exporting request-local code pairs.
+
+    The observer receives immutable pair sets after scoring. It cannot change
+    the scorer's accumulators; callers must keep biometric arrays private.
+    """
     if getattr(algorithm,'_terminal_rf_installed',False) or getattr(algorithm,'_rf_distance_installed',False):
         raise ValueError('Distance experiment already installed')
     assert algorithm.base is algorithm.legacy.base and algorithm.base is algorithm._pose.base
@@ -85,9 +90,13 @@ def install(algorithm):
                     exhaustive_callback_calls=context['exhaustive_callback_calls'],original_scoring_ms=original_ms,
                     captured_pairs=sum(len(v) for v in context['pairs'].values()),rf_applied=False,rf_unique_comparisons=0,rf_ms=0.)
                 algorithm._terminal_rf_trace=trace
+                def observed(value):
+                    if capture is not None:
+                        capture({key:frozenset(pairs) for key,pairs in context['pairs'].items()},dict(trace))
+                    return value
                 if route!=ORIGINAL_TERMINAL:
                     trace['reason']='original_confident_path_verbatim'
-                    return original
+                    return observed(original)
                 if context['unknown_calls'] or any(not v for v in context['pairs'].values()):
                     raise ValueError('Incomplete per-frame comparison provenance; cannot apply terminal RF')
                 tick=time.perf_counter();decoded={};distances={}
@@ -103,7 +112,7 @@ def install(algorithm):
                 trace.update(rf_applied=True,reason='original_exhaustive_branch_only',rf_unique_comparisons=len(distances),
                     rf_ms=(time.perf_counter()-tick)*1000,rf_scores={u:float(s) for u,s in scores.items()})
                 probe.route=TERMINAL_ROUTE
-                return scores
+                return observed(scores)
             finally:
                 state[0]=None
                 if callable(callback):probe.exhaustive=callback

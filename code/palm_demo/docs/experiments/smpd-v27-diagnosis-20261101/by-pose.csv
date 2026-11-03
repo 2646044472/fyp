@@ -1,0 +1,5 @@
+pose,total,correct,wrong_identity_accepted,processing_failure,rejected,true_identity_nonunique,span_too_small,out_of_bounds,wrong_truth_missing,wrong_truth_present
+F,180,143,22,15,0,0,11,4,14,8
+P,350,52,273,25,0,0,25,0,39,234
+RF,360,157,153,50,0,0,36,14,32,121
+RP,349,2,228,119,0,0,111,8,33,195

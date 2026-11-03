@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "scope": "Windows seen-device mechanism screen blocked before first query",
+  "protocol_fingerprint": "acf2c7173ae655353d2267f4fbf88b9a5f9daf60652e156af2f2757eebe709a4",
+  "source_sha256": {
+    "tools/terminal_rf_evidence.py": "a42b7704d970f12a75128dc12b3779ca09b532c5d74480311e901f8f41437646",
+    "tools/terminal_binary_bias.py": "f0211e3d4aeee0ef6d6306f577ef1ebcadfad0b6742eea3005ca50adabd6b8f8",
+    "tools/pilot_terminal_binary_bias.py": "53b9a82eb7702c857061b979487769313bdbe49035b43dcb760160ec0968390b",
+    "tests/test_terminal_binary_bias.py": "19c7476b1cf5e18ea7e5682a7769c40de4c3f4e08e55f991fe10768729bc2dff"
+  },
+  "tests": {
+    "passed": 48,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_sha256": "dbe7b6546e1b4ac3f757d099ef0b0a839f7294c5120097cb568bd03409da4cb3"
+  },
+  "real_screen": {
+    "complete": false,
+    "pilot_pass": false,
+    "recognition_conclusion": "unmeasured, not rejected for accuracy",
+    "fixed_query_denominator": 4,
+    "completed_baseline_http": 0,
+    "candidate_http": 0,
+    "offline_metric_records": 0,
+    "compnet_embedding_calls": 55,
+    "fresh_enrollment_attempts": 0,
+    "copied_identities": 11,
+    "original_frames_per_identity": 5,
+    "public_queries": 0,
+    "full168": false
+  },
+  "blocker": {
+    "action": "First baseline HTTP client socket.connect for POST /api/demo/identify",
+    "target": "127.0.0.1 at OS-assigned ephemeral TCP port; number not logged",
+    "stage": "client connect, after successful server bind",
+    "kind": "OS PermissionError",
+    "winerror": 10013,
+    "auto_review_rejection": false,
+    "response_received": false,
+    "retry": false,
+    "alternate_route": false
+  },
+  "resource_bytes": {
+    "startup_available": 13572714496,
+    "min_sampled_available": 12710973440,
+    "max_sampled_rss": 946868224,
+    "peak_wset_at_last_observation": 947384320,
+    "last_rss": 523530240
+  },
+  "samples": 27,
+  "sampled_limit_violations": 0,
+  "initialization_ready_ms": 15916.955599997891,
+  "wall_s": 30.84362340000007,
+  "frozen_originals_and_protocol_verified_after": true,
+  "executed_driver_archive_exact": true,
+  "private_result_sha256": "9bac7d2ce5bd58b2e8117c0cba0df4dd182503a6319bb15dcc660ce048f21fb2",
+  "original_public_state": {
+    "state": "paused_STOP",
+    "completed": 1239,
+    "total": 3217
+  },
+  "gpu_install_attempts": 0,
+  "push_attempts": 0,
+  "actual_model_receipt": null
+}

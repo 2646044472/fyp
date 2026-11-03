@@ -1,0 +1,16 @@
+{
+  "files": {
+    "REPORT.md": "26e64508b6df4de01d1086051b3c5e5cafc25600e50b4eca5f676b4072d94c09",
+    "append_recognition_result.py": "de80d6f4b50e660689e2537526e70e7ac2caffc85f79b23ae0c955f4d9493aa1",
+    "artifact-manifest.json": "bcc47b6542506260d0a54a7fef23c416a1e5acbeb96f297a5e012f4dc31c6f75",
+    "build_diagnosis.py": "00d12638714b6221ccf4a00f806f4a3ab62207ef9ccb6f2f2255f648f6c74a74",
+    "by-identity.csv": "a16a05737b55a1cc4900ca3183c838b56482717399c8e1a3450f4bd360b6ebcc",
+    "by-partition.csv": "f8a92f0a073fb8faead8fddc68d93c7e9de68ea9d409fc2c2b5b88f63da79b3c",
+    "by-pose.csv": "965c26f3f4b51e79e0667aef0bcb8f9872f5603631ebee13b269b2cbf5dedf80",
+    "enrollment-failures.csv": "a0edcb03e653a79f4dfc04224f15a293d463ac5750201dc57f39eced824ac3b2",
+    "query-diagnosis.csv": "064c2a1eb4879a9cf156f5f22f65c251bd1aa6161c3ce264593e8adbc7179afb",
+    "recognition-pilot-summary.json": "dd9b67eaaf8772dff104f0827cdc3748c968d722606ded01773ea11bf8de30fc",
+    "summary.json": "1f8eea1870b40c7a5f3333ad560faccfed265d4c565666ba7dcbedf68845812f"
+  },
+  "note": "Supersedes initial artifact-manifest for current new diagnosis files; initial manifest remains a historical pre-recognition snapshot."
+}
