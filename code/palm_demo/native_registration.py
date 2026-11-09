@@ -45,14 +45,28 @@ class NativeRegistration:
         tolerance=1e-4
         accepted=fd[:,0]<(.85**2)*fd[:,1]
         uncertain=(np.abs(fd[:,0]-(.85**2)*fd[:,1])<=tolerance) | (fd[:,1]-fd[:,0]<=tolerance)
-        for i in np.flatnonzero(uncertain):
-            m,n=cv2.BFMatcher().knnMatch(a[i:i+1],b,k=2)[0]
-            fi[i,0]=m.trainIdx;accepted[i]=m.distance<.85*n.distance
+        matcher=None
+        uncertain_rows=np.flatnonzero(uncertain)
+        if len(uncertain_rows):
+            # Exact OpenCV distances still decide all borderline cases. Batch
+            # independent query rows instead of rebuilding a matcher per row.
+            matcher=cv2.BFMatcher()
+            matches=matcher.knnMatch(a[uncertain_rows],b,k=2)
+            for row,i in enumerate(uncertain_rows):
+                m,n=matches[row]
+                fi[i,0]=m.trainIdx;accepted[i]=m.distance<.85*n.distance
+        accepted_rows=np.flatnonzero(accepted)
+        targets=fi[accepted_rows,0]
+        reverse_rows=np.unique(targets[rd[targets,1]-rd[targets,0]<=tolerance])
+        exact_reverse={}
+        if len(reverse_rows):
+            if matcher is None:matcher=cv2.BFMatcher()
+            matches=matcher.knnMatch(b[reverse_rows],a,k=1)
+            for row,j in enumerate(reverse_rows):
+                exact_reverse[int(j)]=matches[row][0].trainIdx
         pairs=[]
-        for i in np.flatnonzero(accepted):
-            j=fi[i,0];nearest=ri[j,0]
-            if rd[j,1]-rd[j,0]<=tolerance:
-                nearest=cv2.BFMatcher().knnMatch(b[j:j+1],a,k=1)[0][0].trainIdx
+        for i,j in zip(accepted_rows,targets):
+            nearest=exact_reverse.get(int(j),ri[j,0])
             if nearest==i:pairs.append((int(i),int(j)))
         return pairs
 

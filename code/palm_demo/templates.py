@@ -73,6 +73,13 @@ class TemplateStore:
                 users.append(data_path.stem)
         return sorted(users)
 
+    def list_template_ids(self) -> list[str]:
+        """Include incomplete file pairs for integrity checks, without loading them."""
+        if not self.root.exists():
+            return []
+        return sorted({path.stem for suffix in ("*.npz", "*.json")
+                       for path in self.root.glob(suffix)})
+
     def delete(self, user_id: str) -> None:
         data_path, meta_path = self.paths(user_id)
         data_path.unlink(missing_ok=True)

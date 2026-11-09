@@ -37,12 +37,53 @@ import palm_roi
 from biometric import load_algorithm
 from collection_page import HTML as COLLECTION_HTML
 from capture_page import HTML as CAPTURE_HTML
-from demo_flow import DemoFlow
+from demo_flow import (CaptureProcessingFailure, DemoFlow, classify_camera_capture_error,
+                       classify_roi_capture_error)
 from demo_page import HTML as DEMO_HTML
 from live_roi import LiveROIOverlay
-from roi_quality import DebugDatasetWriter, ROIQualityGate
+from roi_quality import (DEMO_CAPTURE_MIN_CONTRAST, DEMO_CAPTURE_MIN_SHARPNESS,
+                         DebugDatasetWriter, ROIQualityGate)
 from pklnet_tracker import PKLNetTracker
 from pklnet_roi import ROI_GEOMETRY_VERSION as PKLNET_GEOMETRY_VERSION, normalize_roi
+
+
+def _classify_pklnet_normalization_failure(error: ValueError, status: dict[str, Any]) -> str | None:
+    """Treat a zero-range crop as no-hand only when the live gate independently says NO_HAND."""
+    if str(error) != "PKLNet crop has no usable intensity range":
+        return None
+    if _has_fresh_live_no_hand(status):
+        return "NO_HAND"
+    return "ROI_UNSTABLE"
+
+
+def _has_fresh_live_no_hand(status: Any) -> bool:
+    return (isinstance(status, dict) and status.get("camera_ready") is True
+            and status.get("roi_status_fresh") is True and status.get("quality_status") == "NO_HAND")
+
+
+def _capture_readiness_gate_failure(status: Any) -> tuple[str, str] | None:
+    """Return a retryable capture failure unless the live ROI gate is ready."""
+    if not isinstance(status, dict) or status.get("camera_ready") is not True:
+        return "CAMERA_UNAVAILABLE", "相机画面当前不可用；预览恢复后可继续采集。"
+    if _has_fresh_live_no_hand(status):
+        return "NO_HAND", "未检测到手掌，自动采集已暂停。请把手掌放入画面并等掌区就绪后继续。"
+    if status.get("roi_status_fresh") is not True:
+        return "CAPTURE_TIMEOUT", "实时掌区状态已过期，请等待预览更新后继续采集。"
+    count = int(status.get("demo_quality_consecutive_frames", status.get("quality_consecutive_frames", 0)))
+    required = int(status.get("demo_quality_required_frames", status.get("quality_required_frames", 1)))
+    state = status.get("demo_quality_status", status.get("quality_status"))
+    if state != "READY" or count < required:
+        reason = status.get("demo_quality_reason") or status.get("quality_reason")
+        if reason == "sharpness_below_minimum":
+            message = "掌区画面偏模糊；请保持手掌稳定，调整距离并等待清晰预览。"
+        elif reason == "contrast_below_minimum":
+            message = "掌区对比度偏低；请调整光线或手掌位置后再采集。"
+        elif reason == "tracker_status_fixed":
+            message = "当前裁剪模式不能确认掌区；请启用动态掌区检测后再录入或识别。"
+        else:
+            message = "掌区画质或位置尚未稳定，请按预览提示调整并等待就绪。"
+        return "ROI_NOT_READY", message
+    return None
 
 
 def _sync_directory(path: Path) -> None:
@@ -152,39 +193,60 @@ class CameraFeed:
         camera_tuning_file: Path | None,
         capture_only: bool = False,
         pklnet_threads: int | None = None,
+        camera_backend: str = "picamera2",
+        uvc_device: Path | None = None,
     ) -> None:
-        from picamera2 import Picamera2
-
         if capture_only:
             roi_mode = "capture"
         if roi_mode not in ("fixed", "dynamic", "pklnet", "capture"):
             raise ValueError(f"unsupported ROI mode: {roi_mode}")
-        # A NoIR module needs a separate imaging pipeline tuning file under IR
-        # illumination. Passing it to Picamera2 is required; an environment
-        # variable alone is ignored by the Pi 4 libcamera build.
-        self.camera = Picamera2(index, tuning=None if camera_tuning_file is None else str(camera_tuning_file))
-        self.still_size = tuple(self.camera.camera_properties.get("PixelArraySize", (3280, 2464)))
-        # A 480x360 stream otherwise selects IMX219's narrow 640x480 crop.
-        self.preview_sensor_size = (1640, 1232) if self.still_size == (3280, 2464) else None
-        config = self.camera.create_video_configuration(
-            main={"size": (width, height), "format": "RGB888"},
-            buffer_count=2,
-            sensor={"output_size": self.preview_sensor_size, "bit_depth": 10} if self.preview_sensor_size else {},
-        )
-        self.still_config = self.camera.create_still_configuration(
-            main={"size": self.still_size, "format": "RGB888"},
-            buffer_count=2,
-        )
-        self.camera.configure(config)
-        self.camera.start()
+        self.camera_backend = camera_backend
+        self.uvc_camera = None
+        if camera_backend == "picamera2":
+            from picamera2 import Picamera2
+
+            # A NoIR module needs its tuning file under IR illumination.
+            self.camera = Picamera2(index, tuning=None if camera_tuning_file is None else str(camera_tuning_file))
+            self.still_size = tuple(self.camera.camera_properties.get("PixelArraySize", (3280, 2464)))
+            self.preview_sensor_size = (1640, 1232) if self.still_size == (3280, 2464) else None
+            config = self.camera.create_video_configuration(
+                main={"size": (width, height), "format": "RGB888"},
+                buffer_count=2,
+                sensor={"output_size": self.preview_sensor_size, "bit_depth": 10} if self.preview_sensor_size else {},
+            )
+            self.still_config = self.camera.create_still_configuration(
+                main={"size": self.still_size, "format": "RGB888"},
+                buffer_count=2,
+            )
+            self.camera.configure(config)
+            self.camera.start()
+            self.camera_index = index
+            self.capture_size = (width, height)
+            self.camera_tuning_file = None if camera_tuning_file is None else str(camera_tuning_file)
+            self.capture_profile = "noir-ir"
+            self.capture_source = "3280x2464-full-still"
+        elif camera_backend == "uvc":
+            if uvc_device is None:
+                raise ValueError("UVC mode requires --uvc-device")
+            from palm_app.uvc_camera import UvcCamera
+
+            self.camera = None
+            self.uvc_camera = UvcCamera(uvc_device, width, height)
+            self.still_size = (self.uvc_camera.width, self.uvc_camera.height)
+            self.preview_sensor_size = None
+            self.still_config = None
+            self.camera_index = None
+            self.capture_size = self.still_size
+            self.camera_tuning_file = None
+            self.capture_profile = self.uvc_camera.capture_profile
+            self.capture_source = self.uvc_camera.capture_source
+        else:
+            raise ValueError(f"unsupported camera backend: {camera_backend}")
         self.camera_io_lock = threading.Lock()
         self.lock = threading.Lock()
         self.frame_condition = threading.Condition(self.lock)
         self.roi_mode = roi_mode
         self.capture_only = capture_only
-        self.camera_index = index
-        self.capture_size = (width, height)
-        self.camera_tuning_file = None if camera_tuning_file is None else str(camera_tuning_file)
         self.inference_ms = float(inference_ms)
         self.input_size = tuple(input_size)
         self.hand_model = hand_model
@@ -208,7 +270,16 @@ class CameraFeed:
         self.latest_processed: ProcessedFrame | None = None
         # User-selected diagnostic policy: record contrast/sharpness without
         # excluding camera samples. Geometry/freshness are still checked.
-        self.quality_gate = ROIQualityGate(required_frames=5, min_contrast=0.0, min_sharpness=0.0, max_age_ms=8000.0 if roi_mode == "pklnet" else 1200.0)
+        quality_age_ms = 8000.0 if roi_mode == "pklnet" else 1200.0
+        self.quality_gate = ROIQualityGate(required_frames=5, min_contrast=0.0, min_sharpness=0.0, max_age_ms=quality_age_ms)
+        # Keep diagnostic collection permissive while requiring the same
+        # measured sharpness/contrast floor as high-resolution enrollment.
+        self.demo_quality_gate = ROIQualityGate(
+            required_frames=5,
+            min_contrast=DEMO_CAPTURE_MIN_CONTRAST,
+            min_sharpness=DEMO_CAPTURE_MIN_SHARPNESS,
+            max_age_ms=quality_age_ms,
+        )
         self.latest_roi_status: dict[str, Any] = {
             "roi_mode": roi_mode,
             "roi_geometry": _roi_geometry(roi_mode),
@@ -233,10 +304,15 @@ class CameraFeed:
         """Capture continuously so a slow inference pass cannot freeze video."""
         while self.running:
             try:
-                # Picamera2 RGB888 arrays have BGR byte order; PIL expects RGB.
-                with self.camera_io_lock:
-                    array = self.camera.capture_array("main")
-                image = Image.fromarray(np.ascontiguousarray(array[:, :, ::-1]))
+                if self.camera_backend == "uvc":
+                    with self.camera_io_lock:
+                        bgr = self.uvc_camera.read_bgr()
+                    image = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
+                else:
+                    # Picamera2 RGB888 arrays have BGR byte order; PIL expects RGB.
+                    with self.camera_io_lock:
+                        array = self.camera.capture_array("main")
+                    image = Image.fromarray(np.ascontiguousarray(array[:, :, ::-1]))
                 captured_monotonic = time.monotonic()
                 with self.frame_condition:
                     self._next_frame_id += 1
@@ -321,6 +397,15 @@ class CameraFeed:
                         tracker_status=str(roi_status["roi_status"]),
                         quality=quality,
                     )
+                    demo_quality_result = self.demo_quality_gate.update(
+                        frame_id=captured.frame_id,
+                        captured_monotonic_ms=captured.captured_monotonic * 1000.0,
+                        now_monotonic_ms=time.monotonic() * 1000.0,
+                        image_size=captured.image.size,
+                        roi_quad=candidate_quad,
+                        tracker_status=str(roi_status["roi_status"]),
+                        quality=quality,
+                    )
                     roi_quad = quality_result.roi_quad
                 else:
                     roi_status = {
@@ -340,8 +425,24 @@ class CameraFeed:
                 )
                 if self.tracker is None:
                     roi_status.update({"quality_status": "READY", "quality_consecutive_frames": 1, "quality_required_frames": 1})
+                    demo_quality_result = self.demo_quality_gate.update(
+                        frame_id=captured.frame_id,
+                        captured_monotonic_ms=captured.captured_monotonic * 1000.0,
+                        now_monotonic_ms=time.monotonic() * 1000.0,
+                        image_size=captured.image.size,
+                        roi_quad=None,
+                        tracker_status="fixed",
+                        quality=quality,
+                    )
                 else:
                     roi_status.update(quality_result.as_dict())
+                roi_status.update({
+                    "demo_quality_status": demo_quality_result.state,
+                    "demo_quality_reason": demo_quality_result.reason,
+                    "demo_quality_consecutive_frames": demo_quality_result.consecutive_frames,
+                    "demo_quality_required_frames": demo_quality_result.required_frames,
+                    "demo_quality": demo_quality_result.quality,
+                })
                 roi_image = Image.fromarray(roi, mode="L").resize((384, 384), Image.Resampling.NEAREST).convert("RGB")
                 roi_output = io.BytesIO()
                 roi_image.save(roi_output, format="JPEG", quality=88)
@@ -390,25 +491,25 @@ class CameraFeed:
         draw = ImageDraw.Draw(preview)
         width, height = preview.size
         green = (37, 211, 102)
+        amber = (230, 157, 36)
+        red = (210, 55, 55)
         white = (255, 255, 255)
-        status = str(roi_status.get("roi_status", "unknown"))
+        roi_state = str(roi_status.get("roi_status", "unknown"))
+        status = str(roi_status.get("demo_quality_status", roi_state))
+        label_color = green if status == "READY" else amber if status in {"TRACKING", "LOW_QUALITY"} else red
         if roi_quad is not None:
             points = [tuple(int(round(value)) for value in point) for point in roi_quad]
-            draw.polygon(points, outline=green, width=max(2, int(min(width, height) * 0.004)))
+            draw.polygon(points, outline=label_color, width=max(2, int(min(width, height) * 0.004)))
             cx = int(round(float(roi_quad[:, 0].mean())))
             cy = int(round(float(roi_quad[:, 1].mean())))
             radius = max(5, int(min(width, height) * 0.012))
-            draw.ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=green, outline=white, width=2)
-            label_color = green
-        elif status == "fixed":
+            draw.ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=label_color, outline=white, width=2)
+        elif roi_state == "fixed":
             x0, y0 = int(width * 0.19), int(height * 0.15)
             x1, y1 = int(width * 0.81), int(height * 0.85)
-            label_color = (220, 150, 40) if status == "fixed" else (210, 55, 55)
             draw.rectangle((x0, y0, x1, y1), outline=label_color, width=max(2, int(min(width, height) * 0.004)))
-        else:
-            label_color = (210, 55, 55)
         top = 8
-        reason = str(roi_status.get("roi_reason") or "")
+        reason = str(roi_status.get("demo_quality_reason") or roi_status.get("roi_reason") or "")
         suffix = f" · {reason[:28]}" if reason else ""
         label = f"PALM ROI · {status}{suffix}"
         draw.rounded_rectangle((8, top, min(width - 8, 410), top + 26), radius=5, fill=label_color)
@@ -467,6 +568,14 @@ class CameraFeed:
                         "processing_thread_alive": False}
             status = dict(self.latest_roi_status)
             status.update(camera_state)
+            roi_captured_ms = status.get("captured_monotonic_ms")
+            roi_age_ms = (None if roi_captured_ms is None else
+                          max(0.0, time.monotonic() * 1000.0 - float(roi_captured_ms)))
+            status["roi_status_age_ms"] = None if roi_age_ms is None else round(roi_age_ms, 1)
+            status["roi_status_fresh"] = bool(
+                self.processing_thread.is_alive() and roi_age_ms is not None
+                and roi_age_ms <= self.quality_gate.max_age_ms
+            )
             if self.latest is not None:
                 status["latest_frame_id"] = self.latest.frame_id
             if self.latest_processed is not None:
@@ -493,24 +602,60 @@ class CameraFeed:
             return None if self.latest_processed is None else self.latest_processed.captured.frame_id
 
     def capture_settings(self) -> dict[str, Any]:
-        return {
+        settings = {
+            "backend": self.camera_backend,
             "camera": self.camera_index,
             "width": self.capture_size[0],
             "height": self.capture_size[1],
             "preview_sensor_output_size": list(self.preview_sensor_size) if self.preview_sensor_size else None,
-            "format": "RGB888",
+            "format": self.uvc_camera.fourcc if self.uvc_camera is not None else "RGB888",
             "tuning_file": self.camera_tuning_file,
             "roi_mode": self.roi_mode,
             "roi_geometry": _roi_geometry(self.roi_mode),
             "roi_processing": not self.capture_only,
             "roi_quality_version": "roi-quality-v1",
             "roi_quality_config": self.quality_gate.config(),
+            "demo_quality_config": self.demo_quality_gate.config(),
             "detector_input_size": list(self.input_size),
             "inference_ms": self.inference_ms,
+            "capture_profile": self.capture_profile,
+            "capture_source": self.capture_source,
         }
+        if self.camera_backend == "uvc":
+            settings.update({
+                "device_key": self.uvc_camera.device_key,
+                "fourcc": self.uvc_camera.fourcc,
+                "color_order": "BGR decoded by OpenCV, converted to RGB",
+                "still_capture": False,
+                "capture_kind": "fresh UVC stream frame",
+            })
+        else:
+            settings.update({"color_order": "Picamera2 RGB888 byte order converted to RGB", "still_capture": True})
+        return settings
 
     def capture_highres(self) -> tuple[Image.Image, Image.Image, dict[str, Any]]:
         """Pair a preview frame with a full-sensor still, then resume preview."""
+        if self.camera_backend == "uvc":
+            with self.frame_condition:
+                previous = 0 if self.latest is None else self.latest.frame_id
+                deadline = time.monotonic() + 2.0
+                while self.running and (self.latest is None or self.latest.frame_id <= previous):
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise RuntimeError("Timed out waiting for a fresh UVC frame")
+                    self.frame_condition.wait(timeout=remaining)
+                captured = self.latest
+            if captured is None or time.monotonic() - captured.captured_monotonic > 1.2:
+                raise RuntimeError("Waiting for a fresh UVC frame")
+            frame = captured.image.copy()
+            return frame.copy(), frame, {
+                "capture_backend": "uvc",
+                "capture_kind": "fresh_stream_frame",
+                "capture_frame_id": captured.frame_id,
+                "capture_resolution": list(frame.size),
+                "color_order": "RGB",
+                "capture_profile": self.capture_profile,
+            }
         # A disconnected UVC device can leave capture_array waiting while holding
         # camera_io_lock. Reject an already-stale feed before joining that wait.
         with self.lock:
@@ -534,7 +679,15 @@ class CameraFeed:
     def reset_quality_gate(self) -> None:
         with self.frame_condition:
             result = self.quality_gate.reset("manual_reset")
+            demo_result = self.demo_quality_gate.reset("manual_reset")
             self.latest_roi_status.update(result.as_dict())
+            self.latest_roi_status.update({
+                "demo_quality_status": demo_result.state,
+                "demo_quality_reason": demo_result.reason,
+                "demo_quality_consecutive_frames": demo_result.consecutive_frames,
+                "demo_quality_required_frames": demo_result.required_frames,
+                "demo_quality": demo_result.quality,
+            })
             self.frame_condition.notify_all()
 
     def jpeg_frame(self) -> bytes:
@@ -567,8 +720,11 @@ class CameraFeed:
             self.processing_thread.join(timeout=2)
         if self.tracker is not None:
             self.tracker.close()
-        self.camera.stop()
-        self.camera.close()
+        if self.uvc_camera is not None:
+            self.uvc_camera.close()
+        else:
+            self.camera.stop()
+            self.camera.close()
 
     def reset_roi_background(self) -> None:
         if self.tracker is None:
@@ -601,11 +757,19 @@ class App:
                 and self.collection_batch["phase"] == "complete"
                 and self.collection_batch.get("collection_mode") != "full_resolution_only"):
             self.collection_batch = None
-        self.demo = None if self.capture_only else DemoFlow(palm_demo.RUNTIME, self.demo_algorithm, self.capture_demo_feature, roi_geometry=_roi_geometry(self.camera.roi_mode))
+        self.demo = None if self.capture_only else DemoFlow(
+            palm_demo.RUNTIME, self.demo_algorithm,
+            lambda: self.capture_demo_feature(require_live_ready=True),
+            roi_geometry=_roi_geometry(self.camera.roi_mode),
+            capture_profile=self.camera.capture_profile,
+            capture_source=self.camera.capture_source,
+        )
         if self.demo is not None and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
             self.demo.capture_enrollment_feature = lambda: self.capture_demo_feature(enrollment=True)
+        if self.demo is not None:
+            self.demo.enrollment_candidate = lambda: self.capture_demo_feature(enrollment=True, include_candidate=True)
         if self.demo is not None and hasattr(self.demo_algorithm, 'prepare_gallery'):
-            self.demo.gallery.warm_up()
+            self.demo.gallery.warm_up(capture_profile=self.demo.capture_profile)
 
     def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False, localization_details: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
         if self.camera.roi_mode == "pklnet":
@@ -645,11 +809,24 @@ class App:
         finally:
             tracker.close()
 
-    def capture_demo_feature(self, *, enrollment: bool = False) -> tuple[np.ndarray, str, str]:
+    def capture_demo_feature(self, *, enrollment: bool = False, require_live_ready: bool = False,
+                             include_candidate: bool = False) -> tuple:
+        if enrollment or require_live_ready:
+            try:
+                status = self.camera.status()
+            except (AttributeError, OSError, RuntimeError, ValueError):
+                status = {}
+            gate_failure = _capture_readiness_gate_failure(status)
+            if gate_failure is not None:
+                reason, detail = gate_failure
+                raise CaptureProcessingFailure(reason, detail)
         if not self.collection_lock.acquire(blocking=False):
-            raise RuntimeError("相机正在拍摄，请稍后重试。")
+            raise CaptureProcessingFailure("CAMERA_BUSY")
         try:
-            preview, full, _ = self.camera.capture_highres()
+            try:
+                preview, full, _ = self.camera.capture_highres()
+            except (OSError, RuntimeError) as error:
+                raise CaptureProcessingFailure(classify_camera_capture_error(error)) from error
             try:
                 localization = {}
                 if hasattr(self.demo_algorithm, "extract_with_hypotheses"):
@@ -657,9 +834,18 @@ class App:
                 else:
                     roi, quad, _, quality, source = self.detect_full_still(full, preview.size, demo_core=True)
             except palm_roi.PalmROIError as error:
-                if str(error).startswith(("pklnet_", "roi_out_of_bounds")):
-                    raise RuntimeError("掌心定位不稳定，请展开手掌，调整距离和角度后重拍。") from error
-                raise
+                raise CaptureProcessingFailure(classify_roi_capture_error(error)) from error
+            except ValueError as error:
+                if str(error) != "PKLNet crop has no usable intensity range":
+                    raise
+                try:
+                    status = self.camera.status()
+                except (AttributeError, OSError, RuntimeError, ValueError):
+                    status = {}
+                reason = _classify_pklnet_normalization_failure(error, status)
+                if reason is None:
+                    raise
+                raise CaptureProcessingFailure(reason) from error
             if not enrollment and hasattr(self.demo_algorithm, 'extract_probe_with_context'):
                 if self.camera.roi_mode != 'pklnet':
                     raise RuntimeError('Indexed demo matching requires PKLNet geometry')
@@ -695,7 +881,10 @@ class App:
                 feature = self.demo_algorithm.extract(roi)
             output = io.BytesIO()
             Image.fromarray(roi).save(output, format="PNG")
-            return feature, base64.b64encode(output.getvalue()).decode("ascii"), source
+            result = (feature, base64.b64encode(output.getvalue()).decode("ascii"), source)
+            if include_candidate:
+                return (*result, quality, roi.copy(), {"roi_quad": quad.copy(), "frame_size": full.size})
+            return result
         finally:
             self.collection_lock.release()
 
@@ -762,7 +951,10 @@ class App:
                     roi_error = str(error)
             record = {
                 "sample_id": sample_id,
-                "captured_at_pi_utc": datetime.now(timezone.utc).isoformat(),
+                "captured_at_utc": datetime.now(timezone.utc).isoformat(),
+                "capture_backend": self.camera.camera_backend,
+                **({"captured_at_pi_utc": datetime.now(timezone.utc).isoformat()}
+                   if self.camera.camera_backend == "picamera2" else {}),
                 "client_time_utc": str(payload.get("client_time", ""))[:50],
                 **labels,
                 "session_id": session_id or None,
@@ -785,7 +977,9 @@ class App:
                 "exposure_ms": (float(camera_metadata["ExposureTime"]) / 1000.0) if "ExposureTime" in camera_metadata else None,
                 "analogue_gain": float(camera_metadata["AnalogueGain"]) if "AnalogueGain" in camera_metadata else None,
                 "image_color_order": "RGB",
-                "camera_array_format": "RGB888_BGR_bytes",
+                "camera_array_format": ("OpenCV BGR decoded then converted to RGB"
+                                         if self.camera.camera_backend == "uvc"
+                                         else "RGB888_BGR_bytes"),
             }
             # Persist image bytes before the session manifest can reference
             # them. Keep a temporary metadata file out of the normal reader.
@@ -1612,7 +1806,8 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             if getattr(app, "capture_only", False) and not self.path.startswith("/api/collection/"):
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "Only collection actions are enabled."})
                 return
-            if self.path in ("/api/demo/enroll", "/api/demo/identify", "/api/demo/confirm", "/api/demo/cancel"):
+            if self.path in ("/api/demo/enroll", "/api/demo/identify", "/api/demo/confirm", "/api/demo/cancel",
+                             "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step", "/api/demo/enroll/commit", "/api/demo/enroll/cancel"):
                 try:
                     length = int(self.headers.get("Content-Length", "0"))
                     if length < 1 or length > 4096:
@@ -1620,7 +1815,17 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     payload = json.loads(self.rfile.read(length))
                     if not isinstance(payload, dict):
                         raise ValueError("Expected a JSON object")
-                    if self.path.endswith("enroll"):
+                    if self.path == "/api/demo/enroll/start":
+                        result = app.demo.enrollment_start(str(payload.get("user_id", "")), str(payload.get("display_name", "")), str(payload.get("hand", "")))
+                    elif self.path == "/api/demo/enroll/status":
+                        result = app.demo.enrollment_status(str(payload.get("token", "")))
+                    elif self.path == "/api/demo/enroll/step":
+                        result = app.demo.enrollment_step(str(payload.get("token", "")))
+                    elif self.path == "/api/demo/enroll/commit":
+                        result = app.demo.enrollment_commit(str(payload.get("token", "")), str(payload.get("confirm_hand", "")))
+                    elif self.path == "/api/demo/enroll/cancel":
+                        result = app.demo.enrollment_cancel(str(payload.get("token", "")))
+                    elif self.path.endswith("enroll"):
                         result = app.demo.enroll(str(payload.get("user_id", "")), str(payload.get("display_name", "")))
                     elif self.path.endswith("identify"):
                         result = app.demo.identify()
@@ -1746,6 +1951,8 @@ def main() -> int:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--camera", type=int, default=0)
+    parser.add_argument("--camera-backend", choices=("picamera2", "uvc"), default="picamera2")
+    parser.add_argument("--uvc-device", type=Path, help="Explicit stable /dev/v4l/by-id/... path for X development")
     parser.add_argument("--width", type=int, default=480)
     parser.add_argument("--height", type=int, default=360)
     parser.add_argument("--roi-mode", choices=("dynamic", "fixed", "pklnet"), default="pklnet")
@@ -1754,6 +1961,8 @@ def main() -> int:
     parser.add_argument("--demo-matcher", default=DEMO_MATCHER, help="Matcher for optional /demo recognition (default: DoN; alternatives include OC, PC and FastCC).")
     parser.add_argument("--opencv-threads", type=int, choices=range(1, 65), metavar="1..64", help="OpenCV worker limit; omitted keeps the library default.")
     parser.add_argument("--pklnet-threads", type=int, choices=range(1, 65), metavar="1..64", help="ONNX localizer worker limit; omitted keeps the existing default.")
+    parser.add_argument("--native-registration", type=Path, help="Explicit compatible native descriptor library for /demo; requires recognition mode.")
+    parser.add_argument("--native-threads", type=int, choices=(1, 2, 4), default=1, help="Worker limit for the explicitly enabled native descriptor library (default: 1).")
     parser.add_argument("--hand-model", type=Path, default=DEFAULT_HAND_MODEL)
     parser.add_argument("--hand-pose-model", type=Path, default=DEFAULT_HAND_POSE_MODEL)
     parser.add_argument("--refine-pose", action="store_true", help="Enable the slower 21-point pose refinement pass.")
@@ -1763,6 +1972,15 @@ def main() -> int:
     parser.add_argument("--recovery-pass", action="store_true", help="Run a second detector pass when no hand is found; slower.")
     parser.add_argument("--camera-tuning-file", type=Path, help="Optional libcamera tuning JSON, e.g. imx219_noir.json for NoIR + IR.")
     args = parser.parse_args()
+    if args.camera_backend == "uvc" and args.uvc_device is None:
+        parser.error("--camera-backend uvc requires --uvc-device")
+    if args.camera_backend == "picamera2" and args.uvc_device is not None:
+        parser.error("--uvc-device is only valid with --camera-backend uvc")
+    if args.native_registration is not None:
+        if args.capture_only:
+            parser.error("--native-registration requires --enable-recognition")
+        if not args.native_registration.is_file():
+            parser.error("--native-registration library does not exist")
     if args.opencv_threads is not None:
         cv2.setNumThreads(args.opencv_threads)
     feed = CameraFeed(
@@ -1779,8 +1997,19 @@ def main() -> int:
         camera_tuning_file=args.camera_tuning_file,
         capture_only=args.capture_only,
         pklnet_threads=args.pklnet_threads,
+        camera_backend=args.camera_backend,
+        uvc_device=args.uvc_device,
     )
     app = App(feed, demo_matcher=args.demo_matcher)
+    if args.native_registration is not None:
+        from native_registration import enable_native_registration
+        try:
+            enable_native_registration(app.demo_algorithm, args.native_registration, args.native_threads)
+        except Exception:
+            feed.close()
+            if hasattr(app.demo_algorithm, "close"):
+                app.demo_algorithm.close()
+            raise
     server = ThreadingHTTPServer((args.host, args.port), make_handler(app))
     print(f"Palm debug UI: http://{args.host}:{args.port}", flush=True)
     try:

@@ -4,6 +4,7 @@ import json
 import math
 import time
 import threading
+import zipfile
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,7 @@ def load_policy(path: str | Path | None = None) -> dict[str, Any]:
 
 
 class Gallery:
-    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0, *, required_metadata: dict[str, Any] | None = None, acceptance_policy=None) -> None:
+    def __init__(self, store: TemplateStore, algorithm: Any, threshold: float | dict[str, Any] = 0.28, min_margin: float = 0.0, *, required_metadata: dict[str, Any] | None = None, acceptance_policy=None, strict_integrity: bool = False) -> None:
         if isinstance(threshold, dict):
             policy = threshold
             threshold = float(policy.get("threshold", 0.28))
@@ -41,14 +42,17 @@ class Gallery:
         self.min_margin = float(min_margin)
         self.required_metadata = dict(required_metadata or {})
         self.acceptance_policy = acceptance_policy
+        self.strict_integrity = strict_integrity
         self._prepared_cache = OrderedDict()
         self._prepared_cache_bytes = 0
         self.prepared_cache_limit_bytes = getattr(algorithm, 'prepared_cache_limit_bytes', 64 * 1024 * 1024)
         self._prepared_cache_lock = threading.RLock()
 
     def _signature(self,user_id):
-        return tuple((s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
-                     for s in (p.stat() for p in self.store.paths(user_id)))
+        files = tuple((s.st_dev,s.st_ino,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+                      for s in (p.stat() for p in self.store.paths(user_id)))
+        namespace = getattr(self.store, 'cache_namespace', None)
+        return (namespace, files) if namespace is not None else files
 
     def _load_prepared(self,user_id):
         with self._prepared_cache_lock:
@@ -97,7 +101,7 @@ class Gallery:
         started = time.perf_counter()
         ranked: list[tuple[float, str]] = []
         incompatible = False
-        users=self.store.list_users()
+        users=self.store.list_template_ids() if self.strict_integrity else self.store.list_users()
         with self._prepared_cache_lock:
             for stale in set(self._prepared_cache)-set(users):
                 self._prepared_cache_bytes-=self._prepared_cache.pop(stale)[3]
@@ -109,10 +113,18 @@ class Gallery:
             try:
                 features, metadata = self._load_prepared(user_id) if prepared_mode else self.store.load(user_id)
             except (FileNotFoundError, KeyError, json.JSONDecodeError):
+                if self.strict_integrity:
+                    return IdentificationResult("RETRY", None, None, None, (time.perf_counter() - started) * 1000, "GALLERY_INVALID_TEMPLATES")
                 continue
+            except (OSError, ValueError, EOFError, zipfile.BadZipFile, TypeError, AttributeError):
+                if self.strict_integrity:
+                    return IdentificationResult("RETRY", None, None, None, (time.perf_counter() - started) * 1000, "GALLERY_INVALID_TEMPLATES")
+                raise
             if metadata.get("capture_profile") != capture_profile:
                 continue
             if any(metadata.get(key) != value for key, value in self.required_metadata.items()):
+                if self.strict_integrity:
+                    return IdentificationResult("RETRY", None, None, None, (time.perf_counter() - started) * 1000, "GALLERY_INCOMPATIBLE_TEMPLATES")
                 incompatible = True
                 continue
             if global_mode:
@@ -132,6 +144,8 @@ class Gallery:
         second = ranked[1][0] if len(ranked) > 1 else None
         if best > self.threshold:
             return IdentificationResult("UNKNOWN", None, best, second, elapsed, "SCORE_ABOVE_THRESHOLD")
+        if second is not None and second == best:
+            return IdentificationResult("RETRY", None, best, second, elapsed, "TIED_BEST_SCORES")
         if second is not None and self.min_margin > 0 and second - best < self.min_margin:
             return IdentificationResult("RETRY", None, best, second, elapsed, "AMBIGUOUS_MARGIN")
         if self.acceptance_policy is not None:

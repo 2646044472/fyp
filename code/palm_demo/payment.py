@@ -47,6 +47,8 @@ class PaymentService:
             connection.execute("BEGIN IMMEDIATE")
             previous = connection.execute("SELECT * FROM transactions WHERE request_id = ?", (request_id,)).fetchone()
             if previous is not None:
+                if previous["user_id"] != user_id or previous["amount_cents"] != amount_cents:
+                    raise ValueError("request_id is already bound to another payment")
                 return PaymentResult(previous["status"], previous["transaction_id"], previous["balance_after_cents"])
             account = connection.execute("SELECT balance_cents FROM accounts WHERE user_id = ?", (user_id,)).fetchone()
             if account is None:
@@ -58,6 +60,14 @@ class PaymentService:
             connection.execute("UPDATE accounts SET balance_cents = ? WHERE user_id = ?", (after, user_id))
             connection.execute("INSERT INTO transactions VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (transaction_id, request_id, user_id, amount_cents, before, after, status, now()))
             return PaymentResult(status, transaction_id, after)
+
+    def transaction_for_request(self, request_id: str) -> dict | None:
+        """Read a committed outcome, including after a lost HTTP response."""
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM transactions WHERE request_id = ?", (request_id,)
+            ).fetchone()
+            return None if row is None else dict(row)
 
     def balance_for(self, user_id: str) -> int | None:
         with self._connect() as connection:

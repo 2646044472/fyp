@@ -43,6 +43,36 @@ def test_gate_requires_five_fresh_stable_frames_before_ready():
     assert states == ["TRACKING", "TRACKING", "TRACKING", "TRACKING", "READY"]
 
 
+def test_demo_quality_floor_can_block_capture_while_diagnostic_gate_stays_ready():
+    diagnostic = ROIQualityGate(required_frames=5, min_contrast=0.0, min_sharpness=0.0)
+    demo = ROIQualityGate(required_frames=5, min_contrast=12.0, min_sharpness=2.0)
+    diagnostic_states, demo_states = [], []
+    for frame_id in range(1, 6):
+        diagnostic_states.append(good_update(diagnostic, frame_id, contrast=8.0, sharpness=1.0).state)
+        demo_states.append(good_update(demo, frame_id, contrast=8.0, sharpness=1.0).state)
+
+    assert diagnostic_states[-1] == "READY"
+    assert demo_states[-1] == "LOW_QUALITY"
+    assert demo.last_result.reason == "contrast_below_minimum"
+
+
+def test_preview_roi_color_distinguishes_demo_ready_from_tracking_quality_failure():
+    from palm_app.debug_ui import CameraFeed
+
+    image = Image.new("RGB", (100, 100), "black")
+    quad = palm_quad(left=20, top=50, width=40, height=30)
+    ready = CameraFeed._annotate_roi(image, quad, {
+        "roi_status": "tracking", "demo_quality_status": "READY",
+    })
+    blocked = CameraFeed._annotate_roi(image, quad, {
+        "roi_status": "tracking", "demo_quality_status": "LOW_QUALITY",
+        "demo_quality_reason": "sharpness_below_minimum",
+    })
+
+    assert ready.getpixel((20, 50)) == (37, 211, 102)
+    assert blocked.getpixel((20, 50)) == (230, 157, 36)
+
+
 def test_stale_tracking_resets_gate_and_cannot_reuse_previous_roi():
     gate = ROIQualityGate(required_frames=2, min_contrast=12.0, min_sharpness=2.0)
     good_update(gate, 1)

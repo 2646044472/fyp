@@ -15,6 +15,8 @@ from PIL import Image
 ROI_QUALITY_VERSION = "roi-quality-v1"
 DEBUG_DATASET_SCHEMA_VERSION = "reliable-roi-debug-v1"
 DEBUG_DATASET_SAMPLE_COUNT = 10
+DEMO_CAPTURE_MIN_CONTRAST = 12.0
+DEMO_CAPTURE_MIN_SHARPNESS = 2.0
 
 
 @dataclass(frozen=True)

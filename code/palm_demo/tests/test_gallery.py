@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from gallery import Gallery
 from templates import TemplateStore
@@ -59,3 +60,23 @@ def test_close_candidates_trigger_retry_when_margin_is_configured(tmp_path):
 
     assert result.status == "RETRY"
     assert result.user_id is None
+
+
+@pytest.mark.parametrize("first_id,second_id", [("a", "z"), ("z", "a")])
+def test_exact_tie_never_selects_an_identity_by_name_order(tmp_path, first_id, second_id):
+    store = TemplateStore(tmp_path)
+    for user_id in (first_id, second_id):
+        store.save(user_id, np.array([[0.1]]), {"capture_profile": "rgb"})
+    result = Gallery(store, DistanceAlgorithm(), threshold=1.0).identify(np.array([0.1]))
+    assert result.status == "RETRY"
+    assert result.reason == "TIED_BEST_SCORES"
+    assert result.user_id is None and result.score == result.second_score == 0.0
+
+
+def test_near_tie_keeps_the_existing_zero_margin_behavior(tmp_path):
+    store = TemplateStore(tmp_path)
+    store.save("a", np.array([[0.1]]), {"capture_profile": "rgb"})
+    store.save("b", np.array([[0.1000000001]]), {"capture_profile": "rgb"})
+    result = Gallery(store, DistanceAlgorithm(), threshold=1.0).identify(np.array([0.1]))
+    assert result.status == "MATCH" and result.user_id == "a"
+    assert result.score == 0.0 and result.second_score > 0.0
