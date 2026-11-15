@@ -1,54 +1,33 @@
-# Palmprint project workspace
+# FYP: Palmprint recognition
 
-## Active application
+This repository combines an active Raspberry Pi demo with dataset and model experiments, research notes, and archived work. Directory paths are intentionally left in place because scripts and experiment records may depend on them.
 
-`code/palm_demo/` is the Raspberry Pi camera demo. Start with its
-[README](code/palm_demo/README.md).
+## Start here
 
-- `debug_ui.py`: camera web UI, enrollment and verification.
-- `palm_app/palm_roi.py`, `palm_app/roi_quality.py`, `palm_app/live_roi.py`: dynamic ROI, quality gate and preview tracking.
-- `palm_app/biometric.py`: matcher loading and feature comparison.
-- `palm_app/common.py`: shared normalization, paths, templates and logs.
-- `models/` and local `vendor/`: runtime model and matcher dependencies.
-- `deploy/palm-debug-ui.service`: Pi service configuration.
-- `tools/`, `tests/`: collection, analysis and verification tools.
+- [`current.md`](current.md): latest handoff and project status.
+- [`AGENTS.md`](AGENTS.md): repository guardrails for data handling, experiments, and Pi validation.
+- [`code/README.md`](code/README.md): code-workspace map.
+- [`code/palm_demo/README.md`](code/palm_demo/README.md): active camera demo, matcher options, experiment summaries, setup, tests, and deployment notes.
+- [`code/pklnet/README.md`](code/pklnet/README.md): PKLNet ROI model and extractor.
 
-The checked-in service runs the full-resolution collection UI in capture-only
-mode. It saves originals and metadata and does not run ROI or recognition.
-The former Fast-CC CLI is archived in `archive/palm_demo_legacy/`. This describes repository configuration, not a
-verified copy of the software currently running on the Pi.
+## Dataset experiments
 
-## ROI experiments
+For dataset work, start with `code/palm_demo/docs/protocols/`, then follow each protocol to its relevant script under `code/palm_demo/tools/`. Check the protocol's data source, split, and limitations before interpreting a result. The `code/palm_demo/runtime/` directory holds local experiment runs, checkpoints, caches, and outputs; some scripts use those exact paths.
 
-`code/pklnet/` contains the PKLNet model and ROI extractor. `pklnet_roi.py` and
-`pklnet_tracker.py` support offline extraction and an optional recognition debug mode.
-`tools/benchmark_pklnet_captures.py` regenerates ROIs from saved Pi originals and
-benchmarks explicit hand labels without changing the originals.
+- `code/data/`: capture and evaluation datasets. Preserve the current files and local links; do not move or publish raw palm images, ROIs, templates, feature caches, or per-sample identity/score records without provenance review and explicit approval.
+- `code/palm_demo/runtime/`: local generated results and model artifacts. Keep out of Git; do not force-add or relocate it.
+- `offline_tongji_roi_audit/`: separate offline comparison workspace, not a Pi runtime dependency.
 
-The local, Git-ignored `offline_tongji_roi_audit/` contains comparison runners,
-downloaded dependencies, extracted datasets and results. Its PKLNet runners are
-`run_pklnet_tongji.py` and `run_pklnet_debug_capture.py`. Keep this directory when
-reproducing those experiments; it is not a Pi runtime dependency.
+## Repository map
 
-`external/` holds local third-party comparison implementations.
+| Path | Purpose |
+| --- | --- |
+| `code/palm_demo/` | Active Raspberry Pi camera demo, application code, tests, tools, and experiment protocols. |
+| `code/pklnet/` | PKLNet ROI model and extractor. |
+| `docs/meeting minutes/`, `minutes/`, `minutes_note/` | Dated meeting and project notes. |
+| `research/`, `.research/`, `idea/` | Research notes, reconciliation, and proposed directions. |
+| `archive/` | Historical workflows. These are not the active deployment path. |
 
-## Data and reports
+## Working safely
 
-- `code/data/debug_capture/`: local captured originals, ROIs, metadata and results.
-- `code/palm_demo/runtime/`: local runtime captures, templates and logs.
-- `docs/`: experiment reports, including the two-hand pilot analysis.
-- `research/`, `.research/`, `minutes/`: research notes and project records.
-
-Preserve capture originals, model weights, experiment manifests and results.
-The actual September capture directory is
-`code/data/debug_capture/20260916T152121Z/`.
-
-## Separate work and generated files
-
-`archive/prf_tr/` is an archived physical-target research workflow, not a dependency
-of the palm demo. `.worktrees/` contains isolated working checkouts and should
-be managed separately rather than deleted as cache.
-
-Python `__pycache__/`, `.pytest_cache/` and compiler `.obj` files are generated
-and can be rebuilt. Large ignored directories remain local even though they do
-not appear in Git changes.
+Keep captures, model weights, experiment manifests, and results in their established locations. Avoid broad staging commands: this checkout may contain local dataset links, uncommitted experiments, and generated files. Stage only reviewed source or aggregate documentation. Treat local replay results as distinct from independent generalization or fresh Pi 5 validation.
