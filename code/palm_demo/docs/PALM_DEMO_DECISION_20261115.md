@@ -40,3 +40,13 @@
 ## 结论状态
 
 已完成的内容：已有数据可形成的主要 ROI/识别器离线对照、全计划失败分母记录、跨数据集固定候选评估、缓存配对分解和本地演示交接材料。尚未完成：D167人工盲审、任何未暴露身份级验证、可靠物理设备迁移验证、Pi部署/速度/真人体验验收。故当前没有可被证据支持的 live identity-demo winner。
+
+
+### X-Palm D144 on the exposed test partition (added 2026-11-15)
+
+D144 recovered 5/406 ROIs (3 gallery, 1 registered, 1 unknown), had zero regressions among 388 D127 successes, and increased complete gallery support from 8/20 to 11/20. Native rankable Rank-1 was PB 39/55→51/76 and SF2 33/55→46/76; EER changed .14545→.16974 (55/385→76/760) and .25455→.26316 (55/385→76/760). On identical support (8 hands, 55 probes, 55 genuine/1,265 impostor scores), rank and EER were unchanged for both models. The 21 newly rankable probes were a support gain, not an equal-support recognition improvement. All 115 stranger rows remain unscorable against a complete gallery. This partition was previously exposed; D144 is not promoted. Full report and scripts: `runtime/xpalm-pose-geometry-detector-fallback-D144-test-X-20261115-001/REPORT.md`.
+
+
+### TCD D168 strict common support (added 2026-11-15)
+
+The cached-vector three-ROI comparison used the same 5,539 queries and 562 complete filename-proxy galleries. PB170 Rank-1 was fixed PKLNet 4,988/5,539 (EER 2.0401%), D127 4,158/5,539 (10.2546%), RTM 4,165/5,539 (7.3298%). SF2e20 was 5,472/5,539 (.6138%), 4,137/5,539 (15.8332%), and 3,442/5,539 (15.6346%). 461/6,000 planned queries were outside paired support. TCD has no unknown queries, so this does not establish stranger rejection; identity groups are filename proxies and data are exposed. This cached comparison does not change the Pi decision. Details: `runtime/tcd-three-roi-common-support-D168-X-20261115-001/REPORT.md`.
