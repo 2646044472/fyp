@@ -4,6 +4,18 @@ Local Raspberry Pi palmprint enrollment and 1:1 verification. For connection,
 installation and hardware precautions, see [SETUP](docs/SETUP.md).
 Commands below run from `code/palm_demo` on Windows or `~/palm_demo` on the Pi.
 
+## Dataset and experiment records
+
+For dataset and replay work, start with [`docs/protocols/`](docs/protocols/),
+then identify the matching script under `tools/`. Read each protocol's data
+source, split, and limitations before interpreting its results. The protocol
+folder contains both aggregate records and historical reports; it is not a
+claim that every experiment can be reproduced from a clean checkout. Some
+tools depend on local inputs or ignored `runtime/` artifacts. Keep datasets,
+raw palm images, derived ROIs/features, weights, and run outputs in their
+existing local locations and out of Git unless provenance and redistribution
+rights have been reviewed.
+
 2026-11-03 device-only optimization is available explicitly as
 `FastCCLazyRetained-v28-experimental`. It retains ordinary FastCC evidence at
 the exhaustive fallback and enables bounded, query-local exact SIFT/registration
