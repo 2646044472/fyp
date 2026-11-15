@@ -48,7 +48,10 @@ def make_flow(tmp_path, algorithm=None):
 def add_identity(flow, user_id, value, *, profile="noir-ir", account=True, **metadata):
     fields = {"capture_profile": profile, "algorithm": flow.algorithm.name, "roi_geometry": "test-roi"}
     fields.update(metadata)
-    flow.store.save(user_id, np.full((5, 1), value), fields)
+    data, meta = flow.store._legacy_paths(user_id)
+    data.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(data, features=np.full((5, 1), value))
+    meta.write_text(json.dumps(fields), encoding="utf-8")
     if account:
         flow.payments.create_account(user_id, user_id, 10000)
 
@@ -80,7 +83,8 @@ def test_incomplete_template_cannot_turn_a_query_into_another_person(tmp_path, m
 def test_account_with_both_template_files_missing_is_reported(tmp_path):
     flow, captures = make_flow(tmp_path)
     add_identity(flow, "good", 0.1)
-    flow.store.delete("good")
+    for path in flow.store.paths("good"):
+        path.unlink()
     assert_blocked(flow, captures, "GALLERY_INCOMPLETE_TEMPLATES")
 
 
@@ -115,11 +119,64 @@ def test_mixed_compatible_and_incompatible_templates_block_device_identification
     assert_blocked(flow, captures, "GALLERY_INCOMPATIBLE_TEMPLATES")
 
 
+@pytest.mark.parametrize("change", ["different-model", "missing-contract"])
+def test_runtime_contract_change_blocks_capture_even_after_cache_warmup(tmp_path, change):
+    algorithm = PreparedDistance()
+    algorithm.runtime_identity = {"model": "a", "feature_contract": "roi-encoder-v1"}
+    flow, captures = make_flow(tmp_path, algorithm)
+    add_identity(flow, "good", 0.1, matcher_runtime_identity=algorithm.runtime_identity)
+    add_identity(flow, "competitor", 0.7, matcher_runtime_identity=algorithm.runtime_identity)
+    assert flow.identify()["status"] == "MATCH"
+    assert len(captures) == 1
+    captures.clear()
+    _, metadata_path = flow.store.paths("good")
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if change == "different-model":
+        metadata["matcher_runtime_identity"]["model"] = "b"
+    else:
+        del metadata["matcher_runtime_identity"]
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    assert_blocked(flow, captures, "GALLERY_INCOMPATIBLE_TEMPLATES")
+    assert next(x for x in flow.users() if x["user_id"] == "good")["needs_reenrollment"]
+
+
 def test_usable_device_template_without_account_is_reported(tmp_path):
     flow, captures = make_flow(tmp_path)
     add_identity(flow, "good", 0.1)
     add_identity(flow, "orphan", 0.7, account=False)
     assert_blocked(flow, captures, "GALLERY_ACCOUNT_MISMATCH")
+
+
+@pytest.mark.parametrize('suffix', ['.npz', '.json'])
+@pytest.mark.parametrize('continuous', [False, True])
+def test_incomplete_template_is_not_overwritten_by_enrollment(tmp_path, suffix, continuous):
+    flow, captures = make_flow(tmp_path)
+    paths = flow.store.paths('orphan')
+    path = paths[0] if suffix == '.npz' else paths[1]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    original = b'keep-incomplete-template'
+    path.write_bytes(original)
+    with pytest.raises(ValueError, match='不完整'):
+        if continuous:
+            flow.enrollment_start('orphan', 'Orphan', 'left')
+        else:
+            flow.enroll('orphan', 'Orphan')
+    assert path.read_bytes() == original
+    assert not captures and not flow.payments.user_exists('orphan')
+
+
+def test_incomplete_template_created_during_enrollment_is_not_overwritten(tmp_path):
+    flow, _ = make_flow(tmp_path)
+    token = flow.enrollment_start('orphan', 'Orphan', 'left')['token']
+    flow.enrollment_session['features'] = [np.array([i]) for i in range(5)]
+    path, _ = flow.store.paths('orphan')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    original = b'keep-incomplete-template'
+    path.write_bytes(original)
+    with pytest.raises(ValueError, match='不完整'):
+        flow.enrollment_commit(token, 'left')
+    assert path.read_bytes() == original
+    assert not flow.payments.user_exists('orphan')
 
 
 def test_other_capture_profile_is_an_ordinary_exclusion(tmp_path):
@@ -199,3 +256,28 @@ def test_enrollment_ready_after_integrity_and_warmup_succeed(tmp_path):
     flow, _ = make_flow(tmp_path, algorithm)
     result = flow.enroll('new', 'New')
     assert result['recognition_ready'] is True and algorithm.warm_calls == 1
+
+
+def test_automatic_commit_preserves_template_when_gallery_warmup_fails(tmp_path):
+    class WarmFailure(PreparedDistance):
+        def prepare_gallery(self, groups):
+            raise RuntimeError('injected warmup failure')
+
+    flow, _ = make_flow(tmp_path, WarmFailure())
+    token = flow.enrollment_start('new_left', 'New', 'left')['token']
+    flow.enrollment_session['features'] = [np.array([0.1]) for _ in range(5)]
+    result = flow.enrollment_commit(token, 'left')
+    assert result['recognition_ready'] is False
+    assert result['preparation_error'] == 'injected warmup failure'
+    assert flow.store.exists('new_left') and flow.payments.user_exists('new_left')
+    assert flow.enrollment_status(token) == {'status': 'COMPLETED'}
+
+
+def test_only_other_capture_profile_returns_no_enrolled_users(tmp_path):
+    flow, captures = make_flow(tmp_path)
+    add_identity(flow, 'existing', 0.1, profile='rgb')
+    result = flow.identify()
+    assert result['status'] == 'UNKNOWN'
+    assert result['reason'] == 'NO_ENROLLED_USERS'
+    assert len(captures) == 1 and len(flow.payments.list_users()) == 1
+    assert 'token' not in result and not flow.pending

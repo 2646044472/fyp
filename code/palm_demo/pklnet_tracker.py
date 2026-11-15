@@ -20,7 +20,9 @@ class PKLNetStatus(palm_roi.ROIStatus):
 
 class PKLNetTracker:
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self.extractor = PKLNetROI(threads=kwargs.pop("pklnet_threads", None))
+        provider = kwargs.pop("pklnet_provider", "cpu")
+        self._allow_presence_span_fallthrough = bool(kwargs.pop("allow_presence_span_fallthrough", False))
+        self.extractor = PKLNetROI(threads=kwargs.pop("pklnet_threads", None), **({"provider": provider} if provider != "cpu" else {}))
         self.extractor._ensure_loaded()
         self.detector = palm_roi.HandLandmarkTracker(*args, **kwargs)
         self._status = PKLNetStatus(None, "starting")
@@ -28,15 +30,28 @@ class PKLNetTracker:
         self._roi: np.ndarray | None = None
         self._quality: dict[str, float] = {}
 
-    def submit(self, image: Image.Image, timestamp_ms: int) -> None:
+    def submit(self, image: Image.Image, timestamp_ms: int) -> bool:
+        if self.detector.submit(image, timestamp_ms) is False:
+            return False
         self._timestamp_ms = timestamp_ms
         self._roi = None
-        self.detector.submit(image, timestamp_ms)
+        self._quality = {}
         presence = self.detector.roi_status(image.size, frame_timestamp_ms=timestamp_ms)
-        evidence = {"presence_detector": presence.as_dict(), "frame_timestamp_ms": timestamp_ms}
-        if presence.status != "tracking" or presence.quad is None:
+        span_fallthrough = (
+            self._allow_presence_span_fallthrough
+            and presence.status == "bad_geometry"
+            and isinstance(presence.reason, str)
+            and presence.reason.startswith("palm span is too small (")
+            and presence.reason.endswith("px)")
+        )
+        evidence = {
+            "presence_detector": presence.as_dict(),
+            "frame_timestamp_ms": timestamp_ms,
+            "presence_span_fallthrough": span_fallthrough,
+        }
+        if (presence.status != "tracking" or presence.quad is None) and not span_fallthrough:
             self._status = PKLNetStatus(None, presence.status, hand_score=presence.hand_score, reason=presence.reason, diagnostics=evidence)
-            return
+            return True
         started = time.perf_counter()
         try:
             raw, quad, details = self.extractor.extract(image)
@@ -48,6 +63,7 @@ class PKLNetTracker:
             self._status = PKLNetStatus(quad, "tracking", hand_score=presence.hand_score, span_px=float(np.linalg.norm(quad[1] - quad[0])), diagnostics=evidence)
         except Exception as error:
             self._status = PKLNetStatus(None, "pklnet_error", hand_score=presence.hand_score, reason=str(error), diagnostics=evidence)
+        return True
 
     def roi_status(self, image_size: tuple[int, int], *, frame_timestamp_ms: int | None = None) -> PKLNetStatus:
         del image_size

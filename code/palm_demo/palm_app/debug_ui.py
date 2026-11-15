@@ -8,6 +8,8 @@ collection and the supervised demo share the same PKLNet extraction path.
 
 from __future__ import annotations
 
+from runtime_diagnostics import safe_event, stage
+
 import argparse
 import base64
 import io
@@ -38,8 +40,9 @@ from biometric import load_algorithm
 from collection_page import HTML as COLLECTION_HTML
 from capture_page import HTML as CAPTURE_HTML
 from demo_flow import (CaptureProcessingFailure, DemoFlow, classify_camera_capture_error,
-                       classify_roi_capture_error)
+                       classify_roi_capture_error, enrollment_quality_issue)
 from demo_page import HTML as DEMO_HTML
+from gate_page import HTML as GATE_HTML
 from live_roi import LiveROIOverlay
 from roi_quality import (DEMO_CAPTURE_MIN_CONTRAST, DEMO_CAPTURE_MIN_SHARPNESS,
                          DebugDatasetWriter, ROIQualityGate)
@@ -111,6 +114,8 @@ DEBUG_MAX_THRESHOLD = 0.20
 REPEATABILITY_TOTAL = 10
 HIGHRES_BATCH_TOTAL = 10
 CAMERA_FRAME_MAX_AGE_S = 5.0
+CAPTURE_FPS_CAP = 8.0
+PREVIEW_FPS_CAP = 5.0
 
 
 @dataclass(frozen=True)
@@ -162,7 +167,7 @@ const repeatCapture=document.getElementById('repeat-capture');
 const repeatDownload=document.getElementById('repeat-download');
 const repeatStatus=document.getElementById('repeat-status');
 function pollImage(img,path,delay){let previous=null;async function tick(){try{const r=await fetch(path+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const next=URL.createObjectURL(await r.blob());const old=previous;previous=next;img.onload=()=>{if(old&&old.startsWith('blob:'))URL.revokeObjectURL(old)};img.src=next}catch(e){}setTimeout(tick,delay)}tick()}
-pollImage(stream,'/frame.jpg',80);
+pollImage(stream,'/frame.jpg',200);
 pollImage(roiPreview,'/roi.jpg',300);
 async function pollStatus(){try{const r=await fetch('/api/status?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();const state=d.quality_status||'NO_HAND';const count=d.quality_consecutive_frames||0;const required=d.quality_required_frames||5;const reason=d.quality_reason?(' · '+d.quality_reason):'';const debug=d.debug_capture||{};const next=debug.next_sample||1;roiStatus.textContent=`ROI status: ${state} (${count}/${required})${reason}`;roiStatus.className='notice status '+(state==='READY'?'ready':'blocked');actionButtons[0].disabled=state!=='READY';actionButtons[1].disabled=state!=='READY';debugCapture.disabled=state!=='READY'||Boolean(debug.requires_removal);debugCapture.textContent=debug.requires_removal?'Remove palm before next sample':`Capture debug sample (${Math.min(next,10)}/10)`;const repeat=d.repeatability||{};const phase=repeat.phase||'idle';const placement=repeat.next_placement||1;const total=repeat.total_placements||10;const repeatReason=phase==='await_empty'?'Remove your hand, then confirm the empty view.':phase==='await_hand'?'Place the same hand and wait for READY, then save the image.':phase==='complete'?'Collection complete. Download the ZIP to this Windows PC.':'Start a new test session.';repeatStatus.textContent=repeat.active?`Repeatability ${placement>total?total:placement}/${total} · ${phase} · ${repeatReason}`:`Repeatability: ${repeatReason}`;repeatStatus.className='notice '+(phase==='complete'?'ready':'');repeatStart.disabled=repeat.active;repeatEmpty.disabled=!repeat.can_confirm_empty;repeatCapture.disabled=!repeat.can_capture;repeatDownload.hidden=phase!=='complete'}catch(e){roiStatus.textContent='ROI status unavailable';roiStatus.className='notice status blocked';actionButtons.forEach(button=>button.disabled=true);repeatEmpty.disabled=true;repeatCapture.disabled=true}setTimeout(pollStatus,300)}
 pollStatus();
@@ -193,6 +198,7 @@ class CameraFeed:
         camera_tuning_file: Path | None,
         capture_only: bool = False,
         pklnet_threads: int | None = None,
+        pklnet_provider: str = "cpu",
         camera_backend: str = "picamera2",
         uvc_device: Path | None = None,
     ) -> None:
@@ -259,14 +265,19 @@ class CameraFeed:
                 refine_pose=refine_pose,
                 submit_interval_ms=inference_ms,
                 recovery_pass=recovery_pass,
-                **({"pklnet_threads": pklnet_threads} if roi_mode == "pklnet" else {}),
+                **({"pklnet_threads": pklnet_threads, "pklnet_provider": pklnet_provider} if roi_mode == "pklnet" else {}),
             )
             if roi_mode in ("dynamic", "pklnet")
             else None
         )
         self.latest: CapturedFrame | None = None
         self.jpeg: bytes | None = None
+        self._jpeg_frame_id = -1
+        self._jpeg_lock = threading.Lock()
+        self._preview_source: tuple[CapturedFrame, ProcessedFrame | None, dict[str, Any]] | None = None
         self.roi_jpeg: bytes | None = None
+        self._roi_jpeg_frame_id = -1
+        self._roi_jpeg_lock = threading.Lock()
         self.latest_processed: ProcessedFrame | None = None
         # User-selected diagnostic policy: record contrast/sharpness without
         # excluding camera samples. Geometry/freshness are still checked.
@@ -280,6 +291,7 @@ class CameraFeed:
             min_sharpness=DEMO_CAPTURE_MIN_SHARPNESS,
             max_age_ms=quality_age_ms,
         )
+        self._last_logged_demo_quality = None
         self.latest_roi_status: dict[str, Any] = {
             "roi_mode": roi_mode,
             "roi_geometry": _roi_geometry(roi_mode),
@@ -287,9 +299,9 @@ class CameraFeed:
             **self.quality_gate.last_result.as_dict(),
         }
         self.running = True
+        self._capture_interval_s = 1.0 / CAPTURE_FPS_CAP
+        self._preview_interval_s = 1.0 / PREVIEW_FPS_CAP
         self._last_preview_time = 0.0
-        self._last_processing_time = 0.0
-        self._processing_interval_s = max(0.10, inference_ms / 1000.0)
         self._next_frame_id = 0
         self.pending_frame: CapturedFrame | None = None
         self.preview_overlay = LiveROIOverlay(max_age_s=8.0 if roi_mode == "pklnet" else 1.5) if roi_mode in ("dynamic", "pklnet") else None
@@ -302,7 +314,14 @@ class CameraFeed:
 
     def _capture_loop(self) -> None:
         """Capture continuously so a slow inference pass cannot freeze video."""
+        next_capture_at = 0.0
         while self.running:
+            delay = next_capture_at - time.monotonic()
+            if delay > 0:
+                time.sleep(delay)
+            if not self.running:
+                return
+            next_capture_at = time.monotonic() + self._capture_interval_s
             try:
                 if self.camera_backend == "uvc":
                     with self.camera_io_lock:
@@ -324,18 +343,8 @@ class CameraFeed:
                         self.pending_frame = captured
                     processed = self.latest_processed
                     status = dict(self.latest_roi_status)
+                    self._preview_source = (captured, processed, status)
                     self.frame_condition.notify_all()
-                if self.jpeg is None or captured_monotonic - self._last_preview_time >= 0.10:
-                    quad = None
-                    if self.preview_overlay is not None:
-                        quad, status = self.preview_overlay.update(
-                            image, captured.frame_id, captured_monotonic, processed,
-                        )
-                    jpeg = self._encode_preview(image, quad, status)
-                    with self.lock:
-                        self.jpeg = jpeg
-                        self.latest_preview_status = status
-                        self._last_preview_time = captured_monotonic
             except Exception as error:
                 with self.lock:
                     self.latest_roi_status = {
@@ -358,18 +367,15 @@ class CameraFeed:
                 self.pending_frame = None
             if captured is None:
                 continue
-            now = time.monotonic()
-            if self.tracker is not None and now - self._last_processing_time < self._processing_interval_s:
-                # The capture thread keeps the live preview moving.  Do not
-                # spend CPU turning every camera frame into the same ROI.
-                time.sleep(0.01)
-                continue
-            self._last_processing_time = now
             try:
                 roi_quad: np.ndarray | None = None
                 quality: dict[str, float]
                 if self.tracker is not None:
-                    self.tracker.submit(captured.image, int(captured.captured_monotonic * 1000))
+                    submitted = self.tracker.submit(captured.image, int(captured.captured_monotonic * 1000))
+                    if submitted is False:
+                        # Keep the last accepted ROI state; this captured frame
+                        # did not run inference and cannot reset its quality gate.
+                        continue
                     tracker_status = self.tracker.roi_status(
                         captured.image.size,
                         frame_timestamp_ms=int(captured.captured_monotonic * 1000),
@@ -443,11 +449,18 @@ class CameraFeed:
                     "demo_quality_required_frames": demo_quality_result.required_frames,
                     "demo_quality": demo_quality_result.quality,
                 })
-                roi_image = Image.fromarray(roi, mode="L").resize((384, 384), Image.Resampling.NEAREST).convert("RGB")
-                roi_output = io.BytesIO()
-                roi_image.save(roi_output, format="JPEG", quality=88)
+                quality_key = (demo_quality_result.state, demo_quality_result.reason)
+                if quality_key != getattr(self, '_last_logged_demo_quality', None):
+                    safe_event('roi_state_change', state=demo_quality_result.state,
+                          reason=demo_quality_result.reason, frame_id=captured.frame_id,
+                          consecutive=demo_quality_result.consecutive_frames,
+                          required=demo_quality_result.required_frames,
+                          tracker_status=roi_status.get('roi_status'),
+                          tracker_reason=roi_status.get('roi_reason'),
+                          sharpness=float(quality.get('sharpness', 0)),
+                          contrast=float(quality.get('contrast', 0)))
+                    self._last_logged_demo_quality = quality_key
                 with self.lock:
-                    self.roi_jpeg = roi_output.getvalue()
                     self.latest_processed = ProcessedFrame(
                         captured,
                         None if roi_quad is None else roi_quad.copy(),
@@ -477,6 +490,10 @@ class CameraFeed:
         preview = image if roi_status.get("roi_mode") == "capture" else cls._annotate_roi(image, roi_quad, roi_status)
         preview.save(output, format="JPEG", quality=82)
         return output.getvalue()
+
+    def _preview_due(self, captured_monotonic: float) -> bool:
+        """Rate-limit display-only optical flow and JPEG work independently of capture."""
+        return self.jpeg is None or captured_monotonic - self._last_preview_time >= self._preview_interval_s
 
     @staticmethod
     def _annotate_roi(
@@ -516,10 +533,28 @@ class CameraFeed:
         draw.text((16, top + 5), label, fill=white)
         return preview
     def roi_frame(self) -> bytes:
-        with self.lock:
-            if self.roi_jpeg is None:
-                raise RuntimeError("Waiting for the first processing ROI")
-            return self.roi_jpeg
+        with self._roi_jpeg_lock:
+            with self.lock:
+                processed = self.latest_processed
+                if processed is None:
+                    raise RuntimeError("Waiting for the first processing ROI")
+                frame_id = processed.captured.frame_id
+                if self.roi_jpeg is not None and self._roi_jpeg_frame_id == frame_id:
+                    return self.roi_jpeg
+                roi = processed.roi.copy()
+            encoded = self._encode_roi_jpeg(roi)
+            with self.lock:
+                if self.latest_processed is processed:
+                    self.roi_jpeg = encoded
+                    self._roi_jpeg_frame_id = frame_id
+            return encoded
+
+    @staticmethod
+    def _encode_roi_jpeg(roi: np.ndarray) -> bytes:
+        image = Image.fromarray(roi, mode="L").resize((384, 384), Image.Resampling.NEAREST).convert("RGB")
+        output = io.BytesIO()
+        image.save(output, format="JPEG", quality=88)
+        return output.getvalue()
 
     def frame(self) -> Image.Image:
         return self.snapshot()[0]
@@ -594,12 +629,54 @@ class CameraFeed:
         error = self.latest_roi_status.get("error")
         if age is not None and age > CAMERA_FRAME_MAX_AGE_S:
             error = error or "Camera frames stopped; check the camera connection and restart the camera service."
-        return {"camera_ready": self.jpeg is not None and age is not None and age <= CAMERA_FRAME_MAX_AGE_S and not error,
+        return {"camera_ready": age is not None and age <= CAMERA_FRAME_MAX_AGE_S and not error,
                 "latest_frame_age_ms": None if age is None else round(age * 1000, 1), "error": error}
 
     def latest_processed_frame_id(self) -> int | None:
         with self.lock:
             return None if self.latest_processed is None else self.latest_processed.captured.frame_id
+
+    def capture_ready_processed_frame(self) -> tuple[Image.Image, Image.Image, dict[str, Any]]:
+        """Use the exact fresh UVC frame whose live ROI gate reached READY."""
+        with self.frame_condition:
+            processed = self.latest_processed
+            if processed is None:
+                raise CaptureProcessingFailure(
+                    "CAPTURE_TIMEOUT", "实时掌区状态尚未更新，请等待预览后继续。"
+                )
+            status = dict(processed.roi_status)
+            camera_state = self._camera_frame_state()
+            status.update(camera_state)
+            captured_ms = status.get("captured_monotonic_ms")
+            age_ms = (None if captured_ms is None else
+                      max(0.0, time.monotonic() * 1000.0 - float(captured_ms)))
+            status["roi_status_age_ms"] = None if age_ms is None else round(age_ms, 1)
+            status["roi_status_fresh"] = bool(
+                self.processing_thread.is_alive() and age_ms is not None
+                and age_ms <= self.quality_gate.max_age_ms
+            )
+            status["processed_frame_id"] = processed.captured.frame_id
+            status["latest_frame_id"] = None if self.latest is None else self.latest.frame_id
+            failure = _capture_readiness_gate_failure(status)
+            if failure is not None:
+                reason, detail = failure
+                raise CaptureProcessingFailure(reason, detail)
+            image = processed.captured.image.copy()
+            frame_id = processed.captured.frame_id
+        metadata = {
+            "capture_backend": "uvc",
+            "capture_kind": "same_fresh_ready_processed_frame",
+            "capture_frame_id": frame_id,
+            "capture_resolution": list(image.size),
+            "color_order": "RGB",
+            "capture_profile": self.capture_profile,
+            "processed_roi": processed.roi.copy(),
+            "processed_roi_quad": (None if processed.roi_quad is None
+                                   else processed.roi_quad.copy()),
+            "processed_roi_quality": dict(processed.roi_status.get("quality", {})),
+            "processed_roi_mode": processed.roi_status.get("roi_mode"),
+        }
+        return image.copy(), image, metadata
 
     def capture_settings(self) -> dict[str, Any]:
         settings = {
@@ -618,6 +695,8 @@ class CameraFeed:
             "demo_quality_config": self.demo_quality_gate.config(),
             "detector_input_size": list(self.input_size),
             "inference_ms": self.inference_ms,
+            "configured_capture_fps_cap": CAPTURE_FPS_CAP,
+            "configured_preview_fps_cap": PREVIEW_FPS_CAP,
             "capture_profile": self.capture_profile,
             "capture_source": self.capture_source,
         }
@@ -633,6 +712,7 @@ class CameraFeed:
             settings.update({"color_order": "Picamera2 RGB888 byte order converted to RGB", "still_capture": True})
         return settings
 
+    @stage
     def capture_highres(self) -> tuple[Image.Image, Image.Image, dict[str, Any]]:
         """Pair a preview frame with a full-sensor still, then resume preview."""
         if self.camera_backend == "uvc":
@@ -691,11 +771,33 @@ class CameraFeed:
             self.frame_condition.notify_all()
 
     def jpeg_frame(self) -> bytes:
-        with self.lock:
-            state = self._camera_frame_state()
-            if not state["camera_ready"]:
-                raise RuntimeError(state["error"] or "Waiting for the first camera frame")
-            return self.jpeg
+        with self._jpeg_lock:
+            with self.lock:
+                state = self._camera_frame_state()
+                if not state["camera_ready"]:
+                    raise RuntimeError(state["error"] or "Waiting for the first camera frame")
+                source = self._preview_source
+                if source is None:
+                    raise RuntimeError("Waiting for the first camera frame")
+                captured, processed, status = source
+                if self.jpeg is not None and self._jpeg_frame_id == captured.frame_id:
+                    return self.jpeg
+                if self.jpeg is not None and not self._preview_due(captured.captured_monotonic):
+                    return self.jpeg
+
+            quad = None
+            if self.preview_overlay is not None:
+                quad, status = self.preview_overlay.update(
+                    captured.image, captured.frame_id, captured.captured_monotonic, processed,
+                )
+            jpeg = self._encode_preview(captured.image, quad, status)
+            with self.lock:
+                if self.latest is not None and self.latest.frame_id == captured.frame_id:
+                    self.jpeg = jpeg
+                    self._jpeg_frame_id = captured.frame_id
+                    self.latest_preview_status = status
+                    self._last_preview_time = captured.captured_monotonic
+            return jpeg
 
     def processed_debug_frame(self, *, after_frame_id: int | None = None) -> tuple[Image.Image, np.ndarray, np.ndarray | None, int, dict[str, Any]]:
         """Return the raw frame and exact matcher ROI from one processed frame."""
@@ -734,12 +836,30 @@ class CameraFeed:
 
 
 class App:
-    def __init__(self, camera: CameraFeed, *, demo_matcher: str = DEMO_MATCHER) -> None:
+    def __init__(self, camera: CameraFeed, *, demo_matcher: str = DEMO_MATCHER,
+                 ppnet_model_root: Path | None = None, ppnet_namespace: str | None = None,
+                 ppnet_reuse_namespace: bool = False) -> None:
         self.camera = camera
         self.algorithm_name = DEBUG_MATCHER
         self.capture_only = getattr(camera, "capture_only", False)
         self.algorithm = None if self.capture_only else load_algorithm(palm_demo.DEFAULT_BASELINE, self.algorithm_name)
-        self.demo_algorithm = None if self.capture_only else load_algorithm(palm_demo.DEFAULT_BASELINE, demo_matcher)
+        is_ppnet = demo_matcher == "PPNet-Tongji-600-Nearest-experimental"
+        if is_ppnet and (self.capture_only or ppnet_model_root is None or ppnet_namespace is None):
+            raise ValueError("PPNet requires recognition, a model directory, and a demo namespace")
+        if not is_ppnet and (ppnet_model_root is not None or ppnet_namespace is not None or ppnet_reuse_namespace):
+            raise ValueError("PPNet options require the PPNet demo matcher")
+        self.demo_algorithm = None if self.capture_only else load_algorithm(
+            palm_demo.DEFAULT_BASELINE, demo_matcher, **({"ppnet_model_root": ppnet_model_root} if is_ppnet else {}))
+        demo_runtime = palm_demo.RUNTIME
+        if is_ppnet:
+            from ppnet_demo_matcher import create_demo_runtime, open_demo_runtime
+            runtime_identity = getattr(self.demo_algorithm, "runtime_identity", None)
+            if ppnet_reuse_namespace:
+                demo_runtime = open_demo_runtime(
+                    palm_demo.RUNTIME, ppnet_namespace, runtime_identity=runtime_identity)
+            else:
+                demo_runtime = create_demo_runtime(
+                    palm_demo.RUNTIME, ppnet_namespace, runtime_identity=runtime_identity)
         self.lock = threading.Lock()
         self.debug_writer: DebugDatasetWriter | None = None
         self.debug_sample_index = 1
@@ -758,7 +878,7 @@ class App:
                 and self.collection_batch.get("collection_mode") != "full_resolution_only"):
             self.collection_batch = None
         self.demo = None if self.capture_only else DemoFlow(
-            palm_demo.RUNTIME, self.demo_algorithm,
+            demo_runtime, self.demo_algorithm,
             lambda: self.capture_demo_feature(require_live_ready=True),
             roi_geometry=_roi_geometry(self.camera.roi_mode),
             capture_profile=self.camera.capture_profile,
@@ -767,10 +887,12 @@ class App:
         if self.demo is not None and hasattr(self.demo_algorithm,"extract_gallery_with_context"):
             self.demo.capture_enrollment_feature = lambda: self.capture_demo_feature(enrollment=True)
         if self.demo is not None:
-            self.demo.enrollment_candidate = lambda: self.capture_demo_feature(enrollment=True, include_candidate=True)
+            self.demo.enrollment_candidate = lambda: self.capture_demo_feature(
+                enrollment=True, include_candidate=True, defer_enrollment_feature=True)
         if self.demo is not None and hasattr(self.demo_algorithm, 'prepare_gallery'):
             self.demo.gallery.warm_up(capture_profile=self.demo.capture_profile)
 
+    @stage
     def detect_full_still(self, full: Image.Image, preview_size: tuple[int, int], *, demo_core: bool = False, localization_details: dict[str, Any] | None = None) -> tuple[np.ndarray, np.ndarray, float | None, dict[str, float], str]:
         if self.camera.roi_mode == "pklnet":
             raw_roi, quad, details = self.camera.tracker.extractor.extract(full)
@@ -809,9 +931,17 @@ class App:
         finally:
             tracker.close()
 
+    @stage
     def capture_demo_feature(self, *, enrollment: bool = False, require_live_ready: bool = False,
-                             include_candidate: bool = False) -> tuple:
-        if enrollment or require_live_ready:
+                             include_candidate: bool = False,
+                             defer_enrollment_feature: bool = False) -> tuple:
+        exact_uvc_frame_gate = (
+            getattr(self.camera, "camera_backend", None) == "uvc"
+            and callable(getattr(self.camera, "capture_ready_processed_frame", None))
+        )
+        # UVC capture validates readiness on the exact processed frame it returns.
+        # A separate status snapshot here can go stale before that frame is read.
+        if (enrollment or require_live_ready) and not exact_uvc_frame_gate:
             try:
                 status = self.camera.status()
             except (AttributeError, OSError, RuntimeError, ValueError):
@@ -824,12 +954,33 @@ class App:
             raise CaptureProcessingFailure("CAMERA_BUSY")
         try:
             try:
-                preview, full, _ = self.camera.capture_highres()
+                if (getattr(self.camera, "camera_backend", None) == "uvc"
+                        and (enrollment or require_live_ready)
+                        and hasattr(self.camera, "capture_ready_processed_frame")):
+                    preview, full, capture_metadata = self.camera.capture_ready_processed_frame()
+                else:
+                    preview, full, capture_metadata = self.camera.capture_highres()
+            except CaptureProcessingFailure:
+                raise
             except (OSError, RuntimeError) as error:
                 raise CaptureProcessingFailure(classify_camera_capture_error(error)) from error
             try:
                 localization = {}
-                if hasattr(self.demo_algorithm, "extract_with_hypotheses"):
+                processed_roi = capture_metadata.get("processed_roi")
+                processed_quad = capture_metadata.get("processed_roi_quad")
+                can_reuse_processed_roi = (
+                    capture_metadata.get("processed_roi_mode") == "pklnet"
+                    and self.camera.roi_mode == "pklnet"
+                    and not hasattr(self.demo_algorithm, "extract_with_hypotheses")
+                    and processed_roi is not None and processed_quad is not None
+                )
+                if can_reuse_processed_roi:
+                    roi = np.asarray(processed_roi, dtype=np.uint8).copy()
+                    quad = np.asarray(processed_quad, dtype=np.float32).copy()
+                    quality = dict(capture_metadata.get("processed_roi_quality", {}))
+                    source = "pklnet"
+                    capture_metadata["localization_reused"] = True
+                elif hasattr(self.demo_algorithm, "extract_with_hypotheses"):
                     roi, quad, _, quality, source = self.detect_full_still(full, preview.size, demo_core=True, localization_details=localization)
                 else:
                     roi, quad, _, quality, source = self.detect_full_still(full, preview.size, demo_core=True)
@@ -846,47 +997,79 @@ class App:
                 if reason is None:
                     raise
                 raise CaptureProcessingFailure(reason) from error
-            if not enrollment and hasattr(self.demo_algorithm, 'extract_probe_with_context'):
-                if self.camera.roi_mode != 'pklnet':
-                    raise RuntimeError('Indexed demo matching requires PKLNet geometry')
-                feature = self.demo_algorithm.extract_probe_with_context(full, quad, roi)
-                if getattr(self.demo_algorithm, 'requires_exhaustive_fallback', False):
-                    candidates = localization.get('pklnet_roi_candidates')
+            safe_event('capture_quality', purpose='enrollment' if enrollment else 'recognition',
+                  contrast=float(quality.get('contrast', 0)), sharpness=float(quality.get('sharpness', 0)),
+                  frame_size=list(full.size),
+                  capture_frame_id=capture_metadata.get('capture_frame_id'),
+                  capture_kind=capture_metadata.get('capture_kind'),
+                  localization_reused=bool(capture_metadata.get('localization_reused')))
+            if enrollment and include_candidate:
+                issue = enrollment_quality_issue(quality)
+                if issue is not None:
+                    raise CaptureProcessingFailure("LOW_QUALITY", issue)
+            def extract_feature():
+                if not enrollment and hasattr(self.demo_algorithm, 'extract_probe_with_context'):
+                    if self.camera.roi_mode != 'pklnet':
+                        raise RuntimeError('Indexed demo matching requires PKLNet geometry')
+                    feature = self.demo_algorithm.extract_probe_with_context(full, quad, roi)
+                    if getattr(self.demo_algorithm, 'requires_exhaustive_fallback', False):
+                        candidates = localization.get('pklnet_roi_candidates')
+                        if not candidates:
+                            raise RuntimeError('Exhaustive fallback requires original localization diagnostics')
+                        if getattr(self.demo_algorithm,'needs_localization_candidates',False):
+                            feature.localization_candidates=candidates
+                        def exhaustive():
+                            hypotheses = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
+                            return self.demo_algorithm.extract_with_hypotheses(full, quad, roi, hypotheses)
+                        feature.exhaustive = exhaustive
+                elif hasattr(self.demo_algorithm, "extract_with_hypotheses"):
+                    if self.camera.roi_mode != "pklnet":
+                        raise RuntimeError("Multi-ROI matching requires the PKLNet palm coordinate convention")
+                    candidates = localization.get("pklnet_roi_candidates")
                     if not candidates:
-                        raise RuntimeError('Exhaustive fallback requires original localization diagnostics')
-                    if getattr(self.demo_algorithm,'needs_localization_candidates',False):
-                        feature.localization_candidates=candidates
-                    def exhaustive():
-                        hypotheses = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
-                        return self.demo_algorithm.extract_with_hypotheses(full, quad, roi, hypotheses)
-                    feature.exhaustive = exhaustive
-            elif hasattr(self.demo_algorithm, "extract_with_hypotheses"):
-                if self.camera.roi_mode != "pklnet":
-                    raise RuntimeError("Multi-ROI matching requires the PKLNet palm coordinate convention")
-                candidates = localization.get("pklnet_roi_candidates")
-                if not candidates:
-                    raise RuntimeError("Multi-ROI matching requires original/gamma localization diagnostics")
-                if (enrollment and hasattr(self.demo_algorithm,"extract_gallery_with_context")
-                        and not getattr(self.demo_algorithm, 'enrollment_requires_hypotheses', False)):
-                    feature = self.demo_algorithm.extract_gallery_with_context(full,quad,roi)
+                        raise RuntimeError("Multi-ROI matching requires original/gamma localization diagnostics")
+                    if (enrollment and hasattr(self.demo_algorithm,"extract_gallery_with_context")
+                            and not getattr(self.demo_algorithm, 'enrollment_requires_hypotheses', False)):
+                        feature = self.demo_algorithm.extract_gallery_with_context(full,quad,roi)
+                    else:
+                        if hasattr(self.demo_algorithm, "complete_hypotheses"):
+                            candidates = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
+                        feature = self.demo_algorithm.extract_with_hypotheses(full, quad, roi, candidates)
+                elif hasattr(self.demo_algorithm, "extract_with_context"):
+                    if self.camera.roi_mode != "pklnet":
+                        raise RuntimeError("Pose matching requires the PKLNet palm coordinate convention")
+                    feature = self.demo_algorithm.extract_with_context(full, quad, roi)
                 else:
-                    if hasattr(self.demo_algorithm, "complete_hypotheses"):
-                        candidates = self.demo_algorithm.complete_hypotheses(full, candidates, self.camera.tracker.extractor)
-                    feature = self.demo_algorithm.extract_with_hypotheses(full, quad, roi, candidates)
-            elif hasattr(self.demo_algorithm, "extract_with_context"):
-                if self.camera.roi_mode != "pklnet":
-                    raise RuntimeError("Pose matching requires the PKLNet palm coordinate convention")
-                feature = self.demo_algorithm.extract_with_context(full, quad, roi)
+                    feature = self.demo_algorithm.extract(roi)
+                return feature
+
+            feature_deferred = enrollment and include_candidate and defer_enrollment_feature
+            if feature_deferred:
+                def feature_factory():
+                    with self.collection_lock:
+                        return extract_feature()
+                feature = feature_factory
             else:
-                feature = self.demo_algorithm.extract(roi)
+                feature = extract_feature()
             output = io.BytesIO()
             Image.fromarray(roi).save(output, format="PNG")
             result = (feature, base64.b64encode(output.getvalue()).decode("ascii"), source)
             if include_candidate:
-                return (*result, quality, roi.copy(), {"roi_quad": quad.copy(), "frame_size": full.size})
+                metadata = {"roi_quad": quad.copy(), "frame_size": full.size,
+                            "capture_frame_id": capture_metadata.get("capture_frame_id"),
+                            "capture_kind": capture_metadata.get("capture_kind"),
+                            "localization_reused": bool(capture_metadata.get("localization_reused"))}
+                if feature_deferred:
+                    metadata["feature_deferred"] = True
+                return (*result, quality, roi.copy(), metadata)
             return result
         finally:
             self.collection_lock.release()
+
+    @stage
+    def identify_gate(self) -> dict[str, Any]:
+        """Use one freshly captured frame for the gate recognition request."""
+        return self.demo.identify()
 
     @staticmethod
     def _highres_labels(payload: dict[str, Any]) -> dict[str, Any]:
@@ -909,6 +1092,7 @@ class App:
             raise ValueError("Notes are too long.")
         return {"subject": subject, "hand": hand, "background": background, "distance_cm": distance, "notes": notes}
 
+    @stage
     def capture_highres(self, payload: dict[str, Any], *, preview_quad: np.ndarray | None = None) -> dict[str, Any]:
         labels = self._highres_labels(payload)
         session_id = str(payload.get("session_id", ""))
@@ -1484,6 +1668,7 @@ class App:
         if getattr(self, "capture_only", False):
             status["highres_batch"] = self.highres_batch_status()
             return status
+        status["demo_quality_config"] = self.camera.demo_quality_gate.config()
         if getattr(self, "debug_requires_removal", False) and status.get("quality_status") == "NO_HAND":
             self.debug_requires_removal = False
         writer = getattr(self, "debug_writer", None)
@@ -1525,9 +1710,8 @@ class App:
                 timings.append(timing)
                 frame_ids.append(frame_id)
                 previous_frame_id = frame_id
-            data_path, meta_path = palm_demo.template_paths(user)
-            data_path.parent.mkdir(parents=True, exist_ok=True)
-            np.savez_compressed(data_path, features=np.stack(features))
+            from templates import TemplateStore
+            store = TemplateStore(palm_demo.RUNTIME / "templates")
             distances = [
                 float(self.algorithm.match(features[index], candidate))
                 for index, feature in enumerate(features)
@@ -1545,17 +1729,19 @@ class App:
                         "pipeline_ms": {"mean": float(np.mean(timings)), "max": float(np.max(timings))},
                         "enrollment_distance_p95": float(np.quantile(distances, 0.95)),
                         "warning": "Same-stand debug threshold only; it has no impostor or liveness validation."}
-            meta_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+            store.save(user, np.stack(features), metadata)
             palm_demo.write_log({"event": "enroll", "user": user, "camera": 0, "capture_profile": profile,
                                  "samples": 5, "pipeline_ms_mean": metadata["pipeline_ms"]["mean"]})
             return f"Enrollment complete: {user} (DoN, threshold {threshold:.4f}, mean pipeline {metadata['pipeline_ms']['mean']:.1f} ms)"
 
     def verify(self, user: str, profile: str) -> str:
         with self.lock:
-            data_path, meta_path = palm_demo.template_paths(user)
-            if not data_path.exists() or not meta_path.exists():
-                raise RuntimeError(f"No template for {user}; enroll first.")
-            metadata = json.loads(meta_path.read_text(encoding="utf-8"))
+            from templates import TemplateStore
+            store = TemplateStore(palm_demo.RUNTIME / "templates")
+            try:
+                stored, metadata = store.load(user)
+            except FileNotFoundError as error:
+                raise RuntimeError(f"No template for {user}; enroll first.") from error
             if metadata.get("capture_profile") != profile:
                 raise RuntimeError(f"Template profile is {metadata.get('capture_profile')!r}, current profile is {profile!r}.")
             if metadata.get("algorithm") != self.algorithm_name:
@@ -1574,7 +1760,6 @@ class App:
             previous_frame_id = self.camera.latest_processed_frame_id()
             image, _roi, roi_quad, roi_status, frame_id = self.camera.snapshot(after_frame_id=previous_frame_id)
             feature, quality, timing = self.feature(image, roi_quad, roi_status, processed_roi=_roi)
-            stored = np.load(data_path)["features"]
             scores = [float(self.algorithm.match(feature, candidate)) for candidate in stored]
             score = float(np.median(scores))
             accepted = score <= float(metadata.get("threshold", 0.28))
@@ -1648,8 +1833,8 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
-            elif route == "/demo":
-                body = DEMO_HTML.encode()
+            elif route in ("/demo", "/gate"):
+                body = (GATE_HTML if route == "/gate" else DEMO_HTML).encode()
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(body)))
@@ -1754,7 +1939,8 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                         break
             elif self.path == "/api/users":
                 directory = palm_demo.RUNTIME / "templates"
-                users = sorted(path.stem for path in directory.glob("*.npz")) if directory.exists() else []
+                from templates import TemplateStore
+                users = TemplateStore(directory).list_users()
                 json_response(self, HTTPStatus.OK, {"users": users})
             elif route == "/api/status":
                 json_response(self, HTTPStatus.OK, app.status())
@@ -1806,7 +1992,7 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             if getattr(app, "capture_only", False) and not self.path.startswith("/api/collection/"):
                 json_response(self, HTTPStatus.NOT_FOUND, {"message": "Only collection actions are enabled."})
                 return
-            if self.path in ("/api/demo/enroll", "/api/demo/identify", "/api/demo/confirm", "/api/demo/cancel",
+            if self.path in ("/api/gate/identify", "/api/demo/enroll", "/api/demo/identify", "/api/demo/confirm", "/api/demo/cancel",
                              "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step", "/api/demo/enroll/commit", "/api/demo/enroll/cancel"):
                 try:
                     length = int(self.headers.get("Content-Length", "0"))
@@ -1816,11 +2002,11 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     if not isinstance(payload, dict):
                         raise ValueError("Expected a JSON object")
                     if self.path == "/api/demo/enroll/start":
-                        result = app.demo.enrollment_start(str(payload.get("user_id", "")), str(payload.get("display_name", "")), str(payload.get("hand", "")))
+                        result = app.demo.enrollment_start(str(payload.get("user_id", "")), str(payload.get("display_name", "")), str(payload.get("hand", "")), str(payload.get("token") or "") or None)
                     elif self.path == "/api/demo/enroll/status":
                         result = app.demo.enrollment_status(str(payload.get("token", "")))
                     elif self.path == "/api/demo/enroll/step":
-                        result = app.demo.enrollment_step(str(payload.get("token", "")))
+                        result = app.demo.enrollment_step(str(payload.get("token", "")), selection_only=payload.get("selection_only") is True)
                     elif self.path == "/api/demo/enroll/commit":
                         result = app.demo.enrollment_commit(str(payload.get("token", "")), str(payload.get("confirm_hand", "")))
                     elif self.path == "/api/demo/enroll/cancel":
@@ -1828,7 +2014,14 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     elif self.path.endswith("enroll"):
                         result = app.demo.enroll(str(payload.get("user_id", "")), str(payload.get("display_name", "")))
                     elif self.path.endswith("identify"):
-                        result = app.demo.identify()
+                        result = app.identify_gate() if self.path == "/api/gate/identify" else app.demo.identify()
+                        if self.path == "/api/gate/identify":
+                            token = result.pop("token", None)
+                            if token:
+                                app.demo.cancel(token)
+                            result.pop("amount_cents", None)
+                            palm_demo.write_log({"event": "gate_identify", "time": palm_demo.utc_now(),
+                                                 **{key: value for key, value in result.items() if key != "roi_image"}})
                     elif self.path.endswith("confirm"):
                         result = app.demo.confirm(str(payload.get("token", "")), str(payload.get("user_id", "")))
                     else:
@@ -1958,8 +2151,13 @@ def main() -> int:
     parser.add_argument("--roi-mode", choices=("dynamic", "fixed", "pklnet"), default="pklnet")
     parser.add_argument("--capture-only", action="store_true", default=True, help="Collect original full-resolution images without ROI or matcher processing (default).")
     parser.add_argument("--enable-recognition", dest="capture_only", action="store_false", help="Explicitly enable the optional ROI/recognition debug routes.")
-    parser.add_argument("--demo-matcher", default=DEMO_MATCHER, help="Matcher for optional /demo recognition (default: DoN; alternatives include OC, PC and FastCC).")
+    parser.add_argument("--demo-matcher", default=DEMO_MATCHER, help="Matcher for optional /demo recognition (default: DoN; PPNet-Tongji-600-Nearest-experimental requires an ONNX model root and an isolated namespace).")
+    parser.add_argument("--ppnet-model-root", type=Path, help="Existing exported PPNet ONNX model directory for the experimental demo matcher.")
+    parser.add_argument("--ppnet-demo-namespace", help="Isolated runtime namespace, named ppnet-demo-...; required for PPNet.")
+    parser.add_argument("--ppnet-demo-reuse-namespace", action="store_true",
+                        help="Explicitly resume this PPNet namespace only when its model/score identity and stored gallery match.")
     parser.add_argument("--opencv-threads", type=int, choices=range(1, 65), metavar="1..64", help="OpenCV worker limit; omitted keeps the library default.")
+    parser.add_argument("--pklnet-provider", choices=("cpu", "cuda"), default="cpu", help="PKLNet ONNX execution provider (default: cpu; cuda may use CPU partitions).")
     parser.add_argument("--pklnet-threads", type=int, choices=range(1, 65), metavar="1..64", help="ONNX localizer worker limit; omitted keeps the existing default.")
     parser.add_argument("--native-registration", type=Path, help="Explicit compatible native descriptor library for /demo; requires recognition mode.")
     parser.add_argument("--native-threads", type=int, choices=(1, 2, 4), default=1, help="Worker limit for the explicitly enabled native descriptor library (default: 1).")
@@ -1981,6 +2179,8 @@ def main() -> int:
             parser.error("--native-registration requires --enable-recognition")
         if not args.native_registration.is_file():
             parser.error("--native-registration library does not exist")
+    if args.ppnet_demo_reuse_namespace and args.demo_matcher != "PPNet-Tongji-600-Nearest-experimental":
+        parser.error("--ppnet-demo-reuse-namespace requires the PPNet experimental matcher")
     if args.opencv_threads is not None:
         cv2.setNumThreads(args.opencv_threads)
     feed = CameraFeed(
@@ -1997,10 +2197,17 @@ def main() -> int:
         camera_tuning_file=args.camera_tuning_file,
         capture_only=args.capture_only,
         pklnet_threads=args.pklnet_threads,
+        pklnet_provider=args.pklnet_provider,
         camera_backend=args.camera_backend,
         uvc_device=args.uvc_device,
     )
-    app = App(feed, demo_matcher=args.demo_matcher)
+    try:
+        app = App(feed, demo_matcher=args.demo_matcher, ppnet_model_root=args.ppnet_model_root,
+                  ppnet_namespace=args.ppnet_demo_namespace,
+                  ppnet_reuse_namespace=args.ppnet_demo_reuse_namespace)
+    except Exception:
+        feed.close()
+        raise
     if args.native_registration is not None:
         from native_registration import enable_native_registration
         try:

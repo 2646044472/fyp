@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, Callable
 
@@ -28,6 +29,7 @@ class PalmPaymentWorkflow:
         self.roi = roi
         self.algorithm = algorithm
         self.gallery = gallery
+        self.gallery.strict_integrity = True
         self.payment_service = payment_service
         self.capture_profile = capture_profile
         self.logger = logger
@@ -38,6 +40,13 @@ class PalmPaymentWorkflow:
         total_started = time.perf_counter()
         timings = {key: 0.0 for key in ("capture_ms", "roi_ms", "feature_ms", "search_ms", "payment_ms", "total_ms")}
         trace: dict[str, Any] = {"capture_source": "provided" if image is not None else "camera"}
+        try:
+            template_ids = set(self.gallery.store.list_template_ids())
+            account_ids = {user['user_id'] for user in self.payment_service.list_users()}
+            if template_ids != account_ids or any(not self.gallery.store.exists(user) for user in template_ids):
+                return self._result("RETRY", None, None, None, None, "GALLERY_INCOMPLETE_TEMPLATES", timings, total_started, trace)
+        except (OSError, ValueError):
+            return self._result("RETRY", None, None, None, None, "GALLERY_INVALID_TEMPLATES", timings, total_started, trace)
         capture_started = time.perf_counter()
         if image is None and self.capture is not None:
             try:
@@ -64,7 +73,12 @@ class PalmPaymentWorkflow:
         except Exception as error:
             return self._result("RETRY", None, None, None, None, str(error), timings, total_started, trace)
         timings["feature_ms"] = (time.perf_counter() - feature_started) * 1000
-        identification = self.gallery.identify(feature, self.capture_profile)
+        search_started = time.perf_counter()
+        try:
+            identification = self.gallery.identify(feature, self.capture_profile)
+        except (OSError, ValueError, EOFError, KeyError, zipfile.BadZipFile):
+            timings["search_ms"] = (time.perf_counter() - search_started) * 1000
+            return self._result("RETRY", None, None, None, None, "GALLERY_INVALID_TEMPLATES", timings, total_started, trace)
         timings["search_ms"] = identification.search_ms
         trace.update({"identification_status": identification.status, "second_score": identification.second_score})
         if identification.status == "RETRY":
@@ -80,7 +94,11 @@ class PalmPaymentWorkflow:
     def _result(self, status, user_id, score, transaction_id, balance_cents, reason, timings, total_started, trace=None):
         timings["total_ms"] = (time.perf_counter() - total_started) * 1000
         result = CheckoutResult(status, user_id, transaction_id, score, balance_cents, reason, dict(timings))
-        event = {"event": "checkout", "result": result.status, "user_id": result.user_id, "score": result.score, "gallery_size": self.gallery.size, "capture_profile": self.capture_profile, **result.timings, **(trace or {})}
+        try:
+            gallery_size = self.gallery.size
+        except (OSError, ValueError):
+            gallery_size = None
+        event = {"event": "checkout", "result": result.status, "user_id": result.user_id, "score": result.score, "gallery_size": gallery_size, "capture_profile": self.capture_profile, **result.timings, **(trace or {})}
         if result.reason:
             event["retry_reason"] = result.reason
         if self.logger:
@@ -90,7 +108,8 @@ class PalmPaymentWorkflow:
     def enroll_user(self, user_id: str, display_name: str, captures, initial_balance_cents: int) -> None:
         user_id = safe_user_id(user_id)
         store: TemplateStore = self.gallery.store
-        if store.exists(user_id) or self.payment_service.user_exists(user_id):
+        if (store.exists(user_id) or user_id in store.list_template_ids()
+                or self.payment_service.user_exists(user_id)):
             raise ValueError(f"user {user_id} already exists")
         features = []
         for image in captures:
@@ -104,9 +123,8 @@ class PalmPaymentWorkflow:
         store.save(user_id, np.stack(features), metadata)
         try:
             self.payment_service.create_account(user_id, display_name, initial_balance_cents)
-        except Exception:
-            store.delete(user_id)
-            raise
+        except Exception as error:
+            raise RuntimeError("录入账户状态未确认，模板已保留；请检查已有记录。") from error
 
     def delete_user(self, user_id: str) -> None:
         user_id = safe_user_id(user_id)

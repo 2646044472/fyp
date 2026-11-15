@@ -4,6 +4,78 @@ Local Raspberry Pi palmprint enrollment and 1:1 verification. For connection,
 installation and hardware precautions, see [SETUP](docs/SETUP.md).
 Commands below run from `code/palm_demo` on Windows or `~/palm_demo` on the Pi.
 
+2026-11-03 device-only optimization is available explicitly as
+`FastCCLazyRetained-v28-experimental`. It retains ordinary FastCC evidence at
+the exhaustive fallback and enables bounded, query-local exact SIFT/registration
+reuse only inside that fallback. ROI, numeric gates and best-two aggregation
+are unchanged. The existing deployed camera service has not been switched.
+
+Real Pi 5 saved-original replay (camera/external upload excluded):
+
+| Version | Correct /168 | Wrong /168 | Reject / failure | Correct <=2.5s /168 | P50 / P95 / max, s |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Current retained-evidence v27 reference | 165 | 3 | 0 / 0 | 147 | 1.536 / 6.023 / 15.144 |
+| Lazy exact-reuse v28 | 165 | 3 | 0 / 0 | 146 | 1.534 / 5.710 / 14.529 |
+
+Every final identity, status and full-gallery score equals the frozen retained
+reference on all 168 queries. A predeclared paired screen of all 13 fallback
+queries and four fast controls measured 8.72% less fallback aggregate time and
+0.31% more fast-control aggregate time. The one lost timely-correct result is
+an unchanged nonfallback decision, 2474.94 -> 2518.38 ms; it remains in the report.
+These exposed device data do not establish public-data generalization or
+stranger rejection. Initialization/ready and reused enrollment are separate.
+See [aggregate evidence](docs/protocols/DEVICE_DEMO_OPTIMIZATION_20261103.json).
+
+The separate 2026-11-03 AXON public sample **did not pass**: all 72 genuine
+queries yielded 23 correct accepts, 32 wrong accepts and 17 processing failures;
+all 48 stranger queries yielded 28 wrong accepts, one tied-score retry and 19
+processing failures. The gallery covered only 4–5 of the requested 12 hands
+per fold because unchanged high-resolution enrollments exceeded the 16 MiB
+template envelope. These six-fold attempts represent six known people, not
+72 independent people. See the [official dataset and CC BY-NC 4.0 terms](https://huggingface.co/datasets/AxonData/palm-recognition-dataset).
+
+The opt-in `FastCCWideLazy-v29-experimental` retains every view while raising
+only the packed envelope to 64 MiB. On the same already-seen originals,
+single-frame preparation changed from 53/72 to 71/72; the 11-hand gallery then
+failed ready at the existing 256 MiB descriptor-index limit. Repeated queries
+against that unusable gallery were stopped; this is an engineering confirmation,
+not a recognition improvement or a fresh generalization result. It is not the
+selected device variant. The cache/RSS budgets were not relaxed.
+
+Visual checks on all 24 images of two selected people found full, roughly
+frontal failed examples as well as inconsistent same-hand crop scale/position.
+All 18 available normalized-ROI hashes matched the frozen queries. Capturing
+the whole palm approximately parallel remains the demo target, but does not
+justify dropping these failures. No result-filtered easy subset is reported.
+The measured configuration is closed-set: final distance 1.0, margin 0 and no
+runtime rejection policy. The results therefore do not establish a working
+stranger-rejection demo. Keep this limitation separate from device accuracy.
+
+The follow-up `FastCCSharedLazy-v30-experimental` is **not selected**. Its fixed
+13-fallback/four-fast paired screen kept every score, decision and ROI unchanged
+and reduced peak reuse arrays from 256.0 to 44.6 MiB, but fallback aggregate time
+increased 1.69%, failing the predeclared 5% saving requirement. No V30 full168 run
+was started and the pilot was not repeated. V28 remains the device candidate.
+Local checks: 460 Python tests passed, three skipped; frontend interaction checks
+passed. The legacy obsolete-module test and optional historical raw-SMPD test
+are outside that Python check scope.
+
+The next isolated engineering change checks the existing 256 MiB descriptor
+limit before allocating concatenated descriptors, labels or FLANN state. A
+gallery-ready failure now stops AXON evaluation before any query, with planned,
+attempted and unattempted counts retained. Focused local checks: 52 passed;
+five synthetic allocation/parity checks also passed on Pi (about 202 MiB peak
+RSS). No biometric or independent-data queries were executed for this change;
+the frozen full168 remains historical evidence, not a new regression result.
+See [capacity-preflight evidence](docs/protocols/INDEX_CAPACITY_PREFLIGHT_20261103.json).
+
+The new matcher has an explicit algorithm name; use fresh enrollment or an
+isolated, format-compatible copy for controlled replay. Native matching is
+also explicit: `--native-registration /path/to/descriptor_match.so
+--native-threads 1`, with a verified compatible library. CompNet requires the
+existing `PALM_COMPNET_MODEL_ROOT`. Keep dataset originals and model binaries
+outside Git. The default capture-only mode and historical matcher remain available.
+
 Pi 5 deployment verified with historical replay (2026-10-28): new/old cameras
 both 20/20, including enrollment and isolated simulated payment/cancel checks.
 Identification median is 14.46 s / 5.59 s; this is a supervised snapshot demo.
@@ -236,8 +308,9 @@ snapshot for its lower CPU cost; this single-person snapshot does not establish 
 recognition accuracy. The demo continues to rank compatible enrolled templates
 without a calibrated open-set acceptance threshold by default. Optional staged-matcher
 rejection is configured with `runtime/demo_acceptance_policy.json`; it keeps separate
-FastCC, CompNet and quality-score profiles and suppresses identity/payment tokens on
-rejection. The development example loses four previously correct decisions while
+FastCC, CompNet, quality-score and RF-score profiles and suppresses identity/payment tokens on
+rejection. RF profiles require both an absolute distance cap and a margin; a clear gap
+alone cannot accept an arbitrarily poor match. The development example loses four previously correct decisions while
 blocking three wrong decisions on the retained-evidence cohort; it is not a calibrated
 default. See [rejection policy and validation](docs/PI5_REJECTION_POLICY_20261030.md)
 before enabling it. Missing files keep ranking-only mode; malformed files fail startup.

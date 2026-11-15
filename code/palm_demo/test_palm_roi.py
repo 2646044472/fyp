@@ -131,6 +131,44 @@ class PalmROITest(unittest.TestCase):
         self.assertEqual(tracker.roi_status((480, 360), frame_timestamp_ms=1000).status, "tracking")
         self.assertEqual(tracker.roi_status((480, 360), frame_timestamp_ms=1001).status, "tracking_stale")
 
+    def test_submit_reports_rate_limited_frame_without_running_detector(self) -> None:
+        class FakeCV:
+            COLOR_RGB2BGR = 0
+
+            @staticmethod
+            def cvtColor(array: np.ndarray, _: int) -> np.ndarray:
+                return array
+
+        clock = [0.8000]
+        tracker = object.__new__(palm_roi.HandLandmarkTracker)
+        tracker._lock = threading.Lock()
+        tracker._closed = False
+        tracker._last_submit_monotonic = 0.0005
+        tracker._submit_interval_s = 0.8
+        tracker._input_size = (32, 24)
+        tracker._recovery_pass = False
+        tracker._handpose = None
+        tracker._cv = FakeCV()
+        tracker._last_error = None
+        tracker._last_diagnostics = {}
+        detector_calls = []
+        tracker._infer = lambda *_args, **_kwargs: detector_calls.append(True) or palm_roi.DetectorResult(
+            None, None, None, {"reason": "no_candidate"}
+        )
+
+        original_monotonic = palm_roi.time.monotonic
+        palm_roi.time.monotonic = lambda: clock[0]
+        try:
+            skipped = tracker.submit(Image.new("RGB", tracker._input_size), 800)
+            clock[0] = 0.8006
+            processed = tracker.submit(Image.new("RGB", tracker._input_size), 801)
+        finally:
+            palm_roi.time.monotonic = original_monotonic
+
+        self.assertFalse(skipped)
+        self.assertTrue(processed)
+        self.assertEqual(len(detector_calls), 1)
+
     def test_stale_tracking_allows_reacquisition_at_a_new_position(self) -> None:
         tracker = object.__new__(palm_roi.HandLandmarkTracker)
         tracker._input_size = (320, 240)

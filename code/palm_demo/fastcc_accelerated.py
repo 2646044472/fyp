@@ -2,13 +2,18 @@
 import cv2
 import numpy as np
 from scipy.signal import convolve2d
+from palmprint.algorithms.fastcc import FastCCAlgorithm
+import threading
 
 
 class AcceleratedFastCC:
-    def __init__(self, reference):
+    def __init__(self, reference, *, track_dispatch=False):
         self.reference = reference
         self.name = reference.name
         self.kernels = reference.kernels
+        self.track_dispatch = bool(track_dispatch)
+        self.instance_override_dispatches = 0
+        self._dispatch_lock = threading.Lock()
         self._difference = np.ascontiguousarray((self.kernels[0] - self.kernels[3])[::-1, ::-1])
         dy, dx = np.meshgrid(np.arange(-4, 5), np.arange(-4, 5), indexing='ij')
         self._dy, self._dx = dy, dx
@@ -35,6 +40,18 @@ class AcceleratedFastCC:
         return result
 
     def match(self, left, right):
+        # Instance-level replacements are used by gallery-adaptive matchers.
+        # Checking only the class method silently bypasses those replacements.
+        instance_match = getattr(self.reference, "__dict__", {}).get("match")
+        if instance_match is not None:
+            if self.track_dispatch:
+                with self._dispatch_lock:
+                    self.instance_override_dispatches += 1
+            return instance_match(left, right)
+        # The vectorized kernel below is a faithful FastCC implementation,
+        # but must not replace an opt-in FastCC subclass's distinct metric.
+        if type(self.reference).match is not FastCCAlgorithm.match:
+            return self.reference.match(left, right)
         left, right = np.asarray(left), np.asarray(right)
         if left.shape != (32, 32) or right.shape != (32, 32):
             return self.reference.match(left, right)

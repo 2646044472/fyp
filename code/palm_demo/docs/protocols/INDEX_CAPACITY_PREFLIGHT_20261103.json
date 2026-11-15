@@ -1,0 +1,66 @@
+{
+  "date": "2026-11-03",
+  "change": "Check descriptor payload capacity before concatenation/label/FLANN allocation; abort public evaluation before queries if gallery is not ready.",
+  "local_tests": {
+    "passed": 52,
+    "scope": "Focused index, linked enrollment, protocol and validation tests; no image inference"
+  },
+  "pi_engineering_check": {
+    "scope": "Isolated synthetic engineering tests on real Pi; zero biometric queries, zero independent-data queries. No camera/model inference or deployment.",
+    "complete": true,
+    "tests": 5,
+    "recognition_queries": 0,
+    "before": {
+      "available_bytes": 7903232000,
+      "peak_rss_bytes": 19775488,
+      "throttle": "throttled=0x0"
+    },
+    "opencv": "4.10.0",
+    "cpu_affinity": [
+      0
+    ],
+    "source_sha256": {
+      "test_index_capacity_preflight.py": "4194d566238a8e703859a6a9766954b25b6e5759753b4299da55a389576544ab",
+      "indexed_demo_matcher.py": "b8224d3b159bb40d93ac35b6c37c5bfe209ae2305d36d63b7d26614668f954f6",
+      "run_check.py": "be1d1fd792ae29c095cb3c02ea562508809068b943ee6dc8e1568ece37fb6cd8"
+    },
+    "tests_run": 5,
+    "failures": 0,
+    "errors": 0,
+    "elapsed_seconds": 0.5029948899973533,
+    "after": {
+      "available_bytes": 7822131200,
+      "peak_rss_bytes": 211861504,
+      "throttle": "throttled=0x0"
+    }
+  },
+  "pi_disk_free_bytes_after": 6720557056,
+  "independent_data_validation": {
+    "status": "not_started",
+    "queries": 0,
+    "correct": null,
+    "wrong_accept": null,
+    "rejected": null,
+    "processing_failure": null,
+    "reason": "Previously downloaded 120 AXON originals are exposed diagnostic data. No independent set was consumed for an allocation-guard change."
+  },
+  "device_recognition_validation": {
+    "status": "not_rerun",
+    "queries": 0,
+    "new_accuracy_or_latency_claim": false,
+    "baseline": "Frozen v28 remains 165/168; this change has not received a new full168 replay."
+  },
+  "constraints": {
+    "thresholds_changed": false,
+    "views_dropped": false,
+    "old_experiments_restarted": false,
+    "deployed": false,
+    "originals_templates_models_changed": false
+  },
+  "source_sha256": {
+    "indexed_demo_matcher.py": "b8224d3b159bb40d93ac35b6c37c5bfe209ae2305d36d63b7d26614668f954f6",
+    "tools/evaluate_axon_frozen.py": "ad67d6d93e76b3e14f3abe1a84b064fa7f7b227369f479fbdacd5851683b07ba",
+    "tests/test_index_capacity_preflight.py": "4194d566238a8e703859a6a9766954b25b6e5759753b4299da55a389576544ab",
+    "tests/test_axon_frozen.py": "3e0e4be3f8e931f2734d9d774197737bc460b3a2136947402caa19780331f3bb"
+  }
+}

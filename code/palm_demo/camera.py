@@ -10,6 +10,13 @@ from PIL import Image
 
 from roi import DEFAULT_CROP, normalize_crop
 
+PREVIEW_CAPTURE_FPS = 12
+
+
+def _picamera2_array_to_rgb(array):
+    """Convert Picamera2 RGB888's BGR-ordered bytes to PIL RGB."""
+    return Image.fromarray(array[:, :, ::-1].copy(), mode="RGB")
+
 
 def capture_image(camera_index: int, width: int, height: int, warmup: float) -> Image.Image:
     try:
@@ -22,7 +29,7 @@ def capture_image(camera_index: int, width: int, height: int, warmup: float) -> 
     camera.start()
     try:
         time.sleep(warmup)
-        return Image.fromarray(camera.capture_array("main"), mode="RGB")
+        return _picamera2_array_to_rgb(camera.capture_array("main"))
     finally:
         camera.stop()
         camera.close()
@@ -39,8 +46,10 @@ class CameraFeed:
         self.camera.configure(config)
         self.camera.start()
         self.lock = threading.Lock()
+        self._jpeg_lock = threading.Lock()
         self.latest: Image.Image | None = None
         self.jpeg: bytes | None = None
+        self._jpeg_frame_id = -1
         self._frame_id = 0
         self._latest_captured_ns: int | None = None
         self._served_context: dict[str, int | str | float | None] = {}
@@ -49,19 +58,20 @@ class CameraFeed:
         self.thread.start()
 
     def _capture_loop(self) -> None:
+        frame_interval = 1.0 / PREVIEW_CAPTURE_FPS
         while self.running:
+            frame_started = time.monotonic()
             try:
-                image = Image.fromarray(self.camera.capture_array("main"), mode="RGB")
+                image = _picamera2_array_to_rgb(self.camera.capture_array("main"))
                 captured_ns = time.time_ns()
-                output = io.BytesIO()
-                image.save(output, format="JPEG", quality=82)
                 with self.lock:
                     self.latest = image
-                    self.jpeg = output.getvalue()
                     self._frame_id += 1
                     self._latest_captured_ns = captured_ns
             except Exception:
                 time.sleep(0.2)
+                continue
+            time.sleep(max(0.0, frame_interval - (time.monotonic() - frame_started)))
 
     def frame(self) -> Image.Image:
         with self.lock:
@@ -85,10 +95,22 @@ class CameraFeed:
         return context
 
     def jpeg_frame(self) -> bytes:
-        with self.lock:
-            if self.jpeg is None:
-                raise RuntimeError("Waiting for the first camera frame")
-            return self.jpeg
+        with self._jpeg_lock:
+            with self.lock:
+                if self.latest is None:
+                    raise RuntimeError("Waiting for the first camera frame")
+                if self.jpeg is not None and self._jpeg_frame_id == self._frame_id:
+                    return self.jpeg
+                frame = self.latest.copy()
+                frame_id = self._frame_id
+            output = io.BytesIO()
+            frame.save(output, format="JPEG", quality=82)
+            jpeg = output.getvalue()
+            with self.lock:
+                if self._frame_id == frame_id:
+                    self.jpeg = jpeg
+                    self._jpeg_frame_id = frame_id
+            return jpeg
 
     def roi_frame(self) -> bytes:
         roi, _ = normalize_crop(self.frame(), DEFAULT_CROP)

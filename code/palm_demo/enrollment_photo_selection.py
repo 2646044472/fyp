@@ -146,3 +146,38 @@ def select_enrollment_photos(
     for candidate in candidates:
         selector.add(candidate)
     return selector.select()
+
+
+def is_near_duplicate(
+    first: PhotoCandidate,
+    second: PhotoCandidate,
+    *,
+    max_pose_distance: float = 0.05,
+    min_texture_similarity: float = 0.995,
+) -> bool:
+    """Detect same-content frames despite global brightness changes.
+
+    Thresholds are for capture de-duplication, not matcher scoring. Pose uses
+    frame-normalized ROI geometry; texture uses centered grayscale samples.
+    """
+    if first.frame_size != second.frame_size:
+        return False
+    if not (math.isfinite(max_pose_distance) and max_pose_distance >= 0):
+        raise ValueError("max_pose_distance must be finite and non-negative")
+    if not (math.isfinite(min_texture_similarity) and -1 <= min_texture_similarity <= 1):
+        raise ValueError("min_texture_similarity must be finite and in [-1, 1]")
+    first_texture = np.asarray(first.texture, dtype=np.float64)
+    second_texture = np.asarray(second.texture, dtype=np.float64)
+    if first_texture.shape != second_texture.shape:
+        return False
+    first_texture = first_texture - first_texture.mean()
+    second_texture = second_texture - second_texture.mean()
+    first_norm, second_norm = np.linalg.norm(first_texture), np.linalg.norm(second_texture)
+    if first_norm <= 1e-12 or second_norm <= 1e-12:
+        return False
+    similarity = float(np.clip((first_texture @ second_texture) / (first_norm * second_norm), -1.0, 1.0))
+    if similarity < min_texture_similarity:
+        return False
+    first_pose = EnrollmentPhotoSelector._pose(first)
+    second_pose = EnrollmentPhotoSelector._pose(second)
+    return float(np.linalg.norm(first_pose - second_pose)) <= max_pose_distance

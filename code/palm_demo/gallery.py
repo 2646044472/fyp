@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from runtime_diagnostics import stage
+
 import json
 import math
 import time
@@ -97,6 +99,7 @@ class Gallery:
             groups[user_id] = features
         self.algorithm.prepare_gallery(groups)
 
+    @stage
     def identify(self, probe_feature: np.ndarray, capture_profile: str = "rgb") -> IdentificationResult:
         started = time.perf_counter()
         ranked: list[tuple[float, str]] = []

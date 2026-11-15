@@ -51,9 +51,13 @@ class PKLNetROI:
 
     _load_lock = threading.Lock()
 
-    def __init__(self, root: Path = PKLNET_ROOT, weights: Path = PKLNET_WEIGHTS, *, backend: str = "onnx", threads: int | None = None, policy: str = "illumination") -> None:
+    def __init__(self, root: Path = PKLNET_ROOT, weights: Path = PKLNET_WEIGHTS, *, backend: str = "onnx", threads: int | None = None, policy: str = "illumination", provider: str = "cpu") -> None:
         if backend not in ("auto", "torch", "onnx"):
             raise ValueError("PKLNet backend must be auto, torch or onnx")
+        if provider not in ("cpu", "cuda"):
+            raise ValueError("PKLNet provider must be cpu or cuda")
+        if provider == "cuda" and backend != "onnx":
+            raise ValueError("PKLNet CUDA provider requires the ONNX backend")
         if threads is not None and (not isinstance(threads, int) or not 1 <= threads <= 64):
             raise ValueError("PKLNet CPU threads must be between 1 and 64")
         if policy not in ("illumination", "aspect", "heatmap", "consensus", "legacy"):
@@ -61,6 +65,7 @@ class PKLNetROI:
         self.root = Path(root)
         self.weights = Path(weights)
         self.backend = backend
+        self.provider = provider
         self.threads = threads
         self.policy = policy
         self.roi_geometry = {"illumination": ROI_GEOMETRY_VERSION, "aspect": ASPECT_GEOMETRY_VERSION, "heatmap": HEATMAP_GEOMETRY_VERSION,
@@ -109,7 +114,17 @@ class PKLNetROI:
                         options.inter_op_num_threads = 1
                         options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
                         options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-                        session = ort.InferenceSession(str(onnx_path), sess_options=options, providers=["CPUExecutionProvider"])
+                        requested = "CUDAExecutionProvider" if self.provider == "cuda" else "CPUExecutionProvider"
+                        if requested not in ort.get_available_providers():
+                            raise ValueError(f"Requested PKLNet provider {requested} is unavailable")
+                        providers = [(requested, {"use_tf32": "0"}), "CPUExecutionProvider"] if self.provider == "cuda" else [requested]
+                        if self.provider == "cuda":
+                            ort.preload_dlls(directory="")
+                        session = ort.InferenceSession(str(onnx_path), sess_options=options, providers=providers)
+                        if requested not in session.get_providers():
+                            raise ValueError(f"Requested PKLNet provider {requested} failed to initialize")
+                        if self.provider == "cuda":
+                            session.disable_fallback()
                         if self.policy != "legacy" and not {"keypoints", "heatmap_keypoints", "fc_keypoints"}.issubset({o.name for o in session.get_outputs()}):
                             raise ValueError("PKLNet branch outputs are missing")
                         spec = importlib.util.spec_from_file_location("pklnet_roi_geometry", self.root / "roiExtractor.py")

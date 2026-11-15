@@ -31,6 +31,10 @@ class LinkedEnrollmentMatcher(StagedIndexMatcher):
 
     def prepare_gallery(self, groups):
         super().prepare_gallery(groups)
+        self._prepare_enrollment_links(groups)
+
+    def _prepare_enrollment_links(self, groups):
+        """Build links for the already prepared index and its gallery key."""
         with self._index_lock:
             if getattr(self,'_link_key',None) == self._index_key:
                 return

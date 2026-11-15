@@ -495,15 +495,15 @@ class HandLandmarkTracker:
         diagnostics["reason"] = "geometry_ok"
         return True, diagnostics
 
-    def submit(self, image: Image.Image, timestamp_ms: int) -> None:
-        """Run detection on a downscaled RGB frame, with close-range recovery."""
+    def submit(self, image: Image.Image, timestamp_ms: int) -> bool:
+        """Run detection on a downscaled RGB frame; return False if rate-limited."""
 
         now = time.monotonic()
         with self._lock:
             if self._closed:
-                return
+                return False
             if self._last_submit_monotonic is not None and now - self._last_submit_monotonic < self._submit_interval_s:
-                return
+                return False
             self._last_submit_monotonic = now
         try:
             resized = image.resize(self._input_size, Image.Resampling.BILINEAR)
@@ -590,11 +590,11 @@ class HandLandmarkTracker:
                 }
                 if points is None:
                     self._last_error = str(attempts[-1].get("reason", "no_candidate")) if attempts else "no_candidate"
-                    return
+                    return True
                 if not stable_candidate:
                     self._last_error = "candidate_jump_rejected"
                     self._last_diagnostics["reason"] = self._last_error
-                    return
+                    return True
                 if (
                     self._landmarks is None
                     or self._last_seen_monotonic is None
@@ -618,6 +618,7 @@ class HandLandmarkTracker:
                     "reason": "detector_error",
                     "error": str(error),
                 }
+        return True
 
     def roi_status(
         self, image_size: tuple[int, int], *, frame_timestamp_ms: int | None = None,

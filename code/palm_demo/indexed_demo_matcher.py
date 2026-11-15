@@ -13,6 +13,8 @@ from pose_matcher import FastCCPoseMatcher
 from registered_matcher import local_features, registration
 from pklnet_roi import normalize_roi_pixels
 
+INDEX_DESCRIPTOR_LIMIT_BYTES = 256 * 1024 * 1024
+
 
 @dataclass
 class IndexedProbe:
@@ -98,10 +100,18 @@ class IndexedDemoMatcher(FastCCDemoMatcher):
                         mapping.append((user, sample, view_index))
                         positions[(user, sample)].append(group)
                         descriptors.append(view[3])
-                        labels.append(np.full(len(view[3]), group, np.int32))
+            # Check the concatenation's actual promoted dtype before allocating
+            # its payload, labels or FLANN state. Prepared production views are
+            # float32; accounting for promotion also keeps mixed inputs bounded.
+            if descriptors:
+                dtype = np.result_type(*dict.fromkeys(d.dtype for d in descriptors))
+                required = sum(d.size for d in descriptors) * dtype.itemsize
+                if required > INDEX_DESCRIPTOR_LIMIT_BYTES:
+                    raise ValueError('Experimental descriptor index exceeds 256 MiB')
             packed = np.concatenate(descriptors) if descriptors else np.empty((0,128), np.float32)
-            if packed.nbytes > 256*1024*1024:
+            if packed.nbytes > INDEX_DESCRIPTOR_LIMIT_BYTES:
                 raise ValueError('Experimental descriptor index exceeds 256 MiB')
+            labels = [np.full(len(d), group, np.int32) for group,d in enumerate(descriptors)]
             index = None
             if len(packed) >= 16:
                 cv2.setRNGSeed(20261028)

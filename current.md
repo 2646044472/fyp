@@ -220,3 +220,12 @@
 - Exact gamma LUT and pixels-only normalization avoid unused floating-point/quality work. Camera diagnostics retained. UI adds busy guards, elapsed wait, retry/input lock and uncertain-confirmation wording. Explicit thread CLI options added and tested.
 - Pi40 query scores/status/identity identical;8 enrollment archives equal arrays. Local all3120 directed pair distances zero differences and80 enrollment representations equal.144 Python tests pass,2 skip(ORT unavailable);obsolete test_existing_pipeline.py remains explicitly excluded. Node UI interaction checks pass. Pi PalmIR HTTP roundtrip passes, two example comparisons do not improve scores, not used in main matcher.
 - Evidence runtime/pi5-v6-20261028/report.html,comparison.json,pi-parity.json,deployment.json,parity/prepared-parity-parallel.json; docs/PI5_DEMO_VALIDATION.md has deployment/rollback details. Existing unfinished tools/benchmark_demo_experience.py stays untracked, unused. Preserve unrelated datasets/models and three pre-existing text status changes. User requested git push; stage only this turn's code/tests/docs.
+
+
+## 2026-11-15：X 工作区 Git 交接（实验待整理）
+
+- Owner 授权将经审阅的 palm-demo 源码、合成测试和可公开的汇总实验记录纳入 Git；不要上传原始掌纹/ROI、模板或特征缓存、逐样本身份/分数映射、采集档案、运行产物或被忽略的 `runtime/`。保留 `code/data/` 本机捕获目录与符号链接，不要 stage 删除或本机替换。
+- 当前 X 工作区有大量未提交实验更改；只按审阅的路径 stage，禁止 `git add .`。避免把 `var/` 缓存、私有绝对路径、含真实参与者映射的工具/报告或依赖未纳入源码的 runtime helper 推上远端。
+- `palmset-ppnet-projection-person-oof` 的 5 折候选权重协议注明来源为仅本地、不可再分发的 PalmSet，并使用 raw-512 特征缓存；权重及其逐例运行记录留在本地，除非后续核实到明确再分发许可。
+- 新近 matcher/训练管线仍属实验候选；其协议不等同于 Pi 验收或独立泛化。部署/性能结论需在 Pi 5 上重新实测并单独记录。
+- 本次安全提交不包含掌纹数据、runtime 文件或 checkpoint；GitHub LFS 未在该仓库配置，任何大权重需先确认许可、存储配额和费用。

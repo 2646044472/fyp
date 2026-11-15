@@ -7,12 +7,16 @@ from dataclasses import dataclass
 import json
 import math
 from pathlib import Path
+from typing import Optional
 
 
 ROUTE_FAMILIES = {
     **dict.fromkeys(("pose_confident", "legacy_confident", "enrollment_link_confident",
         "affine_confident", "pooled_enrollment_confident", "normal_index_confident",
         "wide_index_confident", "exhaustive_fallback", "exhaustive_retained_fastcc_pilot"), "fastcc"),
+    "candidate_first_normal_index_confident": "fastcc",
+    "candidate_first_wide_index_confident": "fastcc",
+    "exhaustive_terminal_rf_evidence": "rf",
     "compnet_evidence_confident": "compnet",
     "compnet_alternate_roi_confident": "compnet",
     "quality_evidence_confident": "quality",
@@ -27,7 +31,7 @@ def unit_number(value):
 
 @dataclass(frozen=True)
 class ScoreGate:
-    max_distance: float
+    max_distance: Optional[float]
     min_margin: float
 
 
@@ -40,11 +44,16 @@ class AcceptancePolicy:
         if not isinstance(document['name'], str) or not 1 <= len(document['name']) <= 80:
             raise ValueError("Invalid acceptance policy name")
         profiles = document['profiles']
-        if not isinstance(profiles, dict) or not profiles or set(profiles) - {"fastcc", "compnet", "quality"}:
+        if not isinstance(profiles, dict) or not profiles or set(profiles) - {"fastcc", "compnet", "quality", "rf"}:
             raise ValueError("Unknown or missing acceptance score families")
         self.name = document['name']
         self.profiles = {}
         for family, values in profiles.items():
+            if family == "rf":
+                if not isinstance(values, dict) or set(values) != {"max_distance", "min_margin"}:
+                    raise ValueError("The RF score family requires its own max_distance and min_margin")
+                self.profiles[family] = ScoreGate(unit_number(values['max_distance']), unit_number(values['min_margin']))
+                continue
             if not isinstance(values, dict) or set(values) != {"max_distance", "min_margin"}:
                 raise ValueError("Each score family requires max_distance and min_margin")
             self.profiles[family] = ScoreGate(unit_number(values['max_distance']), unit_number(values['min_margin']))
@@ -60,6 +69,14 @@ class AcceptancePolicy:
         except ValueError:
             return "RETRY", "INVALID_MATCH_SCORES"
         gate = self.profiles[family]
+        if family == "rf":
+            if gate.max_distance is not None and best > gate.max_distance:
+                return "UNKNOWN", "RF_SCORE_ABOVE_THRESHOLD"
+            if second is None:
+                return "RETRY", "INSUFFICIENT_CANDIDATES"
+            if second <= best or second - best < gate.min_margin:
+                return "RETRY", "RF_MARGIN"
+            return None
         if best > gate.max_distance:
             return "UNKNOWN", "POLICY_SCORE_ABOVE_THRESHOLD"
         if second is None:

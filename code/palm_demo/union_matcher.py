@@ -1,6 +1,6 @@
 """Runtime counterpart of window-coarse-union; no sample/identity inputs.
 
-Fixed numeric envelope supports existing stacked NPZ templates. Payload contains
+Versioned numeric envelopes support existing stacked NPZ templates. Payload contains
 v2 fallback, lossless native gray PNG, two coarse gallery views and query views.
 Padding is zero and compresses; exceeding capacity fails, never drops candidates.
 """
@@ -13,6 +13,7 @@ from window_roi import window_candidates
 NAME='FastCCWindowUnion-v4'
 MAGIC=2801029
 FEATURE_SIZE=16*1024*1024
+MAX_FEATURE_CAPACITY_BYTES=64*1024*1024
 HEADER=20
 MAX_VIEWS=42
 
@@ -21,12 +22,33 @@ class FastCCWindowUnionMatcher:
     name=NAME
     magic=MAGIC
     allow_gallery_only=False
+    feature_capacity_bytes=FEATURE_SIZE
+    legacy_feature_capacity_bytes=()
     registration=staticmethod(registration)
     local_features=staticmethod(local_features)
 
     def __init__(self,base):
+        self._feature_capacities()
         self.base=base;self.legacy=FastCCDualRegisteredMatcher(base);self.geometry=self.legacy.geometry
         self._window_engine=None
+
+    def _feature_capacities(self):
+        """Validate allocation limits independently of recognition decisions.
+
+        Existing matchers retain their exact 16 MiB envelope. A separately
+        named opt-in matcher may enlarge it and explicitly accept legacy
+        envelope lengths; arbitrary truncated or padded arrays remain invalid.
+        """
+        capacity=self.feature_capacity_bytes
+        if (type(capacity) is not int
+                or not FEATURE_SIZE<=capacity<=MAX_FEATURE_CAPACITY_BYTES):
+            raise ValueError('Expected an integer union feature capacity between 16 and 64 MiB')
+        legacy=self.legacy_feature_capacity_bytes
+        if (type(legacy) is not tuple
+                or any(type(value) is not int or not FEATURE_SIZE<=value<capacity for value in legacy)
+                or len(set(legacy))!=len(legacy)):
+            raise ValueError('Invalid legacy union feature capacities')
+        return capacity,(capacity,*legacy)
 
     def complete_hypotheses(self,full,candidates,localizer):
         if self._window_engine is None:
@@ -42,9 +64,10 @@ class FastCCWindowUnionMatcher:
                                np.asarray(desc,'<f4').ravel().view(np.uint8)])
 
     def _pack(self,legacy,png,queries,gallery):
+        capacity,_=self._feature_capacities()
         chunks=[legacy,png,*gallery,*queries];used=HEADER+sum(c.size for c in chunks)
-        if used>FEATURE_SIZE:raise ValueError('Union template capacity exceeded; no views were dropped')
-        f=np.zeros(FEATURE_SIZE,np.uint8)
+        if used>capacity:raise ValueError('Union template capacity exceeded; no views were dropped')
+        f=np.zeros(capacity,np.uint8)
         f[:HEADER]=np.asarray([self.magic,used,len(png),len(queries),len(gallery)],'<i4').view(np.uint8)
         start=HEADER
         for c in chunks:f[start:start+c.size]=c;start+=c.size
@@ -96,10 +119,11 @@ class FastCCWindowUnionMatcher:
         return views
 
     def _unpack(self,feature,*,decode_native=True):
+        capacity,accepted=self._feature_capacities()
         f=np.asarray(feature)
-        if f.dtype!=np.uint8 or f.shape!=(FEATURE_SIZE,):raise ValueError('Incompatible union template shape or dtype')
+        if f.dtype!=np.uint8 or f.ndim!=1 or f.size not in accepted:raise ValueError('Incompatible union template shape or dtype')
         magic,used,encoded,nq,ng=map(int,f[:HEADER].view('<i4'))
-        if (magic!=self.magic or not HEADER+DUAL_SIZE<=used<=FEATURE_SIZE or not 0<=encoded<=used-HEADER-DUAL_SIZE
+        if (magic!=self.magic or not HEADER+DUAL_SIZE<=used<=min(f.size,capacity) or not 0<=encoded<=used-HEADER-DUAL_SIZE
                 or not 0<=nq<=MAX_VIEWS or ng not in (0,2)
                 or (bool(nq)!=bool(ng) and not (self.allow_gallery_only and nq==0 and ng==2))):
             raise ValueError('Invalid union header')
