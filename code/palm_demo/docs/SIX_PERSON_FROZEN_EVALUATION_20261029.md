@@ -9,27 +9,11 @@ using this evaluation. Production v6 and real accounts remain separate.
 
 ## Data and labels
 
-Use all twelve original ZIPs in `code/data/pi-captures-2026-10-15`, totaling
-120 distinct original JPEGs and six subject labels: bankey-10-12, stephen-10-13,
-cyw-real, kss, xyt and syr. Each has 20 images. The confirmed correction changes
-the ten images from session `20261013T111838871161Z-df3d072b` from syr:left to
-syr:right. Both syr sessions therefore form one right-hand identity. Original
-ZIP metadata and historical original-label scores remain untouched.
-
-This gives eleven subject/hand identities: ten with ten images each and one
-(syr:right) with twenty images. All original image hashes are matched against
-the already present Pi copies. The archive, session-index and correction hashes,
-original/corrected identities and sample/session indices are preserved in the
-private manifest/protocol. There are no duplicate JPEG hashes.
+*The participant-linked evidence for this section is retained locally.*
 
 ## Fixed protocol
 
-For every identity, order all images by their immutable capture sample IDs.
-The original case enrolls the earliest five, and the reverse case enrolls the
-latest five. All remaining images query: 55 enrollments and 65 queries per case.
-This retains all 120 images in each case; syr contributes fifteen query images,
-while each other person contributes ten across their two hands. Query order is
-shuffled with seed 20261029. No quality- or outcome-based sample selection.
+*The participant-linked evidence for this section is retained locally.*
 
 Each case starts with an empty isolated database and freshly computes five-frame
 enrollment, template persistence, prepared templates, index and geometry links.
@@ -60,13 +44,7 @@ saves partial evidence and does not produce a complete-run claim.
 
 ## Interpretation
 
-The earlier 80/80 development result concerned bankey and stephen, not all six
-people. All six labels are now previously exposed data; this is an expanded
-frozen evaluation, not an unseen-person validation. Comparisons with the old
-four-person original-label evaluation also differ in gallery, roles, label
-correction and matcher, so counts cannot isolate an algorithmic improvement.
-The simulated demo uses closed-set ranking; unknown-person rejection is not
-calibrated. Eleven palm identities do not demonstrate 40-person capacity.
+*The participant-linked evidence for this section is retained locally.*
 
 ## Evidence and reproduction
 

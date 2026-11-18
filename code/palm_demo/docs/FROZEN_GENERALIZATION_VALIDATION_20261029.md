@@ -36,13 +36,7 @@ but it is not evidence of a broad accuracy improvement or a worst-case speed bou
 
 ### Label caveat: do not silently correct the score
 
-Five of the eight original-label failures are one subject's left-to-right
-confusion. Post-result visual inspection of both labels' first enrollment image
-and sixth/query image showed closely matching thumb orientation, wristwatch and
-palm appearance, suggesting the same physical hand may have been assigned two
-labels. On 2026-10-29 the collector explicitly confirmed that all ten images in
-session `20261013T111838871161Z-df3d072b` are right-hand captures. The dataset
-index now labels this session `syr:right`; original ZIP metadata is preserved.
+*The participant-linked evidence for this section is retained locally.*
 
 No classes were merged, no samples removed and no corrected accuracy calculated.
 The recorded result stays 32/40 under original metadata. It must not be treated

@@ -11,20 +11,7 @@ uses a smaller query search. This changes recognition behavior, not just runtime
 
 ## Preventing overfitting
 
-- The existing 80 images (40 per camera, two people) are development data. All 224
-  repeated train/query splits are regression checks, not 224 independent tests.
-- Keep each device separate, every image in the denominator, and the original
-  five enrollment/five query assignments. Never enroll a query image.
-- No identity-specific thresholds, sample-ID branches, manual ROI patches for
-  particular failures, or deletion of difficult images.
-- Reserve the other four people (`syr`, `kss`, `xyt`, `cyw-real`), eight hands and
-  80 old-camera images, until the candidate passes development accuracy and speed
-  gates. Their archive hashes are recorded in the local reservation manifest.
-- Freeze code and parameters before evaluating that cohort once. If its results
-  inform a subsequent change, it becomes development data and a fresh holdout is
-  required. Even a pass only establishes held-out identities from old-camera
-  bursts; it does not establish cross-session or new-camera generalization.
-- A fresh new-camera session is still needed before claiming live-demo accuracy.
+*The participant-linked evidence for this section is retained locally.*
 
 ## Measurement
 

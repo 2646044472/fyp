@@ -60,16 +60,7 @@ images and source templates remain unchanged. All power flags were 0x0.
 
 The four mistakes are retained:
 
-- New original, billy:right, `20261029T120016111983Z-a4677ec5`.
-- Old original, xyt:right, `20261013T111553178583Z-61f30739`.
-- Old original, xyt:right, `20261013T111555214120Z-8d6441d2`.
-- Old original, cyw:left, `20261013T111358589224Z-37d0c433`.
-
-The slowest candidate is new reverse stephen:left,
-`20261020T165604274940Z-f7ec5fe1`, 15.210 s. It still needs exhaustive search.
-Seven people and at most 11 device-specific gallery palms cannot establish
-40-person capacity, unseen-session accuracy or unknown-person rejection.
-All current device queries have been exposed; there is no new held-out claim.
+*The participant-linked evidence for this section is retained locally.*
 
 ### Paired overhead diagnostic
 
@@ -79,11 +70,7 @@ alternate disabled/enabled/enabled/disabled with the gallery and loaded model
 held fixed; every request recomputes the original. All 12 requests completed,
 power 0x0, simulated tokens cancelled without creating transactions.
 
-| Sample | Disabled seconds | Enabled seconds | Auxiliary milliseconds |
-|---|---|---|---|
-| `20261020T165616782627Z-47472168` | 14.914,14.013 | 1.169,1.250 | 8.59,8.51 |
-| `20261020T165604274940Z-f7ec5fe1` | 15.310,14.246 | 14.266,14.489 | 8.57,8.56 |
-| `20261013T111553178583Z-61f30739` | 10.266,10.208 | 10.200,10.172 | 8.79,8.81 |
+*The participant-linked evidence for this section is retained locally.*
 
 Identity/route/score decisions are unchanged between repeats for each mode.
 The first two images remain correctly identified; the third remains incorrect.

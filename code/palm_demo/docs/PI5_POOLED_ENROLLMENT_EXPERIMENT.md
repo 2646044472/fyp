@@ -42,12 +42,7 @@ conversion, so these are not fresh-enrollment timings.
 | Old/first pass | 20/20 | 19/20 | 1.484 | 2.533 | 5.666 |
 | Old/warm pass | 20/20 | 19/20 | 1.486 | 2.101 | 5.736 |
 
-The old development query ending `283768e8` changes from approximately 5.18 s
-in v13 to 1.909 s warm with pooled rescue. The query ending `575a2085` still
-uses complete fallback: 5.736 s warm versus approximately 5.428 s previously.
-The extra unsuccessful rescue increases this remaining tail. New warm maximum
-is 2.565 s (query ending `b199fa06`), versus approximately 2.746 s in the earlier
-v13 run. Historical baselines are separate runs, not interleaved measurements.
+*The participant-linked evidence for this section is retained locally.*
 
 Startup was 13.600 s new / 5.005 s old. Two concurrent requests were both
 correct, but serialized queue response times were 1.892/4.296 s new and

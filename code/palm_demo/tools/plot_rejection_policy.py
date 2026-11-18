@@ -24,11 +24,6 @@ def main():
     axes[0].set_title(f'All {len(rows)} ordinary FastCC decisions');axes[0].set_ylim(bottom=0)
     axes[0].legend(fontsize=8,loc='upper right')
     axes[1].set_title('Overlap among difficult decisions');axes[1].set_xlim(.30,.42);axes[1].set_ylim(-.003,.085)
-    offsets={'37d0c433':(-45,24),'61f30739':(8,13),'8d6441d2':(14,-4),'08ceb3b7':(-67,-3),'4ab6388d':(28,6),'c6594831':(8,22),'fa7726ef':(-48,-12)}
-    for r in rows:
-        if r['sample_suffix']in offsets:
-            axes[1].annotate(r['sample_suffix'],(r['score'],r['second_score']-r['score']),xytext=offsets[r['sample_suffix']],textcoords='offset points',fontsize=7,
-                arrowprops=dict(arrowstyle='-',color='#94a3b8',lw=.7))
     fig.suptitle('Development rejection audit: 3 wrong blocked, 4 correct also blocked',fontsize=13)
     a.output.parent.mkdir(parents=True,exist_ok=True);fig.savefig(a.output,dpi=160);plt.close(fig)
 

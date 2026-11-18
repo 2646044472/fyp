@@ -21,7 +21,8 @@ doc='''<!doctype html><html lang="en"><meta charset="utf-8"><title>Candidate bac
 <h2>All predefined splits</h2>'''
 doc+=table([['Device','Split','Splits','Minimum','Maximum','Mean /20']]+[[r['cohort'],r['split'],r['count'],r['min'],r['max'],r['mean']] for r in summary])
 doc+=f'<p>Total descriptor views: {sum(r["views_before"] for r in counts)} → {sum(r["views_after"] for r in counts)}; {sum(r["views_after"]<r["views_before"] for r in counts)}  images lost at least one candidate branch. Views include different search areas and smoothing scales, not independent ROIs.</p>'
-selected=['20261020T165429663138Z-946a03e6','20261020T165604274940Z-f7ec5fe1','20261020T165710063889Z-9dea7e47','20261020T165712288733Z-fc94c36e']
+# An optional private case list is read locally, never embedded in the public source.
+selected=json.loads(Path(sys.argv[2]).read_text()) if len(sys.argv)>2 else []
 evidence=[]
 for sample in selected:
     rec=records[sample];case=next(c for c in cases if c['case']=='new_'+('original' if rec['index']>5 else 'reverse'))

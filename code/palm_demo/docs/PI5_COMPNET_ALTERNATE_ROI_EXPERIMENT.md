@@ -51,16 +51,7 @@ the old 170-query baseline is separate, not an algorithm-gain denominator.
 
 The three new route returns:
 
-| Case / sample | v25 seconds | v26 seconds |
-|---|---:|---:|
-| New reverse / `20261020T165710063889Z-9dea7e47` | 3.716 | 2.284 |
-| Old original / `20261013T111806724809Z-7baf26f9` | 2.503 | 1.631 |
-| Old reverse / `20261013T111339367360Z-dfb1a66b` | 2.495 | 1.555 |
-
-New original `20261020T165646467846Z-2239e833` moves from 2.469 to 2.558 s,
-despite retaining the same decision/route. Report net +1 timely query rather
-than attributing all three path gains to total timely-rate improvement. One
-full run does not establish that this net count is repeatable.
+*The participant-linked evidence for this section is retained locally.*
 
 ### Paired mechanism check
 
@@ -99,15 +90,7 @@ not part of these query numbers or claimed under 2.5 seconds.
 
 ## Prior screens and hardest-query diagnosis
 
-The actual v25 slowest query remains new reverse stephen:left
-`20261020T165604274940Z-f7ec5fe1`. A Pi diagnostic records every raw 128px crop
-already emitted by accepted alignment stages while preserving all original
-decision fields exactly. Four crops are emitted: two around 2.00/2.66 s in the
-fast stages, two around 13.33 s during full fallback. The early two provide no
-confident whole-gallery CompNet evidence. The latter two prefer the true palm
-with angular distance ~0.363 and runner-up ~0.445, but still fail the unchanged
-0.32 gate. Do not relax the gate for this file. This diagnostic does not change
-decisions; its instrumented timestamps are not acceptance latency.
+*The participant-linked evidence for this section is retained locally.*
 
 Further frozen offline controls, no Pi timing claims:
 
@@ -132,14 +115,7 @@ whole-gallery evidence, identical/disjoint candidate skips, conflicting
 candidates, required diagnostics and single-identity uncertainty. Tool smoke
 checks and actual Pi template-read/hash checks also completed.
 
-The four v25 mistakes remain unchanged: billy:right
-`20261029T120016111983Z-a4677ec5`, xyt:right
-`20261013T111553178583Z-61f30739` and `20261013T111555214120Z-8d6441d2`,
-cyw-real:left `20261013T111358589224Z-37d0c433`.
-Unknown-person rejection remains uncalibrated; nominal equal gates do not
-establish equal false-accept rates for different metrics/searches. All device
-queries have been exposed. Forty-person capacity, unseen sessions and live
-capture are not validated. Model weights and author source are not redistributed.
+*The participant-linked evidence for this section is retained locally.*
 
 Tools: `inspect_aligned_compnet.py`, `screen_compnet_contrast.py`,
 `screen_compnet_context.py --stored-candidates [--base-only]`,

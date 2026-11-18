@@ -26,14 +26,7 @@ All eight winning wrong-identity enrollment comparisons (two per identity) came 
 
 Indices below are zero based; angle/scale refer to the fixed query pose around its existing ROI. Lower distance is better. See the scalar JSON for every pose score and the CSV for the frozen response ledger.
 
-| Query suffix | True best-two distances | Wrong best-two distances | Wrong winning query poses | Finding |
-|---|---|---|---|---|
-| a4677ec5 | .370117, .405273 | .373047, .394153 | both +12 degrees, scale 1.15 | One true template beats either wrong template, but mean best-two favors the wrong hand. No true or wrong accepted registration. |
-| 61f30739 | .377016, .402902 | .374023, .374023 | both +12 degrees, scale .85 | Wrong identity has two stronger pose comparisons; its winning comparisons are unaligned despite one accepted geometry elsewhere. True registration has at most four inliers and fails coverage. |
-| 8d6441d2 | .402151, .409598 | .355469, .393973 | +12 degrees/1.15 and +12 degrees/1 | Wrong pose-template evidence beats true templates; neither identity establishes valid registration. |
-| 37d0c433 | .364204, .386445 | .344727, .346680 | both 0 degrees, scale 1.15 | Wrong scale-expanded fixed poses win twice without alignment; an in-palm primary ROI alone does not establish correct biometric correspondence. |
-
-This isolates the decision mechanism, not a proof that disabling poses or changing best-two aggregation improves generalization. Earlier expanded-pose experiments introduced confident errors; neither per-sample pose removal nor threshold adjustment is adopted. Existing visual evidence indicates wrist/heel localization for the two xyt images; the cyw case additionally needs correspondence-aware ROI/descriptor diagnosis, not a blanket blur explanation.
+*The participant-linked evidence for this section is retained locally.*
 
 The next substantive accuracy experiment must improve anatomical correspondence before expensive gallery search and preserve existing successes. This audit does not claim that change has been implemented. Current frozen performance remains 164/168 correct, 146/168 correct within 2.5 seconds, with a 15.225-second maximum. No unknown-person probes were tested, so these figures do not establish false-accept performance.
 
@@ -47,11 +40,6 @@ Pi readback independently confirms native SHA `272857b624cad687b7d87a32eb79ac012
 
 `second_score` means the second-ranked gallery identity, not the true identity's score. This explains apparently inconsistent true/second comparisons in abbreviated tables. Full precision:
 
-| Query suffix | True identity score | True sorted position | Second gallery identity | Frozen second score |
-|---|---:|---:|---|---:|
-| a4677ec5 | 0.3876953125 | 3 (tied with position 2) | new-camera-bankey-left | 0.3876953125 |
-| 61f30739 | 0.3899589573732719 | 3 | old-camera-cyw-real-right | 0.389346918202765 |
-| 8d6441d2 | 0.4058743759600615 | 10 | old-camera-stephen-10-13-right | 0.375 |
-| 37d0c433 | 0.37532433144725136 | 3 | old-camera-xyt-left | 0.360871345766129 |
+*The participant-linked evidence for this section is retained locally.*
 
 Sorted position uses stable source gallery order for ties; it is not a claim that a tied score is strictly worse. The JSON retains all ties, all five distances per identity, actual best-two frame IDs, winning branch, pose scores, primary ROI geometry and accepted geometric estimates/coverage summaries. It excludes raw feature codes and image pixels. This is an audit of the existing behavior; no ROI oracle, pseudo-unregistered experiment or new speed improvement is claimed by this follow-up.

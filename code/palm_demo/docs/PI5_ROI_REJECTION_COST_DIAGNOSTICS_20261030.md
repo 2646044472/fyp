@@ -20,12 +20,7 @@ All eight original-query/original-enrollment error-pair distances exactly reprod
 
 Each cell below is **wrong first-frame distance minus true first-frame distance**; positive favors true. OO = original query/original enrollment, AO = anatomical query/original enrollment, OA = original query/anatomical enrollment, AA = anatomical on both sides.
 
-| Query suffix | OO | AO | OA | AA | Interpretation |
-|---|---:|---:|---:|---:|---|
-| a4677ec5 | +.024036 | +.035296 | -.006696 | +.026686 | The first true frame already wins OO; the real gallery error depends on the five-frame/best-two aggregation. Enrollment-only oracle makes this diagnostic worse. |
-| 61f30739 | -.002993 | +.045119 | -.017578 | +.001953 | Query position/scale is a useful mechanism lead; changing enrollment alone hurts. |
-| 8d6441d2 | -.010372 | -.026210 | -.003528 | -.034073 | None of the four locked cells favors true; this rule does not solve this failure. |
-| 37d0c433 | -.013398 | +.008064 | +.007183 | +.009482 | Both sides influence the score; query-only changes the ordering in this limited comparison. |
+*The participant-linked evidence for this section is retained locally.*
 
 All error-cell winners are fixed pose comparisons inside `legacy_v2`, with no improving legacy alignment call. Thus the observed flips are not successful registration rescue. The old correct control stays ahead in all four cells; its true distance changes .247984 -> .232863 on AA. The new correct control's true comparison remains strong, but its competing anatomical enrollment is unavailable and is not counted as a pass. No full-gallery correction or performance gain is established. The mixed results reject a blanket replacement of every ROI by this square.
 
@@ -41,7 +36,7 @@ Actual Pi HTTP, six fixed queries in each removal mode; threshold remains 1.0 an
 | Whole physical person removed, selected development queries | 6 | 0 | 6 | 0 | 8.312 / 16.144 / 16.361 s |
 | Same hand removed, other hand retained | 6 | 0 | 6 | 0 | 8.240 / 15.952 / 18.086 s |
 
-For example, whole-person-removed billy:right returns bankey:left with best .3876953125, second .3878370715725806, gap .00014175907258062725, status MATCH. Same-hand-only billy:right returns billy:left. Both outcomes are retained as failures for the hand identity task; the latter is explicitly not an unseen-person observation.
+*The participant-linked evidence for this section is retained locally.*
 
 This agrees with the source policy: final acceptance checks score against 1.0; the margin check is inactive at 0. Internal .32/.08 early-return gates control search, not the final unknown-person decision. Searching longer can therefore still end in a weak MATCH. This experiment diagnoses the frozen behavior and does not calibrate or modify rejection. Six exposed queries cannot establish population FAR, confidence intervals for deployment, or independent generalization.
 
@@ -55,7 +50,7 @@ Completed all 26 preregistered requests: four wrong queries, 18 correct queries 
 
 Each wrapper tracks its calling thread, parent, inclusive interval and **exclusive time after subtracting same-thread children**. The sum of request-thread exclusive nodes reconciles to the request root for every request; the difference to HTTP wall clock is recorded separately. Worker roots have separate thread IDs, can overlap the request thread, and are never added to its wall-time partition. Call counts, candidate identities and template-frame counts are saved per request. This avoids the old error of adding inclusive localization, feature and gallery times together.
 
-For the slowest request `20261020T165604274940Z-f7ec5fe1`:
+*The participant-linked evidence for this section is retained locally.*
 
 - HTTP 15,201.89 ms = request root about 15,200.81 ms plus about 1.08 ms outside it.
 - Top-level capture/extract 1,113.574 ms and gallery 14,086.775 ms are siblings. They are inclusive categories; do not add them again to the leaf partition below.
@@ -70,13 +65,7 @@ Evidence: `protocols/PI5_EXCLUSIVE_TIMING_TREE_20261030.json`, evaluator source 
 
 Mechanically selected all four wrong queries plus the global slowest query. Supply the known true identity only to the scoring step, skip retrieval/early-gallery search and other identity scores, but preserve original capture/localization, exhaustive feature generation, existing geometric guards and all five true enrollment-frame comparisons. Each request makes exactly five pair calls, and the resulting true-identity aggregate matches the original full-gallery true score **exactly in all five cases**. Final threshold/margin are unchanged. The changed route and supplied truth make normal response parity intentionally inapplicable; a forced true MATCH is not recognition success.
 
-| Query suffix | Frozen normal-gallery HTTP | Known-true-candidate HTTP | True score parity | Main remaining cost |
-|---|---:|---:|---|---|
-| a4677ec5 | 4.344 s | 3.035 s | exact | localizer 1.078 s + fallback features 1.671 s |
-| f7ec5fe1 | 15.225 s | 9.794 s | exact | localizer 4.938 s + fallback features 3.453 s + five-frame match 1.224 s |
-| 37d0c433 | 8.081 s | 3.938 s | exact | localizer 1.138 s + fallback features 1.981 s |
-| 61f30739 | 10.257 s | 4.173 s | exact | localizer 1.133 s + fallback features 1.994 s |
-| 8d6441d2 | 9.397 s | 3.919 s | exact | localizer 1.134 s + fallback features 1.900 s |
+*The participant-linked evidence for this section is retained locally.*
 
 All five remain over 2.5 seconds even after removing the retrieval problem. Therefore candidate pruning alone cannot meet the target for this frozen exhaustive path. This is an optimistic cost diagnostic for the existing path, not a lower bound on every redesigned algorithm. It points to lowering query localization/feature cost and true-candidate verification cost before attempting a broader 40-person gallery optimization.
 

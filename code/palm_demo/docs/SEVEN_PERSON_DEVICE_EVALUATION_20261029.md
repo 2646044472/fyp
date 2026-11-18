@@ -8,12 +8,7 @@ were not modified. Only isolated simulated payments were exercised.
 
 ## Data and protocol
 
-Active original captures: 170 unique images, seven physical people. The old
-camera group contains 110 images / eleven palm identities; the new-camera
-group contains 60 images / six palm identities, including billy's new left
-and right sessions. Bankey and stephen occur in both device groups. The removed
-syr session `20261013T111838871161Z-df3d072b` remains excluded. Public datasets
-are neither included nor used for tuning.
+*The participant-linked evidence for this section is retained locally.*
 
 Each identity has ten images. Original split enrolls the earliest five and
 queries the latest five; reverse does the opposite. Each case starts empty.
@@ -65,46 +60,14 @@ costs are not hidden inside the main-query median.
 
 All five errors used exhaustive fallback, not confident early return.
 
-| Query | True palm | Returned palm | True rank | Best/true scores |
-|---|---|---|---:|---:|
-| 20261029T085720586167Z-7619919c | billy:left | bankey:left | 2 | .379980 / .384766 |
-| 20261029T120016111983Z-a4677ec5 | billy:right | billy:left | 2 | .383600 / .387695 |
-| 20261013T111553178583Z-61f30739 | xyt:right | stephen-10-13:left | 3 | .374023 / .389959 |
-| 20261013T111555214120Z-8d6441d2 | xyt:right | kss:right | 10 | .374721 / .405874 |
-| 20261013T111358589224Z-37d0c433 | cyw-real:left | kss:left | 3 | .345703 / .375324 |
-
-The actual Pi query ROI and stored Pi enrollment transforms were inspected.
-Enrollment grayscale panels are reconstructed locally using those transforms;
-query PNGs are actual Pi output. The two xyt ROIs slide onto palm heel/wrist,
-while enrolled ROIs are centered in the palm. Cyw remains within the palm but
-has weak/blurred texture. Billy remains within the palm, with weak fine lines,
-broad smooth shading and viewpoint changes. Clipping has not been established
-as billy's cause. All generated base ROI candidates were retained: there is no
-evidence that an overlap guard removed the correct candidate.
+*The participant-linked evidence for this section is retained locally.*
 
 Diagnostic replay of five errors and four controls exactly reproduced identity,
 scores, route and ROI bytes. A second feature-tracing run reproduced all five
 errors again. Its per-registration-call counts below are overlapping attempts
 across regions, scales and enrollment frames, not independent image counts.
 
-| Error | Primary/secondary keypoints | Too few descriptors | Too few mutual pairs | RANSAC/geometric rejection | Accepted |
-|---|---:|---:|---:|---:|---:|
-| billy left | 373/60 | 16 | 171 | 173 | 0 |
-| billy right | 39/12 | 82 | 396 | 122 | 0 |
-| xyt first | 412/32 | 55 | 356 | 688 | 1 |
-| xyt second | 1000/47 | 0 | 218 | 442 | 0 |
-| cyw | 354/96 | 0 | 337 | 763 | 0 |
-
-The one accepted xyt registration was to an incorrect identity. No true-target
-registration passed. Many keypoints can represent noise or the wrong region.
-RANSAC/geometric rejection is not yet separated into inlier count, coverage,
-scale and angle; do not assert one specific guard is responsible.
-
-The slowest sample is `20261020T165604274940Z-f7ec5fe1`, stephen:left,
-new reverse: 14.342 seconds, including 1.112 seconds capture/extract and
-13.229 seconds gallery work. Even full search scores (.358398 best,
-.393649 second) fail the .32/.08 early gate. Faster early stopping alone
-cannot solve this sample without changing evidence quality or acceptance risk.
+*The participant-linked evidence for this section is retained locally.*
 
 The final demo Gallery uses threshold 1.0 / minimum margin 0 after fallback;
 weak closed-set evidence therefore still assigns an identity. ROI reliability,
@@ -145,29 +108,7 @@ again match the frozen baseline exactly. This instrumented run is not latency
 evidence. True-target calls below include only labeled fallback attempts that
 actually reach an estimator; calls with fewer than four mutual pairs do not.
 
-| Error sample suffix | True-target estimator calls | Too few inliers first rejection | Coverage first rejection | Maximum inliers |
-|---|---:|---:|---:|---:|
-| 7619919c | 31 | 31 | 0 | 3 |
-| a4677ec5 | 14 | 14 | 0 | 2 |
-| 61f30739 | 66 | 65 | 1 | 4 |
-| 8d6441d2 | 43 | 43 | 0 | 3 |
-| 37d0c433 | 73 | 73 | 0 | 3 |
-
-Thus 226/227 traced true-target estimator calls first fail the existing inlier
-minimum, not merely an angle/scale limit. Similarity needs four inliers; affine
-needs six. The one four-inlier xyt attempt covers only 0.0024375 of the
-384-square frame (required .02), with scale .4719 and angle -46.07 degrees.
-Multiple guard violations can coexist; do not sum overlapping violation counts
-as independent failures. This does not justify relaxing the guards.
-
-All five sheets were actually opened and inspected alongside the true and
-predicted enrollment ROIs. The xyt two crops visibly include the wrist/heel
-and background unlike centered enrollment crops. Billy's images have marked
-viewpoint changes and broad smooth shading; the left query samples nearer the
-finger bases than some enrollment frames. Cyw stays on-palm with visible main
-creases but weak fine detail. These observations are clues, not a proof of
-motion blur, sensor failure, or one exclusive cause. Bright appearance alone
-does not establish pixel saturation.
+*The participant-linked evidence for this section is retained locally.*
 
 Private exact evidence: `geometry-diagnostics.json`; command option
 `tools/diagnose_frozen_device_errors.py --wrong-only --geometry-details`.
@@ -175,11 +116,4 @@ Private exact evidence: `geometry-diagnostics.json`; command option
 --include-slowest` also creates a sheet for the slowest query without rerunning
 recognition. Historical metrics above are unchanged.
 
-The user subsequently explicitly deleted `20261029T085720586167Z-7619919c`
-after inspecting its strongly oblique original. It is removed from the Pi's
-active collection and re-exported active left-session ZIP; remaining image
-bytes are unchanged. Current active originals total 169. This post-result,
-user-directed dataset change is not an algorithm improvement; the 170-query
-baseline and its errors remain historical evidence. A new cohort protocol
-has 29/29 new-camera and 55/55 old-camera queries (168 total); it has not been
-rerun and has no new accuracy or latency result yet.
+*The participant-linked evidence for this section is retained locally.*

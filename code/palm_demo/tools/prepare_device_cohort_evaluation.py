@@ -75,11 +75,11 @@ def main():
     protocol=dict(frozen_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),
         matcher='FastCCQualityEvidence-v24-experimental',tuning_allowed=False,images=len(rows),
         palm_identities=len({r['identity'] for r in rows}),people=7,
-        subject_aliases_for_reporting_only={'bankey-10-12':'bankey','stephen-10-13':'stephen'},
+
         cases=cases,archives=archives,
         archived_images=archived_count,user_sample_exclusions=exclusions,
         excluded_samples_included=args.include_excluded,
-        excluded_retired_session='20261013T111838871161Z-df3d072b',
+
         device_images=dict(Counter(r['device'] for r in rows)),
         limitations=['No cross-device enrollment/query matching',
             'Previously exposed old captures; new participant not used to tune this version',

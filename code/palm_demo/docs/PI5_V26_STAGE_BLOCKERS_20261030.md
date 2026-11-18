@@ -23,8 +23,7 @@ union of intervals when computing stage or native-matching active durations.
 
 ## The 15-second tail is multiple expensive phases
 
-Actual hard query: new reverse stephen:left,
-`20261020T165604274940Z-f7ec5fe1`.
+*The participant-linked evidence for this section is retained locally.*
 
 | Phase | First instrumented query, seconds | Second, seconds |
 |---|---:|---:|
@@ -75,26 +74,11 @@ Thus the observed wrong-identity rate is 4/168; unknown-person FAR and
 verification FRR are not measured. Do not call zero explicit rejection 0% FRR
 or label the four closed-set mistakes an unknown-person FAR estimate.
 
-| Sample | Winning score | Runner-up | Gap |
-|---|---:|---:|---:|
-| billy:right `20261029T120016111983Z-a4677ec5` | .383600 | .387695 | .004095 |
-| xyt:right `20261013T111553178583Z-61f30739` | .374023 | .389347 | .015323 |
-| xyt:right `20261013T111555214120Z-8d6441d2` | .374721 | .375000 | .000279 |
-| cyw-real:left `20261013T111358589224Z-37d0c433` | .345703 | .360871 | .015168 |
+*The participant-linked evidence for this section is retained locally.*
 
-All fail the earlier <=.32 / >=.08 confidence gate. `demo_flow.py` constructs
-the final Gallery with threshold 1.0; the Gallery's default min_margin is 0.0.
-This final policy ranks an enrolled identity even when the earlier evidence is
-insufficient. It is unchanged. At the last recorded gate before 2.5 seconds,
-the billy query happens to lead with the true identity; the hard stephen query
-and three old-camera errors lead with a wrong identity. None has a confident
-gate before the deadline. Simply returning the current leader is therefore
-not an established accuracy-preserving deadline strategy.
+*The participant-linked evidence for this section is retained locally.*
 
-Earlier source/ROI sheets show the two xyt crops include wrist/heel/background
-rather than the enrolled central palm; billy has weaker fine detail and a
-viewpoint change; cyw's fine texture is weak. These are observations, not proof
-that all such captures are irrecoverable. No additional samples were deleted.
+*The participant-linked evidence for this section is retained locally.*
 
 ## Concrete blocker and a defensible next step
 
@@ -108,12 +92,7 @@ image; that image was not reopened for this assessment, restored to active
 data, or used as a new experiment. Do not infer current gallery content from
 its historical predicted-enrollment row.
 
-| Active failure pattern | Visible evidence | What is established / not established |
-|---|---|---|
-| Two xyt:right errors | Query ROI covers wrist/heel and some background, unlike the true enrollment's central palm | Anatomical coverage is inconsistent; another descriptor of the same wrong patch is not a demonstrated correction |
-| Slowest stephen:left | Primary ROI is smaller and nearer finger bases than enrollment coverage | There is a scale/coverage mismatch; complete late matching can still rank the correct hand, but early evidence remains weak |
-| billy:right error | ROI remains on the palm; appearance/viewpoint and visible fine detail differ from enrollment | A general wrist-crop correction does not explain it. PPNet top1 becomes correct but margin .031171 remains below .08 |
-| cyw-real:left error | ROI remains inside the palm and major creases are visible | It cannot be classified as the same out-of-palm failure. The sheet alone does not establish blur, sensor failure or recoverable fine texture |
+*The participant-linked evidence for this section is retained locally.*
 
 The common measured outcome is insufficient reliable query-to-enrollment
 evidence, with heterogeneous causes. There is no visual justification for a
@@ -127,13 +106,7 @@ rejected-route inventory and model results. It is not retried here.
 
 ### Exact missing capability and evidence
 
-The prioritized hypothesis would be a fast, anatomically consistent palm ROI
-estimator with independently demonstrated low-quality-device performance. The
-current verified inputs provide identity labels and model-produced geometry,
-not independently confirmed wrist/MCP/palm-region ground truth. The available
-two-keypoint localizer and tested landmark replacement have not supplied that
-capability. A stable localizer would address the clear coverage failures, but
-is not by itself proven sufficient for the in-palm billy/cyw texture cases.
+*The participant-linked evidence for this section is retained locally.*
 
 Before selecting or training a replacement, the missing evidence is:
 

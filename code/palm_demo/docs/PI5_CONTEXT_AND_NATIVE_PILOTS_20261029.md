@@ -7,14 +7,7 @@ The user-directed deletion and historical 170-query baseline remain separate.
 
 ## Visual diagnosis
 
-Reviewed the actual Pi ROI and original-image/enrollment comparison sheets,
-including the slowest new reverse stephen:left query
-`20261020T165604274940Z-f7ec5fe1`. Its primary crop is visibly smaller than the
-enrollment crops and lies nearer the finger bases. The two failed xyt:right
-queries have wrist/heel/background coverage unlike the enrolled central palm.
-The billy:right failure has much weaker visible fine detail and a changed
-viewpoint. These observations motivate hypotheses, not proof of recoverability
-or of a particular camera defect. Do not delete additional failures.
+*The participant-linked evidence for this section is retained locally.*
 
 ## Frozen CompNet spatial pyramid: reject on accuracy
 
@@ -42,11 +35,7 @@ Offline reuse of embeddings across splits is explicitly not runtime caching.
 
 The three new wrong decisions would override correct v25 results:
 
-| Case | Sample | True palm | Proposed wrong palm |
-|---|---|---|---|
-| New original | `20261020T165625070833Z-13cf34d4` | stephen:left | billy:right |
-| New original | `20261020T165636416608Z-526288bd` | stephen:left | billy:right |
-| Old reverse | `20261013T111339367360Z-dfb1a66b` | cyw-real:left | xyt:right |
+*The participant-linked evidence for this section is retained locally.*
 
 The slowest query and four original mistakes receive no confident rescue.
 No context path is registered, integrated or deployed. Do not restrict the

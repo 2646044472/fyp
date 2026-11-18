@@ -69,16 +69,7 @@ table with `tools/report_quality_evidence.py EVIDENCE OUTPUT.html`.
 | Old, fresh original enrollment | 20/20 | 20/20 | 1.460 | 1.944 |
 | Old, fresh reversed enrollment | 20/20 | 20/20 | 1.483 | 1.662 |
 
-Fresh runs exercise 80 queries in total, all correct; 77 meet 2.5 seconds.
-Each of the four runs creates four isolated simulated transactions and passes
-duplicate-confirmation/cancellation checks. All original hashes remain unchanged.
-The reversed new run exposes a genuine full-search tail, not a stable <=2.5 s
-result. Its slowest image is `20261020T165604274940Z-f7ec5fe1`; all failures
-remain in the report. Two other reversed new requests took 2.791 s (legacy) and
-3.047 s (pooled). Timing jitter also crosses the budget in the shuffled run.
-All 268 fresh-workflow power samples reported `throttled=0x0`. Five-image
-registration median was 46.4-47.9 s new and 20.8-22.0 s old; it is not included
-in query latency and still needs improvement for a convenient enrollment UX.
+*The participant-linked evidence for this section is retained locally.*
 
 Profiling all three over-budget reversed queries twice preserved exact identity,
 scores and routing relative to their original HTTP results. The slowest repeat

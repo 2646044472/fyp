@@ -22,11 +22,11 @@ from audit_pose_matching import fast_don_match
 def save(path,value):path.write_text(json.dumps(value,indent=2),encoding='utf-8')
 
 
-def canonical(identity):
-    subject,hand=identity.split(':')
-    if subject in ('bankey','bankey-10-12'):return 'bankey:'+hand
-    if subject in ('stephen','stephen-10-13'):return 'stephen:'+hand
-    raise ValueError('Unknown cross-session identity mapping: '+identity)
+def canonical(identity, aliases):
+    subject, hand = identity.split(':')
+    if subject not in aliases:
+        raise ValueError('Missing subject in the supplied local alias map')
+    return aliases[subject] + ':' + hand
 
 
 def evaluate(records,matrices,case,gallery,queries):
@@ -47,7 +47,8 @@ def evaluate(records,matrices,case,gallery,queries):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('new_replay',type=Path);p.add_argument('old_replay',type=Path);p.add_argument('output',type=Path);args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('new_replay',type=Path);p.add_argument('old_replay',type=Path);p.add_argument('output',type=Path);p.add_argument('--aliases',required=True,type=Path,help='Private JSON map from source subjects to canonical subjects');args=p.parse_args()
+    aliases=json.loads(args.aliases.read_text(encoding='utf-8'))
     args.output.mkdir(parents=True,exist_ok=False)
     save(args.output/'plan.json',dict(algorithms=['DoN_median','FastCC_median','FastCCPoseNearest-v1'],
         enrollment='five per identity; original1-5 split, reversed6-10 split, ten seeded random5-of10 splits',
@@ -64,7 +65,7 @@ def main():
             q=np.asarray(r['illumination']['details']['roi_quad_full'],np.float32)
             bank=matcher.extract_with_context(image,q,roi)
             if n in [0,9,19,29,39]:repeat.append(dict(cohort=cohort,sample=r['sample'],identical=bool(np.array_equal(bank,matcher.extract_with_context(image,q,roi)))))
-            features.append(bank);pixels.append(roi);records.append({**r,'cohort':cohort,'canonical_identity':canonical(r['identity'])})
+            features.append(bank);pixels.append(roi);records.append({**r,'cohort':cohort,'canonical_identity':canonical(r['identity'],aliases)})
     assert all(r['identical'] for r in repeat)
     save(args.output/'repeatability.json',repeat);save(args.output/'records.json',records)
     np.savez_compressed(args.output/'features.npz',pose=np.stack(features))

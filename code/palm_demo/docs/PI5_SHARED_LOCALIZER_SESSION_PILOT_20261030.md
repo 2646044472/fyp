@@ -24,7 +24,7 @@ Full168 reference remains 164 correct accepts, four wrong accepts, zero rejects,
 
 ## Completed actual Pi result: rejected for sustained speed
 
-Four fresh processes completed in the preregistered ABBA order, using the full six-identity/30-frame new-reverse gallery and one isolated runtime. The fixed samples were `f7ec5fe1` (global slowest), `89bd294d` (first other exhaustive query) and `e022bbe6` (first fast correct control), with full IDs in the scalar artifact. Each process ran all three queries twice.
+*The participant-linked evidence for this section is retained locally.*
 
 All 24 HTTP responses exactly preserve frozen v26 status, identity, best/second distances and route. All displayed ROI PNG bytes match the frozen reference. Across 96 actual localizer calls, corresponding per-call ROI, quad and diagnostic signatures are identical across processes; no inference was skipped. The baseline actually holds two distinct loaded sessions after the hard query, whereas the candidate's window policy actually references the parent session. Three focused unit tests passed for separate policy state/shared resources and rejection of legacy, unloaded and Torch backends.
 

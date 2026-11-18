@@ -4,7 +4,7 @@ Evaluation only: no algorithm optimization, training, threshold/label change,
 sample selection from outcomes or production deployment. Algorithm source
 commit frozen before inference: `9cfcab2fa0de4593fa8e9050cfbc9dd9cdf2f189`.
 The exact evaluator/core-source/model hashes and fixed protocols are retained
-in [protocols/FROZEN_PUBLIC_VALIDATION_20261030.json](protocols/FROZEN_PUBLIC_VALIDATION_20261030.json).
+in the local study record.
 An earlier metadata-only protocol draft was not used for inference; all
 reported runs use the final v2 protocol. Its canonical JSON SHA256 is
 `e4dc182b48e63b6ddb099c8b269f89a2aa7d5d800c04167498aa71e08c59a231`.

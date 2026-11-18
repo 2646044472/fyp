@@ -6,6 +6,7 @@ local implementation; they are not estimates of biometric accuracy.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
@@ -27,7 +28,7 @@ NEW = DATA / "white-continuous-2026-10-06"
 OUTPUT = NEW / "roi-variant-comparison.json"
 
 
-def images():
+def images(sessions):
     old = defaultdict(list)
     for folder in OLD.iterdir():
         metadata_file = folder / "metadata.json"
@@ -38,7 +39,7 @@ def images():
     for hand, folders in old.items():
         for index, folder in enumerate(sorted(folders), 1):
             yield "old", hand, index, folder / "full.jpg"
-    for hand, session in (("left", "20261006T035537011048Z-05a19b1d"), ("right", "20261006T040847950968Z-c9b9f00a")):
+    for hand, session in sessions:
         for index, folder in enumerate(sorted((NEW / session).glob("sample_*")), 1):
             yield "new", hand, index, folder / "full.jpg"
 
@@ -69,11 +70,18 @@ def rank(features, algorithm):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--left-session", required=True)
+    parser.add_argument("--right-session", required=True)
+    args = parser.parse_args()
+    sessions = (("left", args.left_session), ("right", args.right_session))
+    if any(Path(value).name != value or value in (".", "..", "") for _, value in sessions):
+        parser.error("Supply session directory names, not paths")
     algorithm = load_algorithm(palm_demo.DEFAULT_BASELINE, "DoN")
     alt = load_algorithm(palm_demo.DEFAULT_BASELINE, "FastCC")
     features = {name: {alg: {} for alg in ("DoN", "FastCC")} for name in ("detector_broad128", "detector_core128", "pose_broad128", "pose_core128", "pose_core128_clahe", "pose_core256")}
     detections = []
-    for batch, hand, index, path in images():
+    for batch, hand, index, path in images(sessions):
         full = Image.open(path).convert("RGB")
         resized = full.resize((480, 360), Image.Resampling.LANCZOS)
         key = (batch, hand, index)

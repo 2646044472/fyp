@@ -15,7 +15,7 @@ These are historical notes. Later progress reports are retrospective summaries o
 
 ## Code and evidence
 
-For the offline work, start with [research code and run instructions](research_code/README.md), [integrated experiment report](minutes_note/progess%20notes/2026-11-18.md).
+For the offline work, start with the [integrated experiment report](minutes_note/progess%20notes/2026-11-18.md) and [research code and run instructions](research_code/README.md). The [latest crop-fallback comparison](minutes_note/progess%20notes/2026-11-18-crop-routing-and-training.md) shows which missing queries were recovered, which recovery attempts ranked the wrong hand, and how often the system actually accepted a match.
 
 The school snapshot's `palm_demo/` contains capture, landmark-based ROI extraction, gallery, matching, simulated payment, tests and offline evaluation tools. See its README and requirements before running anything. Optional model files and original capture data are not redistributed here. A clean checkout alone does not reproduce the private trained systems or the reported dataset scores.
 

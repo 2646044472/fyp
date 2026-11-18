@@ -37,7 +37,7 @@ No claim is made that these early subjects represent the entire release. Recogni
 
 ## Prospective protection from target-specific fixes
 
-The fixed [person split](protocols/SMPD_PROSPECTIVE_OPTIMIZATION_SPLIT_20261030.json) reserves numeric subject IDs divisible by five: **18 people / 629 query files**. The other **74 people / 2,588 queries** form development. The manually reviewed 001 and partially observed 002 are both development identities. The rule is fixed before any new candidate and is not reselected after failure inspection.
+The fixed local study protocol reserves numeric subject IDs divisible by five: **18 people / 629 query files**. The other **74 people / 2,588 queries** form development. The manually reviewed 001 and partially observed 002 are both development identities. The rule is fixed before any new candidate and is not reselected after failure inspection.
 
 The existing full baseline still evaluates everyone in one eligible gallery. Future candidate selection may use development failures, but reserved query images/results must not guide new mechanisms or parameters. Candidate source/model hashes and acceptance rules must be fixed before a reserved-query comparison. The complete fixed enrollment gallery may include reserved identities as ordinary references; their query images are not training data.
 

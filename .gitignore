@@ -1,7 +1,24 @@
 # Local palm captures contain biometric raw/ROI data; keep them off Git remotes.
-code/data/debug_capture/
-code/data/camera_checks/
-./code/data
+/code/data
+/data
+/gitea-um/data
+**/pi-captures-*
+**/debug_capture/
+**/camera_checks/
+**/captures/
+**/raw_captures/
+**/embeddings/
+**/*.zip
+**/*.7z
+**/*.rar
+**/*.tgz
+**/*.tar
+**/*.tar.gz
+**/*.npz
+**/*.npy
+/code/palm_demo/docs/figures/rejection_policy_20261030.png
+# Case-level biometric ledgers belong outside the public protocol catalogue.
+/code/palm_demo/docs/protocols/*.csv
 /code/palm_demo/debug_samples/
 .worktrees/
 
@@ -31,3 +48,19 @@ external/
 
 # Private research notes
 .research/
+
+# Historical local-only case records; do not re-stage them during a later sync.
+/code/palm_demo/docs/protocols/ACCURACY_DIAGNOSTICS_20261030.json
+/code/palm_demo/docs/protocols/ANATOMICAL_ORACLE_20261030.json
+/code/palm_demo/docs/protocols/FROZEN_PUBLIC_VALIDATION_20261030.json
+/code/palm_demo/docs/protocols/OPERATION_COST_ORACLE_20261030.json
+/code/palm_demo/docs/protocols/PI5_EXCLUSIVE_TIMING_TREE_20261030.json
+/code/palm_demo/docs/protocols/PI5_ORACLE_CANDIDATE_COST_20261030.json
+/code/palm_demo/docs/protocols/PSEUDO_UNREGISTERED_20261030.json
+/code/palm_demo/docs/protocols/REJECTION_POLICY_AUDIT_20261030.json
+/code/palm_demo/docs/protocols/REJECTION_POLICY_HTTP_20261030.json
+/code/palm_demo/docs/protocols/RETAINED_EVIDENCE_PILOT_20261030.json
+/code/palm_demo/docs/protocols/SHARED_LOCALIZER_SESSION_PILOT_20261030.json
+/code/palm_demo/docs/protocols/SMPD_PROSPECTIVE_OPTIMIZATION_SPLIT_20261030.json
+/code/palm_demo/docs/protocols/V26_FOUR_ERROR_AUDIT_20261030.json
+/code/palm_demo/docs/protocols/V26_FULL_SCORE_RECONCILIATION_20261030.json
