@@ -9,7 +9,7 @@ This folder continues the supplied school repository snapshot `e5cba8e2dfaeea008
 - [22 September: IR setup and pilot limitations](minutes_note/2026-09-22.md)
 - [20 October: recognition at different distances](minutes_note/2026-10-20.md)
 - [30 October: data collection and evaluation](minutes_note/2026-10-30.md)
-- [17 November: white-background comparison, ROI refinement and proposed video trial](minutes_note/2026-11-17.md)
+- [17 November: dataset and recognition report; next-week experiment plan](minutes_note/2026-11-17.md)
 
 These are historical notes. Later progress reports are retrospective summaries of dated work, not invented meeting minutes. Reports are dated by the supporting evidence, not an assumed weekly schedule.
 
