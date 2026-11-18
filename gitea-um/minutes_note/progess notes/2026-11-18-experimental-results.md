@@ -4,6 +4,15 @@ This report asks four questions: Can the localizer find a usable palm region? Ho
 
 [Project narrative, methods and training diagnostics](2026-11-18.md) · [Report index](README.md)
 
+| If you want to know… | Read |
+| --- | --- |
+| Which crop methods worked, and whether changing gallery coverage explains the difference | [Tables 1–4: cross-dataset and fixed-gallery comparisons](#1-cross-dataset-baselines-and-fixed-gallery-comparisons) |
+| Whether the model saw these people during training and whether rejection thresholds transferred | [Tables 5–8: full-gallery evaluation and training exposure](#2-full-gallery-evaluation-training-exposure-and-rejection-thresholds) |
+| Whether background masking, depth or a fallback fixed difficult captures | [Tables 9–12: localization and offline Pi replay](#3-localization-failures-fallback-routes-and-offline-pi-replay) |
+| How the authors’ result compared with local runs, and whether augmentation helped | [Tables 13–17: reproduction and controlled training comparisons](#4-author-code-reproduction-pose-augmentation-and-crop-free-recognition) |
+
+**Reading the counts:** *Rank-1* asks whether the correct hand ranked first. *EER* is the equal error rate from a threshold sweep; lower is better. *ROI* is the palm region cropped for recognition. A probe that could not be ranked disappears from a rankable-only denominator, but it still counts as a failed attempt in the full planned denominator.
+
 ## 1. Cross-dataset baselines and fixed-gallery comparisons
 
 ### Table 1. Rank-1 across 10 datasets and 4 crop methods
