@@ -28,7 +28,7 @@ resource=dict(template_envelope_bytes=16*1024*1024,compressed_template_bytes=dic
 (out/'resource-v4.json').write_text(json.dumps(resource,indent=2))
 doc='''<!doctype html><html lang="en"><meta charset="utf-8"><title>v4 single-device runtime evaluation</title><style>body{font:17px/1.75 system-ui;background:#f3f5f6;color:#19333c;margin:30px auto;max-width:1150px;padding:20px}td{padding:10px;border-bottom:1px solid #ccc}table{background:white;width:100%}a{color:#006c82}pre{white-space:pre-wrap;font-size:14px}</style><h1>Single-device multi-candidate ROI: runtime and actual entry-point evaluation</h1>
 <p>2026-10-28 · Optional FastCCWindowUnion-v4 · No Pi deployment, network change or change to default DoN</p>
-<p>Full localization, search, alignment and scoring description:<a href="../../../docs/ROI_PIPELINE.md">ROI_PIPELINE.md</a>。<a href="report-v3.html">Specific failure images and historical comparisons</a>。</p>
+<p>Full localization, search, alignment and scoring description:<a href="../../../docs/ROI_PIPELINE.md">ROI_PIPELINE.md</a>. <a href="report-v3.html">Specific failure images and historical comparisons</a>. </p>
 <h2>All original splits after fresh inference</h2>'''
 doc+=table([['Device','Split','Splits','Minimum /20','Maximum /20','Mean /20']]+[[r['cohort'],r['split'],r['count'],r['min'],r['max'],r['mean']] for r in summary])
 doc+=f'<p>All 80 original image hashes were preserved. Queries and enrollments do not overlap; devices are evaluated separately, with 112 splits each. After fresh ONNX localization,{fresh["identical"]} /80 templates matched the cached-localization version byte for byte. All directed pairs involving the remaining templates were recomputed. Only matching cached pairs reused scores.</p>'

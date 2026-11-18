@@ -31,8 +31,8 @@ DoN/FastCC already used percentile normalization; the neural matcher previously 
 <table><tr><th>Input configuration</th><th>DoN</th><th>FastCC</th><th>Paired neural matcher</th></tr>{rows}</table>
 <h2>Was the wrong model loaded?</h2><p>RIA, matcher, checkpoint and implementation hashes agree; the pairing was verified.
 models.py, data.py, losses.py and training.py match training provenance.</p>
-<ul><li>Raw camera input: mean pixel change {stats['raw']['mean_abs_change_8bit']:.3f}/255。</li>
-<li>Normalized input: mean pixel change {stats['normalized']['mean_abs_change_8bit']:.3f}/255。</li>
+<ul><li>Raw camera input: mean pixel change {stats['raw']['mean_abs_change_8bit']:.3f}/255. </li>
+<li>Normalized input: mean pixel change {stats['normalized']['mean_abs_change_8bit']:.3f}/255. </li>
 <li>Maximum absolute PyTorch–ONNX error on 40 raw inputs {check['parity']['raw']['max_abs_error']:.8f} (0–1 scale); both return nearly unchanged images.</li></ul>
 <p>One preselected image from each of 8 different training-domain palm classes received Gaussian blur, sigma=1.5, for a response check. Mean output change was about 11.07/255;
  mean pixel error fell from 0.04991 to 0.02127. The network is not unconditionally an identity mapping. This synthetic response on training images does not establish independent restoration performance.</p>

@@ -20,7 +20,7 @@ doc='''<!doctype html><html lang="en"><meta charset="utf-8"><title>Candidate bac
 <p>Both the candidate quad and the aligned scoring quad must intersect the automatic primary ROI; candidate overlap must exceed 1 square pixel. All images use the same rule without identity or reference labels. Wall candidates 3 and 4 are excluded in the illustration. All 80 images remain in evaluation, and v4 is preserved.</p>
 <h2>All predefined splits</h2>'''
 doc+=table([['Device','Split','Splits','Minimum','Maximum','Mean /20']]+[[r['cohort'],r['split'],r['count'],r['min'],r['max'],r['mean']] for r in summary])
-doc+=f'<p>Total descriptor views: {sum(r["views_before"] for r in counts)} → {sum(r["views_after"] for r in counts)}；{sum(r["views_after"]<r["views_before"] for r in counts)}  images lost at least one candidate branch. Views include different search areas and smoothing scales, not independent ROIs.</p>'
+doc+=f'<p>Total descriptor views: {sum(r["views_before"] for r in counts)} → {sum(r["views_after"] for r in counts)}; {sum(r["views_after"]<r["views_before"] for r in counts)}  images lost at least one candidate branch. Views include different search areas and smoothing scales, not independent ROIs.</p>'
 selected=['20261020T165429663138Z-946a03e6','20261020T165604274940Z-f7ec5fe1','20261020T165710063889Z-9dea7e47','20261020T165712288733Z-fc94c36e']
 evidence=[]
 for sample in selected:
@@ -44,7 +44,7 @@ for sample in selected:
         thumb=Image.open(roi_dir).convert('RGB').resize((300,300));sheet.paste(thumb,(850,200));text.text((850,175),'Gallery base ROI',fill='black')
         if winner['branch']!='union':text.text((800,140),'Legacy fallback: no invented quad',fill='black')
         name=f'{sample}-contribution-{rank+1}.jpg';sheet.save(out/name)
-        doc+=f'<img src="runtime-v5/{name}"><p>Enrollment #{g["index"]}：{winner["branch"]}, distance {winner["score"]:.6f}；view_index={winner.get("view_index","Not applicable")}. This is a descriptor-view index within the template, not a candidate number in the illustration.</p>'
+        doc+=f'<img src="runtime-v5/{name}"><p>Enrollment #{g["index"]}: {winner["branch"]}, distance {winner["score"]:.6f}; view_index={winner.get("view_index","Not applicable")}. This is a descriptor-view index within the template, not a candidate number in the illustration.</p>'
         evidence.append(dict(query=sample,case=case['case'],predicted=identity,gallery=target,winner=winner,image=name))
 (out/'contributions.json').write_text(json.dumps(evidence,indent=2))
 if '--images-only' in sys.argv:

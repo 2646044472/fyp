@@ -32,7 +32,7 @@ Contrast and sharpness are recorded, not used for rejection. Not deployed to Pi.
 <p>For each hand, enroll the first five and query the last five; use the median of five distances per identity. All images, including geometric failures, remain in the comparison. No selection was used to raise scores.
 This is a rank-one diagnostic on the development set, not independent validation, transaction acceptance or a false-match rate.</p>
 <table><tr><th>Matcher</th><th>Legacy fused ROI</th><th>ROI from the new runtime</th></tr>{rows}</table>
-<p>ONNX inference covered all 40 images. Maximum coordinate difference from independently cached PyTorch heatmaps: {max(r['keypoint_parity_max_px'] for r in records):.5f} px。
+<p>ONNX inference covered all 40 images. Maximum coordinate difference from independently cached PyTorch heatmaps: {max(r['keypoint_parity_max_px'] for r in records):.5f} px.
 Geometry passed on 36/40 rather than 31/40. 92 relevant tests passed; the legacy test_existing_pipeline.py still referenced a pre-migration module and was excluded.</p>
 <h2>Runtime geometry checks reported separately</h2><p>The application still prevents out-of-bounds and collapsed crops from reaching matching. Counts below include geometry rejections and are separate from the unfiltered experiment above.</p><ul>{live}</ul>
 <h2>Why the fix was needed and what remains</h2><p>On 8/40 images the endpoints ran in opposite directions across the two branches; averaging by array index shrank or collapsed the ROI.
@@ -41,7 +41,7 @@ One consistent spatial branch is used without selecting per image by identity or
 The separate OpenCV detector plus four-direction search returned only 22/40 crops and included visible background detections. No success-only accuracy was reported and no automatic fallback enabled.</p>
 <h2>PalmIR</h2><p>The local model is CompactRestorer PalmIR-style RIA, not the official PalmIR weights. With new ROIs, neural matching scored 14/20 using original inputs, query-only restoration or restoration on both sides.
 There is no evidence for enabling restoration by default. No complete deployment-ready pretrained release was found during the review; that does not invalidate the official method.</p>
-<p>Subsequent tests covered normalization, half-strength restoration, pixel-only weights and PyTorch controls. See <a href="../restoration-adaptation-20261025/report.html">Local restoration audit and possible improvements</a>。</p>
+<p>Subsequent tests covered normalization, half-strength restoration, pixel-only weights and PyTorch controls. See <a href="../restoration-adaptation-20261025/report.html">Local restoration audit and possible improvements</a>. </p>
 <h2>Deployment and reproducibility</h2><p>Re-enroll five images under each existing identifier. Account names, balances and transactions are retained. Updating code does not change the service mode.
 The patch depends on the existing app, PKLNet weights and geometry code; it is not a fresh installer. Compare and back up remote files, run offline inference checks, and restart in the original mode.
 The user manages Pi networking. No deployment in this round.</p><p><a href="heatmap-v3-patch.zip">Latest patch</a> · <a href="patch-manifest.json">File SHA-256</a> ·

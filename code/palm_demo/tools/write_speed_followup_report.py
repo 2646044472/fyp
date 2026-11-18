@@ -33,7 +33,7 @@ def main():
     body+='<p>Includes localization, extraction, matching and the HTTP round trip from originals. Isolated simulated accounts were used; file replay replaced capture, so live-preview contention remains untested.</p>'
     body+='<h2>Fixed-split regression and overfitting checks</h2>'+table(['Data','Completed splits','Range of correct counts per split'],[[labels[c],sum(x['case'].startswith(c+'_') for x in cases),str(min(x['correct'] for x in cases if x['case'].startswith(c+'_')))+'–'+str(max(x['correct'] for x in cases if x['case'].startswith(c+'_')))+'/20'] for c in runs])
     body+='<p>These splits reuse the same 80 development images and do not measure independent accuracy. Reserved old-camera data from 4 people (80 images) remained unused for matching or tuning. No identity exceptions, discarded images or relaxed criteria.</p>'
-    body+='<p>Original development-image check:'+escape(integrity['development_unchanged'])+'; reserved archive check:'+escape(integrity['reserved_unchanged'])+'。</p>'
+    body+='<p>Original development-image check:'+escape(integrity['development_unchanged'])+'; reserved archive check:'+escape(integrity['reserved_unchanged'])+'. </p>'
     cold=[]
     for c,r in ready.items():
         for p in r['passes']:
