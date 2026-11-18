@@ -1,6 +1,6 @@
 # G15 Biometrics | Palm recognition on Raspberry Pi
 
-This folder continues the supplied school repository snapshot `e5cba8e2dfaeea008e4b56720394bd4e0c850292`. Start with [Progress Reports](minutes_note/progress/README.md) for what changed and [the original demo](palm_demo/README.md) for how the system is structured. The demo and the later offline recognition experiments are separate: the latter are not a new Pi release.
+This folder continues the supplied school repository snapshot `e5cba8e2dfaeea008e4b56720394bd4e0c850292`. Start with [Progress Reports](minutes_note/progess%20notes/README.md) for what changed and [the original demo](palm_demo/README.md) for how the system is structured. The demo and the later offline recognition experiments are separate: the latter are not a new Pi release.
 
 ## Meeting and experiment notes
 
@@ -15,11 +15,11 @@ These are historical notes. Later progress reports are retrospective summaries o
 
 ## Code and evidence
 
-For the offline work, start with [research code and run instructions](research_code/README.md), [integrated experiment report](minutes_note/progress/2026-11-18.md).
+For the offline work, start with [research code and run instructions](research_code/README.md), [integrated experiment report](minutes_note/progess%20notes/2026-11-18.md).
 
 The school snapshot's `palm_demo/` contains capture, landmark-based ROI extraction, gallery, matching, simulated payment, tests and offline evaluation tools. See its README and requirements before running anything. Optional model files and original capture data are not redistributed here. A clean checkout alone does not reproduce the private trained systems or the reported dataset scores.
 
-[Latest offline findings](minutes_note/progress/2026-11-18.md) explain corrected coordinate handling, a difficult-scene failure analysis and the limits of the X-Palm reproduction. Rank-1 counts include the planned query denominator; failure to return a crop must not disappear from the headline score.
+[Latest offline findings](minutes_note/progess%20notes/2026-11-18.md) explain corrected coordinate handling, a difficult-scene failure analysis and the limits of the X-Palm reproduction. Rank-1 counts include the planned query denominator; failure to return a crop must not disappear from the headline score.
 
 
 Two later project modules are included alongside the original code: `palm_demo/roi_sampling.py` samples an original RGB image at a supplied quadrilateral (it does not find the palm), while `palm_demo/palm_app/frame_scheduler.py` prevents stale frames from being reused by a busy inference worker. Their tests use artificial arrays and timestamps. From `palm_demo/`, with Python 3.10+, NumPy and pytest installed:
