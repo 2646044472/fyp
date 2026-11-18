@@ -48,31 +48,31 @@ def main():
         runtime='Default heatmap-v3 unchanged; reference coordinates never loaded by the app; no Pi deployment.')
     (out/'geometry-summary.json').write_text(json.dumps(summary,indent=2))
     worst=''.join(f"<tr><td>{html.escape(r['identity'])} #{r['index']}</td><td>{r['iou']:.2f}</td><td>{r['auto_side_px']:.0f}</td><td>{r['reference_side_px']:.0f}</td><td>{r['side_ratio']:.2f}</td></tr>" for r in sorted(errors,key=lambda r:r['iou'])[:9])
-    text=f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>ROI 对照 · 2026-10-26</title>
+    text=f'''<!doctype html><html lang="en"><meta charset="utf-8"><title>ROI comparison · 2026-10-26</title>
 <style>body{{max-width:1120px;margin:40px auto;padding:0 24px;font:17px/1.65 system-ui;color:#213547;background:#f8fafc}}table{{border-collapse:collapse;width:100%;background:white}}td,th{{border:1px solid #cbd5e1;padding:10px;text-align:left}}img{{max-width:100%}}.note{{padding:18px;background:#dcfce7;border-radius:10px}}details{{margin:20px 0}}a{{color:#0369a1}}</style><body>
-<h1>ROI 是当前主要瓶颈：参考裁框对照</h1><p class="note">不删样本、不改匹配器，只换成按统一指缝规则标出的 ROI：FastCC 11→19/20，DoN 11→17/20。
-这是参考坐标实验，不是自动系统已经达到 19/20。</p>
-<h2>完整 40 张 / 固定 20 张查询</h2><table><tr><th>匹配器</th><th>旧融合</th><th>当前自动 heatmap</th><th>参考指缝 ROI</th></tr>{table}</table>
-<p>每只手前五张录入、后五张查询；身份内五个距离取中位数；全部图保留，包括原来定位失败的图。传统匹配沿用现有百分位归一化，神经主表使用原始灰度 ROI。
-对参考 ROI 再做亮度归一化，神经结果为16/20；RIA仅查询或双侧恢复均没有增加正确数（原始17/20、归一化16/20）。</p>
-<h2>参考坐标怎么得到</h2><p>40张原图随机编号显示，图上没有旧预测或匹配分数。我逐张目视标出食指–中指、无名指–小指两个指缝，另取掌心侧点；统一使用原PalmKit alpha=0.15、beta=1.2生成裁框。
-全部裁框目视复查后冻结坐标与像素哈希，再进行识别评分。S05一个指缝位置在评分前纠正，记录保留。</p>
-<p><strong>局限：</strong>这是助手目视估计，未经独立人工复核，不称人工金标准；此前已看过数据与身份，不能声称盲法研究。该开发集只有两个人、四只手，19/20不能代表独立部署准确率或误认率。
-目前40张参考框均在画面内，但真实手掌姿态变化与标注误差仍存在。</p>
-<h2>自动框偏在哪里</h2><p>当前自动框与参考框的 IoU 中位数为 {summary['runtime_median_iou']:.3f}；{summary['runtime_iou_below_half']}/40 的 IoU 小于0.5。
-所以不仅是原先4张几何失败；部分通过边界/跨度检查的框也没有覆盖一致掌心区域。下表是重叠最差的9张，尺度单位为原图像素。</p>
-<table><tr><th>样本</th><th>IoU</th><th>自动边长</th><th>参考边长</th><th>边长比</th></tr>{worst}</table>
-<h2>自动修正原型：不隐藏失败结果</h2><ul>
-<li>先用分割范围放大再定位：DoN6/20、FastCC10/20、神经12/20，未启用。</li>
-<li>GrabCut轮廓细化＋三个指缝凹陷：16/40使用轮廓，其余保留heatmap；DoN7/20、FastCC4/20、神经13/20，未启用。部分轮廓仍受背景和指缝边界错误影响。</li>
-<li>现有手检测器去色＋四方向：19/40返回裁图，不用成功子集报准确率，未启用。一张原图的同输入OpenCV/ONNX对照中，输出差很小，未发现能解释该图失败的推理后端差异。</li></ul>
-<h2>下一处修复目标</h2><p>优先解决两个指缝的稳定定位，并用这些坐标分别量化端点误差、尺度误差与ROI重叠。
-对定位模型做相机域校准/微调时，当前40张只能作开发标注，必须另留新拍摄会话验收；不能拟合这40张后继续拿同批识别分数当验证。
-当前heatmap-v3代码保留，没有把目视参考点或失败原型接入默认识别，没有部署Pi。</p>
-<h2>可复现材料</h2><p><a href="annotations.json">参考坐标</a> · <a href="plan.json">规则与边界</a> · <a href="scored-input-hashes.json">评分前固定哈希</a> ·
-<a href="geometry-summary.json">逐图几何误差</a> · <a href="classical.json">全部传统分数</a> · <a href="neural.json">全部神经与RIA分数</a> ·
-<a href="../heatmap-v3-20261025/report.html">当前自动版报告</a></p>
-<h2>全部40张：绿框自动 / 青框参考</h2>'''
+<h1>Reference crops identify localization as the main current bottleneck</h1><p class="note">No images were removed and the matchers did not change. Substituting crops based on a consistent finger-valley rule raised FastCC from 11 to 19/20 and DoN from 11 to 17/20.
+This is a reference-coordinate experiment, not an automatic system achieving 19/20.</p>
+<h2>All 40 images / fixed 20 queries</h2><table><tr><th>Matcher</th><th>Legacy fusion</th><th>Current automatic heatmap</th><th>Reference finger-valley ROI</th></tr>{table}</table>
+<p>Enroll the first five images per hand and query the last five, scoring each identity by the median of five distances. All images remain, including failed localizations. Conventional matchers retain percentile normalization; the main neural comparison uses raw grayscale ROIs.
+Brightness normalization of the reference crop yielded 16/20 for neural matching. Query-only or two-sided RIA restoration did not add correct matches (17/20 raw, 16/20 normalized).</p>
+<h2>How reference coordinates were obtained</h2><p>The 40 originals were displayed under randomized identifiers without previous predictions or matching scores. The index–middle and ring–little finger valleys and a point on the palm side were marked by visual inspection. All crops used the original PalmKit alpha=0.15、beta=1.2 setting.
+All crops were visually reviewed, then coordinates and pixel hashes frozen before scoring. A finger-valley point on S05 was corrected before scoring and the correction was logged.</p>
+<p><strong>Limitations:</strong>The assistant's visual estimates were not independently reviewed and are not a manual gold standard. Previous access to the data and identities precludes calling this blinded. Two people and four hands do not establish an independent accuracy or false-match rate from 19/20.
+All 40 reference boxes fall inside the frame. Variation in real pose and annotation error remain possible.</p>
+<h2>Where the automatic boxes differ</h2><p>Median intersection-over-union (IoU) between automatic and reference boxes: {summary['runtime_median_iou']:.3f}；{summary['runtime_iou_below_half']} /40 have IoU below 0.5.
+The problem extends beyond the four geometry failures. Some boxes pass boundary and span checks without covering a consistent palm region. Below are the 9 lowest-overlap cases; lengths are in original-image pixels.</p>
+<table><tr><th>Sample</th><th>IoU</th><th>Automatic side length</th><th>Reference side length</th><th>Side-length ratio</th></tr>{worst}</table>
+<h2>Automatic correction prototypes, including failed attempts</h2><ul>
+<li>Enlarging the segmentation extent before localization gave DoN 6/20, FastCC 10/20 and neural matching 12/20; not enabled.</li>
+<li>GrabCut contour refinement plus three finger-valley indentations used contours on 16/40 and retained the heatmap elsewhere. DoN 7/20, FastCC 4/20, neural 13/20; not enabled. Background and finger-gap boundary errors persisted.</li>
+<li>Desaturating the input and trying four orientations returned 19/40 crops. No accuracy was reported on only the successful subset; not enabled. An OpenCV/ONNX comparison on identical input for one failed image showed little difference and did not implicate the inference backend.</li></ul>
+<h2>Next repair target</h2><p>First stabilize the two finger valleys. Measure endpoint error, scale error and ROI overlap separately against the coordinates.
+When calibrating or fine-tuning for this camera, use the 40 images only as development annotations and reserve fresh sessions for validation. Do not fit to these images and call their recognition scores a test.
+The heatmap-v3 implementation remains. Neither visual reference points nor failed prototypes entered default recognition; no Pi deployment.</p>
+<h2>Reproducibility</h2><p><a href="annotations.json">Reference coordinates</a> · <a href="plan.json">Rules and scope</a> · <a href="scored-input-hashes.json">Hashes frozen before scoring</a> ·
+<a href="geometry-summary.json">Per-image geometry error</a> · <a href="classical.json">All conventional scores</a> · <a href="neural.json">All neural and RIA scores</a> ·
+<a href="../heatmap-v3-20261025/report.html">Current automatic pipeline report</a></p>
+<h2>All 40 images: automatic in green, reference in cyan</h2>'''
     for identity,name in sheets:text+=f'<details open><summary>{html.escape(identity)}</summary><img src="{name}"></details>'
     (out/'report.html').write_text(text+'</body></html>',encoding='utf-8')
     print(json.dumps({k:v for k,v in summary.items() if k!='geometry_errors'},indent=2))

@@ -10,46 +10,46 @@ def main():
     args=parser.parse_args();out=args.output
     read=lambda name:json.loads((out/name).read_text())
     results=read('neural.json')+read('classical.json')
-    names={'raw_both':'原始 ROI','raw_ria_both':'原始 + RIA（双侧）','raw_blend50_both':'原始 + 半强度恢复（双侧）',
-        'normalized_both':'亮度归一化','normalized_ria_both':'归一化 + RIA（双侧）','normalized_blend50_both':'归一化 + 半强度恢复（双侧）',
-        'raw_ria_probe':'原始 + RIA（仅查询）','raw_blend50_probe':'原始 + 半强度恢复（仅查询）',
-        'normalized_ria_probe':'归一化 + RIA（仅查询）','normalized_blend50_probe':'归一化 + 半强度恢复（仅查询）'}
+    names={'raw_both':'Raw ROI','raw_ria_both':'Raw + RIA (both sides)','raw_blend50_both':'Raw + half-strength restoration (both sides)',
+        'normalized_both':'Brightness normalization','normalized_ria_both':'Normalized + RIA (both sides)','normalized_blend50_both':'Normalized + half-strength restoration (both sides)',
+        'raw_ria_probe':'Raw + RIA (query only)','raw_blend50_probe':'Raw + half-strength restoration (query only)',
+        'normalized_ria_probe':'Normalized + RIA (query only)','normalized_blend50_probe':'Normalized + half-strength restoration (query only)'}
     rows=''
     for key,label in names.items():
         values=[next(r['correct'] for r in results if r['algorithm']==a and r['variant']==key and r['subset']=='all') for a in ('DoN','FastCC','local_training_matcher')]
         rows+='<tr><td>'+label+'</td>'+''.join(f'<td>{v}/20</td>' for v in values)+'</tr>'
     check=read('checkpoint-check.json');stats=read('stats.json')['stats']
     alternative=''.join(f"<li>{html.escape(r['variant'])}: {r['correct']}/20</li>" for r in check['existing_checkpoint_alternatives'])
-    text=f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>本地恢复模型排查</title>
+    text=f'''<!doctype html><html lang="en"><meta charset="utf-8"><title>Local restoration model audit</title>
 <style>body{{max-width:1100px;margin:40px auto;padding:0 24px;font:17px/1.65 system-ui;color:#213547;background:#f8fafc}}table{{width:100%;border-collapse:collapse;background:white}}td,th{{border:1px solid #cbd5e1;padding:10px;text-align:left}}.note{{padding:18px;background:#e0f2fe;border-radius:10px}}img{{max-width:100%}}details{{margin:20px 0}}a{{color:#0369a1}}</style><body>
-<h1>本地 PalmIR 式恢复：有什么实际可改</h1><p class="note">现有权重在相机 ROI 上几乎输出原图。
-目前测到的一分提升来自亮度归一化，不能归功于恢复。ROI 修复已保留，恢复没有强制接入默认匹配。</p>
-<p><a href="../heatmap-v3-20261025/report.html">ROI 修复报告与最新补丁</a></p>
-<h2>全部 40 张，固定 20 张录入 / 20 张查询</h2><p>固定 heatmap ROI、原划分、身份内距离中位数。
-不做质量或几何筛样本。参数菜单在此次评分前写入 plan.json；这批图已用于多轮排查，所有结果都是开发集探索。
-DoN/FastCC 本来已有百分位归一化；神经 matcher 原来直接接收 0–1 原像素。</p>
-<table><tr><th>输入方式</th><th>DoN</th><th>FastCC</th><th>配套神经 matcher</th></tr>{rows}</table>
-<h2>模型是否没有正确加载</h2><p>RIA、matcher、checkpoint 和模型实现哈希一致，配套关系核验通过。
-models.py、data.py、losses.py、training.py 都与训练 provenance 一致。</p>
-<ul><li>相机原始输入：平均像素改变 {stats['raw']['mean_abs_change_8bit']:.3f}/255。</li>
-<li>归一化输入：平均像素改变 {stats['normalized']['mean_abs_change_8bit']:.3f}/255。</li>
-<li>40 张原始输入 PyTorch 对 ONNX 最大绝对误差 {check['parity']['raw']['max_abs_error']:.8f}（0–1 标度），两者均几乎原样返回。</li></ul>
-<p>另取训练域预先选定的 8 个不同掌类别各一张图，加 Gaussian σ=1.5 做响应检查：平均输出改变约 11.07/255，
-平均像素误差从 0.04991 降为 0.02127。说明网络并非无条件恒等映射；这是训练图上的合成响应检查，不是独立恢复性能验证。</p>
-<h2>替换已有恢复权重的对照</h2><p>同一配套神经 matcher，CPU PyTorch，完整 20 查询；只读已有 checkpoint，没有重训。</p><ul>{alternative}</ul>
-<h2>可行的改法及证据边界</h2><ol>
-<li><strong>先统一输入和 ROI。</strong>归一化单独有 14→15/20 的开发集变化，但还需新会话验证。错误裁框不能靠局部恢复器补救。</li>
-<li><strong>针对相机域设计训练。</strong>当前训练集是固定 PolyU-II 掌类别 ROI，退化只有 Gaussian / motion blur（另有 10% clear），没有相机域曝光、噪声、压缩、缩放与裁框扰动的联合训练。
-可以用训练身份生成这些退化，保留原图做监督，加入清晰输入的保持约束；各因素应单独消融。这是待验证路线，不能据当前结果断言必然有效，也不代表这批相机图就是模糊。</li>
-<li><strong>匹配最终识别目标。</strong>现有 RIA 的身份损失来自冻结 PalmMatcher 的特征，而默认 demo 使用 DoN。若最终采用神经 matcher，应配套验证整个链；若保留 DoN，需要用独立开发数据验证恢复对其距离分离是否改善，不能假定 RIA 会迁移。</li>
-<li><strong>验证增益而非只看锐化。</strong>比较不恢复、仅归一化、pixel、RIA；留出新身份和新拍摄会话，记录同手与异手分数。当前40张不再作为独立测试。没有真实配对参考时，不把同一人另一张照片直接当逐像素恢复目标。</li></ol>
-<p>这轮没有启动训练、下载模型、改变研究队列或部署到 Pi；也没有把恢复强度开大当作修复。现有权重不支持“加恢复就会改善”的结论。</p>
-<h2>复现与逐图结果</h2><p><a href="plan.json">固定实验菜单</a> · <a href="neural.json">神经匹配完整分数</a> ·
-<a href="classical.json">传统匹配完整分数</a> · <a href="checkpoint-check.json">checkpoint 校验与响应检查</a> · <a href="stats.json">输出变化与模型信息</a></p>
-<p>运行 tools/audit_restoration_adaptation.py &lt;heatmap-replay&gt; &lt;new-output&gt;；
-再用现有 PyTorch 环境运行 tools/check_restoration_checkpoint.py &lt;experiment&gt; &lt;output&gt;。</p>
+<h1>Local PalmIR-style restoration: what could improve?</h1><p class="note">The existing weights return nearly unchanged camera ROIs.
+The one additional correct match came from brightness normalization, not restoration. The ROI repair remains; restoration is not forced into the default matcher.</p>
+<p><a href="../heatmap-v3-20261025/report.html">ROI repair report and latest patch</a></p>
+<h2>All 40 images; fixed 20 enrollments / 20 queries</h2><p>Fixed heatmap crops, original split and median distance within identity.
+No filtering by quality or geometry. The parameter menu was saved to plan.json before scoring. These images have been examined repeatedly, so all results are exploratory development findings.
+DoN/FastCC already used percentile normalization; the neural matcher previously received raw pixels on a 0–1 scale.</p>
+<table><tr><th>Input configuration</th><th>DoN</th><th>FastCC</th><th>Paired neural matcher</th></tr>{rows}</table>
+<h2>Was the wrong model loaded?</h2><p>RIA, matcher, checkpoint and implementation hashes agree; the pairing was verified.
+models.py, data.py, losses.py and training.py match training provenance.</p>
+<ul><li>Raw camera input: mean pixel change {stats['raw']['mean_abs_change_8bit']:.3f}/255。</li>
+<li>Normalized input: mean pixel change {stats['normalized']['mean_abs_change_8bit']:.3f}/255。</li>
+<li>Maximum absolute PyTorch–ONNX error on 40 raw inputs {check['parity']['raw']['max_abs_error']:.8f} (0–1 scale); both return nearly unchanged images.</li></ul>
+<p>One preselected image from each of 8 different training-domain palm classes received Gaussian blur, sigma=1.5, for a response check. Mean output change was about 11.07/255;
+ mean pixel error fell from 0.04991 to 0.02127. The network is not unconditionally an identity mapping. This synthetic response on training images does not establish independent restoration performance.</p>
+<h2>Control: substitute existing restoration weights</h2><p>Same paired neural matcher, CPU PyTorch, all 20 probes. Existing checkpoints were read only; no retraining.</p><ul>{alternative}</ul>
+<h2>Possible improvements and limits of evidence</h2><ol>
+<li><strong>First standardize inputs and ROIs.</strong>Normalization alone shifted development results from 14 to 15/20; new sessions are needed. A local restorer cannot recover a wrongly placed crop.</li>
+<li><strong>Design for the camera domain.</strong>Training used fixed PolyU-II palm-class ROIs with Gaussian or motion blur and 10% clear inputs. It did not combine camera exposure, noise, compression, scale and localization perturbations.
+Generate such degradations using training identities, keep original images for supervision, and constrain changes to clear inputs. Ablate each factor separately. This remains a proposal, not proof of benefit or that the camera images are blurred.</li>
+<li><strong>Match the final recognition objective.</strong>RIA's identity loss uses frozen PalmMatcher features; the default demo uses DoN. A neural matcher requires end-to-end validation; for DoN, test distance separation on independent development data rather than assuming transfer.</li>
+<li><strong>Validate recognition gains, not just apparent sharpness.</strong>Compare no restoration, normalization only, pixel restoration and RIA. Hold out identities and sessions and record same- and different-hand scores. The current 40 are not independent. Without a paired reference, do not treat another photo of the person as a pixel-aligned target.</li></ol>
+<p>This round did not train, download weights, change the research queue, deploy to Pi, or increase restoration strength as a substitute for a fix. These weights do not support a general claim of benefit.</p>
+<h2>Reproducibility and per-image outcomes</h2><p><a href="plan.json">Frozen experiment menu</a> · <a href="neural.json">Full neural matching scores</a> ·
+<a href="classical.json">Full conventional matching scores</a> · <a href="checkpoint-check.json">Checkpoint integrity and response checks</a> · <a href="stats.json">Output changes and model details</a></p>
+<p>Run tools/audit_restoration_adaptation.py &lt;heatmap-replay&gt; &lt;new-output&gt;;
+ then run tools/check_restoration_checkpoint.py &lt;experiment&gt; &lt;output&gt; in the existing PyTorch environment.</p>
 '''
-    for start in range(0,40,10):text+=f'<details><summary>样本 {start+1}–{start+10}：六种输入/输出对照</summary><img src="comparison-{start}.jpg"></details>'
+    for start in range(0,40,10):text+=f'<details><summary>Sample {start+1}–{start+10}: six input/output comparisons</summary><img src="comparison-{start}.jpg"></details>'
     (out/'report.html').write_text(text+'</body></html>',encoding='utf-8')
     print(out/'report.html')
 
