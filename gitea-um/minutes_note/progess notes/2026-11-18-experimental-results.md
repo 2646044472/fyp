@@ -13,6 +13,8 @@ This report asks four questions: Can the localizer find a usable palm region? Ho
 
 **Reading the counts:** *Rank-1* asks whether the correct hand ranked first. *EER* is the equal error rate from a threshold sweep; lower is better. *ROI* is the palm region cropped for recognition. A probe that could not be ranked disappears from a rankable-only denominator, but it still counts as a failed attempt in the full planned denominator.
 
+[Follow-up comparisons: crop winding, gallery compatibility, boundary repair, selected white-background examples and the seed-by-seed audit](2026-11-18-follow-up-comparisons.md).
+
 ## 1. Cross-dataset baselines and fixed-gallery comparisons
 
 ### Table 1. Rank-1 across 10 datasets and 4 crop methods
@@ -199,7 +201,7 @@ Times exclude the camera, interface, network and startup. Access-control false a
 
 ### Table 13. Authors' CompNet: X-Palm spread-finger / roll conditions
 
-Both headline figures average three runs. The paper did not publish the corresponding seeds. The local author-code protocol selected models by test EER; this is not an independent blind test. Each run used 38 queries, 38 genuine and 1,406 impostor pairs. Splitting by hand left 22 people in both training and evaluation.
+Both headline figures average three runs. The paper did not publish the corresponding seeds. The local author-code protocol selected models by test EER; this is not an independent blind test. Each run used 38 queries, 38 genuine and 1,406 impostor pairs. Splitting by hand left 22, 30 and 28 people in both training and evaluation for seeds 42, 43 and 44 respectively.
 
 | Source | EER ↓ | Rank‑1 ↑ |
 | --- | --- | --- |
