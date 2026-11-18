@@ -262,7 +262,7 @@ Use camera enrollment with institutional approval and participant consent.
 ACCEPT/REJECT includes distance, threshold and pipeline time. Thresholds are
 provisional. RGB and NoIR+IR use separate profiles/templates; check the camera
 index. Changing matcher/ROI mode needs re-enrollment. NoIR+IR is not automatically
-palm-vein recognition. The retired CLI is under `../../archive/palm_demo_legacy/`.
+palm-vein recognition. The earlier CLI was retired; use the current web entry point.
 
 ## Capture and analyze
 
@@ -392,7 +392,7 @@ Remove both user .npz and .json files under runtime/templates to delete a
 template. Original camera frames are saved by explicit debug collection.
 Keep originals and manifests when cleaning derived results.
 
-The old dataset tools are archived under `../../archive/palm_demo_legacy/tools/`.
+The old standalone dataset tools are retired; use the maintained experiment protocols and tools above.
 Install requirements-dev.txt and the pinned matcher before reproducing them.
 Labels use P_F_<identity>_<sample>.bmp;
 this does not establish Pi-camera accuracy. See [source manifest](data/SOURCE_MANIFEST.md)

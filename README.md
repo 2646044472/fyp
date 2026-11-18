@@ -1,35 +1,12 @@
 # FYP: Palmprint recognition
 
-This repository combines an active Raspberry Pi demo with dataset and model experiments, research notes, and archived work. Directory paths are intentionally left in place because scripts and experiment records may depend on them.
+This project studies how to locate a palm in a camera frame and recognize the correct enrolled hand without mistaking an unusable image for a successful match.
 
-## Start here
-
-- [School project handoff](gitea-um/README.md): original meeting notes and demo code, plus dated progress reports and offline evaluation findings.
-
-- [`current.md`](current.md): latest handoff and project status.
-- [`AGENTS.md`](AGENTS.md): repository guardrails for data handling, experiments, and Pi validation.
-- [`code/README.md`](code/README.md): code-workspace map.
-- [`code/palm_demo/README.md`](code/palm_demo/README.md): active camera demo, matcher options, experiment summaries, setup, tests, and deployment notes.
-- [`code/pklnet/README.md`](code/pklnet/README.md): PKLNet ROI model and extractor.
-
-## Dataset experiments
-
-For dataset work, start with `code/palm_demo/docs/protocols/`, then follow each protocol to its relevant script under `code/palm_demo/tools/`. Check the protocol's data source, split, and limitations before interpreting a result. The `code/palm_demo/runtime/` directory holds local experiment runs, checkpoints, caches, and outputs; some scripts use those exact paths.
-
-- `code/data/`: capture and evaluation datasets. Preserve the current files and local links; do not move or publish raw palm images, ROIs, templates, feature caches, or per-sample identity/score records without provenance review and explicit approval.
-- `code/palm_demo/runtime/`: local generated results and model artifacts. Keep out of Git; do not force-add or relocate it.
-- `offline_tongji_roi_audit/`: separate offline comparison workspace, not a Pi runtime dependency.
-
-## Repository map
-
-| Path | Purpose |
+| Start here | Contents |
 | --- | --- |
-| `code/palm_demo/` | Active Raspberry Pi camera demo, application code, tests, tools, and experiment protocols. |
-| `code/pklnet/` | PKLNet ROI model and extractor. |
-| `docs/meeting minutes/`, `minutes/`, `minutes_note/` | Dated meeting and project notes. |
-| `research/`, `.research/`, `idea/` | Research notes, reconciliation, and proposed directions. |
-| `archive/` | Historical workflows. These are not the active deployment path. |
+| [code/](code/README.md) | Raspberry Pi application, offline ROI and evaluation utilities, PKLNet integration and experiment-dependency checks. |
+| [gitea-um/](gitea-um/README.md) | School-facing project handoff: meeting minutes, dated progress reports, dataset comparisons and runnable research examples. |
 
-## Working safely
+For the offline research, read [Progress Reports](gitea-um/progress_reports/README.md), then run the [synthetic training and geometry checks](gitea-um/research_code/README.md). For the device application, start with the [Pi demo guide](code/palm_demo/README.md). The offline experiments are not a new Pi hardware acceptance test.
 
-Keep captures, model weights, experiment manifests, and results in their established locations. Avoid broad staging commands: this checkout may contain local dataset links, uncommitted experiments, and generated files. Stage only reviewed source or aggregate documentation. Treat local replay results as distinct from independent generalization or fresh Pi 5 validation.
+Historical root-level notes and retired workflows were separated from active code. This layout change does not alter Git history or certify earlier commits as free of private data. Follow the [project data-handling rules](AGENTS.md); do not stage local captures, templates, caches, unverified weights or workstation-specific outputs.
