@@ -1,16 +1,16 @@
-# 2026-11-18｜掌纹识别实验：结果、比较条件与取舍
+# 18 November 2026 | Palm recognition: results, comparison conditions and trade-offs
 
-这份报告汇总四组问题：定位器是否找到可用掌区；同一图库下认对多少；陌生人是否被误接；离线结果能否迁移到新条件。表中“正确”按同人同手计。每张表列出自己的分母、训练暴露或可比性限制。不同批次不合并为一个总准确率。
+This report asks four questions: Can the localizer find a usable palm region? How often does the correct hand rank first against a fixed gallery? Are unknown hands falsely accepted? Do offline findings transfer to a different setting? A correct match requires the same person and hand. Each table states its own denominator and any relevant training exposure or comparison limits. Results from different cohorts are not pooled.
 
-[English project narrative, methods and training diagnostics](2026-11-18.md) · [报告目录](README.md)
+[Project narrative, methods and training diagnostics](2026-11-18.md) · [Report index](README.md)
 
-## 一、跨数据集基线与固定图库复核
+## 1. Cross-dataset baselines and fixed-gallery comparisons
 
-### 跨库 Rank‑1｜10组数据 × 4种掌心裁剪
+### Table 1. Rank-1 across 10 datasets and 4 crop methods
 
-正确数 / 可排名查询数；— 为无该结果。分母随裁剪、有效图库或实验批次而变，不能按列直接求平均。
+Correct matches / rankable probes. A dash means no result is reported. Denominators vary with the crop, usable gallery or experimental cohort; do not average the columns.
 
-| 数据集 | 识别器 | 参考 / 既有ROI | PKLNet-v5 | 21点 letterbox | RTM |
+| Dataset | Recognizer | Reference / existing ROI | PKLNet-v5 | 21-point letterbox | RTM |
 | --- | --- | --- | --- | --- | --- |
 | MPD / PalmSet | PB | 699/700 | 514/614 | 402/657 | 331/700 |
 | MPD / PalmSet | SF2 | 700/700 | 529/614 | 312/657 | 249/700 |
@@ -22,8 +22,8 @@
 | 11KHands | SF2 | 120/120 | 128/134 | 185/185 | — |
 | Axon | PB | — | 25/44 | 48/59 | 29/42 |
 | Axon | SF2 | — | 29/44 | 53/59 | 24/42 |
-| 自采 | PB | — | 59/94 | 50/60 | 61/87 |
-| 自采 | SF2 | — | 63/94 | 51/60 | 52/87 |
+| Project captures | PB | — | 59/94 | 50/60 | 61/87 |
+| Project captures | SF2 | — | 63/94 | 51/60 | 52/87 |
 | Public99 | PB | 486/518 | — | — | 719/814 |
 | Public99 | SF2 | 496/518 | — | — | 624/814 |
 | SMPD | PB | — | — | — | 248/2,568 |
@@ -33,13 +33,13 @@
 | BJTU | PB | 366/400 | — | — | — |
 | BJTU | SF2 | 380/400 | — | — | — |
 
-**如何解读：** 先读分母。同一个数据库里，不同定位器失败的图片未必相同；某一列的正确率较高，可能只是留下了容易的查询。下一张表看验证分数；表3和表4才进一步固定比较条件。
+**Interpretation:** Localizers can fail on different images from the same dataset. A higher conditional success rate may simply mean the easier queries remained. Table 2 reports verification scores; tables 3 and 4 hold more of the comparison fixed.
 
-### 跨库 EER｜与表1逐格对应
+### Table 2. Cross-dataset EER, aligned cell by cell with table 1
 
-单位 %。PalmSet 有训练图重叠；X‑Palm 历史测试曾用于开发；TCD 可能同源；Public99 派生自11KHands。
+Values are percentages. PalmSet overlaps with training images; the historical X-Palm test set was used during development; TCD may share a source with training data; Public99 derives from 11KHands.
 
-| 数据集 | 识别器 | 参考 / 既有ROI | PKLNet-v5 | 21点 letterbox | RTM |
+| Dataset | Recognizer | Reference / existing ROI | PKLNet-v5 | 21-point letterbox | RTM |
 | --- | --- | --- | --- | --- | --- |
 | MPD / PalmSet | PB | 0.95% | 9.47% | 21.83% | 28.43% |
 | MPD / PalmSet | SF2 | 0.16% | 10.59% | 30.52% | 35.14% |
@@ -51,8 +51,8 @@
 | 11KHands | SF2 | 0.83% | 4.20% | 4.32% | — |
 | Axon | PB | — | 20.46% | 16.59% | 10.20% |
 | Axon | SF2 | — | 22.73% | 11.86% | 19.05% |
-| 自采 | PB | — | 27.45% | 13.33% | 24.14% |
-| 自采 | SF2 | — | 20.21% | 13.33% | 32.18% |
+| Project captures | PB | — | 27.45% | 13.33% | 24.14% |
+| Project captures | SF2 | — | 20.21% | 13.33% | 32.18% |
 | Public99 | PB | 5.99% | — | — | 7.62% |
 | Public99 | SF2 | 4.99% | — | — | 15.90% |
 | SMPD | PB | — | — | — | 42.63% |
@@ -62,195 +62,195 @@
 | BJTU | PB | 7.40% | — | — | — |
 | BJTU | SF2 | 8.00% | — | — | — |
 
-### 固定图库｜X‑Palm 的配对比较
+### Table 3. Paired X-Palm comparison with a fixed gallery
 
-同一131个查询、同一每手五模板图库；不是表1中136个查询的参考组。
+Both methods use the same 131 probes and five gallery templates per hand. This is not the 136-probe reference group in table 1.
 
-| 识别器 | 参考裁剪正确 | PKL正确 | 正确数净变化 |
+| Recognizer | Reference crop: correct | PKL correct | Net change in correct count |
 | --- | --- | --- | --- |
 | PB | 106/131 | 76/131 | −30 |
 | SF2 | 95/131 | 58/131 | −37 |
 
-### 固定阈值｜X‑Palm 的陌生人拒识
+### Table 4. Unknown-hand rejection on X-Palm at a fixed threshold
 
-同一 PB 门槛、19手×5模板；124个已知查询、98个陌生查询。
+The PalmBridge threshold is unchanged. The gallery contains 19 hands × 5 templates; the test includes 124 known and 98 unknown probes.
 
-| ROI | 正确接纳 | 错误接纳（已知） | 拒绝已知 | 误接陌生 |
+| ROI | Correct accepts | Wrong accepts (known) | Known rejected | Unknown false accepts |
 | --- | --- | --- | --- | --- |
-| 参考 | 61/124 | 0/124 | 63/124 | 0/98 |
+| Reference | 61/124 | 0/124 | 63/124 | 0/98 |
 | PKL | 28/124 | 1/124 | 95/124 | 3/98 |
-| 21点 | 42/124 | 2/124 | 80/124 | 7/98 |
+| 21-point | 42/124 | 2/124 | 80/124 | 7/98 |
 
-**如何解读：** 固定图库后，X-Palm 的 PB 和 SF2 都因更换裁剪方式而损失正确匹配。固定同一拒识门槛时，PKL 和 21 点路线也并非只增加拒绝：部分陌生查询被错误接纳。不能用闭集排名代替门禁验收。
+**Interpretation:** With the gallery held fixed, changing crops cost both PalmBridge and SF2 correct matches. With the rejection threshold held fixed, PKL and the 21-point approach also accepted some unknown hands. Closed-set rank is not an access-control acceptance test.
 
-## 二、大图库、训练暴露与拒识门槛
+## 2. Full-gallery evaluation, training exposure and rejection thresholds
 
-### MPD 全库｜固定图库、包含未裁出查询
+### Table 5. Full MPD gallery: include planned queries without usable crops
 
-200人；计划800张登记，三种识别器共用771张有效图库。第二场次是全体的子集。
+200 people and 800 planned enrollment images. All three recognizers share the same 771 usable gallery images. The second-session rows are subsets of the full cohort.
 
-| 识别器 | 范围 | 计划查询 | 正确 | 错人 | 同人错手 | 查询无ROI | 缺正确模板 |
+| Recognizer | Scope | Planned queries | Correct | Wrong person | Same person, wrong hand | Probe without ROI | Missing correct template |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| FlowPalm | 全体 | 15200 | 10321 | 4147 | 10 | 561 | 161 |
-| FlowPalm | 第二场次 | 8000 | 4753 | 2773 | 5 | 384 | 85 |
-| PB | 全体 | 15200 | 9675 | 4780 | 23 | 561 | 161 |
-| PB | 第二场次 | 8000 | 4509 | 3006 | 16 | 384 | 85 |
-| SF2 | 全体 | 15200 | 10396 | 4073 | 9 | 561 | 161 |
-| SF2 | 第二场次 | 8000 | 4877 | 2649 | 5 | 384 | 85 |
+| FlowPalm | All | 15200 | 10321 | 4147 | 10 | 561 | 161 |
+| FlowPalm | Second session | 8000 | 4753 | 2773 | 5 | 384 | 85 |
+| PB | All | 15200 | 9675 | 4780 | 23 | 561 | 161 |
+| PB | Second session | 8000 | 4509 | 3006 | 16 | 384 | 85 |
+| SF2 | All | 15200 | 10396 | 4073 | 9 | 561 | 161 |
+| SF2 | Second session | 8000 | 4877 | 2649 | 5 | 384 | 85 |
 
-### MPD 暴露分层｜同一全库实验
+### Table 6. MPD results by prior training exposure, using the same gallery
 
-按PB/SF2历史名单分组，不代表FlowPalm预训练未见过这些人。
+Groups follow the historical PalmBridge/SF2 training and development lists. Absence from those lists does not establish that FlowPalm pretraining excluded these people.
 
-| 分组 | 人 | FlowPalm 正确 | PB 正确 | SF2 正确 |
+| Group | People | FlowPalm correct | PalmBridge correct | SF2 correct |
 | --- | --- | --- | --- | --- |
-| 历史训练 | 160 | 8203/12160 | 8706/12160 | 8799/12160 |
-| 历史开发 | 20 | 1099/1520 | 564/1520 | 850/1520 |
-| 两名单以外 | 20 | 1019/1520 | 405/1520 | 747/1520 |
+| Historical training | 160 | 8203/12160 | 8706/12160 | 8799/12160 |
+| Historical development | 20 | 1099/1520 | 564/1520 | 850/1520 |
+| Outside both lists | 20 | 1019/1520 | 405/1520 | 747/1520 |
 
-**如何解读：** 全库表对应实际计划查询；分层表检查历史训练暴露。PB/SF2 在训练人群以外降幅明显，但不能因此称 FlowPalm 是盲测冠军，因为外部模型的训练名单未知。
+**Interpretation:** Table 5 counts every planned query. Table 6 shows that PalmBridge and SF2 scores drop outside their training group. FlowPalm's pretraining identities are unknown, so the subset does not establish a blind-test winner.
 
-### MPD 边界修正｜已知识别和陌生误接
+### Table 7. MPD crop-boundary correction: known-hand identification and false accepts
 
-12人；48登记、912查询。新增5张全部来自同人同手同设备同场次；陌生误接来自另一次四折。
+12 people, 48 enrollments and 912 queries. All 5 recovered crops came from the same person, hand, device and session. Unknown-hand false accepts come from a separate four-fold evaluation.
 
-| 识别器 | 严格定位正确 | 修正后正确 | 严格误接陌生 | 修正后误接陌生 |
+| Recognizer | Strict localization: correct | Correct after correction | Strict: unknown false accepts | Unknown false accepts after correction |
 | --- | --- | --- | --- | --- |
 | PB | 903/912 | 908/912 | 77/912 | 77/912 |
 | SF2 | 898/912 | 903/912 | 159/912 | 164/912 |
 | Mobile | 902/912 | 907/912 | 72/912 | 72/912 |
 
-### 拒识迁移｜同一组已锁定门槛
+### Table 8. Transferring the same locked rejection thresholds
 
-分数校正不是无代价改善。MPD校准仅94个有效分数；X‑Palm只有4个已知人、3个陌生人。
+Score correction has a cost. MPD calibration had only 94 valid scores; X-Palm included only 4 known and 3 unknown people.
 
-| 数据 | 措施 | 正确接纳已知 | 误接陌生 |
+| Data | Intervention | Known correct accepts | Unknown false accepts |
 | --- | --- | --- | --- |
-| MPD | 原始 | 1365/1440 | 2/480 |
-| MPD | 校正 | 1398/1440 | 0/480 |
-| X‑Palm | 原始 | 55/104 | 0/78 |
-| X‑Palm | 校正 | 75/104 | 3/78 |
+| MPD | Uncorrected | 1365/1440 | 2/480 |
+| MPD | Corrected | 1398/1440 | 0/480 |
+| X‑Palm | Uncorrected | 55/104 | 0/78 |
+| X‑Palm | Corrected | 75/104 | 3/78 |
 
-**如何解读：** MPD 校准上，修正既多接受正确人、又少误接；迁移到 X-Palm 后，正确接纳上升的同时出现3次陌生误接。因此不把开发集的单一门槛直接移到新设备。
+**Interpretation:** On MPD, correction admitted more known hands and fewer unknown hands. On X-Palm, it improved correct acceptance but introduced 3 unknown-hand false accepts. Do not carry a single development threshold to a new device without validation.
 
-## 三、定位失败、替代方案与 Pi 离线复测
+## 3. Localization failures, fallback routes and offline Pi replay
 
-### 白底｜自采同94张查询
+### Table 9. White-background localization on the same 94 project-capture queries
 
-白底只给定位器；识别仍从原图取纹。固定54张登记。
+Only the localizer receives the white-background image. Texture is cropped from the original image. The 54 enrollment images are fixed.
 
-| 识别器 | 定位输入 | 正确 | 错误 | 未出结果 |
+| Recognizer | Localizer input | Correct | Wrong | No output |
 | --- | --- | --- | --- | --- |
-| SF2 | 原图 | 62 | 17 | 15 |
-| SF2 | 白底 | 66 | 20 | 8 |
-| SF2 | 修补白底 | 66 | 25 | 3 |
-| PB | 原图 | 60 | 19 | 15 |
-| PB | 白底 | 58 | 28 | 8 |
-| PB | 修补白底 | 60 | 31 | 3 |
+| SF2 | Original image | 62 | 17 | 15 |
+| SF2 | White background | 66 | 20 | 8 |
+| SF2 | Repaired white background | 66 | 25 | 3 |
+| PB | Original image | 60 | 19 | 15 |
+| PB | White background | 58 | 28 | 8 |
+| PB | Repaired white background | 60 | 31 | 3 |
 
-### 独立白底对照｜查询侧与两端处理
+### Table 10. Independent white-background comparison: query only vs both sides
 
-不同处理链，不能与表9合并。困难40是94张的子集。
+The processing pipeline differs from table 9; do not pool their results. The 40 difficult queries are a subset of the 94.
 
-| 处理 | 全94：对 / 错 / 无结果 | 困难40：对 / 错 / 无结果 |
+| Processing | All 94: correct / wrong / no output | Difficult 40: correct / wrong / no output |
 | --- | --- | --- |
-| 原图 | 68 / 20 / 6 | 16 / 19 / 5 |
-| 仅查询白底 | 67 / 21 / 6 | 16 / 19 / 5 |
-| 登记及查询白底 | 69 / 19 / 6 | 16 / 19 / 5 |
+| Original image | 68 / 20 / 6 | 16 / 19 / 5 |
+| White background on queries only | 67 / 21 / 6 | 16 / 19 / 5 |
+| White background for enrollment and query | 69 / 19 / 6 | 16 / 19 / 5 |
 
-**如何解读：** 修补白底使 SF2 没有输出的次数从15降到3，却让错误匹配从17升至25。独立的查询侧白底复核也未在困难40张上改善结果。保留原图裁纹和失败计数，不把有输出当成识别成功。
+**Interpretation:** With the repaired mask, SF2 failures fell from 15 to 3 but wrong matches rose from 17 to 25. The separate query-only comparison did not improve the difficult 40 cases either. Preserve original-image texture and failure counts: any output is not necessarily a correct match.
 
-### FETC 作者定位｜原始 RGB 对深度预处理
+### Table 11. Authors' FETC localization: original RGB vs depth preprocessing
 
-两端均对原图裁剪；列内顺序为认对 / 认错 / 无ROI，三项之和等于查询数。
+Both routes crop from the original. Each cell gives correct / wrong / no ROI; the three counts sum to the planned queries.
 
-| 数据 | 识别器 | 查询 | 原始RGB | 深度 |
+| Data | Recognizer | Queries | Original RGB | Depth |
 | --- | --- | --- | --- | --- |
-| 自采 | sf2net | 94 | 52 / 0 / 42 | 47 / 0 / 47 |
+| Project captures | sf2net | 94 | 52 / 0 / 42 | 47 / 0 / 47 |
 | X‑Palm | sf2net | 136 | 69 / 55 / 12 | 60 / 47 / 29 |
 | MPD | sf2net | 252 | 51 / 34 / 167 | 24 / 14 / 214 |
-| 自采 | palmbridge | 94 | 52 / 0 / 42 | 47 / 0 / 47 |
+| Project captures | palmbridge | 94 | 52 / 0 / 42 | 47 / 0 / 47 |
 | X‑Palm | palmbridge | 136 | 73 / 51 / 12 | 65 / 42 / 29 |
 | MPD | palmbridge | 252 | 47 / 38 / 167 | 22 / 16 / 214 |
 
-### 树莓派5｜离线整链
+### Table 12. Raspberry Pi 5: offline pipeline replay
 
-时间不含相机、界面、网络、启动；未测门禁误接。X‑Palm排除2个重复来源。
+Times exclude the camera, interface, network and startup. Access-control false accepts were not measured. Two duplicate source items were excluded from X-Palm.
 
-| 数据 | 路径 | 查询 | 正确 | 错误 | 无输出 | 中位秒 | P95秒 |
+| Data | Pipeline | Queries | Correct | Wrong | No output | Median (s) | P95 (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | MPD | YOLO + PB | 300 | 298 | 2 | 0 | 1.834 | — |
 | MPD | RTM + PB | 300 | 156 | 144 | 0 | 0.631 | — |
-| X‑Palm | 主路 | 207 | 144 | 43 | 20 | — | — |
-| X‑Palm | 主路＋失败备选 | 207 | 157 | 48 | 2 | 1.636 | 1.886 |
+| X‑Palm | Primary route | 207 | 144 | 43 | 20 | — | — |
+| X‑Palm | Primary plus fallback on failure | 207 | 157 | 48 | 2 | 1.636 | 1.886 |
 
-**如何解读：** 离线整链耗时不是相机到屏幕的等待时间。X-Palm 的备选路线多认对13次，也多认错5次；需在新用户和真实设备上评估拒识后才能决定是否启用。
+**Interpretation:** Offline runtime is not camera-to-screen latency. The X-Palm fallback added 13 correct matches and 5 wrong ones. Test rejection on new users and actual hardware before enabling it by default.
 
-## 四、作者方法复现、姿态增强与免裁剪识别
+## 4. Author-code reproduction, pose augmentation and crop-free recognition
 
-### 作者 CompNet｜X‑Palm 张指 / 侧滚
+### Table 13. Authors' CompNet: X-Palm spread-finger / roll conditions
 
-双方均为三次运行均值；论文未公布对应种子。本地按作者代码以测试EER选模型，非独立盲测。每次38查询、38真对/1406假对；按手切分，22人在训练和测试均出现。
+Both headline figures average three runs. The paper did not publish the corresponding seeds. The local author-code protocol selected models by test EER; this is not an independent blind test. Each run used 38 queries, 38 genuine and 1,406 impostor pairs. Splitting by hand left 22 people in both training and evaluation.
 
-| 来源 | EER ↓ | Rank‑1 ↑ |
+| Source | EER ↓ | Rank‑1 ↑ |
 | --- | --- | --- |
-| 论文三次均值 | 23.77% | 24.56% |
-| 本地 seed 42 | 34.71% | 3/38（7.89%） |
-| 本地 seed 43 | 34.28% | 6/38（15.79%） |
-| 本地 seed 44 | 40.68% | 5/38（13.16%） |
-| 本地三次均值 | 36.56% | 12.28% |
+| Paper three-run mean | 23.77% | 24.56% |
+| Local seed 42 | 34.71% | 3/38（7.89%） |
+| Local seed 43 | 34.28% | 6/38（15.79%） |
+| Local seed 44 | 40.68% | 5/38（13.16%） |
+| Local three-run mean | 36.56% | 12.28% |
 
-**如何解读：** 三次本地运行均值没有达到论文数字。这里有测试集选模型、按手而非按人切分和种子未知等限制；不能将差异归因为单一改动。
+**Interpretation:** The mean across three local runs did not match the paper. Test-set model selection, the hand-level split and unspecified paper seeds limit interpretation; no single change explains the gap.
 
-### 姿态样本与增强｜固定SF登记
+### Table 14. Pose examples and augmentation with fixed spread-finger enrollment
 
-历史测试14人、28只登记手；侧滚27次查询、俯仰28次。供体数不等于测试人数；D额外看64张受体真照。
+Historical test panel: 14 people, 28 enrolled hands, 27 roll probes and 28 pitch probes. Donor count is not test population size. Arm D also used 64 real recipient images.
 
-| 训练条件 | 供体数 | 侧滚 EER | 俯仰 EER |
+| Training condition | Donors | Roll EER | Pitch EER |
 | --- | --- | --- | --- |
-| A 常规 | 0 | 43.62% | 32.14% |
-| A 加供体 | 4 | 48.7% | 32.14% |
-| A 加供体 | 8 | 44.17% | 32.14% |
-| A 加供体 | 16 | 41.02% | 28.57% |
-| A 加供体 | 32 | 40.74% | 28.57% |
-| B 普通平滑形变 | 8 | 42.11% | 32.14% |
-| C 供体配对光流 | 8 | 49.38% | 32.14% |
-| D 额外受体真照 | 8 | 44.44% | 34.26% |
+| A: standard | 0 | 43.62% | 32.14% |
+| A: with donors | 4 | 48.7% | 32.14% |
+| A: with donors | 8 | 44.17% | 32.14% |
+| A: with donors | 16 | 41.02% | 28.57% |
+| A: with donors | 32 | 40.74% | 28.57% |
+| B: ordinary smooth deformation | 8 | 42.11% | 32.14% |
+| C: donor-paired optical flow | 8 | 49.38% | 32.14% |
+| D: extra real recipient images | 8 | 44.44% | 34.26% |
 
-### 供体重复抽样｜8人 × 3次
+### Table 15. Repeated donor selection: 8 people × 3 draws
 
-相同测试人，非独立测试集。C−B 为百分点，负数表示配对形变优于普通增强。
+The evaluation people remain the same; these are not independent test sets. C minus B is measured in percentage points; negative values favor paired deformation over ordinary augmentation.
 
-| 姿态 | 供体抽样 | A EER | B EER | C EER | C−B |
+| Pose | Donor draw | A EER | B EER | C EER | C−B |
 | --- | --- | --- | --- | --- | --- |
-| 侧滚 | 1 | 44.17% | 42.11% | 49.38% | +7.27 |
-| 侧滚 | 2 | 44.44% | 43.48% | 41.84% | -1.65 |
-| 侧滚 | 3 | 46.36% | 40.74% | 44.58% | +3.84 |
-| 俯仰 | 1 | 32.14% | 32.14% | 32.14% | +0.00 |
-| 俯仰 | 2 | 28.57% | 28.57% | 32.14% | +3.57 |
-| 俯仰 | 3 | 32.14% | 29.89% | 28.57% | -1.32 |
+| Roll | 1 | 44.17% | 42.11% | 49.38% | +7.27 |
+| Roll | 2 | 44.44% | 43.48% | 41.84% | -1.65 |
+| Roll | 3 | 46.36% | 40.74% | 44.58% | +3.84 |
+| Pitch | 1 | 32.14% | 32.14% | 32.14% | +0.00 |
+| Pitch | 2 | 28.57% | 28.57% | 32.14% | +3.57 |
+| Pitch | 3 | 32.14% | 29.89% | 28.57% | -1.32 |
 
-**如何解读：** 同样8名供体换一次抽样，配对形变相对普通增强的差值就能变号。没有稳定胜出的证据，不据此扩大生成训练。
+**Interpretation:** Changing the selected 8 donors reversed the sign of the difference between paired and ordinary deformation. The evidence did not justify scaling up generation on the assumption of a consistent benefit.
 
-### 冻结识别器｜同27次开发查询
+### Table 16. Frozen recognizers on the same 27 development probes
 
-14名开发人、28只登记手；架构、源库、输入大小均不同。
+14 development participants, 28 enrolled hands. Architectures, training sources and input sizes differ.
 
-| 权重 | 侧滚正确 | 侧滚 EER | 俯仰正确 | 俯仰 EER |
+| Weights | Roll correct | Roll EER | Pitch correct | Pitch EER |
 | --- | --- | --- | --- | --- |
 | Tongji ResNet18 | 8/27 | 25.93% | 13/27 | 22.36% |
 | MPD IRes18 | 2/27 | 44.44% | 5/27 | 36.49% |
 
-### 整手免裁剪｜只保留角落的对照
+### Table 17. Crop-free whole-hand recognition: corners-only control
 
-零样本角落只占2.04%；训练后角落定义不同，角落可能含手。结果是认对数/全查询。
+In the zero-shot control the corners occupy only 2.04% of the image. The trained model uses a different corner definition; corners may contain part of the hand. Counts are correct / all planned probes.
 
-| 输入 | 自采 | X‑Palm | MPD |
+| Input | Project captures | X‑Palm | MPD |
 | --- | --- | --- | --- |
-| 零样本整帧 | 56/94 | 77/136 | 33/252 |
-| 零样本仅角落 | 33/94 | 34/136 | 5/252 |
-| 训练后仅角落 | 40/94 | 42/136 | 14/252 |
+| Zero-shot: full frame | 56/94 | 77/136 | 33/252 |
+| Zero-shot: corners only | 33/94 | 34/136 | 5/252 |
+| Trained: corners only | 40/94 | 42/136 | 14/252 |
 
-**如何解读：** 只保留角落仍能得到一些正确结果。角落可能残留手部，也可能包含背景线索，因此整手模型认对并不能证明其依赖掌纹纹理。下一步应控制背景并使用未见过的人和设备。
+**Interpretation:** Some queries still matched correctly with only the corners visible. These may retain hand pixels or reveal background cues. Correct whole-hand identification does not prove that the model relied on palmprint texture. Control the background and use new people and devices.
 
-**证据范围：** 11月16日校正后的跨库历史汇总、固定图库与阈值记录，以及11月17–18日的 MPD 全库分层、边界与拒识、白底配对、FETC、Pi 离线、CompNet 三次运行与姿态实验汇总。上述仅为聚合数字；未收录个人身份、单张得分、掌纹样图或模型权重。
+**Evidence:** Corrected 16 November cross-dataset summaries and fixed-gallery/threshold records; 17–18 November full MPD gallery and exposure groups, crop borders and rejection, paired white-background and FETC analyses, offline Pi runs, three CompNet seeds and pose experiments. Only aggregate results are included; no identities, individual scores, palm images or weights are provided.

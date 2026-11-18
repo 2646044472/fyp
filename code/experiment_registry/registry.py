@@ -68,32 +68,32 @@ def inventory(runtime):
 def render(data, runs):
     by_id = validate(data)
     ids = sorted(set(runs) | set(by_id), key=lambda x: int(x[1:]))
-    lines = ['# 实验索引（本地控制层）', '',
-        f"人工状态核查：{data['reviewed_at']}。目录库存只记录存在，不推断完成或有效。", '',
-        '候选状态仅指指定候选臂；历史RTM/PKLNet/reference基线不因候选失效而一并作废。',
-        '所有旧产物原位保留。未核查项目不可据目录存在引用成绩。', '',
-        '| ID | 候选状态 | 依赖失效来源 | 目的 / 当前结论 |',
+    lines = ['# Experiment registry (local review index)', '',
+        f"Status reviewed: {data['reviewed_at']}. Directory presence alone does not establish completion or validity.", '',
+        'Candidate status applies only to the specified arm. An invalid candidate does not invalidate the historical RTM, PKLNet or reference baseline.',
+        'Historical artifacts remain in place. Do not cite results from an unreviewed directory.', '',
+        '| ID | Candidate status | Invalidated dependencies | Purpose / current conclusion |',
         '| --- | --- | --- | --- |']
     for key in ids:
         row = by_id.get(key)
         if row:
             bad = ', '.join(invalidation_sources(key, by_id)) or '—'
-            text = row['title'] + '；' + row['decision']
+            text = row['title'] + '; ' + row['decision']
             state = row['candidate_status']
         else:
-            bad, text, state = '—', '仅目录库存，尚未人工核查', 'unreviewed'
+            bad, text, state = '—', 'Directory listed; not yet reviewed', 'unreviewed'
         lines.append(f'| {key} | {state} | {bad} | {text.replace("|", "/")} |')
-    lines += ['', '## 实际运行目录入口', '',
-        '同一D号可能含多个attempt；此处不自动选择“最新”作为权威结果。人工核查条目见registry.json的evidence字段。', '']
+    lines += ['', '## Run directories', '',
+        'A D identifier may have multiple attempts. The newest is not automatically authoritative. See the evidence field in registry.json for reviewed entries.', '']
     for key in ids:
         lines.append(f'### {key}')
         for name in runs.get(key, []):
             lines.append(f'- [{name}](../code/palm_demo/runtime/{name}/)')
         if key not in runs:
-            lines.append('- 本次一级目录库存未发现入口，须沿来源报告核查。')
+            lines.append('- No matching top-level run directory was found in this inventory. Check the source report.')
         row = by_id.get(key)
         if row:
             for source in row.get('evidence', []):
-                lines.append(f'- 状态依据：[报告](../{source})')
+                lines.append(f'- Status evidence: [report](../{source})')
         lines.append('')
     return '\n'.join(lines)
