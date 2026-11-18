@@ -4,6 +4,8 @@ This repository combines an active Raspberry Pi demo with dataset and model expe
 
 ## Start here
 
+- [School project handoff](gitea-um/README.md): original meeting notes and demo code, plus dated weekly progress and offline evaluation findings.
+
 - [`current.md`](current.md): latest handoff and project status.
 - [`AGENTS.md`](AGENTS.md): repository guardrails for data handling, experiments, and Pi validation.
 - [`code/README.md`](code/README.md): code-workspace map.
