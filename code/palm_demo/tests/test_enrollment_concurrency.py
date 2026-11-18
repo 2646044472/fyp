@@ -79,13 +79,13 @@ def test_late_result_cannot_touch_new_session_and_capture_remains_busy(tmp_path)
         pending = flow.enrollment_step(token)
         assert pending['status'] == 'WAIT' and pending['retry_after_ms'] == 1000
         assert flow.enrollment_step(token, selection_only=True)['status'] == 'WAIT'
-        with pytest.raises(ValueError, match='采集正在进行'):
+        with pytest.raises(ValueError, match='Capture in progress'):
             flow.enrollment_commit(token, 'left')
         assert flow.enrollment_cancel(token)['status'] == 'CANCELLED'
         new = flow.enrollment_start('new_left', 'New', 'left')['token']
         busy = flow.enrollment_step(new)
         assert busy['status'] == 'WAIT' and busy['retry_after_ms'] == 1000
-        assert '上一张仍在处理' in busy['reason']
+        assert 'Previous frame still processing' in busy['reason']
         assert len(calls) == 1
         release.set()
         worker.join(2)

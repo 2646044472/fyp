@@ -52,7 +52,7 @@ def test_cancel_after_lost_confirmation_reports_committed_payment(tmp_path):
 def test_cancel_unconfirmed_request_still_blocks_confirmation(tmp_path):
     flow = make_flow(tmp_path)
     assert flow.cancel("one-request") == {"status": "CANCELLED"}
-    with pytest.raises(ValueError, match="过期"):
+    with pytest.raises(ValueError, match="expired"):
         flow.confirm("one-request", "p1")
     assert flow.payments.transaction_count() == 0
     assert flow.payments.balance_for("p1") == 10000
@@ -106,7 +106,7 @@ def test_wrong_identity_cannot_consume_or_reuse_another_persons_request(tmp_path
     flow = make_flow(tmp_path)
     if completed:
         flow.confirm("one-request", "p1")
-    with pytest.raises(ValueError, match="身份"):
+    with pytest.raises(ValueError, match="identity"):
         flow.confirm("one-request", "p2")
     assert flow.confirm("one-request", "p1")["status"] == "SUCCESS"
     assert flow.payments.balance_for("p1") == 8000

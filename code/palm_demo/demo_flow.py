@@ -26,28 +26,28 @@ ENROLLMENT_TIMEOUT_SECONDS = 600
 ENROLLMENT_FIVE_CANDIDATE_WAIT_SECONDS = 8
 
 CAPTURE_FAILURE_MESSAGES = {
-    "NO_HAND": "没有检测到手掌，请把手掌放入预览并移到画面中央。",
-    "ROI_UNSTABLE": "掌区检测尚未稳定，请展开手掌并保持不动，等状态就绪后继续。",
-    "ROI_GEOMETRY_INVALID": "检测到了掌区，但几何范围无效；请把整只手放入画面并调整距离。",
-    "CAMERA_BUSY": "相机正在拍摄，请稍候再试。",
-    "CAMERA_UNAVAILABLE": "暂时无法读取相机画面，请检查连接后重试。",
-    "CAPTURE_TIMEOUT": "相机没有及时提供新画面，请确认预览仍在更新；恢复后可以继续。",
-    "ROI_NOT_READY": "掌区状态尚未稳定，请等待预览显示就绪后继续采集。",
+    "NO_HAND": "No palm detected. Place your hand in the center of the preview.",
+    "ROI_UNSTABLE": "Palm detection is not stable yet. Open your hand, hold still and wait until ready.",
+    "ROI_GEOMETRY_INVALID": "Palm detected, but its geometry is invalid. Keep the whole hand in view and adjust the distance.",
+    "CAMERA_BUSY": "Camera busy capturing. Try again shortly.",
+    "CAMERA_UNAVAILABLE": "Camera frame temporarily unavailable. Check the connection and retry.",
+    "CAPTURE_TIMEOUT": "No fresh camera frame arrived in time. Check that the preview is updating, then continue.",
+    "ROI_NOT_READY": "Palm status is not stable yet. Wait for the preview to show ready before capturing.",
 }
 
 
 def enrollment_quality_issue(quality: dict[str, Any]) -> str | None:
     contrast, sharpness = float(quality.get("contrast", 0)), float(quality.get("sharpness", 0))
     if not np.isfinite([contrast, sharpness]).all():
-        return "掌区质量数据无效，请调整手掌位置后重试。"
+        return "Invalid palm quality data. Reposition your hand and retry."
     if sharpness < DEMO_CAPTURE_MIN_SHARPNESS:
-        return (f"画面偏模糊：锐度 {sharpness:.2f} / {DEMO_CAPTURE_MIN_SHARPNESS:.2f}，"
-                f"对比度 {contrast:.2f} / {DEMO_CAPTURE_MIN_CONTRAST:.2f}；"
-                "请稳住手掌并等待清晰画面，系统会自动重试。")
+        return (f"Image is blurry: sharpness {sharpness:.2f} / {DEMO_CAPTURE_MIN_SHARPNESS:.2f}, "
+                f"contrast {contrast:.2f} / {DEMO_CAPTURE_MIN_CONTRAST:.2f}; "
+                "hold still and wait for a clear frame. The system will retry automatically.")
     if contrast < DEMO_CAPTURE_MIN_CONTRAST:
-        return (f"掌区对比不足：锐度 {sharpness:.2f} / {DEMO_CAPTURE_MIN_SHARPNESS:.2f}，"
-                f"对比度 {contrast:.2f} / {DEMO_CAPTURE_MIN_CONTRAST:.2f}；"
-                "请调整光线或手掌位置，系统会自动重试。")
+        return (f"Insufficient palm contrast: sharpness {sharpness:.2f} / {DEMO_CAPTURE_MIN_SHARPNESS:.2f}, "
+                f"contrast {contrast:.2f} / {DEMO_CAPTURE_MIN_CONTRAST:.2f}; "
+                "adjust the lighting or hand position. The system will retry automatically.")
     return None
 
 
@@ -131,20 +131,20 @@ class DemoFlow:
         user_id = safe_user_id(user_id)
         display_name = display_name.strip()
         if not display_name or len(display_name) > 60:
-            raise ValueError("请输入 1–60 个字符的姓名。")
+            raise ValueError("Enter a name with 1–60 characters.")
         with self.lock:
             has_template = self.store.exists(user_id)
             if not has_template and user_id in self.store.list_template_ids():
-                raise ValueError("这个编号的模板文件不完整，请先检查已有记录。")
+                raise ValueError("Template files for this ID are incomplete. Check the existing record first.")
             has_account = self.payments.user_exists(user_id)
             refreshing = False
             if has_template or has_account:
                 if not (has_template and has_account):
-                    raise ValueError("这个编号的模板或账户不完整，请先检查已有记录。")
+                    raise ValueError("The template or account for this ID is incomplete. Check the existing record first.")
                 _, metadata = self.store.load(user_id)
                 refreshing = any(metadata.get(k) != v for k, v in self.gallery.required_metadata.items())
                 if not refreshing:
-                    raise ValueError("这个编号已经录入；请换一个编号。")
+                    raise ValueError("This ID is already enrolled. Choose another ID.")
                 display_name = self.payments.display_name_for(user_id)
             features = []
             sources = []
@@ -169,7 +169,7 @@ class DemoFlow:
                 try:
                     self.payments.create_account(user_id, display_name, 10000)
                 except Exception as error:
-                    raise RuntimeError("录入账户状态未确认，模板已保留；请检查已有记录。") from error
+                    raise RuntimeError("Account status is unconfirmed. The template was retained; check existing records.") from error
             self.pending.clear()
             response = {"user_id": user_id, "display_name": display_name,
                         "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
@@ -193,13 +193,13 @@ class DemoFlow:
         display_name = display_name.strip()
         request_display_name = display_name
         if not display_name or len(display_name) > 60 or hand not in ("left", "right"):
-            raise ValueError("请输入姓名并选择左手或右手。")
+            raise ValueError("Enter a name and choose left or right hand.")
         if request_token is not None and (len(request_token) != 32 or
                 any(char not in "0123456789abcdef" for char in request_token)):
-            raise ValueError("录入请求编号无效，请重新开始。")
+            raise ValueError("Invalid enrollment request ID. Start again.")
         for suffix in ("left", "right"):
             if user_id.lower().endswith("_" + suffix) and hand != suffix:
-                raise ValueError("编号末尾的手别与所选手别不一致。")
+                raise ValueError("The hand suffix in the ID does not match the selected hand.")
         with self.lock:
             if self.enrollment_session is not None and time.monotonic() - self.enrollment_session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
                 self._finish_enrollment(self.enrollment_session, "EXPIRED")
@@ -218,22 +218,22 @@ class DemoFlow:
                             "timeout_ms_remaining": max(0, int((ENROLLMENT_TIMEOUT_SECONDS - idle) * 1000)),
                             "timeout_seconds_remaining": max(0, math.ceil(ENROLLMENT_TIMEOUT_SECONDS - idle)),
                             "hand_check": "user_confirmation_required"}
-                raise ValueError("已有录入正在进行，请先取消。")
+                raise ValueError("An enrollment is already in progress. Cancel it first.")
             if request_token is not None and request_token in self.enrollment_request_states:
-                raise ValueError("该录入请求已结束，请重新开始。")
+                raise ValueError("This enrollment request has ended. Start again.")
             has_template, has_account = self.store.exists(user_id), self.payments.user_exists(user_id)
             if not has_template and user_id in self.store.list_template_ids():
-                raise ValueError("这个编号的模板文件不完整，请先检查已有记录。")
+                raise ValueError("Template files for this ID are incomplete. Check the existing record first.")
             if has_template != has_account:
-                raise ValueError("这个编号的模板或账户不完整，请先检查已有记录。")
+                raise ValueError("The template or account for this ID is incomplete. Check the existing record first.")
             refreshing = False
             if has_template:
                 _, metadata = self.store.load(user_id)
                 if metadata.get("hand_declared_by_user") not in (None, hand):
-                    raise ValueError("原编号的手别与本次选择不一致。")
+                    raise ValueError("The hand in the original ID differs from the selected hand.")
                 refreshing = any(metadata.get(k) != v for k, v in self.gallery.required_metadata.items())
                 if not refreshing:
-                    raise ValueError("这个编号已经录入；请换一个编号。")
+                    raise ValueError("This ID is already enrolled. Choose another ID.")
                 display_name = self.payments.display_name_for(user_id)
             started = time.monotonic()
             session = {"token": request_token or uuid.uuid4().hex, "diagnostic_id": uuid.uuid4().hex, "user_id": user_id,
@@ -259,7 +259,7 @@ class DemoFlow:
     def _active_enrollment(self, token: str) -> dict[str, Any]:
         session = self.enrollment_session
         if session is None or token != session["token"]:
-            raise ValueError("录入会话已失效，请重新开始。")
+            raise ValueError("Enrollment session expired. Start again.")
         return session
 
     def _finish_enrollment(self, session: dict[str, Any], status: str) -> None:
@@ -285,7 +285,7 @@ class DemoFlow:
                     # server and retain a token whose candidates were never
                     # committed; expose that terminal state to the UI.
                     return {"status": "LOST"}
-                raise ValueError("录入会话已失效，请重新开始。")
+                raise ValueError("Enrollment session expired. Start again.")
             elapsed = time.monotonic() - session["started"]
             idle = time.monotonic() - session["last_activity"]
             if idle >= ENROLLMENT_TIMEOUT_SECONDS:
@@ -352,7 +352,7 @@ class DemoFlow:
                 selected = select_enrollment_photos(quality_eligible,
                     capacity=session["candidate_pool_required"], select_count=5)
                 if len(selected) != 5:
-                    raise RuntimeError("录入候选不足五张，无法完成筛选。")
+                    raise RuntimeError("Fewer than five enrollment candidates; selection cannot finish.")
                 chosen = [candidate.payload for candidate in selected]
                 session["features"] = [item["feature"] for item in chosen]
                 session["sources"] = [item["source"] for item in chosen]
@@ -361,8 +361,8 @@ class DemoFlow:
                 session["selected_roi_images"] = [item["encoded_roi"] for item in chosen]
                 session["selected_frame_ids"] = [candidate.frame_id for candidate in selected]
                 session["selection_mode"] = "five_candidate_wait" if fallback_ready else "full_candidate_pool"
-                reason = ("已从现有合格候选中自动选出五张，正在保存。" if fallback_ready else
-                          "已从候选画面中自动选出五张，正在保存。")
+                reason = ("Automatically selected five from the available qualified candidates. Saving." if fallback_ready else
+                          "Automatically selected five candidate frames. Saving.")
                 return progress("READY", reason,
                                 selection_mode=session["selection_mode"],
                                 selected_roi_images=list(session["selected_roi_images"]),
@@ -371,9 +371,9 @@ class DemoFlow:
                                                          "contrast": contrast_floor})
 
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
-                return progress("STOPPED", "录入会话闲置已达600秒；已收集的候选均未保存，请取消后重新开始。")
+                return progress("STOPPED", "Enrollment session idle for 600 seconds. No collected candidates were saved. Cancel and start again.")
             if session["capture_in_flight"]:
-                return progress("WAIT", "采集正在进行，请稍候。", retry_after_ms=1000)
+                return progress("WAIT", "Capture in progress. Please wait.", retry_after_ms=1000)
             if kept == 5:
                 session["last_activity"] = time.monotonic()
                 return progress("READY")
@@ -384,11 +384,11 @@ class DemoFlow:
                 return finish_selection(session["photo_candidates"], True)
             if selection_only:
                 session["last_activity"] = time.monotonic()
-                return progress("WAIT", "正在等待已合格候选完成筛选。", retry_after_ms=250)
+                return progress("WAIT", "Waiting for selection from the qualified candidates.", retry_after_ms=250)
             if self.enrollment_candidate is None:
-                raise RuntimeError("录入候选采集器不可用。")
+                raise RuntimeError("Enrollment candidate collector unavailable.")
             if not self.enrollment_capture_lock.acquire(blocking=False):
-                return progress("WAIT", "上一张仍在处理，采集设备正忙，请稍候。", retry_after_ms=1000)
+                return progress("WAIT", "Previous frame still processing. Capture device busy; please wait.", retry_after_ms=1000)
             session["last_activity"] = time.monotonic()
             session["attempts"] += 1
             session["capture_in_flight"] = True
@@ -405,9 +405,9 @@ class DemoFlow:
                 session["capture_in_flight"] = False
                 self.enrollment_capture_lock.release()
             if self.enrollment_session is not session:
-                return {"status": "STOPPED", "reason": "录入会话已结束；本次采集结果已丢弃。"}
+                return {"status": "STOPPED", "reason": "Enrollment session ended; this capture was discarded."}
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
-                return progress("STOPPED", "录入请求已超过600秒；本次照片未加入候选且未保存，请取消后重新开始。")
+                return progress("STOPPED", "Enrollment request exceeded 600 seconds. This photo was neither added nor saved. Cancel and start again.")
             try:
                 feature_factory = None
                 if failure is not None:
@@ -429,7 +429,7 @@ class DemoFlow:
                         previous_frame_id = session["last_capture_frame_id"]
                         if previous_frame_id is not None and capture_frame_id <= previous_frame_id:
                             session["duplicate_frames"] += 1
-                            return progress("WAIT", "相机仍返回上一帧，正在等待一张新的实时画面后继续采集。",
+                            return progress("WAIT", "The camera is still returning the previous frame. Waiting for a fresh frame before continuing.",
                                             capture_failure="DUPLICATE_FRAME",
                                             capture_frame_id=capture_frame_id,
                                             retry_after_ms=250)
@@ -438,29 +438,29 @@ class DemoFlow:
                         capture_frame_id = session["attempts"]
                     if candidate_metadata.get("feature_deferred"):
                         if not callable(feature):
-                            raise RuntimeError("录入候选特征计算器不可用。")
+                            raise RuntimeError("Enrollment candidate feature extractor unavailable.")
                         feature_factory, feature = feature, None
                 else:
-                    raise RuntimeError("录入候选采集器返回格式不正确。")
+                    raise RuntimeError("Invalid response format from the enrollment candidate collector.")
             except CaptureProcessingFailure as error:
                 if error.reason == "NO_HAND":
                     return progress("NO_HAND",
-                                    "未检测到手掌，自动采集已暂停。请把手掌放回画面；掌区连续就绪后会自动继续，也可取消本次录入。",
+                                    "No palm detected. Auto-capture paused. Return your hand to the frame; capture resumes automatically after consecutive ready frames. You may also cancel enrollment.",
                                     capture_failure=error.reason, resume_required=True,
                                     fallback_after_ms=(max(0, math.ceil((ENROLLMENT_FIVE_CANDIDATE_WAIT_SECONDS - (time.monotonic() - session["five_candidates_since"])) * 1000)) if len(session["photo_candidates"]) >= 5 and session["five_candidates_since"] is not None else None))
                 if error.reason in {"ROI_UNSTABLE", "LOW_QUALITY"}:
                     session["quality_failures"] += 1
                 session["quality_failure_streak"] += 1
-                return progress("WAIT", error.detail or "掌区暂不可用，请调整手掌位置后重试。",
+                return progress("WAIT", error.detail or "Palm region unavailable. Reposition your hand and retry.",
                                 capture_failure=error.reason, retry_after_ms=2000 if session["quality_failure_streak"] >= 15 else 500,
                                 fallback_after_ms=(max(0, math.ceil((ENROLLMENT_FIVE_CANDIDATE_WAIT_SECONDS - (time.monotonic() - session["five_candidates_since"])) * 1000)) if error.reason in {"CAMERA_UNAVAILABLE", "ROI_NOT_READY"} and len(session["photo_candidates"]) >= 5 and session["five_candidates_since"] is not None else None))
             except (ValueError, RuntimeError):
                 session["quality_failures"] += 1
                 session["quality_failure_streak"] += 1
-                return progress("WAIT", "掌区暂不可用，请调整手掌位置后重试。",
+                return progress("WAIT", "Palm region unavailable. Reposition your hand and retry.",
                                 capture_failure="CAPTURE_ERROR", retry_after_ms=2000 if session["quality_failure_streak"] >= 15 else 500)
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
-                return progress("STOPPED", "录入请求已超过600秒；本次照片未加入候选且未保存，请取消后重新开始。")
+                return progress("STOPPED", "Enrollment request exceeded 600 seconds. This photo was neither added nor saved. Cancel and start again.")
             contrast, sharpness = float(quality.get("contrast", 0)), float(quality.get("sharpness", 0))
             issue = enrollment_quality_issue(quality)
             if issue is not None:
@@ -496,15 +496,15 @@ class DemoFlow:
                     self.lock.acquire()
                     session["capture_in_flight"] = False
                 if self.enrollment_session is not session:
-                    return {"status": "STOPPED", "reason": "录入会话已结束；本次采集结果已丢弃。"}
+                    return {"status": "STOPPED", "reason": "Enrollment session ended; this capture was discarded."}
                 if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
-                    return progress("STOPPED", "录入请求已超过600秒；本次照片未加入候选且未保存，请取消后重新开始。")
+                    return progress("STOPPED", "Enrollment request exceeded 600 seconds. This photo was neither added nor saved. Cancel and start again.")
                 if feature_error is not None or resolved_feature is None:
                     session["feature_failures"] += 1
                     reason = (feature_error.reason if isinstance(feature_error, CaptureProcessingFailure)
                               else "FEATURE_ERROR")
                     detail = (feature_error.detail if isinstance(feature_error, CaptureProcessingFailure)
-                              else "掌区特征提取失败，请保持手掌稳定后重试。")
+                              else "Palm feature extraction failed. Hold your hand steady and retry.")
                     return progress("WAIT", detail, capture_failure=reason, retry_after_ms=500)
                 payload["feature"] = resolved_feature
                 feature_factory = None
@@ -531,9 +531,9 @@ class DemoFlow:
                 if fallback_ready:
                     break
                 if improved:
-                    return progress("COLLECTING", "重复画面已用更清晰的一帧替换，继续采集不同角度。",
+                    return progress("COLLECTING", "Replaced a duplicate with a sharper frame. Continue capturing different angles.",
                                     candidate_roi_image=encoded_roi, retry_after_ms=300)
-                return progress("WAIT", "这张与候选画面重复；请让同一只手轻微移动或转动，再保持清晰。",
+                return progress("WAIT", "Duplicate candidate frame. Move or rotate the same hand slightly, then hold it steady.",
                                 retry_after_ms=700)
             else:
                 deferred_result = materialize_feature()
@@ -543,7 +543,7 @@ class DemoFlow:
                 if len(candidate_pool) == 5:
                     session["five_candidates_since"] = time.monotonic()
             if not fallback_ready and len(candidate_pool) < session["candidate_pool_required"]:
-                return progress("COLLECTING", "正在收集清晰且姿态不同的候选画面。",
+                return progress("COLLECTING", "Collecting clear candidate frames with different poses.",
                                 candidate_roi_image=encoded_roi, retry_after_ms=500)
             return finish_selection(candidate_pool, fallback_ready)
 
@@ -553,16 +553,16 @@ class DemoFlow:
             session = self._active_enrollment(token)
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
                 self._finish_enrollment(session, "EXPIRED")
-                raise ValueError("录入会话已超时；候选未保存，请取消后重新开始。")
+                raise ValueError("Enrollment session timed out; candidates were not saved. Cancel and start again.")
             if session["capture_in_flight"]:
-                raise ValueError("采集正在进行，请稍候再确认。")
+                raise ValueError("Capture in progress. Wait before confirming.")
             if len(session["features"]) != 5 or confirm_hand != session["hand"]:
-                raise ValueError("请确认五张照片均为所选的同一只手。")
+                raise ValueError("Confirm that all five photos show the same selected hand.")
             user_id, display_name, refreshing = session["user_id"], session["display_name"], session["refreshing"]
             if not self.store.exists(user_id) and user_id in self.store.list_template_ids():
-                raise ValueError("这个编号的模板文件不完整，请先检查已有记录。")
+                raise ValueError("Template files for this ID are incomplete. Check the existing record first.")
             if self.store.exists(user_id) != refreshing or self.payments.user_exists(user_id) != refreshing:
-                raise ValueError("录入期间账户状态已变化，请重新开始。")
+                raise ValueError("Account status changed during enrollment. Start again.")
             batch = getattr(self.store, 'batch_features', np.stack)(session["features"])
             metadata = {
                 "user": user_id, "display_name": display_name, "algorithm": self.algorithm.name,
@@ -585,7 +585,7 @@ class DemoFlow:
                 try:
                     self.payments.create_account(user_id, display_name, 10000)
                 except Exception as error:
-                    raise RuntimeError("录入账户状态未确认，模板已保留；请检查已有记录。") from error
+                    raise RuntimeError("Account status is unconfirmed. The template was retained; check existing records.") from error
             self.pending.clear()
             self._finish_enrollment(session, "COMPLETED")
             response = {"user_id": user_id, "display_name": display_name,
@@ -614,7 +614,7 @@ class DemoFlow:
                         char in "0123456789abcdef" for char in token):
                     self.enrollment_request_states[token] = "CANCELLED"
                     return {"status": "CANCELLED"}
-                raise ValueError("录入会话已失效，请重新开始。")
+                raise ValueError("Enrollment session expired. Start again.")
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
                 self._finish_enrollment(session, "EXPIRED")
                 return {"status": "EXPIRED"}
@@ -749,7 +749,7 @@ class DemoFlow:
             return None
         matched_user = transaction["user_id"]
         if user_id is not None and user_id != matched_user:
-            raise ValueError("确认的身份与识别结果不一致，没有新增扣款。")
+            raise ValueError("The confirmed identity differs from the recognition result. No additional charge.")
         return {
             "status": transaction["status"],
             "user_id": matched_user,
@@ -778,16 +778,16 @@ class DemoFlow:
             pending = self.pending.get(token)
             if pending is None or pending[2] < time.monotonic():
                 self.pending.pop(token, None)
-                raise ValueError("识别结果已过期，请重新拍摄。")
+                raise ValueError("Recognition result expired. Capture again.")
             matched_user, amount, _ = pending
             if user_id != matched_user:
-                raise ValueError("确认的身份与识别结果不一致，没有扣款。")
+                raise ValueError("The confirmed identity differs from the recognition result. No charge.")
             payment = self.payments.pay(matched_user, amount, token)
             if payment.transaction_id is None:
-                raise ValueError("模拟支付未完成，请检查账户后重试本次确认。")
+                raise ValueError("Simulated payment incomplete. Check the account and retry this confirmation.")
             receipt = self._payment_receipt(token, matched_user)
             if receipt is None:
-                raise RuntimeError("无法读取模拟支付结果，请重试本次确认。")
+                raise RuntimeError("Could not read the simulated payment result. Retry this confirmation.")
             self.pending.pop(token, None)
             return receipt
 

@@ -87,12 +87,12 @@ async function identify(p, token = 'one') {
     const p = page();
     const eligible = {elapsed_ms: 30000, attempts: 15, candidate_pool_count: 4,
       candidate_pool_required: 8, required: 5};
-    assert.match(p.context.enrollmentStallHint(eligible), /目前合格候选 4\/8 张；候选池凑齐后会自动选 5 张保存/);
+    assert.match(p.context.enrollmentStallHint(eligible), /qualified candidates so far: 4\/8. Once the pool is full, automatically select 5 to save/);
     assert.equal(p.context.enrollmentStallHint({...eligible, elapsed_ms: 29999}), '',
       'the slow-progress hint starts at 30 seconds');
     assert.equal(p.context.enrollmentStallHint({...eligible, attempts: 14}), '',
       'the hint waits for at least 15 capture attempts');
-    assert.match(p.context.enrollmentStallHint({...eligible, candidate_pool_count: 5}), /5\/8 张/,
+    assert.match(p.context.enrollmentStallHint({...eligible, candidate_pool_count: 5}), /qualified candidates so far: 5\/8/,
       'five candidates are not the full eight-image candidate pool');
     assert.equal(p.context.enrollmentStallHint({...eligible, candidate_pool_count: 8}), '',
       'the hint disappears when the candidate pool is full');
@@ -100,18 +100,18 @@ async function identify(p, token = 'one') {
       'a stopped capture must not claim that automatic collection continues');
     assert.equal(p.context.enrollmentStallHint({...eligible, status: 'CANCELLED'}), '',
       'a cancelled capture must not claim that automatic collection continues');
-    assert.match(p.context.enrollmentStallHint({...eligible, status: 'NO_HAND'}), /系统会继续自动采集/,
+    assert.match(p.context.enrollmentStallHint({...eligible, status: 'NO_HAND'}), /Auto-capture will continue/,
       'a recoverable no-hand pause may explain that collection resumes automatically');
   }
   {
     const p = page(); await p.ready();
     p.setStatus({camera_ready:true,roi_status_fresh:true,quality_status:'NO_HAND',quality_reason:'tracking_lost',quality_consecutive_frames:0,quality_required_frames:5});
     await p.refreshStatus();
-    assert.match(p.element('roi-status').textContent,/掌区暂时丢失；把手掌放回画面后，系统会自动恢复采集/);
+    assert.match(p.element('roi-status').textContent,/Palm region lost. Return your hand to resume capture automatically/);
     assert.equal(p.element('enroll').disabled,false,'one start action remains available while waiting for tracking recovery');
     p.setStatus({camera_ready:true,roi_status_fresh:false,quality_status:'NO_HAND',quality_reason:'tracking_stale',quality_consecutive_frames:0,quality_required_frames:5});
     await p.refreshStatus();
-    assert.match(p.element('roi-status').textContent,/正在等待新画面并重新稳定/);
+    assert.match(p.element('roi-status').textContent,/Waiting for a fresh frame and stable detection/);
   }
   for (const gate of [false, true]) {
     const storage = new Map([['palm_demo_enrollment_token', '9'.repeat(32)]]);
@@ -125,8 +125,8 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/commit').length, 1);
     p.finish({user_id:'p1',display_name:'P1',balance_cents:10000,recognition_ready:false});
     if (commit) await commit; else await flush();
-    assert.match(p.element('notice').textContent, /已保存.*识别.*未就绪/);
-    assert.doesNotMatch(p.element('notice').textContent, /可以返回通行体验/);
+    assert.match(p.element('notice').textContent, /Saved templates for .*recognition.*not ready/);
+    assert.doesNotMatch(p.element('notice').textContent, /You can return to the access demo/);
     await p.advance(1000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/commit').length, 1,
       'a saved template with failed preparation must not be committed again automatically');
@@ -154,7 +154,7 @@ async function identify(p, token = 'one') {
     const p=page(new Map([['palm_demo_enrollment_token','2'.repeat(32)]])); await flush();
     p.finish({status:'PAUSED',user_id:'p1',display_name:'P1',hand:'left',candidate_pool_count:1,candidate_pool_required:8,kept:0,required:5,attempts:1,quality_failures:0,timeout_ms_remaining:600000,selected_roi_images:[],candidate_roi_image:'restoredcandidate'}); await flush();
     assert(p.element('enroll-thumbs').innerHTML.includes('restoredcandidate'));
-    assert(p.element('enroll-thumbs').innerHTML.includes('尚未最终选定'));
+    assert(p.element('enroll-thumbs').innerHTML.includes('not yet selected'));
   }
   {
     const p=page(new Map([['palm_demo_enrollment_token','2'.repeat(32)]]),true); await flush();
@@ -178,7 +178,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.filter(x=>x.path==='/api/demo/enroll/commit').length,1,'server READY proves the previous commit did not complete, so recovery safely resumes it');
     assert(!p.element('enroll-commit').hidden);
     assert.equal(p.storage.get('palm_demo_enrollment_commit_pending'),'1','uncertainty remains recorded until the server confirms completion');
-    assert.match(p.element('notice').textContent,/正在核实上次自动保存/);
+    assert.match(p.element('notice').textContent,/Verifying the previous auto-save/);
   }
   {
     const p=page(new Map([['palm_demo_enrollment_token','f'.repeat(32)]])); await flush();
@@ -201,7 +201,7 @@ async function identify(p, token = 'one') {
     assert.equal(steps.length, 1, 'restored candidates should automatically reach selection without hand');
     assert.equal(steps[0].payload.selection_only, true);
     p.finish({status:'READY',selection_mode:'five_candidate_wait',candidate_pool_count:5,candidate_pool_required:8,kept:5,required:5,attempts:5,selected_roi_images:[]}); await flush();
-    assert(p.element('notice').textContent.includes('此前通过质量检查的候选中自动选出 5 张'),
+    assert(p.element('notice').textContent.includes('Automatically selected from previously qualified candidates: 5'),
       'fallback completion must disclose that it selected cached qualified candidates');
   }
   {
@@ -220,7 +220,7 @@ async function identify(p, token = 'one') {
     const p = page(); await p.ready();
     const run = p.element('identify').onclick(); await flush();
     p.finish({status: 'RETRY', reason: 'GALLERY_INCOMPATIBLE_TEMPLATES'}); await run;
-    assert.match(p.element('notice').textContent, /原编号重新录入/);
+    assert.match(p.element('notice').textContent, /re-enroll with the original ID/i);
     assert(p.element('candidate').hidden, 'an incompatible gallery cannot show a candidate');
   }
   {
@@ -230,10 +230,10 @@ async function identify(p, token = 'one') {
     p.finishStart({max_quality_failures: null, candidate_pool_required: 8, timeout_seconds: 600}); await flush();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 20, quality_failures: 20,
       candidate_pool_count: 0, candidate_pool_required: 8, retry_after_ms: 2000,
-      timeout_ms_remaining: 500000, reason: '请保持清晰'}); await flush();
-    assert.match(p.element('enroll-progress').textContent, /质量重试 20/);
+      timeout_ms_remaining: 500000, reason: 'Keep the image clear'}); await flush();
+    assert.match(p.element('enroll-progress').textContent, /quality retries: 20/);
     assert(!p.element('enroll-progress').textContent.includes('/null'));
-    assert.match(p.element('enroll-progress').textContent, /已收集合格候选 0\/8.*收集完成后自动选出 5 张/);
+    assert.match(p.element('enroll-progress').textContent, /Qualified candidates: 0\/8.*Once collection finishes, automatically select 5 photos/);
     await p.advance(1999);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1);
     await p.advance(1);
@@ -249,7 +249,7 @@ async function identify(p, token = 'one') {
     const enrollment = p.element('enroll').onclick(); await flush();
     p.finishStart({candidate_pool_required: 8}); await flush();
     p.setStatus({camera_ready:true,roi_status_fresh:true,quality_status:'NO_HAND',quality_consecutive_frames:0,quality_required_frames:5});
-    p.finish({status:'NO_HAND',candidate_pool_count:5,candidate_pool_required:8,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'等待手掌'});
+    p.finish({status:'NO_HAND',candidate_pool_count:5,candidate_pool_required:8,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'Waiting for palm'});
     await enrollment; await p.advance(1249);
     assert.equal(p.calls.filter(x=>x.path==='/api/demo/enroll/step').length,1);
     await p.advance(1);
@@ -262,7 +262,7 @@ async function identify(p, token = 'one') {
     const p = page(); await p.ready();
     p.element('user').value='five_camera'; p.element('name').value='Five'; p.element('hand').value='left';
     const enrollment=p.element('enroll').onclick(); await flush(); p.finishStart({candidate_pool_required:8}); await flush();
-    p.finish({status:'WAIT',capture_failure:'CAMERA_UNAVAILABLE',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'相机不可用'}); await enrollment;
+    p.finish({status:'WAIT',capture_failure:'CAMERA_UNAVAILABLE',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'Camera unavailable'}); await enrollment;
     await p.advance(1250);
     const steps=p.calls.filter(x=>x.path==='/api/demo/enroll/step');
     assert.equal(steps.length,2); assert.equal(steps[1].payload.selection_only,true);
@@ -274,7 +274,7 @@ async function identify(p, token = 'one') {
     p.element('user').value='five_cancel'; p.element('name').value='Five'; p.element('hand').value='left';
     const enrollment=p.element('enroll').onclick(); await flush(); p.finishStart({candidate_pool_required:8}); await flush();
     p.setStatus({camera_ready:true,roi_status_fresh:true,quality_status:'NO_HAND',quality_consecutive_frames:0,quality_required_frames:5});
-    p.finish({status:'NO_HAND',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'等待手掌'}); await enrollment;
+    p.finish({status:'NO_HAND',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'Waiting for palm'}); await enrollment;
     const cancel=p.element('enroll-cancel').onclick(); p.finish({status:'CANCELLED'}); await cancel;
     await p.advance(1500);
     assert.equal(p.calls.filter(x=>x.path==='/api/demo/enroll/step').length,1,'cancel invalidates the fallback timer');
@@ -284,7 +284,7 @@ async function identify(p, token = 'one') {
     p.element('user').value='five_resume'; p.element('name').value='Five'; p.element('hand').value='left';
     const enrollment=p.element('enroll').onclick(); await flush(); p.finishStart({candidate_pool_required:8}); await flush();
     p.setStatus({camera_ready:true,roi_status_fresh:true,quality_status:'NO_HAND',quality_consecutive_frames:0,quality_required_frames:5});
-    p.finish({status:'NO_HAND',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'等待手掌'}); await enrollment; await p.refreshStatus();
+    p.finish({status:'NO_HAND',candidate_pool_count:5,kept:0,required:5,attempts:6,fallback_after_ms:1000,reason:'Waiting for palm'}); await enrollment; await p.refreshStatus();
     p.setStatus({camera_ready:true,roi_status_fresh:true,quality_status:'READY',quality_consecutive_frames:5,quality_required_frames:5}); await p.refreshStatus();
     assert.equal(p.calls.filter(x=>x.path==='/api/demo/enroll/step').length,2);
     await p.advance(1500);
@@ -298,15 +298,15 @@ async function identify(p, token = 'one') {
     const enrollment = p.element('enroll').onclick(); await flush();
     const token = p.finishStart({candidate_pool_required: 8}); await flush();
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 1,
-      candidate_pool_count: 0, candidate_pool_required: 8, capture_failure: 'NO_HAND', reason: '等待手掌'});
+      candidate_pool_count: 0, candidate_pool_required: 8, capture_failure: 'NO_HAND', reason: 'Waiting for palm'});
     await enrollment; await p.refreshStatus();
     const cancel = p.element('enroll-cancel').onclick(); await flush();
     const beforeDuplicateCancel = p.calls.length;
     await p.refreshStatus(); await p.element('enroll-cancel').onclick();
     assert(p.element('enroll-cancel').disabled, 'status refresh cannot enable an in-flight cancellation');
     assert.equal(p.calls.length, beforeDuplicateCancel, 'in-flight cancellation is not duplicated');
-    p.actions.shift().reject(Error('网络中断')); await cancel;
-    assert.match(p.element('notice').textContent, /取消结果未确认/);
+    p.actions.shift().reject(Error('Network interrupted')); await cancel;
+    assert.match(p.element('notice').textContent, /Cancellation unconfirmed/);
     assert.equal(p.storage.get('palm_demo_enrollment_token'), token, 'uncertain cancellation retains the session token');
     assert(p.element('enroll-resume').disabled && p.element('enroll-commit').disabled,
       'capture and commit stay disabled while cancellation is uncertain');
@@ -328,8 +328,8 @@ async function identify(p, token = 'one') {
     p.finish({status: 'READY', kept: 5, required: 5, attempts: 8, candidate_pool_count: 8,
       candidate_pool_required: 8, selected_roi_images: []}); await enrollment;
     const commit = p.element('enroll-commit').onclick(); await flush();
-    p.actions.shift().reject(Error('响应丢失')); await commit;
-    assert.match(p.element('notice').textContent, /保存结果未确认/);
+    p.actions.shift().reject(Error('Response lost')); await commit;
+    assert.match(p.element('notice').textContent, /Save result unconfirmed/);
     assert.equal(storage.get('palm_demo_enrollment_commit_pending'), '1');
     assert(p.element('enroll-commit').disabled && !p.element('enroll-restore').hidden);
     const count = p.calls.filter(x => x.path === '/api/demo/enroll/commit').length;
@@ -348,8 +348,8 @@ async function identify(p, token = 'one') {
       assert(!p.element('enroll-commit').disabled, 'server-confirmed READY permits another save');
     } else {
       assert(!storage.has('palm_demo_enrollment_token'));
-      if (status === 'LOST') assert.match(p.element('notice').textContent, /检查录入列表/);
-      else assert.match(p.element('notice').textContent, /完成/);
+      if (status === 'LOST') assert.match(p.element('notice').textContent, /enrollment list/);
+      else assert.match(p.element('notice').textContent, /complete/);
     }
   }
   {
@@ -358,9 +358,9 @@ async function identify(p, token = 'one') {
     const p = page(storage); await flush();
     assert.equal(p.calls[0].path, '/api/demo/enroll/status');
     p.finish({status: 'LOST'}); await flush();
-    assert.match(p.element('notice').textContent, /检查录入列表/,
+    assert.match(p.element('notice').textContent, /enrollment list/,
       'a browser refresh preserves uncertainty after the server loses its in-memory session');
-    assert(!p.element('notice').textContent.includes('未保存'));
+    assert(!p.element('notice').textContent.includes('not saved'));
     assert(!storage.has('palm_demo_enrollment_commit_pending'));
   }
   for (const response of ['success', 'failure']) {
@@ -401,7 +401,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.storage.get('palm_demo_enrollment_token'), nextToken);
     p.finishAt(0, {token: nextToken, candidate_pool_required: 8}); await flush();
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/step');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '等待手掌'}); await next;
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'Waiting for palm'}); await next;
     const finish = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await finish;
   }
   {
@@ -414,7 +414,7 @@ async function identify(p, token = 'one') {
     const commit = p.element('enroll-commit').onclick(); await flush();
     p.actions.shift().reject(Error('lost response')); await commit;
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
-    assert.match(p.element('notice').textContent, /检查录入列表/,
+    assert.match(p.element('notice').textContent, /enrollment list/,
       'CANCELLED cannot prove a previous uncertain save was absent across a server restart');
   }
   for (const fail of [false, true]) {
@@ -424,10 +424,10 @@ async function identify(p, token = 'one') {
     const token = p.calls.at(-1).payload.token;
     const cancel = p.element('enroll-cancel').onclick(); await flush();
     p.finishAt(1, {status: 'CANCELLED'}); await cancel;
-    if (fail) p.finishAt(0, {message: '迟到的错误'}, false, 400);
+    if (fail) p.finishAt(0, {message: 'Late error'}, false, 400);
     else p.finishAt(0, {token, max_quality_failures: 15, candidate_pool_required: 8});
     await enrollment; await flush();
-    assert.match(p.element('notice').textContent, /取消/, 'late start cannot replace the cancellation');
+    assert.match(p.element('notice').textContent, /cancel/i, 'late start cannot replace the cancellation');
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 0, 'late start cannot begin capture');
     assert(!p.storage.has('palm_demo_enrollment_token'));
   }
@@ -438,12 +438,12 @@ async function identify(p, token = 'one') {
     p.finishStart({max_quality_failures: 15}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); await flush();
     p.finishAt(1, {status: 'CANCELLED'}); await cancel;
-    assert.match(p.element('notice').textContent, /取消/);
-    if (fail) p.finishAt(0, {message: '迟到的错误'}, false, 400);
+    assert.match(p.element('notice').textContent, /cancel/i);
+    if (fail) p.finishAt(0, {message: 'Late error'}, false, 400);
     else p.finishAt(0, {status: 'READY', kept: 5, required: 5, attempts: 8,
-      timeout_ms_remaining: 60000, selected_roi_images: ['stale'], reason: '迟到的结果'});
+      timeout_ms_remaining: 60000, selected_roi_images: ['stale'], reason: 'Late result'});
     await enrollment; await p.advance(0);
-    assert.match(p.element('notice').textContent, /取消/, 'late step cannot replace cancellation');
+    assert.match(p.element('notice').textContent, /cancel/i, 'late step cannot replace cancellation');
     assert.equal(p.element('enroll-thumbs').innerHTML, '', 'late step cannot restore stale thumbnails');
     assert(p.element('enroll-commit').hidden, 'late READY cannot expose commit');
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/commit').length, 0);
@@ -458,16 +458,16 @@ async function identify(p, token = 'one') {
       quality_consecutive_frames: 0, quality_required_frames: 5});
     await p.refreshStatus();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 1, candidate_pool_count: 0,
-      candidate_pool_required: 8, reason: '正在等待掌区'}); await flush();
+      candidate_pool_required: 8, reason: 'Waiting for palm'}); await flush();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2);
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'});
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'});
     await enrollment;
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY',
       quality_consecutive_frames: 5, quality_required_frames: 5});
     await p.refreshStatus();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 3,
       'a non-ready preview observed before capture is a valid loss before the next READY poll');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await flush();
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
   }
   {
@@ -478,7 +478,7 @@ async function identify(p, token = 'one') {
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'NO_HAND',
       quality_consecutive_frames: 0, quality_required_frames: 5}); await p.refreshStatus();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 1, candidate_pool_count: 0}); await flush();
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await enrollment;
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await enrollment;
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY',
       quality_consecutive_frames: 5, quality_required_frames: 5}); await p.refreshStatus(); await p.advance(1000);
@@ -492,37 +492,37 @@ async function identify(p, token = 'one') {
     p.finishStart({max_quality_failures: 15}); await flush();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1);
     await p.advance(5000);
-    assert.match(p.element('notice').textContent, /仍在处理中/);
+    assert.match(p.element('notice').textContent, /still processing/);
     assert(!p.element('enroll-cancel').disabled, 'cancel stays available during a slow step');
     await p.advance(5000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1, 'slow step is never sent again');
     const cancel = p.element('enroll-cancel').onclick(); await flush();
-    assert.match(p.element('notice').textContent, /正在取消/);
-    p.finishAt(0, {status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await enrollment;
+    assert.match(p.element('notice').textContent, /Canceling enrollment/);
+    p.finishAt(0, {status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await enrollment;
     p.finishAt(0, {status: 'CANCELLED'}); await cancel;
-    assert.match(p.element('notice').textContent, /取消/);
+    assert.match(p.element('notice').textContent, /cancel/i);
     await p.advance(5000);
-    assert.match(p.element('notice').textContent, /取消/, 'a stale wait hint must not overwrite cancellation');
+    assert.match(p.element('notice').textContent, /cancel/i, 'a stale wait hint must not overwrite cancellation');
   }
   {
     const p = page(); await p.ready();
     p.element('user').value = 'p1_left'; p.element('name').value = 'P1'; p.element('hand').value = 'left';
     const enrollment = p.element('enroll').onclick(); await flush();
     p.finishStart({max_quality_failures: 15}); await flush();
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '请放回手掌'}); await enrollment;
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'Return your hand'}); await enrollment;
     await p.advance(5000);
-    assert.match(p.element('notice').textContent, /请放回手掌/, 'completed step clears the wait hint');
+    assert.match(p.element('notice').textContent, /Return your hand/, 'completed step clears the wait hint');
   }
   {
     const p = page(new Map(), true); await p.frame(0); await p.refreshStatus();
-    assert.match(p.element('enroll-hand-hint').textContent, /开始前.*核对.*左右手/);
-    assert.match(p.element('enroll-hand-hint').textContent, /自动筛选五张并保存/);
+    assert.match(p.element('enroll-hand-hint').textContent, /Before starting.*check.*hand/);
+    assert.match(p.element('enroll-hand-hint').textContent, /automatically selects and saves five frames/);
     assert.equal(p.element('enroll').disabled, false, 'gate enrollment can start while waiting for a palm');
     p.element('user').value = 'person1'; p.element('name').value = 'Person'; p.element('hand').value = 'left';
     const pending = p.element('enroll').onclick(); await flush(); p.finishStart(); await pending;
     assert.equal(p.calls.filter(call => call.path === '/api/demo/enroll/step').length, 0, 'do not capture before the palm is ready');
-    assert.match(p.element('notice').textContent, /掌区连续就绪后会自动采集并筛选五张/);
-    assert.match(p.element('enroll-progress').textContent, /x\/5.*不是已收照片数.*尚无照片候选/);
+    assert.match(p.element('notice').textContent, /After consecutive ready frames, the system automatically captures and selects five frames/);
+    assert.match(p.element('enroll-progress').textContent, /x\/5.*not photos collected.*No candidate photos yet/);
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY', quality_consecutive_frames: 5, quality_required_frames: 5});
     await p.refreshStatus(); await flush();
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/step', 'automatically capture after readiness');
@@ -538,8 +538,8 @@ async function identify(p, token = 'one') {
     p.element('user').value = 'wait_for_hand'; p.element('name').value = 'Wait'; p.element('hand').value = 'left';
     const start = p.element('enroll').onclick(); await flush(); p.finishStart(); await start;
     assert.equal(p.calls.filter(call => call.path === '/api/demo/enroll/step').length, 0, 'no capture request is sent while the ROI is not ready');
-    assert.match(p.element('notice').textContent, /录入已开始；掌区连续就绪后会自动采集并筛选五张/);
-    assert.match(p.element('enroll-progress').textContent, /不是已收照片数/);
+    assert.match(p.element('notice').textContent, /Enrollment started. After consecutive ready frames, the system automatically captures and selects five frames/);
+    assert.match(p.element('enroll-progress').textContent, /not photos collected/);
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY', quality_consecutive_frames: 5, quality_required_frames: 5});
     await p.refreshStatus(); await flush();
     assert.equal(p.calls.filter(call => call.path === '/api/demo/enroll/step').length, 1, 'ordinary enrollment resumes automatically when the ROI becomes ready');
@@ -549,7 +549,7 @@ async function identify(p, token = 'one') {
     await flush(); await flush();
     await p.advance(0);
     assert.equal(p.calls.filter(call => call.path === '/api/demo/enroll/commit').length, 1, 'ordinary mode automatically saves after selecting five photos');
-    assert.match(p.element('notice').textContent,/正在保存/);
+    assert.match(p.element('notice').textContent,/Saving/);
     p.finish({display_name: 'Wait', enrollment_elapsed_ms: 1200}); await flush();
   }
   {
@@ -564,10 +564,10 @@ async function identify(p, token = 'one') {
     }});
     await run;
     const timing = p.element('recognition-timing').textContent;
-    assert(timing.includes('浏览器请求到响应 47 ms'));
-    assert(timing.includes('服务端采集+特征 213.4 ms'));
-    assert(timing.includes('图库核验+比对 18.2 ms'));
-    assert(timing.includes('服务端总计 231.6 ms'),
+    assert(timing.includes('Browser round trip 47 ms'));
+    assert(timing.includes('Server capture+Features 213.4 ms'));
+    assert(timing.includes('Gallery verification+Matching 18.2 ms'));
+    assert(timing.includes('Server total 231.6 ms'),
       'timings must be visible for rejected queries as well as matches');
   }
   {
@@ -580,13 +580,13 @@ async function identify(p, token = 'one') {
     assert(hung.options.signal.aborted, 'a hanging read-only status request must be aborted at its deadline');
     assert(p.element('identify').disabled && p.element('enroll').disabled,
       'status timeout invalidates stale READY and disables capture actions');
-    assert(p.element('roi-status').textContent.includes('状态不可用'));
+    assert(p.element('roi-status').textContent.includes('status unavailable'));
     await p.advance(500);
     assert(!p.element('identify').disabled, 'a fresh READY response restores capture actions');
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'NO_HAND',
       quality_consecutive_frames: 0, quality_required_frames: 5});
     hung.resolve(); await flush();
-    assert(!p.element('identify').disabled && p.element('roi-status').textContent.includes('掌区连续就绪帧 5/5'),
+    assert(!p.element('identify').disabled && p.element('roi-status').textContent.includes('Consecutive ready frames 5/5'),
       'a late response from the timed-out poll cannot overwrite a newer READY response');
   }
   {
@@ -594,7 +594,7 @@ async function identify(p, token = 'one') {
     p.element('user').value = 'p1_left'; p.element('name').value = 'P1'; p.element('hand').value = 'left';
     const enrollment = p.element('enroll').onclick(); await flush();
     p.finishStart({max_quality_failures: 15}); await flush();
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', resume_required: true, reason: '未检测到手掌'});
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', resume_required: true, reason: 'No palm detected'});
     await enrollment;
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1);
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY',
@@ -605,7 +605,7 @@ async function identify(p, token = 'one') {
     await p.advance(750); await flush();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
       'the existing bounded preview/capture mismatch retry still runs once');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', resume_required: true, reason: '仍未检测到手掌'});
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', resume_required: true, reason: 'Still no palm detected'});
     await flush();
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY',
       quality_consecutive_frames: 5, quality_required_frames: 5});
@@ -632,7 +632,7 @@ async function identify(p, token = 'one') {
     const enrollment = p.element('enroll').onclick(); await flush();
     p.finishStart({max_quality_failures: 15}); await flush();
     p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', resume_required: true,
-      timeout_ms_remaining: 500, timeout_seconds_remaining: 1, reason: '未检测到手掌'});
+      timeout_ms_remaining: 500, timeout_seconds_remaining: 1, reason: 'No palm detected'});
     await enrollment;
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'NO_HAND',
       quality_consecutive_frames: 0, quality_required_frames: 5});
@@ -682,7 +682,7 @@ async function identify(p, token = 'one') {
     p.element('live').onload(); await flush();
     assert(!p.element('live').hidden && p.element('identify').disabled && !p.element('enroll').disabled,
       'a fresh no-hand status may start enrollment but must keep identification disabled');
-    assert(p.element('roi-status').textContent.includes('等待手掌'), 'ordinary mode should show a clear no-hand instruction');
+    assert(p.element('roi-status').textContent.includes('Waiting for palm'), 'ordinary mode should show a clear no-hand instruction');
     await p.element('identify').onclick(); await p.element('enroll').onclick();
     assert.equal(p.calls.length, 0, 'no-hand actions must not reach enrollment or identification routes');
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'READY', quality_consecutive_frames: 4, quality_required_frames: 5});
@@ -697,16 +697,16 @@ async function identify(p, token = 'one') {
     p.failStatus(true); await p.refreshStatus();
     assert(p.element('identify').disabled && p.element('enroll').disabled,
       'a failed readiness poll must block capture actions');
-    assert(p.element('roi-status').textContent.includes('状态不可用'));
+    assert(p.element('roi-status').textContent.includes('status unavailable'));
     p.failStatus(false); await p.refreshStatus();
     assert(!p.element('identify').disabled);
-    assert(p.element('camera-status').textContent.includes('已连接'));
+    assert(p.element('camera-status').textContent.includes('Camera connected'));
     await p.advance(300); await p.context.preview();
     assert.equal(p.frames.length, 2, 'an active preview request must not overlap another poll');
     await p.frame(1, false);
     assert(p.element('live').hidden && !p.element('live').src);
     assert(p.element('identify').disabled && p.element('enroll').disabled);
-    assert(p.element('camera-status').textContent.includes('不可用'));
+    assert(p.element('camera-status').textContent.includes('unavailable'));
     assert(p.revoked.includes('blob:preview-1'));
     p.setImageLoading(true); await p.advance(300); await p.frame(2);
     await p.refreshStatus();
@@ -730,8 +730,8 @@ async function identify(p, token = 'one') {
       'restoring a live enrollment keeps identification and new enrollment locked');
     assert(!p.element('enroll-cancel').hidden && !p.element('enroll-cancel').disabled,
       'the restored session can be cancelled after its status is confirmed');
-    assert(p.element('enroll-progress').textContent.includes('录入已用 1.5 秒'));
-    assert(p.element('enroll-progress').textContent.includes('闲置剩余 118 秒'));
+    assert(p.element('enroll-progress').textContent.includes('Enrollment time: 1.5 s'));
+    assert(p.element('enroll-progress').textContent.includes('Idle time remaining: 118 s'));
     await p.refreshStatus();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
       'the first READY poll resumes exactly one step loop for the restored token');
@@ -747,11 +747,11 @@ async function identify(p, token = 'one') {
     await p.refreshStatus();
     assert(p.element('identify').disabled && !p.element('enroll').disabled,
       'low-quality status may start enrollment waiting, but must not enable identification');
-    assert(p.element('roi-status').textContent.includes('偏模糊'));
-    assert(p.element('roi-status').textContent.includes('画面质量不足'));
-    assert(p.element('roi-status').textContent.includes('掌区连续就绪帧 0/5'));
-    assert(p.element('roi-status').textContent.includes('锐度 1.50 / 2.00'));
-    assert(p.element('roi-status').textContent.includes('对比度 14.00 / 12.00'));
+    assert(p.element('roi-status').textContent.includes('blurry'));
+    assert(p.element('roi-status').textContent.includes('Insufficient image quality'));
+    assert(p.element('roi-status').textContent.includes('Consecutive ready frames 0/5'));
+    assert(p.element('roi-status').textContent.includes('sharpness 1.50 / 2.00'));
+    assert(p.element('roi-status').textContent.includes('contrast 14.00 / 12.00'));
     await p.element('identify').onclick(); await p.element('enroll').onclick();
     assert.equal(p.calls.length, 0);
     p.setStatus({camera_ready: true, roi_status_fresh: true,
@@ -763,7 +763,7 @@ async function identify(p, token = 'one') {
   {
     const p = page(); await p.ready(); await p.advance(5000);
     assert(p.element('live').hidden && !p.element('live').src);
-    assert(p.element('identify').disabled && p.element('camera-status').textContent.includes('停止更新'));
+    assert(p.element('identify').disabled && p.element('camera-status').textContent.includes('stopped updating'));
     await p.advance(300);
     assert(p.frames[1].options.signal.aborted, 'a hung request must be aborted within the preview deadline');
     await p.advance(300); await p.frame(2);
@@ -776,7 +776,7 @@ async function identify(p, token = 'one') {
     const p = page(); await p.ready();
     let run = p.element('identify').onclick(); await p.element('identify').onclick(); await p.element('retry').onclick();
     assert.equal(p.calls.length, 1); assert(p.element('retry').disabled && p.element('user').disabled);
-    await p.advance(1000); assert(p.element('notice').textContent.includes('秒'));
+    await p.advance(1000); assert(p.element('notice').textContent.includes(' s'));
     await p.frame(1, false); p.finish({status: 'UNKNOWN'}); await run;
     assert.equal(p.intervalCount(), 0);
     assert(p.element('identify').disabled, 'finishing an action must not re-enable capture after camera loss');
@@ -787,29 +787,29 @@ async function identify(p, token = 'one') {
     p.finishStart({max_quality_failures: 15, candidate_pool_required: 8}); await flush();
     for (let kept = 1; kept <= 8; kept++) {
       assert.equal(p.calls.at(-1).path, '/api/demo/enroll/step');
-      p.finish({status: kept === 8 ? 'READY' : 'COLLECTING', kept: kept === 8 ? 5 : 0,
+      p.finish({status: kept === 8? 'READY' : 'COLLECTING', kept: kept === 8? 5 : 0,
         candidate_pool_count: kept, candidate_pool_required: 8, required: 5, attempts: kept,
-        elapsed_ms: kept === 8 ? 4321 : 1200, timeout_seconds_remaining: 116,
-        selected_roi_images: kept === 8 ? ['one','two','three','four','five'] : undefined,
-        candidate_roi_image: kept < 8 ? `candidate${kept}` : undefined}); await flush();
+        elapsed_ms: kept === 8? 4321 : 1200, timeout_seconds_remaining: 116,
+        selected_roi_images: kept === 8? ['one','two','three','four','five'] : undefined,
+        candidate_roi_image: kept < 8? `candidate${kept}` : undefined}); await flush();
       if (kept < 8) {
         assert(p.element('enroll-thumbs').innerHTML.includes(`candidate${kept}`));
-        assert(p.element('enroll-thumbs').innerHTML.includes('尚未最终选定'));
+        assert(p.element('enroll-thumbs').innerHTML.includes('not yet selected'));
       }
     }
     await run;
     assert(p.element('enroll-thumbs').innerHTML.includes('one'));
     assert(!p.element('enroll-thumbs').innerHTML.includes('candidate7'));
     assert(p.element('enroll-progress').textContent.includes('5/5'));
-    assert(p.element('enroll-progress').textContent.includes('闲置剩余 116 秒'));
-    assert(p.element('notice').textContent.includes('自动采集用时 4.3 秒'));
+    assert(p.element('enroll-progress').textContent.includes('Idle time remaining: 116 s'));
+    assert(p.element('notice').textContent.includes('Auto-capture time: 4.3 s'));
     await p.advance(0);
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/commit');
     assert.equal(p.calls.at(-1).payload.confirm_hand, 'left');
     assert(p.element('identify').disabled && p.element('enroll').disabled);
     assert(!p.element('enroll-cancel').disabled);
     p.finish({display_name: 'P1', balance_cents: 10000, enrollment_elapsed_ms: 9876}); await flush();
-    assert(p.element('notice').textContent.includes('录入总用时 9.9 秒'));
+    assert(p.element('notice').textContent.includes('Total enrollment time: 9.9 s'));
     assert(!p.element('user').disabled && !p.element('identify').disabled);
   }
   {
@@ -820,14 +820,14 @@ async function identify(p, token = 'one') {
     p.finish({status: 'KEPT', kept: 1, required: 5, attempts: 1, duplicate_frames: 0, quality_failures: 0}); await flush();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 17, duplicate_frames: 16,
               quality_failures: 4, candidate_pool_count: 2, candidate_pool_required: 8, elapsed_ms: 35000,
-              retry_after_ms: 700, reason: '请移动手掌'}); await flush();
-    assert(p.element('enroll-progress').textContent.includes('重复跳过 16 张'));
-    assert(p.element('notice').textContent.includes('移动手掌'));
-    assert(p.element('notice').textContent.includes('已尝试 35 秒，目前合格候选 2/8 张；候选池凑齐后会自动选 5 张保存'));
-    assert(p.element('notice').textContent.includes('候选池凑齐后会自动选 5 张保存'));
+              retry_after_ms: 700, reason: 'Move your hand'}); await flush();
+    assert(p.element('enroll-progress').textContent.includes('duplicates skipped: 16'));
+    assert(p.element('notice').textContent.includes('Move your hand'));
+    assert(p.element('notice').textContent.includes('Elapsed: 35 s; qualified candidates so far: 2/8. Once the pool is full, automatically select 5 to save'));
+    assert(p.element('notice').textContent.includes('Once the pool is full, automatically select 5 to save'));
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2);
     const cancel = p.element('enroll-cancel').onclick();
-    assert(p.element('notice').textContent.includes('正在取消'));
+    assert(p.element('notice').textContent.includes('Canceling enrollment'));
     p.finish({status: 'CANCELLED'}); await cancel;
     await p.advance(700); await run;
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2);
@@ -851,9 +851,9 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.at(-1).payload.token, recoverToken);
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 20, quality_failures: 4,
       duplicate_frames: 7, candidate_pool_count: 2, candidate_pool_required: 8, elapsed_ms: 35000,
-      capture_failure: 'NO_HAND', reason: '持续采集已暂停'}); await recovered;
+      capture_failure: 'NO_HAND', reason: 'Continuous capture paused'}); await recovered;
     assert(!p.element('enroll-resume').hidden);
-    assert(p.element('notice').textContent.includes('已尝试 35 秒，目前合格候选 2/8 张；候选池凑齐后会自动选 5 张保存'),
+    assert(p.element('notice').textContent.includes('Elapsed: 35 s; qualified candidates so far: 2/8. Once the pool is full, automatically select 5 to save'),
       'tracking loss after slow progress includes actionable candidate progress');
     const cancel = p.element('enroll-cancel').onclick();
     p.finish({status: 'CANCELLED'}); await cancel;
@@ -867,13 +867,13 @@ async function identify(p, token = 'one') {
     p.finish({status: 'WAIT', kept: 1, required: 5, attempts: 3, duplicate_frames: 1,
       quality_failures: 0, candidate_pool_count: 2, candidate_pool_required: 8,
       capture_failure: 'CAMERA_UNAVAILABLE', retry_after_ms: 500,
-      reason: '暂时无法读取相机画面，请检查连接后重试。'}); await run;
+      reason: 'Camera frame temporarily unavailable. Check the connection and retry.'}); await run;
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
       'camera loss pauses automatic steps instead of retrying every 500 ms');
     assert(p.element('enroll-resume').hidden === false);
-    assert(p.element('enroll-progress').textContent.includes('已收集合格候选 2/8'),
+    assert(p.element('enroll-progress').textContent.includes('Qualified candidates: 2/8'),
       'candidate-pool progress is retained while paused');
-    assert(p.element('notice').textContent.includes('录入已暂停'));
+    assert(p.element('notice').textContent.includes('Enrollment paused'));
     await p.advance(2000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
       'no repeated capture request is made while camera recovery is pending');
@@ -889,7 +889,7 @@ async function identify(p, token = 'one') {
       'repeated READY polls do not launch parallel enrollment loops');
     p.finish({status: 'NO_HAND', kept: 1, required: 5, attempts: 4, candidate_pool_count: 2,
       candidate_pool_required: 8, capture_failure: 'NO_HAND', resume_required: true,
-      reason: '持续采集已暂停'}); await flush();
+      reason: 'Continuous capture paused'}); await flush();
     const cancel = p.element('enroll-cancel').onclick();
     p.finish({status: 'CANCELLED'}); await cancel;
   }
@@ -900,7 +900,7 @@ async function identify(p, token = 'one') {
     const token = p.finishStart({candidate_pool_required: 8}); await flush();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 1,
       candidate_pool_count: 1, candidate_pool_required: 8,
-      capture_failure: 'CAMERA_UNAVAILABLE', reason: '暂时无法读取相机画面'}); await enrollment;
+      capture_failure: 'CAMERA_UNAVAILABLE', reason: 'Camera frame temporarily unavailable'}); await enrollment;
     await p.advance(4999);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
       'camera recovery must not retry before the five-second delay');
@@ -913,7 +913,7 @@ async function identify(p, token = 'one') {
       'the recovery loop cannot overlap a pending capture');
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 2,
       candidate_pool_count: 1, candidate_pool_required: 8,
-      capture_failure: 'CAMERA_UNAVAILABLE', reason: '暂时无法读取相机画面'}); await flush();
+      capture_failure: 'CAMERA_UNAVAILABLE', reason: 'Camera frame temporarily unavailable'}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
     await p.advance(10000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
@@ -926,7 +926,7 @@ async function identify(p, token = 'one') {
     p.finishStart({candidate_pool_required: 8}); await flush();
     p.finish({status: 'WAIT', kept: 0, required: 5, attempts: 1,
       candidate_pool_count: 0, candidate_pool_required: 8,
-      capture_failure: 'CAMERA_UNAVAILABLE', reason: '相机不可用'}); await enrollment;
+      capture_failure: 'CAMERA_UNAVAILABLE', reason: 'Camera unavailable'}); await enrollment;
     p.setStatus({camera_ready: false, roi_status_fresh: false, quality_status: 'NO_HAND',
       quality_consecutive_frames: 0, quality_required_frames: 5});
     await p.refreshStatus(); await p.advance(11000);
@@ -938,7 +938,7 @@ async function identify(p, token = 'one') {
     await p.refreshStatus();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
       'a genuine recovery transition resumes once without waiting for a polling timer');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await flush();
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
   }
   {
@@ -950,9 +950,9 @@ async function identify(p, token = 'one') {
     await p.refreshStatus();
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 1, duplicate_frames: 0,
       quality_failures: 0, capture_failure: 'NO_HAND', resume_required: true,
-      reason: '未检测到手掌，自动采集已暂停。请把手掌放入画面并等掌区就绪后点击“继续采集”，也可取消。'}); await flush();
-    assert(p.element('notice').textContent.includes('已暂停'));
-    assert(p.element('enroll-progress').textContent.includes('质量重试 0'));
+      reason: 'No palm detected. Auto-capture paused. Place your hand in view. When your palm is ready, click “Continue capture”, or cancel.'}); await flush();
+    assert(p.element('notice').textContent.includes('paused'));
+    assert(p.element('enroll-progress').textContent.includes('quality retries: 0'));
     assert(!p.element('enroll-resume').hidden && p.element('enroll-resume').disabled,
       'paused no-hand state should expose resume but keep it disabled until ROI is ready');
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
@@ -967,7 +967,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
       'subsequent READY polls do not create a parallel step loop');
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 2, quality_failures: 0,
-      capture_failure: 'NO_HAND', resume_required: true, reason: '持续采集已暂停'}); await flush();
+      capture_failure: 'NO_HAND', resume_required: true, reason: 'Continuous capture paused'}); await flush();
     await flush();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2);
     await p.refreshStatus();
@@ -979,7 +979,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 3,
       'one delayed retry recovers a transient preview/high-resolution mismatch');
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 3, quality_failures: 0,
-      capture_failure: 'NO_HAND', resume_required: true, reason: '持续采集已暂停'}); await flush();
+      capture_failure: 'NO_HAND', resume_required: true, reason: 'Continuous capture paused'}); await flush();
     await p.advance(1000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 3,
       'a second mismatch pauses without creating an automatic retry loop');
@@ -987,7 +987,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 4,
       'manual resume remains available after the bounded retry is exhausted');
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 4, quality_failures: 0,
-      capture_failure: 'NO_HAND', resume_required: true, reason: '持续采集已暂停'}); await flush();
+      capture_failure: 'NO_HAND', resume_required: true, reason: 'Continuous capture paused'}); await flush();
     await resume;
     const cancel = p.element('enroll-cancel').onclick();
     p.finish({status: 'CANCELLED'}); await cancel; await run;
@@ -1003,12 +1003,12 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/step');
     p.setStatus({camera_ready: true, roi_status_fresh: true, quality_status: 'LOW_QUALITY', quality_reason: 'sharpness_below_minimum', quality_consecutive_frames: 0, quality_required_frames: 5});
     p.finish({status: 'WAIT', candidate_pool_count: 0, candidate_pool_required: 8, kept: 0, required: 5,
-      attempts: 1, quality_failures: 1, retry_after_ms: 500, capture_failure: 'ROI_NOT_READY', reason: '掌区画质尚未就绪'}); await enrollment;
+      attempts: 1, quality_failures: 1, retry_after_ms: 500, capture_failure: 'ROI_NOT_READY', reason: 'Palm image quality not ready'}); await enrollment;
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
       'ROI_NOT_READY breaks the continuous step loop');
     assert(!p.element('enroll-resume').hidden && p.element('enroll-resume').disabled,
       'ROI_NOT_READY pauses capture until the quality gate is READY');
-    assert(p.element('notice').textContent.includes('连续画质就绪后会继续'));
+    assert(p.element('notice').textContent.includes('capture resumes after consecutive quality-ready frames'));
     await p.refreshStatus();
     await p.advance(1500);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 1,
@@ -1017,7 +1017,7 @@ async function identify(p, token = 'one') {
     await p.refreshStatus();
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
       'five-frame READY automatically resumes the same session');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await flush();
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
   }
   {
@@ -1025,10 +1025,10 @@ async function identify(p, token = 'one') {
     p.element('user').value = 'auto_left'; p.element('name').value = 'Auto'; p.element('hand').value = 'left';
     const enrollment = p.element('enroll').onclick(); await flush();
     p.finishStart({candidate_pool_required: 8}); await flush();
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await enrollment;
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await enrollment;
     await p.refreshStatus(); await p.advance(750);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2);
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await flush();
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await flush();
     await p.refreshStatus(); await p.advance(4999);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 2,
       'a repeated preview/capture mismatch waits five seconds before retrying');
@@ -1038,7 +1038,7 @@ async function identify(p, token = 'one') {
     await p.advance(5000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 3,
       'a pending capture cannot overlap another retry');
-    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: '未检测到手掌'}); await flush();
+    p.finish({status: 'NO_HAND', capture_failure: 'NO_HAND', reason: 'No palm detected'}); await flush();
     const cancel = p.element('enroll-cancel').onclick(); p.finish({status: 'CANCELLED'}); await cancel;
     await p.advance(6000);
     assert.equal(p.calls.filter(x => x.path === '/api/demo/enroll/step').length, 3,
@@ -1052,11 +1052,11 @@ async function identify(p, token = 'one') {
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 1, quality_failures: 0,
       duplicate_frames: 0, candidate_pool_count: 0, candidate_pool_required: 8,
       capture_failure: 'NO_HAND', resume_required: true, timeout_ms_remaining: 1500,
-      timeout_seconds_remaining: 2, reason: '未检测到手掌'}); await enrollment;
+      timeout_seconds_remaining: 2, reason: 'No palm detected'}); await enrollment;
     assert(p.element('enroll-resume').disabled, 'paused capture remains disabled until the camera is ready');
-    assert(p.element('enroll-progress').textContent.includes('闲置剩余 2 秒'));
+    assert(p.element('enroll-progress').textContent.includes('Idle time remaining: 2 s'));
     await p.advance(1000);
-    assert(p.element('enroll-progress').textContent.includes('闲置剩余 1 秒'),
+    assert(p.element('enroll-progress').textContent.includes('Idle time remaining: 1 s'),
       'the countdown must keep advancing while NO_HAND has paused capture');
     await p.advance(500);
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/status',
@@ -1070,7 +1070,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/status');
     p.finish({status: 'EXPIRED'}); await restore;
     assert(!p.storage.has('palm_demo_enrollment_token'));
-    assert(p.element('enroll-progress').textContent.includes('未保存的候选已清除'));
+    assert(p.element('enroll-progress').textContent.includes('Unsaved candidates cleared'));
     assert(p.element('enroll-resume').hidden && p.element('enroll-cancel').hidden);
   }
   {
@@ -1083,8 +1083,8 @@ async function identify(p, token = 'one') {
       step_elapsed_ms: 47.5,
       timeout_ms_remaining: 1500, timeout_seconds_remaining: 2,
       selected_roi_images: ['a','b','c','d','e']}); await enrollment;
-    assert(p.element('enroll-progress').textContent.includes('服务端处理 48 ms'));
-    assert(p.element('enroll-progress').textContent.includes('单帧往返 0 ms'));
+    assert(p.element('enroll-progress').textContent.includes('Server processing 48 ms'));
+    assert(p.element('enroll-progress').textContent.includes('Frame round trip 0 ms'));
     assert(!p.element('enroll-commit').disabled, 'the active READY session may be confirmed before the deadline');
     await p.advance(0);
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/commit',
@@ -1094,14 +1094,14 @@ async function identify(p, token = 'one') {
     p.finish({display_name: 'P1', enrollment_elapsed_ms: 1200}); await flush();
     assert(p.element('enroll-commit').hidden && p.element('enroll-thumbs').innerHTML !== '',
       'successful automatic saving clears the active session while keeping the selected preview');
-    assert(p.element('notice').textContent.includes('已录入 P1'));
+    assert(p.element('notice').textContent.includes('Enrolled P1'));
   }
   {
     const p = page(); await p.ready(); await identify(p);
     let run = p.element('confirm').onclick(); await p.element('confirm').onclick(); await p.element('retry').onclick();
     assert.equal(p.calls.length, 2); p.actions.shift().reject(Error('lost confirmation response')); await run;
-    assert(p.element('notice').textContent.includes('状态待核实'));
-    assert(!p.element('notice').textContent.includes('没有扣款'));
+    assert(p.element('notice').textContent.includes('status needs verification'));
+    assert(!p.element('notice').textContent.includes('no charge'));
     assert(p.element('identify').disabled && p.element('enroll').disabled);
     await p.element('identify').onclick(); await p.element('enroll').onclick();
     assert.equal(p.calls.length, 2, 'uncertain confirmation must preserve its token and block new capture actions');
@@ -1109,33 +1109,33 @@ async function identify(p, token = 'one') {
     run = p.element('retry').onclick();
     p.finish({status: 'PAID', payment_status: 'SUCCESS', display_name: 'P1', balance_cents: 8000, amount_cents: 2000}); await run;
     assert(p.element('candidate').hidden);
-    assert(p.element('notice').textContent.includes('模拟支付成功') && p.element('notice').textContent.includes('80.00'));
-    assert(!p.element('notice').textContent.includes('没有扣款')); assert(!p.element('identify').disabled);
+    assert(p.element('notice').textContent.includes('Simulated payment successful') && p.element('notice').textContent.includes('80.00'));
+    assert(!p.element('notice').textContent.includes('no charge')); assert(!p.element('identify').disabled);
   }
   {
     const p = page(); await p.ready(); await identify(p, 'retry-confirm');
     let run = p.element('confirm').onclick(); p.actions.shift().reject(Error('network')); await run;
     run = p.element('confirm').onclick(); assert.equal(p.calls.at(-1).payload.token, 'retry-confirm');
     p.finish({status: 'SUCCESS', display_name: 'P1', amount_cents: 2000, balance_cents: 8000}); await run;
-    assert(p.element('notice').textContent.includes('模拟支付成功'));
+    assert(p.element('notice').textContent.includes('Simulated payment successful'));
   }
   {
     const p = page(); await p.ready(); await identify(p);
     let run = p.element('confirm').onclick(); p.actions.shift().reject(Error('network')); await run;
     run = p.element('retry').onclick();
     p.finish({status: 'PAID', payment_status: 'INSUFFICIENT_BALANCE', display_name: 'P1', balance_cents: 1000}); await run;
-    assert(p.element('notice').textContent.includes('余额不足') && p.element('notice').textContent.includes('没有扣款'));
-    assert(!p.element('notice').textContent.includes('支付成功'));
+    assert(p.element('notice').textContent.includes('Insufficient simulated balance') && p.element('notice').textContent.includes('no charge'));
+    assert(!p.element('notice').textContent.includes('payment successful'));
   }
   {
     const p = page(); await p.ready(); await identify(p);
     let run = p.element('confirm').onclick(); p.actions.shift().reject(Error('network')); await run;
     run = p.element('retry').onclick(); p.finish({status: 'UNCONFIRMED'}); await run;
     assert(p.element('identify').disabled && !p.element('candidate').hidden);
-    assert(!p.element('notice').textContent.includes('没有扣款'));
+    assert(!p.element('notice').textContent.includes('no charge'));
     run = p.element('retry').onclick(); p.finish({status: 'CANCELLED'}); await run;
     assert(p.element('candidate').hidden && !p.element('identify').disabled);
-    assert(p.element('notice').textContent.includes('没有扣款'));
+    assert(p.element('notice').textContent.includes('no charge'));
   }
   {
     const storage = new Map(), first = page(storage); await first.ready();
@@ -1177,7 +1177,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/step');
     assert.equal(p.calls.at(-1).payload.token, 'refresh-partial');
     p.finish({status: 'NO_HAND', kept: 0, required: 5, attempts: 3, quality_failures: 0,
-      capture_failure: 'NO_HAND', resume_required: true, reason: '持续采集已暂停'}); await flush();
+      capture_failure: 'NO_HAND', resume_required: true, reason: 'Continuous capture paused'}); await flush();
     const cancel = p.element('enroll-cancel').onclick();
     p.finish({status: 'CANCELLED'}); await cancel;
     assert(!storage.has('palm_demo_enrollment_token'));
@@ -1186,13 +1186,13 @@ async function identify(p, token = 'one') {
     const storage = new Map([['palm_demo_enrollment_token', 'expired-token']]), p = page(storage); await flush();
     p.finish({status: 'EXPIRED'}); await flush();
     assert(!storage.has('palm_demo_enrollment_token'));
-    assert(p.element('notice').textContent.includes('超时'));
+    assert(p.element('notice').textContent.includes('timed out'));
   }
   {
     const storage = new Map([['palm_demo_enrollment_token', 'lost-after-restart-token']]), p = page(storage); await flush();
     p.finish({status: 'LOST'}); await flush();
     assert(!storage.has('palm_demo_enrollment_token'), 'a process-lost session must clear stale recovery data');
-    assert(p.element('notice').textContent.includes('候选未保存'));
+    assert(p.element('notice').textContent.includes('candidates were not saved'));
     assert(p.element('enroll-restore').hidden, 'a process-lost session must not remain stuck on restore');
     assert(p.element('enroll-cancel').hidden, 'clearing the token returns to the normal start state');
   }
@@ -1204,7 +1204,7 @@ async function identify(p, token = 'one') {
     assert(!p.element('enroll-restore').hidden, 'the page exposes an explicit status retry');
     assert(!p.element('enroll-cancel').hidden, 'the still-unknown server session can be cancelled');
     assert(p.element('enroll-resume').hidden, 'capture cannot resume until session state is confirmed');
-    assert(p.element('notice').textContent.includes('token 已保留'));
+    assert(p.element('notice').textContent.includes('token retained'));
     const retry = p.element('enroll-restore').onclick(); await flush();
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/status');
     assert.equal(p.calls.at(-1).payload.token, 'temporary-network-token');
@@ -1234,7 +1234,7 @@ async function identify(p, token = 'one') {
     await enrollment;
     assert(!p.element('enroll-cancel').hidden, 'known client token keeps cancel available after a lost response');
     assert(!p.element('enroll-restore').hidden, 'the same start request can be replayed to recover its result');
-    assert.equal(p.element('enroll-restore').textContent, '重试开始 / 恢复');
+    assert.equal(p.element('enroll-restore').textContent, 'Retry start / Recover');
 
     const replay = p.element('enroll-restore').onclick(); await flush();
     const replayStart = p.calls.at(-1);
@@ -1270,7 +1270,7 @@ async function identify(p, token = 'one') {
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/cancel');
     p.finishAt(1, {status: 'CANCELLED'}); await cancel;
     assert(!storage.has('palm_demo_enrollment_token'));
-    p.finishAt(0, {message: '该录入请求已结束，请重新开始。'}, false, 400); await replay;
+    p.finishAt(0, {message: 'This enrollment request has ended. Start again.'}, false, 400); await replay;
     assert(!storage.has('palm_demo_enrollment_token') && !storage.has('palm_demo_enrollment_start'),
       'a late replay rejection after cancellation must not restore stale client state');
     assert(p.element('enroll-cancel').hidden);
@@ -1284,7 +1284,7 @@ async function identify(p, token = 'one') {
     const cancel = p.element('enroll-cancel').onclick(); await flush();
     assert.equal(p.calls.at(-1).path, '/api/demo/enroll/cancel');
     p.finishAt(1, {status: 'CANCELLED'}); await cancel;
-    p.finishAt(0, {message: '该录入请求已结束，请重新开始。'}, false, 400); await enrollment;
+    p.finishAt(0, {message: 'This enrollment request has ended. Start again.'}, false, 400); await enrollment;
     assert(!storage.has('palm_demo_enrollment_token') && !storage.has('palm_demo_enrollment_start'),
       'cancel arriving before the original start response must prevent a stranded client session');
     assert(p.element('enroll-cancel').hidden);
@@ -1297,7 +1297,7 @@ async function identify(p, token = 'one') {
     await enrollment;
     assert(!p.calls.some(call => call.path === '/api/demo/enroll/start'),
       'storage failure is detected before creating a server session');
-    assert(p.element('notice').textContent.includes('尚未开始录入'));
+    assert(p.element('notice').textContent.includes('enrollment has not started'));
     assert(p.element('enroll-cancel').hidden && p.element('enroll-resume').hidden);
   }
 })().then(() => { clearTimeout(watchdog); console.log('UI interaction checks passed.'); })

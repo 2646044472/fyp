@@ -160,7 +160,7 @@ def test_http_account_commit_uncertainty_retains_atomic_template(tmp_path, monke
 
         monkeypatch.setattr(http.flow.payments, "create_account", commit_then_raise)
         code, error = http.post("commit", {"token": token, "confirm_hand": "left"})
-        assert code == 400 and "模板已保留" in error["message"]
+        assert code == 400 and "template was retained" in error["message"]
         reopened = make_flow(tmp_path)
         features, metadata = reopened.store.load("account_left")
         assert features.shape == (5, 4) and metadata["user"] == "account_left"

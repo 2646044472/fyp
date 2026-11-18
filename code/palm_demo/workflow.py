@@ -124,7 +124,7 @@ class PalmPaymentWorkflow:
         try:
             self.payment_service.create_account(user_id, display_name, initial_balance_cents)
         except Exception as error:
-            raise RuntimeError("录入账户状态未确认，模板已保留；请检查已有记录。") from error
+            raise RuntimeError("Account status is unconfirmed. The template was retained; check existing records.") from error
 
     def delete_user(self, user_id: str) -> None:
         user_id = safe_user_id(user_id)

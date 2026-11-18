@@ -79,11 +79,11 @@ def test_enrollment_start_replays_lost_response_with_same_client_token(tmp_path)
     assert replay["timeout_ms_remaining"] <= 600_000
     assert flow.enrollment_session is session
     assert flow.enrollment_session["started"] == started
-    with pytest.raises(ValueError, match="已有录入正在进行"):
+    with pytest.raises(ValueError, match="An enrollment is already in progress"):
         flow.enrollment_start("p1_left", "P1", "left", "b" * 32)
-    with pytest.raises(ValueError, match="已有录入正在进行"):
+    with pytest.raises(ValueError, match="An enrollment is already in progress"):
         flow.enrollment_start("p1_left", "Other", "left", request_token)
-    with pytest.raises(ValueError, match="请求编号无效"):
+    with pytest.raises(ValueError, match="Invalid enrollment request ID"):
         flow.enrollment_start("p2_left", "P2", "left", "not-a-token")
 
 
@@ -95,7 +95,7 @@ def test_cancelled_client_request_cannot_be_resurrected_by_late_replay(tmp_path)
     assert flow.enrollment_cancel(request_token) == {"status": "CANCELLED"}
     assert flow.enrollment_status(request_token) == {"status": "CANCELLED"}
     assert flow.enrollment_cancel(request_token) == {"status": "CANCELLED"}
-    with pytest.raises(ValueError, match="请求已结束"):
+    with pytest.raises(ValueError, match="enrollment request has ended"):
         flow.enrollment_start("p1_left", "P1", "left", request_token)
     assert flow.enrollment_session is None
 
@@ -105,7 +105,7 @@ def test_cancel_arriving_before_start_prevents_late_session_creation(tmp_path):
     request_token = "e" * 32
 
     assert flow.enrollment_cancel(request_token) == {"status": "CANCELLED"}
-    with pytest.raises(ValueError, match="请求已结束"):
+    with pytest.raises(ValueError, match="enrollment request has ended"):
         flow.enrollment_start("p1_left", "P1", "left", request_token)
     assert flow.enrollment_session is None
 
@@ -118,11 +118,11 @@ def test_cancelling_unknown_token_does_not_cancel_other_active_session(tmp_path)
 
     assert flow.enrollment_cancel(unknown_token) == {"status": "CANCELLED"}
     assert flow.enrollment_session["token"] == active_token
-    with pytest.raises(ValueError, match="已有录入正在进行"):
+    with pytest.raises(ValueError, match="An enrollment is already in progress"):
         flow.enrollment_start("p2_left", "P2", "left", unknown_token)
     assert flow.enrollment_session["token"] == active_token
     assert flow.enrollment_cancel(active_token) == {"status": "CANCELLED"}
-    with pytest.raises(ValueError, match="请求已结束"):
+    with pytest.raises(ValueError, match="enrollment request has ended"):
         flow.enrollment_start("p2_left", "P2", "left", unknown_token)
     assert flow.enrollment_session is None
 
@@ -134,7 +134,7 @@ def test_expired_client_request_cannot_be_resurrected_by_late_replay(tmp_path, m
     started = flow.enrollment_session["started"]
     monkeypatch.setattr("demo_flow.time.monotonic", lambda: started + 601.0)
 
-    with pytest.raises(ValueError, match="请求已结束"):
+    with pytest.raises(ValueError, match="enrollment request has ended"):
         flow.enrollment_start("p1_left", "P1", "left", request_token)
     assert flow.enrollment_session is None
     assert flow.enrollment_status(request_token) == {"status": "EXPIRED"}
@@ -256,13 +256,13 @@ def test_quality_duplicate_diversity_selection_and_confirmed_commit(tmp_path):
     assert len(flow.enrollment_session["features"]) == len(flow.enrollment_session["rois"]) == 5
     assert not flow.store.exists("p1_left")
     assert flow.enrollment_status(token)["elapsed_ms"] >= states[-1]["elapsed_ms"]
-    with pytest.raises(ValueError, match="同一只手"):
+    with pytest.raises(ValueError, match="same selected hand"):
         flow.enrollment_commit(token, "right")
     result = flow.enrollment_commit(token, "left")
     assert result["user_id"] == "p1_left"
     assert result["enrollment_elapsed_ms"] >= states[-1]["elapsed_ms"]
     assert flow.enrollment_status(token) == {"status": "COMPLETED"}
-    with pytest.raises(ValueError, match="请求已结束"):
+    with pytest.raises(ValueError, match="enrollment request has ended"):
         flow.enrollment_start("p1_left", "P1", "left", token)
     features, metadata = flow.store.load("p1_left")
     assert len(features) == 5 and metadata["hand_declared_by_user"] == "left"
@@ -329,11 +329,11 @@ def test_candidate_runtime_identity_is_saved_with_selected_templates(tmp_path):
 
 
 @pytest.mark.parametrize(("failure", "message"), [
-    ("ROI_UNSTABLE", "掌区检测尚未稳定"),
-    ("ROI_NOT_READY", "掌区状态尚未稳定"),
-    ("ROI_GEOMETRY_INVALID", "几何范围无效"),
-    ("CAMERA_UNAVAILABLE", "暂时无法读取相机画面"),
-    ("CAPTURE_TIMEOUT", "没有及时提供新画面"),
+    ("ROI_UNSTABLE", "Palm detection is not stable yet"),
+    ("ROI_NOT_READY", "Palm status is not stable yet"),
+    ("ROI_GEOMETRY_INVALID", "geometry is invalid"),
+    ("CAMERA_UNAVAILABLE", "Camera frame temporarily unavailable"),
+    ("CAPTURE_TIMEOUT", "No fresh camera frame arrived in time"),
 ])
 def test_capture_failure_shows_actionable_reason_without_buffering(tmp_path, failure, message):
     flow, _ = make_flow(tmp_path)
@@ -377,7 +377,7 @@ def test_no_hand_pauses_enrollment_without_using_quality_failure_budget(tmp_path
     token = flow.enrollment_start("p1_left", "P1", "left")["token"]
     state = flow.enrollment_step(token)
     assert state["status"] == "NO_HAND" and state["resume_required"] is True
-    assert "已暂停" in state["reason"] and "自动继续" in state["reason"] and "取消" in state["reason"]
+    assert "paused" in state["reason"] and "resumes automatically" in state["reason"] and "cancel" in state["reason"]
     assert state["quality_failures"] == 0 and state["candidate_pool_count"] == 0
     assert state["capture_failure"] == "NO_HAND" and "retry_after_ms" not in state
 
@@ -386,12 +386,12 @@ def test_cancel_before_selection_discards_candidate_pool(tmp_path):
     flow, _ = make_flow(tmp_path)
     frames = iter(candidate(index) for index in range(1, 6))
     flow.enrollment_candidate = lambda: next(frames)
-    with pytest.raises(ValueError, match="手别"):
+    with pytest.raises(ValueError, match="hand"):
         flow.enrollment_start("p1_left", "P1", "right")
     token = flow.enrollment_start("p1_left", "P1", "left")["token"]
     for _ in range(4):
         flow.enrollment_step(token)
-    with pytest.raises(ValueError, match="同一只手"):
+    with pytest.raises(ValueError, match="same selected hand"):
         flow.enrollment_commit(token, "left")
     assert flow.enrollment_cancel(token)["status"] == "CANCELLED"
     assert not flow.store.exists("p1_left")
@@ -437,7 +437,7 @@ def test_enrollment_status_restores_partial_and_ready_sessions(tmp_path):
 def test_enrollment_status_expires_only_matching_session(tmp_path):
     flow, _ = make_flow(tmp_path)
     token = flow.enrollment_start("p1_left", "P1", "left")["token"]
-    with pytest.raises(ValueError, match="已失效"):
+    with pytest.raises(ValueError, match="expired"):
         flow.enrollment_status("wrong-token")
     assert flow.enrollment_session is not None
     flow.enrollment_session["last_activity"] -= 601
@@ -452,7 +452,7 @@ def test_enrollment_status_reports_lost_process_local_session(tmp_path):
     restarted_process, _ = make_flow(tmp_path / "restarted")
 
     assert restarted_process.enrollment_status(token) == {"status": "LOST"}
-    with pytest.raises(ValueError, match="已失效"):
+    with pytest.raises(ValueError, match="expired"):
         restarted_process.enrollment_status("not-a-token")
 
 
@@ -477,7 +477,7 @@ def test_capture_finishing_after_timeout_is_not_added_to_candidate_pool(tmp_path
     flow.enrollment_candidate = capture_past_deadline
     state = flow.enrollment_step(token)
     assert state["status"] == "STOPPED"
-    assert "本次照片未加入候选且未保存" in state["reason"]
+    assert "This photo was neither added nor saved" in state["reason"]
     assert state["candidate_pool_count"] == 0
     assert flow.enrollment_session["features"] == []
 
@@ -490,7 +490,7 @@ def test_commit_after_enrollment_timeout_does_not_save_templates(tmp_path):
     for _ in range(8):
         assert flow.enrollment_step(token)["status"] in {"COLLECTING", "READY"}
     flow.enrollment_session["last_activity"] = time.monotonic() - 601
-    with pytest.raises(ValueError, match="超时"):
+    with pytest.raises(ValueError, match="timed out"):
         flow.enrollment_commit(token, "left")
     assert not flow.store.exists("p1_left")
     assert flow.enrollment_cancel(token)["status"] == "EXPIRED"
@@ -548,7 +548,7 @@ def test_repeated_clear_frame_does_not_exhaust_quality_budget(tmp_path):
     assert repeated[-1]["attempts"] == 18
     assert repeated[-1]["duplicate_frames"] == 17
     assert repeated[-1]["quality_failures"] == 0
-    assert "重复" in repeated[-1]["reason"]
+    assert "duplicate" in repeated[-1]["reason"].lower()
     assert not flow.store.exists("p1_left")
     finish = [flow.enrollment_step(token) for _ in range(7)]
     assert finish[-1]["status"] == "READY" and finish[-1]["kept"] == 5
@@ -691,7 +691,7 @@ def test_five_candidate_fallback_uses_only_previously_qualified_frames(tmp_path,
     assert state["candidate_pool_count"] == 5 and state["selection_mode"] == "five_candidate_wait"
     assert [f.tolist() for f in flow.enrollment_session["features"]] == [[float(i)] * 4 for i in range(1, 6)]
     assert not flow.store.exists("p1_left")
-    with pytest.raises(ValueError, match="同一只手"):
+    with pytest.raises(ValueError, match="same selected hand"):
         flow.enrollment_commit(token, "right")
     assert flow.enrollment_cancel(token)["status"] == "CANCELLED"
 

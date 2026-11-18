@@ -156,7 +156,7 @@ def test_incomplete_template_is_not_overwritten_by_enrollment(tmp_path, suffix, 
     path.parent.mkdir(parents=True, exist_ok=True)
     original = b'keep-incomplete-template'
     path.write_bytes(original)
-    with pytest.raises(ValueError, match='不完整'):
+    with pytest.raises(ValueError, match='incomplete'):
         if continuous:
             flow.enrollment_start('orphan', 'Orphan', 'left')
         else:
@@ -173,7 +173,7 @@ def test_incomplete_template_created_during_enrollment_is_not_overwritten(tmp_pa
     path.parent.mkdir(parents=True, exist_ok=True)
     original = b'keep-incomplete-template'
     path.write_bytes(original)
-    with pytest.raises(ValueError, match='不完整'):
+    with pytest.raises(ValueError, match='incomplete'):
         flow.enrollment_commit(token, 'left')
     assert path.read_bytes() == original
     assert not flow.payments.user_exists('orphan')

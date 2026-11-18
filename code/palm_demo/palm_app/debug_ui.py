@@ -67,24 +67,24 @@ def _has_fresh_live_no_hand(status: Any) -> bool:
 def _capture_readiness_gate_failure(status: Any) -> tuple[str, str] | None:
     """Return a retryable capture failure unless the live ROI gate is ready."""
     if not isinstance(status, dict) or status.get("camera_ready") is not True:
-        return "CAMERA_UNAVAILABLE", "相机画面当前不可用；预览恢复后可继续采集。"
+        return "CAMERA_UNAVAILABLE", "Camera feed unavailable. Capture can continue when the preview recovers."
     if _has_fresh_live_no_hand(status):
-        return "NO_HAND", "未检测到手掌，自动采集已暂停。请把手掌放入画面并等掌区就绪后继续。"
+        return "NO_HAND", "No palm detected. Auto-capture paused. Place your hand in view and wait until the palm is ready."
     if status.get("roi_status_fresh") is not True:
-        return "CAPTURE_TIMEOUT", "实时掌区状态已过期，请等待预览更新后继续采集。"
+        return "CAPTURE_TIMEOUT", "Live palm status expired. Wait for a preview update before continuing."
     count = int(status.get("demo_quality_consecutive_frames", status.get("quality_consecutive_frames", 0)))
     required = int(status.get("demo_quality_required_frames", status.get("quality_required_frames", 1)))
     state = status.get("demo_quality_status", status.get("quality_status"))
     if state != "READY" or count < required:
         reason = status.get("demo_quality_reason") or status.get("quality_reason")
         if reason == "sharpness_below_minimum":
-            message = "掌区画面偏模糊；请保持手掌稳定，调整距离并等待清晰预览。"
+            message = "Palm image is blurry. Hold still, adjust distance and wait for a clear preview."
         elif reason == "contrast_below_minimum":
-            message = "掌区对比度偏低；请调整光线或手掌位置后再采集。"
+            message = "Low palm contrast. Adjust lighting or hand position before capturing."
         elif reason == "tracker_status_fixed":
-            message = "当前裁剪模式不能确认掌区；请启用动态掌区检测后再录入或识别。"
+            message = "Current crop mode cannot verify the palm. Enable dynamic palm detection before enrollment or identification."
         else:
-            message = "掌区画质或位置尚未稳定，请按预览提示调整并等待就绪。"
+            message = "Palm quality or position is not stable. Follow the preview guidance and wait until ready."
         return "ROI_NOT_READY", message
     return None
 
@@ -143,7 +143,7 @@ main{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px
 preview{position:relative;width:100%;aspect-ratio:16/9;background:#111;border-radius:8px;overflow:hidden}.preview img{display:block;width:100%;height:100%;object-fit:contain}.roi-guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.roi-guide .roi-box{fill:#25d36612;stroke:#25d366;stroke-width:.55;stroke-dasharray:2 1}.roi-guide .roi-point{fill:#25d366;stroke:#fff;stroke-width:.35}.roi-guide .roi-cross{stroke:#fff;stroke-width:.35;opacity:.9}.roi-label{position:absolute;left:19%;top:12%;color:#fff;background:#25d366d9;padding:3px 7px;border-radius:4px;font-size:.76rem;font-weight:700;letter-spacing:.02em;pointer-events:none}.roi-panel{margin-top:12px;padding:10px;border:1px solid #dce3ea;border-radius:8px;background:#f8fafb}.roi-preview{display:block;width:220px;height:220px;margin-top:6px;image-rendering:pixelated;background:#111;border-radius:6px}label{display:block;margin:10px 0 6px;font-weight:600}input,select,button{font:inherit;padding:9px;border:1px solid #b8c2cc;border-radius:7px}input,select{width:100%;box-sizing:border-box}button{cursor:pointer;margin:8px 4px 0 0;background:#1769aa;color:white;border:0}button.secondary{background:#5d6d7e}button:disabled{opacity:.5;cursor:wait}.notice{white-space:pre-wrap;background:#eef3f7;padding:10px;border-radius:7px;min-height:42px;margin-top:14px}.small{font-size:.88rem;color:#53616d}.status{font-weight:700}.ready{background:#e4f7ea;color:#126b2d}.blocked{background:#fff0ef;color:#9b241c}h1{margin-top:0} @media(max-width:760px){main{grid-template-columns:1fr}}
 </style></head><body><h1>Palm Reg · Pi debug</h1>
 <main><section><div class="preview"><img id="stream" src="/frame.jpg" alt="camera preview"></div><p class="small">The green quadrilateral follows the tracked palm. Keep one hand visible and wait for the tracking status before enrolling or verifying.</p><div class="roi-panel"><div class="small"><strong>Processing ROI (128×128 normalized)</strong></div><img id="roi" class="roi-preview" src="/roi.jpg" alt="normalized palm processing ROI"></div></section>
-<section><a class="collect-link" href="/demo">打开基础支付演示 /demo<small>高清录入、掌纹识别、人工确认与模拟扣款</small></a><a class="collect-link" href="/collect">打开专门采集页 /collect<small>每组 10 张高清原图（3280×2464），拍后检查 128×128 掌心裁图与 512×512 原始细节</small></a><div id="roi-status" class="notice status">ROI status: starting</div><label for="user">Local test identity</label><input id="user" value="demo-noir" pattern="[A-Za-z0-9_-]+">
+<section><a class="collect-link" href="/demo">Open basic payment demo /demo<small>High-resolution enrollment, palmprint identification, manual confirmation and simulated payment</small></a><a class="collect-link" href="/collect">Open dedicated capture page /collect<small>Per session: 10 full-resolution originals (3280×2464); then inspect the 128×128 palm crop and 512×512 original detail</small></a><div id="roi-status" class="notice status">ROI status: starting</div><label for="user">Local test identity</label><input id="user" value="demo-noir" pattern="[A-Za-z0-9_-]+">
 <label for="profile">Capture profile</label><select id="profile"><option value="noir-ir" selected>NoIR + IR light</option><option value="rgb">RGB</option></select>
 <button id="enroll" disabled onclick="runAction('enroll')">Enroll 5 samples</button><button id="verify" class="secondary" disabled onclick="runAction('verify')">Verify</button>
 <button id="debug-capture" class="secondary" disabled onclick="captureDebugSample()">Capture debug sample</button>
@@ -642,7 +642,7 @@ class CameraFeed:
             processed = self.latest_processed
             if processed is None:
                 raise CaptureProcessingFailure(
-                    "CAPTURE_TIMEOUT", "实时掌区状态尚未更新，请等待预览后继续。"
+                    "CAPTURE_TIMEOUT", "Live palm status has not updated yet. Wait for the preview before continuing."
                 )
             status = dict(processed.roi_status)
             camera_state = self._camera_frame_state()

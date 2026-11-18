@@ -16,7 +16,7 @@ def test_enrollment_status_api_requires_and_forwards_token():
         if token == "a" * 32:
             return {"status": "LOST"}
         if token != "valid-token":
-            raise ValueError("录入会话已失效，请重新开始。")
+            raise ValueError("Enrollment session expired. Start again.")
         return {"status": "PAUSED", "user_id": "p1_left"}
 
     app = SimpleNamespace(capture_only=False, demo=SimpleNamespace(enrollment_status=status))
@@ -50,7 +50,7 @@ def test_enrollment_status_api_requires_and_forwards_token():
             post("invalid-token")
         except HTTPError as error:
             assert error.code == 400
-            assert "已失效" in json.loads(error.read())["message"]
+            assert "expired" in json.loads(error.read())["message"]
         else:
             raise AssertionError("invalid enrollment token was accepted")
         assert seen == ["valid-token", "a" * 32, "invalid-token"]
