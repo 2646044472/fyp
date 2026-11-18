@@ -35,7 +35,7 @@ After the server-gate API smoke, the same temporary-runtime X UVC app was opened
 
 A follow-up single-frame check found that direct `capture_demo_feature(enrollment=False)` on a real fresh NO_HAND scene could still return a feature candidate from a low-quality background crop (contrast 0.453, sharpness 0.049). This was a feature extraction observation, not a demonstrated gallery match or false accept. The demo's `identify` callback now requires the same fresh READY frame gate as enrollment. Direct calls used by offline evaluation scripts keep their prior behavior by default.
 
-A real X UVC `POST /api/demo/identify` smoke with an empty scene returned HTTP 200 with `status=RETRY`, `reason=NO_HAND`, and zero high-resolution capture calls. No pending identity token or template directory was created; only the temporary payment database existed. The targeted Python suite then reported **38 passed**. This verifies the no-hand API boundary, not recognition accuracy with an enrolled gallery or真人/Pi behavior.
+A real X UVC `POST /api/demo/identify` smoke with an empty scene returned HTTP 200 with `status=RETRY`, `reason=NO_HAND`, and zero high-resolution capture calls. No pending identity token or template directory was created; only the temporary payment database existed. The targeted Python suite then reported **38 passed**. This verifies the no-hand API boundary, not recognition accuracy with an enrolled gallery or behavior with live participants or on the Pi.
 
 ## READY auto-resume and production callback regression check
 

@@ -1,33 +1,33 @@
-# 演示预览严格质量门控（2026-11-09）
+# Strict preview quality gate for the demo (2026-11-09)
 
-## 问题
+## Problem
 
-`/demo` 的自动采集前置检查之前使用诊断型 `quality_status`。该 gate 的对比度/清晰度下限为 0，因此低质预览仍可能被标成 READY，随后才在高分辨率抓拍处理失败。
+The automatic capture preflight on `/demo` previously used the diagnostic `quality_status`. Its lower bounds for contrast and sharpness were 0, so a poor preview could be marked READY and fail only during high-resolution capture processing.
 
-## 改动
+## Changes
 
-- 保留原诊断 gate（min contrast/sharpness 均为 0），继续向 debug/诊断页报告状态。
-- 增加演示专用 gate：连续 5 帧、contrast ≥ 12、sharpness ≥ 2，并沿用 ROI 新鲜度和几何稳定性判断。
-- `/demo` 浏览器控件和服务端抓拍前置检查优先使用 `demo_quality_*` 字段；缺少新字段的测试替身仍走旧字段兼容路径。
-- 低清晰度、低对比度和不稳定掌区显示可执行提示。服务端未就绪时在高分辨率抓拍前返回 WAIT/RETRY，不增加采集失败预算。
-- 质量值由同一处理后的 128×128 灰度 ROI 计算。阈值与仓库已有 `pklnet_policy.require_matchable_quality`、`EnrollmentPhotoSelector` 一致；这只说明测量域和现行阈值复用，不代表真人可用性已验证。
+- Retain the diagnostic gate (minimum contrast and sharpness both 0) for status reporting on debug/diagnostic pages.
+- Add a demo-specific gate: require 5 consecutive frames, contrast ≥ 12 and sharpness ≥ 2, retaining the existing ROI freshness and geometric stability checks.
+- The `/demo` browser controls and server capture preflight prefer the `demo_quality_*` fields. Test doubles without these fields can still use the legacy fields.
+- Show actionable prompts for low sharpness, low contrast and unstable palm regions. If the server is not ready, return WAIT/RETRY before high-resolution capture without counting it against the capture failure budget.
+- Calculate quality on the same processed 128×128 grayscale ROI. The thresholds match the existing `pklnet_policy.require_matchable_quality` and `EnrollmentPhotoSelector`. Reusing the measurement domain and current thresholds does not establish usability with real participants.
 
-## 验证
+## Verification
 
-X 主机，无真人掌纹输入：
+On host X, without a real palmprint input:
 
-- `tests/test_roi_quality.py` 与 `tests/test_pklnet_no_hand_normalization.py`：31 passed。
-- `node tests/test_demo_page.cjs`：交互检查通过，含诊断 READY 但演示质量失败时保持禁用、显示模糊提示、且动作不触达服务端。
-- Python `py_compile`：通过。
+- `tests/test_roi_quality.py` and `tests/test_pklnet_no_hand_normalization.py`: 31 passed.
+- `node tests/test_demo_page.cjs`: interaction checks passed. When diagnostics report READY but the demo quality gate fails, the control stays disabled, a blur prompt appears and the action never reaches the server.
+- Python `py_compile`: passed.
 
-## 限制
+## Limits
 
-相机当前没有手掌可供真人验收；本轮未做实时光线/模糊阈值调整、Pi 摄像头或识别端到端耗时测量。此 gate 是可回滚的体验保护改动，不能算识别准确率提升。
+No hand was available in front of the camera for a live acceptance test. This round did not tune thresholds under live lighting or blur, test the Pi camera, or measure end-to-end recognition latency. This reversible usability guard is not evidence of improved recognition accuracy.
 
-## X UVC 无手实机检查补充（2026-11-09）
+## Additional no-hand hardware check on X UVC (2026-11-09)
 
-- X 上 `/dev/v4l/by-path/pci-0000:00:14.0-usb-0:6:1.0-video-index0` 映射到 Integrated Webcam HD；只读预览脚本在 640×360 连续运行约 4 秒，10/10 状态为 NO_HAND，捕获约 30.2–30.3 fps、检测 24.9–29.5 ms。脚本不含录入/识别路由，不写帧。
-- 主 `/demo` App 在 X 上以 `--camera-backend uvc --roi-mode pklnet --enable-recognition` 启动，监听仅限 `127.0.0.1`；`/api/status` 十次均为相机就绪、ROI新鲜、诊断和严格 gate 都是 NO_HAND，0/5 连续就绪。`GET /demo` 返回新页面。
-- 对该隔离实例发 1 次空场景 `POST /api/demo/identify`，返回 `RETRY/NO_HAND`，无分数/ROI图像。源码路径在 gallery 之前先执行 live gate；因此没有图库比对或身份分数。响应里 `gallery` 计时约 0.225ms 是 gallery-integrity 检查，不是匹配计算。隔离 runtime 的 users/accounts/transactions 均为 0。
-- 主 App 首次启动暴露 `.venv-pklnet` 缺少仓库 `requirements-dev.txt` 已声明的 `scipy>=1.14`；仅在该 venv 使用 `uv` 安装 scipy 1.18.1，未改依赖清单。隔离 runtime 位于 `/tmp/codex-palm-demo-nohand-uvc-v2-20261109`；没删除它。App 和预览服务都已正常退出。
-- 这只证明当前空场景及本地 API 的安全阻断，不是真人 READY 录入/识别、Pi 验证或准确率结果。
+- On X, `/dev/v4l/by-path/pci-0000:00:14.0-usb-0:6:1.0-video-index0` mapped to Integrated Webcam HD. A read-only preview ran at 640×360 for approximately 4 seconds. All 10/10 status samples reported NO_HAND; capture ran at about 30.2–30.3 fps and detection took 24.9–29.5 ms. The script has no enrollment or recognition route and writes no frames.
+- The main `/demo` app ran on X with `--camera-backend uvc --roi-mode pklnet --enable-recognition`, listening only on `127.0.0.1`. All ten `/api/status` checks reported a ready camera, a fresh ROI status, NO_HAND for both the diagnostic and strict gates, and 0/5 consecutive ready frames. `GET /demo` returned the new page.
+- The isolated instance received 1 empty-scene request: `POST /api/demo/identify`. It returned `RETRY/NO_HAND` with no score or ROI image. The live gate runs before gallery matching; no gallery comparison or identity score was produced. The roughly 0.225ms `gallery` timing measured the gallery-integrity check, not matching. The isolated runtime contained 0 users, accounts and transactions.
+- The app's first launch revealed that `.venv-pklnet` lacked `scipy>=1.14`, already declared in the repository's `requirements-dev.txt`. Only that virtual environment was updated, using `uv` to install scipy 1.18.1; the dependency manifest did not change. The isolated runtime at `/tmp/codex-palm-demo-nohand-uvc-v2-20261109` was retained. Both the app and preview service exited normally.
+- This establishes only safe blocking for the observed empty scene and local API. It is not a READY enrollment or recognition test with a real participant, a Pi validation or an accuracy result.

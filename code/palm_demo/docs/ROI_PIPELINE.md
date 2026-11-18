@@ -1,103 +1,67 @@
-# 单设备 ROI 与识别流程（2026-10-28）
+# Single-device ROI and recognition pipeline (2026-10-28)
 
-当前默认仍是 v5 定位与 DoN 匹配。新增可选 `FastCCWindowUnion-v4`，
-使用原有 frozen PKLNet 模型；候选定位与匹配均不接收身份、文件名或划分信息。
-新旧设备分别评估，不做跨设备匹配。未部署 Pi、未更改网络。
+The defaults remain v5 localization and DoN matching. The optional `FastCCWindowUnion-v4` uses the existing frozen PKLNet model. Neither candidate localization nor matching receives identities, filenames or split assignments. The old and new devices are evaluated separately, with no cross-device matching. Nothing was deployed to the Pi and the network was not changed.
 
-## 1. 定位候选
+## 1. Localization candidates
 
-- 原图和 gamma 0.6 图分别执行原有 aspect 定位，各保留有效 quad。
-- 主 ROI 继续遵循 v5：gamma 有效且与原图框 IoU 至少 0.5 时采用，
-  否则按原规则回退。此主 ROI 用于基础模板和录入端纹理区域。
-- 对宽高比与 4:3 差超过 0.05 的图，取最大 4:3 窗口的三个等距位置。
-  每个窗口分别运行原图/gamma heatmap 定位，并映回原图坐标，最多再加六个候选。
-  4:3 附近的图没有额外窗口，这是几何规则，不是设备/身份路由。
-- 原图/gamma候选继承既有有效性检查；窗口候选检查有限坐标、四角位于原图内、
-  关键点跨度至少为原图短边的 0.1。几何有效不等于已证明包含正确掌心。
-  模型加载/推理异常上报，不静默删除候选或测试样本。
+- Run the existing aspect-based localizer separately on the original and gamma 0.6 images. Keep valid quadrilaterals from each.
+- The primary ROI follows v5: use the gamma result if it is valid and has IoU of at least 0.5 with the original-image box. Otherwise apply the existing fallback rule. The primary ROI supplies the base template and enrollment texture region.
+- If the image aspect ratio differs from 4:3 by more than 0.05, place the largest possible 4:3 window at three equally spaced positions. Run original/gamma heatmap localization in each window and map the results back to source coordinates, adding up to six candidates. Images close to 4:3 get no extra windows. This is a geometric rule, not routing by device or identity.
+- Original/gamma candidates retain their existing validity checks. Window candidates must have finite coordinates, all four corners inside the original, and a keypoint span of at least 0.1 times its shorter side. Geometric validity does not establish that a candidate contains the correct palm region. Report model loading and inference exceptions rather than silently dropping candidates or test samples.
 
-## 2. 搜索区域与描述子
+## 2. Search regions and descriptors
 
-- 每个候选映射到 384×384 坐标，查询端分别搜索该框及以它为中心的两倍范围
-  （768×768，坐标偏移 192）。扩大的是对应点搜索范围。
-- 原图/gamma候选使用 sigma 0、2、4、8 四种固定描述子视图；窗口候选使用 0、2。
-  平滑只用于寻找 RootSIFT 对应，不对最后用于 FastCC 识别的像素做平滑。
-- 录入端的对应点始终取自其主 ROI 内：原始、sigma 2、4、8；不会随查询标签换框。
-- 保留 `expanded_strict` 分支：从 v2 保存的 768 上下文取原始/sigma 2 查询描述子。
-  与直接从候选 quad 生成的视图分别计算，避免遗漏历史实验中的重采样差异。
+- Map each candidate to 384×384 coordinates. On the query side, search both the box itself and a region twice as wide and high with the same center (768×768, coordinate offset 192). This expands the correspondence search.
+- Original/gamma candidates use four fixed descriptor views with sigma 0, 2, 4 and 8; window candidates use 0 and 2. Smoothing is only for finding RootSIFT correspondences, not for the final pixels scored by FastCC.
+- Enrollment correspondences always come from the primary ROI: the original and sigma 2, 4 and 8 views. The box does not change with the query label.
+- Retain the `expanded_strict` branch: extract original and sigma 2 query descriptors from the saved v2 768 context. Compute these separately from views generated directly from candidate quadrilaterals to preserve historical resampling differences.
 
-## 3. 对应与对齐
+## 3. Correspondence and alignment
 
-互为最近邻、比率小于 0.85；RANSAC 部分仿射拟合阈值 3 px、最多 2000 次，
-固定随机种子。至少四个内点，两端内点凸包面积至少各为 384² 的 2%，
-尺度在 0.5–2，旋转绝对值不超过 40°。
+Require mutual nearest neighbors with a ratio below 0.85. Fit a partial affine transform with RANSAC: 3 px threshold, at most 2000 iterations and a fixed random seed. Require at least four inliers, an inlier convex hull covering at least 2% of 384² at each end, scale in 0.5–2 and absolute rotation no greater than 40°.
 
-通过几何检查后，用该变换从保存的**原生灰度像素**一次采样到 128×128。
-输出四角需在原图内留至少一像素边界，不让黑色填充参与识别。
-灰度图以无损 PNG 写入模板，解码检查尺寸；不使用生成图修复或人工参考框。
+After the geometric checks, use the transform to sample the saved **native grayscale pixels** directly to 128×128 in a single pass. Each output corner must leave at least one pixel of margin inside the original so black padding cannot affect recognition. Store the grayscale image in the template as a lossless PNG and check its dimensions when decoding. Do not use generative repair or manual reference boxes.
 
-## 4. 评分
+## 4. Scoring
 
-对齐后的 ROI 经原有归一化和 FastCC 计算，与录入主 ROI 的 FastCC 模板比较。
-每对图片统一取所有有效候选与原 v2 回退距离的最小值。
-一个身份有五张录入模板，取距离最小的两张的平均值作为该身份分数。
-没有样本特例、身份特定阈值或按正确答案挑选分支。
+Normalize the aligned ROI using the existing procedure, compute FastCC and compare it with the FastCC template of the primary enrollment ROI. For every image pair, use the smallest distance across all valid candidates and the original v2 fallback. Each identity has five enrollment templates; its score is the mean of the two smallest distances. There are no sample-specific exceptions, identity-specific thresholds or branches selected using the correct answer.
 
-`base_full` 是历史独立对照（仅基础描述子改用原生像素采样），并未进入离线联合
-方案的依赖链；不能把它误认为 `expanded_strict` 的父基线。
-它比 v2 改善 210 个有向配对；其中五对比最终离线联合仍好，最大距离差 0.0009765625。
-这些差异保留在 `single-device/union-audit.json`，不会为迎合成绩隐式加进运行版。
+`base_full` is a separate historical control: only its base descriptor switched to native-pixel sampling. It is not a dependency of the offline union or the parent baseline of `expanded_strict`. It improved 210 directed pairs over v2. Five of those pairs were still better than the final offline union, with a maximum distance difference of 0.0009765625. These differences are recorded in `single-device/union-audit.json`; they are not silently incorporated into the runtime to improve its results.
 
-## 版本与验收边界
+## Versions and validation limits
 
-- v2：原有主 ROI + 两种描述子 + 局部对齐。
-- v3：原图/gamma多候选，原生像素一次采样；无窗口和粗尺度完整联合。
-- v4：上述窗口、粗尺度和基线分支完整实现，独立模板版本；旧模板不能混用。
-- 离线 `window-coarse-union`：统一 min 已计算候选距离；开发实验全20。
-  不能据此提前宣称 v4 运行入口、真实相机或 Pi 已通过。
+- v2: original primary ROI, two descriptor types and local alignment.
+- v3: multiple original/gamma candidates and single-pass native-pixel sampling; no complete union of window and coarse-scale candidates.
+- v4: full implementation of the window, coarse-scale and baseline branches above. It has a separate template version and cannot mix old and new templates.
+- Offline `window-coarse-union`: takes the minimum across the computed candidate distances; all development experiments scored 20. This does not establish that the v4 runtime entry point, a live camera or the Pi passed validation.
 
-运行评测使用 `audit_registered_runtime.py --matcher FastCCWindowUnion-v4`：
-80 张模板压缩保存、重载，再计算全部同设备有向配对，固定正向/反向/十随机/额外100随机。
-`audit_union_fresh_features.py` 重新推理定位并核对模板，
-`verify_union_runtime.py` 核对原图哈希、划分、基线与距离一致性。
-`replay_pi_pipeline.py --demo-matcher FastCCWindowUnion-v4 --policies illumination`
-从历史原图进入本地实际 HTTP 采集、录入、查询、隔离模拟支付流程。
+The runtime evaluation uses `audit_registered_runtime.py --matcher FastCCWindowUnion-v4`: compress and save 80 templates, reload them and score all directed same-device pairs under fixed forward/reverse splits, ten random splits and an additional 100 random splits.
+`audit_union_fresh_features.py` reruns localization and checks the templates. `verify_union_runtime.py` checks original-image hashes, splits, baseline and distance consistency.
+`replay_pi_pipeline.py --demo-matcher FastCCWindowUnion-v4 --policies illumination` replays historical original images through the actual local HTTP capture, enrollment, query and isolated simulated payment flow.
 
-这些照片已反复用于算法选择和参数开发。即使所有固定划分满分，也没有独立新会话
-泛化证据、陌生人拒绝率验证或 Pi 性能保证。模板含掌纹像素和描述子，按生物模板保管。
+These photos were repeatedly used for algorithm selection and parameter development. Perfect scores on all fixed splits would still not demonstrate generalization to an independent new session, validate stranger rejection or guarantee Pi performance. Templates contain palmprint pixels and descriptors and must be protected as biometric templates.
 
-## 后续 v5 空间检查与 v6 demo 提速
+## Subsequent v5 spatial checks and v6 demo speedups
 
-`FastCCAnchoredUnion-v5` 要求候选框与自动主ROI有大于1像素²的交集，并对最终
-对齐后的评分框执行同样检查。它排除明显空间分离的候选，不是手部分割；主框
-本身若定位错误，仍可能排除有用候选。主框偏小的根因尚未被一个新定位器解决。
-固定80图上9张图移除48个描述子视图，3120个配对分数完全未变。
+`FastCCAnchoredUnion-v5` requires the candidate box to intersect the automatic primary ROI by more than 1 pixel² and applies the same check to the final aligned scoring box. This removes clearly disjoint candidates; it is not hand segmentation. An incorrectly located primary box can still exclude useful candidates. No new localizer has yet resolved why the primary box is too small. On the fixed 80 images, the check removed 48 descriptor views from 9 images without changing any of the 3120 pair scores.
 
-`match_with_diagnostics` 返回每个配对的获胜分支、描述子视图索引、source_matrix
-和aligned_quad。一个身份的best2分数可能来自两种不同对齐，不存在唯一的最终候选。
-若legacy_v2回退胜出，只报告回退，不虚构未记录的对齐框。
-详见 `runtime/roi-palmir-20261028/single-device/report-v5.html` 的真实贡献图。
+`match_with_diagnostics` returns the winning branch, descriptor-view index, source_matrix and aligned_quad for each pair. An identity's best2 score may combine two different alignments, so there is no unique final candidate. If the legacy_v2 fallback wins, report the fallback only; do not invent an unrecorded alignment box. See the actual contribution plots in `runtime/roi-palmir-20261028/single-device/report-v5.html`.
 
-`FastCCDemo-v6` 保持v5评分规则，主要改变计算与存储使用方式：
+`FastCCDemo-v6` retains v5 scoring and mainly changes computation and storage:
 
-- 录入只计算legacy基础模板及粗尺度gallery描述子，不计算查询候选或保存查询原生PNG。
-- 查询继续执行完整候选搜索；采用最多两个工作线程，输出顺序和评分保持确定。
-- 查询图只解码一次；gallery仅保留匹配需要的紧凑数据，不保留无用查询图和视图。
-- Gallery缓存上限64MiB，按文件inode、大小、纳秒修改/创建时间检查；重新录入、
-  元数据变更和删除会失效，LRU超限逐出。仅有兼容元数据的模板会参与识别。
-- v6模板带独立版本标识。仅录入格式不能当成查询模板；旧算法模板需重新录入，
-  现有账户、余额按既有流程保留。
-- API识别结果包含 `timing_ms`，拆分拍摄/提取、gallery匹配与总耗时；前端只显示
-  定位预览，不把该小图标成唯一最终评分ROI。
+- Enrollment computes only the legacy base template and coarse-scale gallery descriptors. It neither computes query candidates nor saves a native query PNG.
+- Queries still run the full candidate search, with up to two workers and deterministic output order and scores.
+- Decode each query image only once. Keep only compact data needed for gallery matching, not unused query images or views.
+- Cap the gallery cache at 64MiB. Check file inode, size, and nanosecond modification/creation times. Re-enrollment, metadata changes and deletion invalidate entries; use LRU eviction above the limit. Only templates with compatible metadata participate in recognition.
+- v6 templates carry a distinct version identifier. The enrollment-only format cannot serve as a query template. Templates from the old algorithm require re-enrollment; existing accounts and balances are retained under the existing procedure.
+- Recognition API results include `timing_ms`, broken down into capture/extraction, gallery matching and total time. The frontend displays a localization preview only; it does not label this thumbnail as the unique final scoring ROI.
 
-并行提取对全部80张图与串行实现逐字节一致（版本标识除外）；紧凑录入与并行
-匹配对全部3120个非自身同设备配对分数保持完全一致。因此原224个固定划分结果
-仍保持不变。完整HTTP及耗时记录见后续 `report-v6.html`。
+Parallel extraction was byte-identical to the serial implementation on all 80 images except for the version identifier. Compact enrollment and parallel matching preserved all 3120 non-self, same-device pair scores exactly, leaving the original 224 fixed-split results unchanged. See the subsequent `report-v6.html` for the complete HTTP and timing records.
 
-启用此可选demo的命令（本轮未在Pi启动服务）：
+To enable the optional demo (no service was started on the Pi in this round):
 
 ```sh
 python debug_ui.py --enable-recognition --roi-mode pklnet --demo-matcher FastCCDemo-v6
 ```
 
-默认capture-only服务和DoN参数未更改。当前本机计时不能替代Pi现场摄像头和CPU验收。
+The default capture-only service and DoN parameters are unchanged. Local timings do not replace on-device validation with the Pi camera and CPU.

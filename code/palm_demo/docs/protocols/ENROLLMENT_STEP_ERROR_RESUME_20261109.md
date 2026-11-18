@@ -1,17 +1,17 @@
-# 自动录入步骤失败后的恢复 — 2026-11-09，X
+# Resuming automatic enrollment after a step fails — 2026-11-09, X
 
-## 源码缺口
+## Failure mode
 
-页面在 `/api/demo/enroll/start` 已取得 token 后，如果首个或后续 `/api/demo/enroll/step` 请求失败，异常分支只显示错误。`enrollmentToken` 仍存在，但 `enrollmentPaused` 为 false，故“继续采集”隐藏；用户只能取消同一会话，丢弃已缓存的候选。已暂停后的手动继续若再次失败，也会发生同样的状态。
+After the page obtained a token from `/api/demo/enroll/start`, a failure on the first or any later `/api/demo/enroll/step` request only displayed an error. The page still held `enrollmentToken`, but `enrollmentPaused` was false, hiding the option to resume capture. The user could only cancel the session and discard the cached candidates. The same state occurred if a manual resume failed after a pause.
 
-## 改动
+## Change
 
-两处采集异常分支在仍持有 token 时保留暂停状态，提示预览就绪后手动继续或取消。恢复仍使用同一个 token；相机和 ROI READY、忙碌保护由原有 `resumeEnrollment` 判断，不修改服务端会话、八选五和质量门槛。
+Both capture-error branches now preserve the paused state while the page holds a token and prompt the user to resume manually once preview is ready, or cancel. Resuming uses the same token. The existing `resumeEnrollment` checks camera and ROI readiness and guards against concurrent actions. Server sessions, selection of five out of eight candidates and quality thresholds are unchanged.
 
-## 验证
+## Verification
 
-`node tests/test_demo_page.cjs` 通过。新增一个交互场景模拟首次 step 的传输失败、第一次手动继续再次失败、第二次手动继续成功返回 NO_HAND；每次继续请求均使用同一个 token，取消后继续按钮隐藏。`git diff --check -- demo_page.py tests/test_demo_page.cjs` 通过。
+`node tests/test_demo_page.cjs` passed. A new interaction test simulates a transport failure on the first step, another failure on the first manual resume, and a successful response of NO_HAND on the second manual resume. Each resume uses the same token; canceling hides the resume button. `git diff --check -- demo_page.py tests/test_demo_page.cjs` passed.
 
-## 边界
+## Limits
 
-这是页面模拟测试，未连接相机或真人。若服务端会话已过 120 秒或 token 被撤销，继续请求仍会失败；这项改动只修复临时步骤请求错误时的页面恢复入口。
+This was a simulated page test without a camera or a human participant. Resume will still fail if the server session has expired after 120 seconds or the token has been revoked. The change only restores the page's recovery path after a temporary step-request error.
