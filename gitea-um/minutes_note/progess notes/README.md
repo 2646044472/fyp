@@ -1,7 +1,13 @@
-# Progress reports
+# Palm recognition: progress notes
 
-- **[18 November 2026: Experimental results and interpretation](2026-11-18-experimental-results.md)**. Seventeen GitHub-readable tables cover cross-dataset scores, shared galleries, rejection, localization, device replay and training controls.
-- **[18 November 2026: Palm recognition across cameras, poses and people](2026-11-18.md)**. Integrated report on data coverage, ROI methods, the cross-dataset result matrix, paired comparisons, geometry correction, scratch training, author-code reproduction and next experiments.
-- **[September–15 November 2026: Building and testing the first system](2026-09-to-11-development.md)**. A consolidated development history from capture through distance testing, enrollment recovery and dataset screening.
+Start with the **research report** for the decisions and their rationale. Use the tables to check a particular result or the timeline to see how the prototype developed.
 
-[Meeting notes and project index](../../README.md) · [Research code and synthetic walkthrough](../../research_code/README.md)
+| Read | What you will find |
+| --- | --- |
+| [Research report · 18 November 2026](2026-11-18.md) | What changed when we varied the palm crop, recognizer and training procedure; which failures remained. |
+| [Experimental results · 18 November 2026](2026-11-18-experimental-results.md) | Seventeen tables with probe counts, comparable galleries, rejection results and protocol limits. |
+| [Development timeline · September–November 2026](2026-09-to-11-development.md) | From camera acquisition and alignment to enrollment recovery and dataset screening. |
+
+The [attachments folder](attachments/) holds the two illustrations used in the report: a pipeline diagram and the outcomes for the same 94 queries before and after mask repair. Both are schematics or aggregate results, not participant images.
+
+[Research code and synthetic walkthrough](../../research_code/README.md) · [School project and meeting notes](../../README.md)
