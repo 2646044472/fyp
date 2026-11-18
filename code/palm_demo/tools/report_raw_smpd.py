@@ -211,27 +211,27 @@ def make_examples(root, rows, queries):
 
 
 def render_html(root, summary, rows, queries):
-    labels={'F':'正面','RF':'旋转正面','P':'透视','RP':'旋转透视'}
+    labels={'F':'Frontal','RF':'Rotated frontal','P':'Perspective','RP':'Rotated perspective'}
     def cells(name, result):
         t=result['all_timing']; seconds=lambda v:'—' if v is None else f'{v/1000:.2f}'
         return '<tr>'+''.join(f'<td>{html.escape(str(v))}</td>' for v in (name,result['total'],result['correct'],
             result['wrong_identity_accepted'],result['true_identity_nonunique'],result['rejected'],result['processing_failure'],
             result['correct_within_2500'],seconds(t['p50_ms']),seconds(t['p95_ms']),seconds(t['max_ms'])))+'</tr>'
-    table=''.join(cells(n,s) for n,s in [('全部',summary['overall']),('真身份注册成功',summary['truth_enrolled']),
-        ('真身份未注册',summary['truth_unregistered'])]+[(labels[c],summary['per_view'][c]) for c in labels])
-    state='全量完成' if summary['complete'] else '运行中：以下为中间结果，不能代表全量'
-    body=f'''<!doctype html><html lang="zh"><meta charset="utf-8"><title>SMPD 原图全流程实验</title>
+    table=''.join(cells(n,s) for n,s in [('All',summary['overall']),('True identity enrolled successfully',summary['truth_enrolled']),
+        ('True identity not enrolled',summary['truth_unregistered'])]+[(labels[c],summary['per_view'][c]) for c in labels])
+    state='Complete' if summary['complete'] else 'In progress: interim results do not represent the full run'
+    body=f'''<!doctype html><html lang="zh"><meta charset="utf-8"><title>SMPD end-to-end original-image experiment</title>
 <style>body{{font:16px/1.6 system-ui;max-width:1250px;margin:40px auto;padding:0 24px;background:#101722;color:#e9eef6}}h1,h2{{color:#83cbff}}table{{border-collapse:collapse;width:100%;font-size:14px}}td,th{{padding:8px;border:1px solid #42516a}}.grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}}figure{{margin:0;background:#1c2738;padding:10px}}img{{width:100%}}figcaption{{font-size:13px}}pre{{white-space:pre-wrap}}a{{color:#83cbff}}</style>
-<h1>SMPD：原图 → ROI → 特征 → 同库识别</h1><p><b>{state}</b> · {len(queries)}/3217 次查询 · Windows 电脑测试</p>
-<p>作者公开 ZIP 实际有 92 人 / 3,677 张，{summary['duplicates']['unique_byte_contents']} 个不同字节内容。固定 F0–F4 注册，剩余全部查询。注册成功 {summary['gallery_identities']}/92 人；失败 {summary['registration_failures']} 人的查询也留在总分母。单一完整图库，不分小组。</p>
-<p>ROI 几何检查失败 {summary['roi_geometry_fail']}/3677。没有解剖标注，几何通过率不能当 ROI 准确率。全图库启动准备 {summary['startup_and_gallery_ready_ms']/1000:.2f} 秒，单独计量。</p>
-<table><tr><th>范围</th><th>查询</th><th>正确</th><th>错身份接受</th><th>真身份但非唯一</th><th>拒认</th><th>处理失败</th><th>≤2.5秒正确</th><th>P50秒</th><th>P95秒</th><th>最长秒</th></tr>{table}</table>
-<p>正确必须是唯一正确身份；拒认、ROI/特征失败都不算正确。耗时包含原图读取、校验、EXIF 解码、ROI、特征、匹配及本机 HTTP；不含拍摄/外部上传。电脑扩大了内存容量，不能据此声称 Pi 的速度或人数容量。</p>
-<h2>已有拒认机制的迁移检查</h2><p>只检查下载 SMPD 前已有的 .02 示例策略，不扫描新阈值。保存分数上的影子结果：正确 {summary['frozen_preexisting_policy_shadow']['correct']}、错误接受 {summary['frozen_preexisting_policy_shadow']['wrong_identity_accepted']}、拒认 {summary['frozen_preexisting_policy_shadow']['rejected']}；损失原本正确 {len(summary['frozen_preexisting_policy_shadow']['lost_previously_correct'])} 张，真正由错变对 0 张。这不是新一轮 HTTP 或速度改善，未启用到基线。</p>
-<h2>重复与完整性</h2><pre>{html.escape(json.dumps({k:v for k,v in summary['duplicates'].items() if k!='unique_content_diagnostic'},indent=2,ensure_ascii=False))}</pre>
-<p>原图最终校验：{summary['original_integrity']}；交易记录保持不变：{summary['transactions_unchanged']}。全量基线参数冻结；本数据集未用于训练或阈值拟合。局部定位器原训练暴露未知。</p>
-<h2>原图与 ROI 示例</h2><p>按类别与文件名固定选取，重复字节只展示一次。绿框表示几何检查通过，红框表示失败；框是否位于正确解剖区域仍需人工判断。示例只用于看图，不改变任何分母。</p><div class="grid">{make_examples(root,rows,queries)}</div>
-<h2>来源与边界</h2><p><a href="https://www.kaggle.com/datasets/mahdieizadpanah/sapienza-university-mobile-palmprint-databasesmpd">作者 SMPD 发布</a> · <a href="https://doi.org/10.1504/IJGUC.2019.102016">2019 数据论文</a>。论文名义 110 人 / 4,400 张；实际下载缺少 18 人及另外 3 帧，不能宣称测了名义完整集。暗背景、调过拍摄距离，不覆盖所有现场质量问题。</p></html>'''
+<h1>SMPD: original image → ROI → features → identification in one gallery</h1><p><b>{state}</b> · {len(queries)}/3217 queries · Windows workstation</p>
+<p>The authors’ public ZIP contains 92 people and 3,677 images, with {summary['duplicates']['unique_byte_contents']} distinct byte sequences. F0–F4 were fixed for enrollment; every remaining image was queried. Successfully enrolled: {summary['gallery_identities']}/92 people; queries for the {summary['registration_failures']} people whose enrollment failed remain in the overall denominator. One full gallery was used without subgrouping.</p>
+<p>Failed ROI geometry checks: {summary['roi_geometry_fail']}/3677. Without anatomical annotations, geometry pass rate does not measure ROI accuracy. Full-gallery startup preparation took {summary['startup_and_gallery_ready_ms']/1000:.2f} s, measured separately.</p>
+<table><tr><th>Scope</th><th>Queries</th><th>Correct</th><th>Wrong-identity accepts</th><th>Nonunique true identity</th><th>Rejections</th><th>Processing failures</th><th>Correct within 2.5 s</th><th>P50 (s)</th><th>P95 (s)</th><th>Maximum (s)</th></tr>{table}</table>
+<p>Only a unique correct identity counts as correct; rejections and ROI/feature failures do not. Timing includes reading and verifying originals, EXIF-aware decoding, ROI extraction, features, matching and local HTTP, but excludes capture and external upload. Workstation memory capacity was increased, so these results do not establish Pi speed or gallery capacity.</p>
+<h2>Transfer check for the existing rejection rule</h2><p>Only the .02 example policy that predated the SMPD download was checked; no new thresholds were swept. Shadow results on saved scores: correct {summary['frozen_preexisting_policy_shadow']['correct']}, incorrect accepts {summary['frozen_preexisting_policy_shadow']['wrong_identity_accepted']}, rejections {summary['frozen_preexisting_policy_shadow']['rejected']}; previously correct results lost: {len(summary['frozen_preexisting_policy_shadow']['lost_previously_correct'])}. No incorrect results became correct. This is not a new HTTP run or speedup; the policy was not enabled in the baseline.</p>
+<h2>Duplicates and integrity</h2><pre>{html.escape(json.dumps({k:v for k,v in summary['duplicates'].items() if k!='unique_content_diagnostic'},indent=2,ensure_ascii=False))}</pre>
+<p>Final original-image integrity check: {summary['original_integrity']}; transaction records unchanged: {summary['transactions_unchanged']}. Full baseline parameters were frozen. This dataset was not used for training or threshold fitting; prior training exposure of the localizer is unknown.</p>
+<h2>Original images and ROI examples</h2><p>Examples were selected deterministically by class and filename, with byte duplicates displayed once. Green boxes passed the geometry check; red boxes failed. Anatomical placement still requires human review. Examples are illustrative only and do not change any denominator.</p><div class="grid">{make_examples(root,rows,queries)}</div>
+<h2>Source and limitations</h2><p><a href="https://www.kaggle.com/datasets/mahdieizadpanah/sapienza-university-mobile-palmprint-databasesmpd">Authors’ SMPD release</a> · <a href="https://doi.org/10.1504/IJGUC.2019.102016">2019 data paper</a>. The paper describes 110 people and 4,400 images. The download lacks 18 people plus three more frames, so this is not the full nominal dataset. Its dark background and adjusted capture distance do not represent all field quality problems.</p></html>'''
     (root/'report.html').write_text(body,encoding='utf-8')
 
 

@@ -13,27 +13,27 @@ def write_report(result,path):
     def table(headers,rows):
         return '<div class="scroll"><table><tr>'+''.join('<th>'+html.escape(str(v))+'</th>' for v in headers)+'</tr>'+''.join(
             '<tr>'+''.join('<td>'+html.escape(str(v))+'</td>' for v in row)+'</tr>' for row in rows)+'</table></div>'
-    text='''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>冻结 PPNet：最小筛查</title>
+    text='''<!doctype html><html lang="en"><meta charset="utf-8"><title>Frozen PPNet: minimal screen</title>
 <style>body{font:16px/1.65 system-ui;max-width:1450px;margin:32px auto;padding:0 20px;color:#203044}h1{font-size:28px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px;border:1px solid #ccd5df;text-align:left}th{background:#eaf0f7}.notice{background:#fff3dd;border-left:4px solid #a86a16;padding:14px}code{overflow-wrap:anywhere}</style>
-<h1>冻结作者 PPNet：一次共享向量能否替代完整回退？</h1><p>2026-10-30 · 先声明淘汰标准，再做离线最小实验 · 无训练或部署</p>'''
-    text+='<p class="notice">'+('筛查通过，尚未进行Pi验收。' if result['screen_passed'] else '未通过：'+html.escape(', '.join(result['kill_reasons'])))+' 当前正式算法及完整Pi结果不变：164/168正确、146/168正确且≤2.5秒，P95 6.019秒、最大15.225秒。</p>'
-    text+='<p>与CompNet不同的卷积表征，从每张原始主ROI提取一次512维特征，再共享给整个图库，目标是跳过多窗口定位/SIFT/逐模板配准。只测试作者Tongji600公开权重，不在设备图或公开评估集训练，不换标签、不删除失败、不按人员/文件特调。使用全部169活动原图、四个设备内注册方向；历史删图前队列另存。</p>'
-    text+='<h2>筛查结果（不是完整识别器或Pi速度）</h2>'+table(['数据','查询数','原特征欧氏排名正确','单位角距离排名正确','固定门槛高置信','其中错误','当前完整回退获救'],[
+<h1>Frozen pretrained PPNet: can one shared vector replace full fallback?</h1><p>2026-10-30 · Rejection criteria declared before the minimal offline test · No training or deployment</p>'''
+    text+='<p class="notice">'+('Screen passed; Pi acceptance testing has not been performed.' if result['screen_passed'] else 'Did not pass: '+html.escape(', '.join(result['kill_reasons'])))+' The current production algorithm and full Pi results are unchanged: 164/168 correct, 146/168 correct within 2.5 s, P95 6.019 s and maximum 15.225 s.</p>'
+    text+='<p>This convolutional representation differs from CompNet. It extracts one 512-dimensional vector per original primary ROI and shares it across the gallery to try to bypass multiwindow localization, SIFT and per-template registration. Only the authors’ public Tongji600 weights were tested. No training on device or public evaluation images, relabeling, failure removal or person/file-specific tuning. All 169 active originals and four within-device enrollment directions were used. The historical cohort before removal is retained separately.</p>'
+    text+='<h2>Screening results (not the full recognizer or Pi speed)</h2>'+table(['Dataset','Queries','Correct Euclidean ranking on original features','Correct unit-vector angular ranking','Confident at fixed gates','Of these, incorrect','Current full fallbacks avoided correctly'],[
         [name,s['total'],s['raw_ranking_correct'],s['angular_ranking_correct'],s['confident'],s['wrong_confident'],s['current_exhaustive_correct_confident']] for name,s in result['summary'].items()])
-    text+='<p>作者示例用未归一化特征的欧氏距离。单位向量角距离是预先声明的实验控制，仍要求≤0.32且领先≥0.08；这些相同数字不意味着不同表征的FAR已校准。所有4480次历史划分均为已曝光相关回归证据，没有独立泛化声明。</p>'
+    text+='<p>The authors’ example uses Euclidean distance on unnormalized features. Unit-vector angular distance was a predeclared control, still requiring ≤0.32 and a lead ≥0.08. Identical numeric gates do not calibrate FAR across representations. All 4,480 historical split queries are previously seen, correlated regression evidence, not independent generalization evidence.</p>'
     records=[t for r in result['results'] if r['cohort']=='active169' for t in r['trials'] if t.get('v26_route')=='exhaustive_fallback']
     rows=[]
     for t in records:
         ranking=sorted(t['scores']['angular'].items(),key=lambda p:p[1]);a,b=ranking[:2]
         rows.append([t['sample'],t['identity'],a[0],t['angular_correct'],f'{a[1]:.6f}',f'{b[1]:.6f}',f'{b[1]-a[1]:.6f}',t['confident']])
-    text+='<h2>全部13次完整回退逐条保留</h2>'+table(['样本','真实身份','角距离第一名','排名正确','最佳','第二名','差值','高置信'],rows)
-    text+='<p>最难图可以排名第一，但领先幅度仍不足；不把排名对冒充可靠提前接受。不能为它把0.08改小。现有数据没有未注册人员试验；陌生人FAR和验证FRR仍未测，也不宣称零错误高置信就是零FAR。</p>'
+    text+='<h2>All 13 full fallbacks retained individually</h2>'+table(['Sample','True identity','Top angular-distance identity','Correct ranking','Best','Runner-up','Gap','Confident'],rows)
+    text+='<p>The hardest image can rank first, but its lead is insufficient. Correct ranking alone is not reliable early acceptance; the 0.08 gap must not be reduced for this sample. No unenrolled people were tested, so stranger FAR and verification FRR are unmeasured. Zero incorrect confident returns does not imply zero FAR.</p>'
     meta=result['protocol']['model']
-    text+='<h2>模型与导出检查</h2><p>作者权重安全加载（weights_only=True、完整strict state匹配），分类头不参与推理。原图128灰度，非黑像素用作者均值/样本标准差标准化。模型约'+f"{meta['parameters']/1e6:.2f}"+'M参数（含未用分类头统计），无随机特征层兜底。</p>'
-    text+=table(['导出样本','原特征最大绝对误差','单位向量最大绝对误差'],[[i,e['raw_max_abs'],e['normalized_max_abs']] for i,e in enumerate(meta['export_parity'])])
-    text+=table(['文件','SHA256'],[[name,meta[key]] for name,key in [('作者源码','source_sha256'),('作者checkpoint','checkpoint_sha256'),('ONNX','onnx_sha256')]])
-    text+='<h2>停止条件与实际状态</h2><p>事先规定出现错误高置信，或不能新增覆盖至少一次当前完整回退，就不跑完整Pi。当前触发后者，停止此固定组合；不搜索另一个权重/预处理或放宽门槛来救已曝光图片。没有更换运行中的识别模型，没有PPNet的Pi首轮/热态、HTTP、注册或就绪耗时；本机离线耗时不当作Pi时延。</p>'
-    text+='<p>所有权重和作者代码留在忽略目录，不随Git分发；没有上传原始生物图像。<a href="https://github.com/xuliangcs/ppnet">作者实现</a> · <a href="../../compnet-v26-pi-20261030/report.html">当前v26完整Pi基线</a>。</p></html>'
+    text+='<h2>Model and export checks</h2><p>Author weights loaded with weights_only=True and a strict complete state match. The classification head was not used in inference. Original grayscale images were 128 pixels square; nonblack pixels were normalized with the authors’ mean and sample standard deviation. The model has about '+f"{meta['parameters']/1e6:.2f}"+'M parameters including the unused classification head. No random feature layer was substituted.</p>'
+    text+=table(['Export sample','Maximum absolute raw-feature error','Maximum absolute unit-vector error'],[[i,e['raw_max_abs'],e['normalized_max_abs']] for i,e in enumerate(meta['export_parity'])])
+    text+=table(['File','SHA256'],[[name,meta[key]] for name,key in [('Authors’ source code','source_sha256'),('Authors’ checkpoint','checkpoint_sha256'),('ONNX','onnx_sha256')]])
+    text+='<h2>Stopping condition and outcome</h2><p>The predeclared rule skipped full Pi testing if any confident return was wrong or no current full fallback was newly covered. The latter occurred, so this configuration stopped. No alternative weights, preprocessing or weaker thresholds were searched to rescue exposed images. The running recognizer was not replaced. There are no PPNet Pi first-run, warm, HTTP, enrollment or readiness timings; local offline timings are not Pi latency.</p>'
+    text+='<p>Weights and author code remain in ignored local directories and are not distributed with Git. No original biometric images were uploaded. <a href="https://github.com/xuliangcs/ppnet">Authors’ implementation</a> · <a href="../../compnet-v26-pi-20261030/report.html">Current full v26 Pi baseline</a>.</p></html>'
     path.write_text(text,encoding='utf-8')
 
 

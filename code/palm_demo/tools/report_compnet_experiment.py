@@ -29,8 +29,8 @@ def main():
     rows=[];changed=[];regressions=[]
     for run in candidate['runs']:
         refs=[lookup[run['case'],q['sample']] for q in run['queries']]
-        rows.append([run['case'],'v24 对照' if control else 'v24 连续注册基线',*stats(refs)])
-        rows.append([run['case'],'v25 候选',*stats(run['queries'])])
+        rows.append([run['case'],'v24 control' if control else 'v24 sequential enrollment baseline',*stats(refs)])
+        rows.append([run['case'],'v25 candidate',*stats(run['queries'])])
         for q in run['queries']:
             ref=lookup[run['case'],q['sample']]
             if ref['correct'] and not q['correct']:regressions.append(q)
@@ -38,27 +38,27 @@ def main():
     assert not regressions,'Candidate introduced an error; revise report decision'
     allq=queries(candidate);allref=queries(source)
     flags=sorted({p['get_throttled'] for p in candidate['power_samples']})
-    content='''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Pi 5：速度与准确率联合实验</title>
+    content='''<!doctype html><html lang="en"><meta charset="utf-8"><title>Pi 5: joint speed and accuracy evaluation</title>
 <style>body{font:16px/1.65 system-ui;max-width:1400px;margin:32px auto;padding:0 20px;color:#1c2b3d}h1{font-size:28px}h2{margin-top:30px}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px;border:1px solid #cdd5df;text-align:left;vertical-align:top}th{background:#eaf0f7;white-space:nowrap}.scroll{overflow:auto}.notice{padding:14px;border-left:4px solid #ae6519;background:#fff3df}code{overflow-wrap:anywhere}a{color:#1759a3}</style>
-<h1>纯 Pi 5：冻结预训练特征的提前返回实验</h1><p>2026-10-29 · Wi-Fi 管理连接 · 摄像头以保存原图回放 · 正式服务未切换</p>
-<p class="notice">本轮保持识别率，部分查询更快；四张误认及最长十余秒的查询仍未解决。没有通过继续删图、降低门槛、丢弃失败或缓存查询答案取得数字改善。新距离的陌生人拒识尚未校准，候选仍是显式 opt-in。</p>'''
-    content+='<h2>总体结果</h2>'+table(['运行','正确','正确且≤2.5秒','P50秒','P95秒','最大秒'],[
-        ['v24 连续注册后完整基线',*stats(queries(base))],
-        *([['v24 同协议图库复用对照',*stats(queries(control))]] if control else []),
-        ['v25 实验候选',*stats(allq)]])
-    content+='<p>活动原图 '+str(base['protocol']['images'])+' 张；每身份最早/最晚五张注册后分别查询其余图片，合计 '+str(len(allq))+' 次主查询。旧设备 110 张、新设备 59 张，七个人、17 个设备内掌纹身份；不跨设备注册/查询。用户指定删除的一张 billy 左手斜拍图已移出活动数据，本轮不再删除其他图片。原 170 次历史结果保留。</p>'
-    content+='<h2>分组对照</h2>'+table(['分组','方法','正确','正确且≤2.5秒','P50秒','P95秒','最大秒'],rows)
-    content+='<p>'+('对照与候选均从同一份完成的注册图库复制，独立初始化同样的 HTTP 应用并按同样顺序重算每张原图。' if control else '同协议图库复用对照尚未完成，暂勿把所有时间差归因于新分支。')+'v25 仅对模板 envelope magic 和算法元数据换版，生物特征 payload 不变；额外模型的录入向量在图库准备时重新计算。此对照不声称测到了 v25 现场重新注册时延。相机拍摄、摆手与外网上传均不在查询计时中。</p>'
-    content+='<h2>实际改动及验证</h2><p>原有 FastCC pose 已有把握时直接返回，完全跳过新模型。仅在其不确定时，使用冻结的作者 Tongji CompNet 权重，从当前原始灰度 ROI 计算一次 512 维特征，对五帧注册模板进行角距离匹配并取最佳两帧。仍要求最佳≤0.32、与第二名差≥0.08；不足则继续原 v24 全路径。两套距离不混合取最小值。数字门槛相同不表示两套距离的错误接受率已等价。</p>'
-    content+='<p>新分支实际提前返回 '+str(len(changed))+' 次，全部身份正确。未改变路径的身份、分数、第二名与路径均与连续注册基线逐项一致；所有 ROI PNG 字节一致。使用同一公开预训练模型，不在这些设备图或查询身份上训练，不按文件名/人员写分支。</p>'
-    content+='<p>局部集成测试与完整现有测试共 213 项通过，4 项依赖跳过，旧 API 测试文件单独排除。导出前后 Gabor 固定化的 PyTorch 特征逐位一致，ONNX 最大误差约 1.1×10⁻⁷。模型权重、源代码和输入均留存 SHA。新分支单独替代原识别器的准确率不够，因此没有直接替换整个算法；现有 9-pose 对照也未用于运行分支。</p>'
-    content+='<p>各组模拟确认、重复确认拦截、取消、取消后确认检查：'+str(all(r['payment_checks_complete'] for r in candidate['runs']))+'。原图库文件未变：'+str(candidate['source_templates_unchanged'])+'；原图未变：'+str(candidate['originals_unchanged'])+'；供电标志 '+html.escape(', '.join(flags))+'。</p>'
-    content+='<h2>未解决的错误与最慢查询</h2>'
+<h1>Pi-only early returns with frozen pretrained features</h1><p>2026-10-29 · Wi-Fi management · Saved originals replayed in place of camera input · Production service unchanged</p>
+<p class="notice">Accuracy held and some queries became faster, but four misidentifications and a worst case over ten seconds remain. No additional images or failures were discarded, thresholds relaxed or query answers cached. Stranger rejection with the new distance is uncalibrated; the candidate remains opt-in.</p>'''
+    content+='<h2>Overall results</h2>'+table(['Run','Correct','Correct within 2.5 s','P50 (s)','P95 (s)','Maximum (s)'],[
+        ['Full v24 baseline after sequential enrollment',*stats(queries(base))],
+        *([['v24 gallery-reuse control, same protocol',*stats(queries(control))]] if control else []),
+        ['Experimental v25 candidate',*stats(allq)]])
+    content+='<p>Active originals: '+str(base['protocol']['images'])+'. Each identity enrolled its earliest or latest five images and queried the rest, for '+str(len(allq))+' main queries. The old device contributed 110 images and the new one 59, covering seven people and 17 within-device palm identities. No cross-device enrollment/query matching. One oblique left-hand image was previously removed at the user’s request; no other images were removed this round. The original 170 historical results are retained.</p>'
+    content+='<h2>Group comparison</h2>'+table(['Group','Method','Correct','Correct within 2.5 s','P50 (s)','P95 (s)','Maximum (s)'],rows)
+    content+='<p>'+('Control and candidate copied the same enrolled gallery, initialized the same HTTP app separately and recomputed each original in the same order. ' if control else 'The same-protocol gallery-reuse control is incomplete; do not attribute all timing differences to the new branch. ')+'v25 changed only template envelope magic and algorithm metadata, not biometric payloads. Additional enrollment vectors were recomputed during gallery preparation. This does not measure live re-enrollment latency. Query timing excludes camera capture, hand positioning and external upload.</p>'
+    content+='<h2>Changes and validation</h2><p>Confident FastCC pose results bypass the new model entirely. Only on uncertainty are the authors’ frozen Tongji CompNet weights used to compute one 512-dimensional feature from the original grayscale ROI. Angular distances against five enrollment frames are aggregated over the best two. The best must be ≤0.32 and the runner-up gap ≥0.08; otherwise the full v24 path continues. The two distances are never pooled by minimum. Equal numeric thresholds do not establish equal false acceptance rates.</p>'
+    content+='<p>New-branch early returns: '+str(len(changed))+', all correct. On unchanged routes, identities, scores, runners-up and routes matched the sequential enrollment baseline individually; all ROI PNGs were byte-identical. The public pretrained model was not trained on these device images or query identities, and no filename/person-specific branches were used.</p>'
+    content+='<p>Local integration and existing tests: 213 passed, four dependency skips, obsolete API test file excluded. PyTorch features were bitwise identical before and after freezing Gabor for export; maximum ONNX error was about 1.1×10⁻⁷. SHA hashes were retained for weights, source and inputs. The new branch was not accurate enough as a standalone recognizer. The existing nine-pose control was not used in the runtime branch.</p>'
+    content+='<p>All groups passed simulated confirmation, duplicate blocking, cancellation and post-cancellation confirmation checks: '+str(all(r['payment_checks_complete'] for r in candidate['runs']))+'. Source gallery unchanged: '+str(candidate['source_templates_unchanged'])+'; originals unchanged: '+str(candidate['originals_unchanged'])+'; power flags: '+html.escape(', '.join(flags))+'.</p>'
+    content+='<h2>Remaining errors and slowest queries</h2>'
     failures=[(r['case'],q) for r in candidate['runs'] for q in r['queries'] if not q['correct']]
-    content+=table(['分组','样本','真实身份','返回身份','秒','路径'],[[case,q['sample'],q['identity'],q['result'].get('user_id'),f"{q['ms']/1000:.3f}",q['result'].get('recognition_route')] for case,q in failures])
+    content+=table(['Group','Sample','True identity','Returned identity','Seconds','Route'],[[case,q['sample'],q['identity'],q['result'].get('user_id'),f"{q['ms']/1000:.3f}",q['result'].get('recognition_route')] for case,q in failures])
     slow=sorted([(r['case'],q,lookup[r['case'],q['sample']]) for r in candidate['runs'] for q in r['queries']],key=lambda x:x[1]['ms'],reverse=True)[:10]
-    content+=table(['分组','样本','正确','对照秒','候选秒','候选路径'],[[c,q['sample'],q['correct'],f"{r['ms']/1000:.3f}",f"{q['ms']/1000:.3f}",q['result'].get('recognition_route')] for c,q,r in slow])
-    content+='<p>最难图未获得新的可靠提前返回证据，仍会完整搜索；新分支也有额外计算成本。不能把中位数下降表述为所有查询≤2.5秒。七人、设备内最多11个掌纹身份不足以验证40人的准确率、图库长尾或陌生人拒识。</p>'
+    content+=table(['Group','Sample','Correct','Control (s)','Candidate (s)','Candidate route'],[[c,q['sample'],q['correct'],f"{r['ms']/1000:.3f}",f"{q['ms']/1000:.3f}",q['result'].get('recognition_route')] for c,q,r in slow])
+    content+='<p>The hardest image still lacks reliable early evidence and requires full search. The new branch also adds computation. A lower median does not mean every query meets 2.5 s. Seven people and at most 11 palm identities per device cannot validate 40-person accuracy, gallery tail latency or stranger rejection.</p>'
     if paired:
         paired_rows=[]
         for case,sample in paired['selected']:
@@ -69,21 +69,21 @@ def main():
             paired_rows.append([case,sample,', '.join(f'{x:.3f}' for x in disabled),
                 ', '.join(f'{x:.3f}' for x in enabled),', '.join(f'{x:.2f}' for x in auxiliary),
                 str([t['correct'] for t in trials])])
-        content+='<h2>同一应用交替开关新分支</h2><p>机械选择 v24 对照中最慢三次查询，并加入候选最大提速查询（已在前三中）；保持同一份已加载 v25 图库和模型，按关闭→开启→开启→关闭运行，每次重读原图并重算。此小样本诊断用于区分新分支开销与完整搜索，不代替全量准确率实验。所有电源标志为 '+html.escape(', '.join(sorted({s['get_throttled'] for s in paired['power_samples']})))+'。</p>'
-        content+=table(['分组','样本','关闭秒（两次）','开启秒（两次）','新增分支毫秒（两次）','四次正确'],paired_rows)
-        content+='<p>新分支本身约 8.5–8.8 毫秒；可解样本从约 14–15 秒降至约 1.2 秒。最难样本仍约 14–15 秒，不能归因于这约 9 毫秒；需要新的可靠对齐/局部证据。关闭与开启均未修复原有误认。</p>'
+        content+='<h2>Alternating the new branch in the same application</h2><p>We selected the three slowest v24 control queries and the largest candidate speedup (already among those three). With the same loaded v25 gallery and model, we ran off→on→on→off, rereading and recomputing each original. This small diagnostic separates branch overhead from full search; it does not replace full accuracy evaluation. Power flags: '+html.escape(', '.join(sorted({s['get_throttled'] for s in paired['power_samples']})))+'.</p>'
+        content+=table(['Group','Sample','Off (s, two runs)','On (s, two runs)','New branch (ms, two runs)','All four correct'],paired_rows)
+        content+='<p>The branch took about 8.5–8.8 ms. Solvable queries fell from about 14–15 s to 1.2 s, but the hardest remained about 14–15 s, not explained by ~9 ms of overhead. New reliable alignment or local evidence is needed. Neither setting fixed the original misidentifications.</p>'
     if context:
         summary=context['summary']
-        content+='<h2>后续邻域检索：拒绝接入</h2><p>固定 15 个半尺度/原尺度/双尺度及中心/四方向平移 ROI，各候选分别评分，有把握的候选必须身份一致，原 ROI 提前判断优先。未调整 .32/.08 门槛、人员标签或样本分母。原始图与已保存 Pi 主 ROI 几何在本机离线筛查，未跑此方案的 Pi 全流程，不能据此声称提速。</p>'
-        content+=table(['数据','查询次数','额外提前判断','额外错误判断'],[[name,s['total'],s['extra_confident'],s['extra_wrong']] for name,s in summary.items()])
-        content+='<p>当前数据额外三次判断全错，且原 v25 均可正确识别；最难图及四张原有误认都没有获得可靠提前证据。224 组历史划分（4480 次相关查询）没有暴露这三个错误，说明旧划分不足以保证泛化。方案未接入识别器。</p>'
-        content+='<p>对照校验发现旧离线零角度姿态重建使四张原始 ROI 角点变化最多 0.00003052 像素；重建旧算式后余弦矩阵最大差 '+f"{context['legacy_cosine_max_abs_error']:.3g}"+'。这些是数值对照差异，原始 ROI 的提前判断不变，未改写已完成的 Pi 结果。</p>'
+        content+='<h2>Follow-up neighborhood search: not adopted</h2><p>The 15 fixed ROIs combined half, original and double scale with centered or four shifted positions. Candidates were scored separately, confident candidates had to agree on identity, and original-ROI early decisions took priority. Gates (.32/.08), labels and denominator did not change. Original images and saved Pi geometry were screened offline locally. No full Pi run was performed for this method, so no speedup is claimed.</p>'
+        content+=table(['Dataset','Queries','Additional early decisions','Additional wrong decisions'],[[name,s['total'],s['extra_confident'],s['extra_wrong']] for name,s in summary.items()])
+        content+='<p>All three extra decisions were wrong on current data, although v25 recognized all three correctly. No reliable early evidence emerged for the hardest image or four existing errors. The 224 historical splits (4,480 correlated queries) missed these three errors and cannot guarantee generalization. The method was not integrated.</p>'
+        content+='<p>The control found that old offline zero-angle pose reconstruction moved corners of four original ROIs by up to 0.00003052 pixels. After reproducing the old arithmetic, the maximum cosine-matrix difference was '+f"{context['legacy_cosine_max_abs_error']:.3g}"+'. These numerical control differences did not change original-ROI early decisions or rewrite completed Pi results.</p>'
     if native_pilot:
         timings=native_pilot['median_ms']
-        content+='<h2>四候选 SIMD 计算：拒绝接入</h2><p>试图跨四个注册描述子复用查询读取，保留原浮点累加/归约树、双向近邻、并列顺序与几何规则。'+str(native_pilot['synthetic_cases'])+' 组合成输入及 '+str(len(native_pilot['trials']))+' 组真实特征的近邻索引、距离与配准矩阵均一致；四次交替顺序测试的中位耗时 '+f"{timings['baseline']:.3f} → {timings['candidate']:.3f}"+' 毫秒，反而更慢。电源标志全为 0x0，不替换原库，不另跑无收益的全流程。</p>'
-    content+='''<h2>论文带来的结构选择</h2><p><a href="https://web.comp.polyu.edu.hk/csajaykr/myhome/papers/PR2023.pdf">BEST（Pattern Recognition 2023）</a>提示共享特征计算、汇总局部证据；官方包已下载但加密，尚未复现其模型。<a href="https://github.com/xuliangcs/compnet">CompNet 作者代码与预训练模型</a>提供本轮实际测试的冻结表征。<a href="https://arxiv.org/abs/2401.08111">Palm-ID（2024）</a>支持紧凑向量检索的设计方向，但其服务器/手机耗时不等于 Pi 耗时。<a href="https://www.nature.com/articles/s41467-025-58213-7">ERAlign（Nature Communications 2025）</a>强调稳定 ROI 和注册覆盖，包含红外及距离传感条件，尚未直接移植。</p>
-<p>上述论文仍报告 ROI、强畸变或低质量失败。文献指标不是本设备效果；本轮收益只按实际 Pi 请求统计。</p>'''
-    content+='<details><summary>新分支逐张返回记录</summary>'+table(['分组','样本','真实身份','正确','对照毫秒','候选毫秒'],[[c,q['sample'],q['identity'],q['correct'],r['ms'],q['ms']] for c,q,r in changed])+'</details></html>'
+        content+='<h2>Four-candidate SIMD computation: not adopted</h2><p>The experiment reused query reads across four enrollment descriptors while preserving the floating-point accumulation/reduction tree, bidirectional neighbors, tie ordering and geometry rules. Across '+str(native_pilot['synthetic_cases'])+' synthetic inputs and '+str(len(native_pilot['trials']))+' real-feature trials, neighbor indices, distances and registration matrices matched. Median time over four alternating-order tests was '+f"{timings['baseline']:.3f} → {timings['candidate']:.3f}"+' ms, a slowdown. All power flags were 0x0. The original library was kept and no unpromising full run was performed.</p>'
+    content+='''<h2>Design choices informed by the literature</h2><p><a href="https://web.comp.polyu.edu.hk/csajaykr/myhome/papers/PR2023.pdf">BEST (Pattern Recognition 2023)</a> suggests sharing feature computation and aggregating local evidence. Its official package was downloaded but encrypted; its model has not been reproduced. <a href="https://github.com/xuliangcs/compnet">CompNet authors’ code and pretrained models</a> supplied the frozen representation tested here. <a href="https://arxiv.org/abs/2401.08111">Palm-ID (2024)</a> supports compact-vector retrieval, but its server/phone timings do not measure Pi latency. <a href="https://www.nature.com/articles/s41467-025-58213-7">ERAlign (Nature Communications 2025)</a> emphasizes stable ROIs and enrollment coverage under conditions including infrared and distance sensing; it was not directly ported.</p>
+<p>These papers still report failures from poor ROIs, strong distortion or low quality. Published metrics are not device results; gains here are based only on actual Pi requests.</p>'''
+    content+='<details><summary>Per-query returns from the new branch</summary>'+table(['Group','Sample','True identity','Correct','Control (ms)','Candidate (ms)'],[[c,q['sample'],q['identity'],q['correct'],r['ms'],q['ms']] for c,q,r in changed])+'</details></html>'
     args.output.write_text(content,encoding='utf-8');print(args.output)
 
 

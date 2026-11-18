@@ -160,28 +160,28 @@ def main():
 def write_report(summary, output):
     raw, restored = summary["evaluation"]["raw"], summary["evaluation"]["restored"]
     if restored["TAR"] > raw["TAR"] and restored["FMR"] > raw["FMR"]:
-        conclusion = "本人通过增加，但其他掌纹误通过也增加，不能直接视为改善。"
+        conclusion = "More genuine attempts passed, but more impostor attempts also passed. This is not an unqualified improvement."
     elif restored["TAR"] > raw["TAR"]:
-        conclusion = "这批小样本观察到本人通过增加，仍需新摄像头和独立采集验证。"
+        conclusion = "More genuine attempts passed in this small sample. Validation with the new camera and independent captures is still needed."
     elif restored["TAR"] == raw["TAR"]:
-        conclusion = "这批小样本中，PalmIR 风格恢复没有提高本人通过率。"
+        conclusion = "PalmIR-style restoration did not improve the genuine acceptance rate in this small sample."
     else:
-        conclusion = "这批小样本中，恢复后本人通过率下降，不建议默认启用恢复。"
+        conclusion = "Restoration reduced the genuine acceptance rate in this small sample; keep it off by default."
     rows = ""
-    for label, result in [("不恢复", raw), ("本地 RIA 恢复", restored)]:
+    for label, result in [("No restoration", raw), ("Local RIA restoration", restored)]:
         rows += (f'<tr><td>{label}</td><td>{result["true_accepts"]}/{result["n_genuine"]} '
                  f'({100*result["TAR"]:.1f}%)</td><td>{result["false_accepts"]}/{result["n_impostor"]} '
                  f'({100*result["FMR"]:.1f}%)</td><td>{result["rank1_correct"]}/{result["rank1_trials"]}</td></tr>')
-    html = f'''<!doctype html><html lang="zh-CN"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>历史掌纹恢复测试</title>
+    html = f'''<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Restoration test on historical palmprints</title>
 <style>body{{font:16px system-ui;max-width:960px;margin:auto;padding:24px;background:#f4f7f5;color:#172d31;line-height:1.7}}section{{background:white;padding:24px;margin:20px 0;border-radius:14px}}table{{border-collapse:collapse;width:100%}}th,td{{padding:12px;text-align:left;border-bottom:1px solid #dce5e3}}img{{width:100%}}a{{color:#17654b}}h1{{font-size:26px}}.note{{color:#5c6f70}}</style>
-<a href="/palmir">返回实时恢复</a><h1>历史掌纹图片 · 恢复前后测试</h1><section>
-<h2>{conclusion}</h2><p>2026-10-20 · GitHub FYP 历史采集 · 2 人、4 只手、{summary['source_originals']} 张原图；有效 ROI {summary['valid_rois']} 张。</p>
-<table><tr><th>方法</th><th>本人通过</th><th>其他掌纹误通过</th><th>首选掌纹正确</th></tr>{rows}</table>
-<p>两种方法使用同一个识别器、同一组未恢复的注册图与固定阈值 {raw['threshold']:.6f}。每只手第 1 张注册、第 2–5 张设置阈值，第 6–10 张测试。</p>
-<p class="note">这只是少量连续采集图片的探索测试，包含同一人的另一只手作为非匹配掌纹，比较并不独立。不是新 USB 摄像头的通过率，也不能证明对其他人或其他采集批次有效。测试结果不改变实时页面的判定阈值，实时页面仍只比较分数。</p>
-<p><a href="/palmir-scores.csv">下载逐项分数 CSV</a> · <a href="https://github.com/2646044472/fyp/tree/main/code/data/pi-captures-2026-10-15">GitHub 原始采集目录</a></p></section>
-<section><h2>同一 ROI 的恢复前后示例</h2><p>每格左侧为输入，右侧为本地 RIA 恢复结果。128 × 128 图像放大展示，不代表恢复出真实缺失细节。</p><img src="/palmir-examples.jpg" alt="历史掌纹恢复前后示例"></section></html>'''
+<a href="/palmir">Back to live restoration</a><h1>Historical palmprint images: before and after restoration</h1><section>
+<h2>{conclusion}</h2><p>2026-10-20 · Historical GitHub FYP captures · 2 people, 4 hands, {summary['source_originals']} original images; valid ROIs: {summary['valid_rois']}.</p>
+<table><tr><th>Method</th><th>Genuine accepts</th><th>Impostor accepts</th><th>Correct top-ranked palm</th></tr>{rows}</table>
+<p>Both methods used the same recognizer, unrestored enrollment images and fixed threshold of {raw['threshold']:.6f}. For each hand, image 1 was used for enrollment, images 2–5 to set the threshold and images 6–10 for testing.</p>
+<p class="note">This exploratory test uses a small set of consecutive captures. The other hand of the same person counts as a nonmatch, so comparisons are not independent. These results do not measure the acceptance rate of the new USB camera or establish performance on other people or sessions. The live page still compares scores only; its threshold is unchanged.</p>
+<p><a href="/palmir-scores.csv">Download individual scores (CSV)</a> · <a href="https://github.com/2646044472/fyp/tree/main/code/data/pi-captures-2026-10-15">Original capture directory on GitHub</a></p></section>
+<section><h2>Before and after restoration of the same ROI</h2><p>Each pair shows the input on the left and local RIA restoration on the right. The enlarged 128 × 128 images do not establish that missing detail was recovered.</p><img src="/palmir-examples.jpg" alt="Historical palmprints before and after restoration"></section></html>'''
     (output / "report.html").write_text(html, encoding="utf-8")
 
 
