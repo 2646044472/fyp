@@ -37,13 +37,15 @@ def selected_photo(flow, token, frame_id):
     raise ValueError("这张照片已不在本次选择中。")
 
 
-def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
+def mutate(flow, token, frame_id=None, *, stop=False, select=False, geometry=False):
     from enrollment_window_adapter import can_resume, capture_remaining, sync_selection
     with flow.lock:
         s = flow.enrollment_session
         if s is None or s["token"] != token or time.monotonic() - s["last_activity"] >= DEFAULT_TIMEOUT:
             return {"status": "INACTIVE", "items": [], "kept": 0}
-        state = sync_selection(s, stop=stop)
+        if select and (s["capture_in_flight"] or s.get("station_step_in_flight")):
+            raise ValueError("最后一帧还在处理，请稍等。")
+        state = sync_selection(s, stop=stop, select=select)
         selected = tuple(s["selected_frame_ids"])
         if frame_id is not None:
             if state=="collecting" or s["capture_in_flight"] or s.get("station_step_in_flight") or frame_id not in selected:
@@ -66,6 +68,7 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
             s["station_window"] = None
             state = "partial"
             s["station_state"] = state
+            s["station_eligible_count"] = len(remaining)
             selected = remaining
         # Do not enumerate a gallery. Before selection the base capture UI
         # displays progress; the review only shows chosen pairs and replacements.
@@ -79,7 +82,8 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
         return {"status": "REVIEW", "items": items, "kept": len(selected), "required": s.get("station_target_count", 5),
                 "station_capture_ms_remaining": max(0, int(1000 * capture_remaining(s))),
                 "candidate_count": len(s["station_payloads"]),
-                "eligible_count": s.get("station_eligible_count", 0) if state == "collecting" else len(selected),
+                "eligible_count": max(len(selected), s.get("station_eligible_count", 0)) if state != "ready" else len(selected),
+                "minimumComplete": s.get("station_minimum_complete", False),
                 "archive_only": s.get("archive_only", False),
                 "state": state, "inFlight": bool(s["capture_in_flight"] or s.get("station_step_in_flight")),
                 "resumeAllowed": state == "partial" and can_resume(s)}

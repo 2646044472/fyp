@@ -303,7 +303,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
 
     class ShadowApp:
         def __init__(self, feed=None, *, create_feed=None, native_size=None):
-            self.power = CameraPower(create_feed)
+            self.power = CameraPower(create_feed, on_idle=self.pause_camera)
             self.power.feed = feed
             self.managed_camera = create_feed is not None
             self.native_size = native_size
@@ -339,6 +339,15 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     self.use_camera(owner)
                 else:
                     self.power.close(owner)
+
+        def pause_camera(self, owner):
+            if owner[0] == "capture":
+                from enrollment_window_adapter import sync_selection
+
+                with self.demo.lock:
+                    s = self.demo.enrollment_session
+                    if active_enrollment(self.demo) and s["token"] == owner[1] and s.get("station_state") == "collecting":
+                        sync_selection(s, stop=True)
 
         def verify_camera(self, token, action):
             owner = ("verify", token)
@@ -514,6 +523,7 @@ def build_handler(application, enrollment_html):
                 "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step",
                 "/api/demo/enroll/commit", "/api/demo/enroll/cancel", "/api/station/enroll-review",
                 "/api/station/enroll-remove", "/api/station/enroll-refill", "/api/station/enroll-stop",
+                "/api/station/enroll-select",
                 "/api/fpn/score", "/api/fpn/verify", "/api/fpn/camera", "/api/station/camera-sleep", "/api/station/enroll-image",
                 "/api/library/list", "/api/library/image", "/api/library/delete",
             }
@@ -554,7 +564,11 @@ def build_handler(application, enrollment_html):
                         raise ValueError("无效相机指令。")
                     return self.respond(application.verify_camera(token, action))
                 if route == "/api/station/camera-sleep":
-                    application.power.close(("capture", token))
+                    owner = ("capture", token)
+                    with application.power.lock:
+                        if application.power.owner == owner:
+                            application.pause_camera(owner)
+                            application.power.close(owner)
                     return self.respond({"camera_open": False})
                 if route.endswith("-image"):
                     candidate = selected_photo(flow, token, data.get("frame"))
@@ -581,7 +595,8 @@ def build_handler(application, enrollment_html):
                     frame = data.get("frame") if route.endswith("-remove") else None
                     if route.endswith("-remove") and type(frame) is not int:
                         raise ValueError("请选择本次登记的一张照片。")
-                    result = mutate(flow, token, frame, stop=route.endswith("-stop"), geometry=True)
+                    result = mutate(flow, token, frame, stop=route.endswith("-stop"),
+                                    select=route.endswith("-select"), geometry=True)
                 application.reconcile_capture(token)
                 return self.respond(result)
             except FileNotFoundError:
@@ -594,6 +609,8 @@ def build_handler(application, enrollment_html):
                 message = START_ERRORS.get(str(error)) if route.endswith("/start") else None
                 if route.endswith("/commit"):
                     message = "暂时无法保存。请确认已选齐 10 张，且左右手正确。"
+                elif route.endswith("-select"):
+                    message = "请先采满 60 秒并累积 10 张候选，等当前帧处理完成后再挑选。"
                 elif route == "/api/fpn/verify":
                     message = "无法比对已登记模板，请刷新后重试。"
                 return self.respond({"message": message or "这项操作暂时不可用，请刷新当前页面后重试。"}, 400)

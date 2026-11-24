@@ -99,6 +99,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
       </div>
       <div class="row">
         <button id="start" disabled>开始采集</button>
+        <button type="button" id="select-photos" hidden>挑选 10 张</button>
         <button type="button" id="save" hidden>保存已选照片</button>
         <button type="button" class="secondary" id="stop" hidden>暂停采集</button>
         <button type="button" class="secondary" id="refill" hidden>继续采集</button>
@@ -106,10 +107,10 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
         <button type="button" class="secondary" id="recover" hidden>恢复状态</button>
       </div>
     </form>
-    <p class="status" id="capture-status" role="status">选择一只手，最多采集 60 秒。</p>
+    <p class="status" id="capture-status" role="status">选择一只手，至少采集 60 秒再挑选照片。</p>
   </section>
   <section id="verification" class="card" hidden>
-    <h2>匹配结果</h2><p class="hint">开始验证后，放掌停稳即可自动比对。</p>
+    <h2>匹配结果</h2><p class="hint">开始后持续预览和比对，点停止验证关闭相机。</p>
     <div class="row" style="margin-top:12px"><button id="verify-start">开始验证</button>
       <button id="verify-stop" class="secondary" hidden>停止验证</button></div>
     <div class="verification-values">
@@ -203,7 +204,7 @@ async function preview() {
 }
 async function cameraStatus() {
   try {
-    if (document.hidden) return;
+    if (document.hidden && !(page === '/gate' && gateToken)) return;
     const r = await fetch('/api/station/enroll-status', {cache:'no-store', signal:AbortSignal.timeout(4000)});
     if (!r.ok) throw Error();
     const state = await r.json();
@@ -403,7 +404,7 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
   return card;
 }
 
-let session, review, deadline = null, busy = false, step = false, paused = false, timer, signature = '', revision = 0;
+let session, review, deadline = null, busy = false, step = null, paused = false, timer, signature = '', revision = 0;
 const fields = Array.from($('form').querySelectorAll('input,select'));
 function remember(value) {
   if (value) sessionStorage.setItem(storage, JSON.stringify(value));
@@ -420,6 +421,9 @@ function controls() {
   $('cancel').hidden = !session;
   $('refill').hidden = !session || review?.state !== 'partial' || !review.resumeAllowed || paused;
   $('recover').hidden = !session || !paused;
+  $('select-photos').hidden = !session || paused || review?.state === 'ready' ||
+    !review?.minimumComplete || review.eligible_count < review.required;
+  $('select-photos').disabled = busy;
   $('save').hidden = !session || review?.state !== 'ready';
   if (review?.state === 'ready') $('save').textContent = '保存 ' + review.kept + ' 张';
   $('stop').disabled = $('cancel').disabled = $('recover').disabled = busy;
@@ -433,20 +437,24 @@ function clock() {
 function applyReview(data) {
   review = data;
   const collecting = data.state === 'collecting';
-  if (collecting || deadline === null) deadline = performance.now() + data.station_capture_ms_remaining;
-  if (!collecting && !data.resumeAllowed) deadline = performance.now();
+  deadline = performance.now() + data.station_capture_ms_remaining;
   clock();
   $('station-review').hidden = !data.items.length;
   $('review-title').textContent = '所选照片 · ' + data.kept + ' / ' + data.required;
   let msg;
+  const enough = data.eligible_count >= data.required;
   if (collecting) {
-    msg = '正在选帧 · 已找到 ' + data.eligible_count + ' / ' + data.required +
-      ' 张。轻微转动手掌，每次移动后停稳。';
+    if (data.minimumComplete && enough) {
+      msg = '已采满 60 秒，候选池有 ' + data.candidate_count + ' 张。可以继续拍，也可以挑选 10 张。';
+    } else {
+      msg = (data.minimumComplete ? '继续补拍' : '正在采集') + ' · 可选 ' +
+        data.eligible_count + ' / ' + data.required + ' 张。轻微转动手掌，每次移动后停稳。';
+    }
   } else if (data.state === 'ready') {
     msg = '已选齐 ' + data.required + ' 张，确认后保存。';
   } else {
-    msg = '已暂停 · 已选 ' + data.kept + ' / ' + data.required + ' 张。';
-    msg += data.resumeAllowed ? ' 继续采集即可补齐。' : ' 请取消后重新开始。';
+    msg = '已暂停 · 可选 ' + data.eligible_count + ' / ' + data.required + ' 张。';
+    msg += data.minimumComplete && enough ? ' 可以继续拍或挑选 10 张。' : ' 点击继续采集。';
   }
   if (data.archive_only) msg += ' 本轮追加照片，沿用已有验证模板。';
   $('capture-status').textContent = msg;
@@ -499,10 +507,10 @@ async function tick() {
   if (document.hidden) { schedule(1000); return; }
   const token = session.token;
   try {
-    if (review?.state === 'collecting' && (palmReady || performance.now() >= deadline)) {
-      step = true;
+    if (review?.state === 'collecting' && palmReady) {
+      step = request(enroll+'step',{token});
       controls();
-      await request(enroll+'step',{token});
+      await step;
     }
     if (session?.token === token && !busy) await sync(token);
   } catch (_) {
@@ -514,7 +522,7 @@ async function tick() {
       }
     }
   } finally {
-    step = false;
+    step = null;
     controls();
     schedule(review?.state === 'collecting' ? 250 : 1600);
   }
@@ -527,6 +535,10 @@ async function action(path, extra={}) {
   controls();
   const token = session.token;
   try {
+    if (path === station+'select' && step) {
+      $('capture-status').textContent = '等待当前帧处理完成，再挑选 10 张。';
+      await step.catch(() => {});
+    }
     if (path === enroll+'commit') remember({...session,saving:true});
     const data = await request(path,{token,...extra});
     if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
@@ -582,6 +594,7 @@ $('form').onsubmit = event => {
 };
 $('recover').onclick = () => void restore();
 $('stop').onclick = () => void action(station+'stop');
+$('select-photos').onclick = () => void action(station+'select');
 $('refill').onclick = () => void action(station+'refill');
 $('cancel').onclick = () => { if (confirm('取消本轮并丢弃这些未保存的照片？')) void action(enroll+'cancel'); };
 $('save').onclick = () => {
@@ -591,9 +604,9 @@ $('save').onclick = () => {
   }
 };
 
-let firstProbeFrame = null, absentSince = null, verificationVersion = 0;
-let verificationDone = false, verifying = false, retryAfter = 0, matchImageUrl;
-let gateToken, gateStarted = 0, gateStarting = false, nextKeepalive = 0;
+let lastProbeFrame = null, absentSince = null, verificationVersion = 0;
+let verifying = false, nextProbeAt = 0, matchImageUrl, matchImageKey;
+let gateToken, gateStarting = false, nextKeepalive = 0;
 const gateCamera = '/api/fpn/camera';
 function gateControls() {
   $('verify-start').hidden = !!gateToken && !gateStarting;
@@ -613,16 +626,19 @@ function scoreStatus(message, tone = '') {
   $('score-status').textContent = message;
 }
 function resetVerification(message) {
-  firstProbeFrame = null;
-  verificationDone = false;
+  lastProbeFrame = null;
   verificationVersion++;
-  retryAfter = 0;
+  nextProbeAt = 0;
   $('score-value').textContent = '—';
-  $('best-match').hidden = $('match-photo').hidden = true;
+  $('best-match').hidden = true;
+  clearMatchPhoto();
+  scoreStatus(message);
+}
+function clearMatchPhoto() {
+  $('match-photo').hidden = true;
   $('match-photo').removeAttribute('src');
   if (matchImageUrl) URL.revokeObjectURL(matchImageUrl);
-  matchImageUrl = null;
-  scoreStatus(message);
+  matchImageUrl = matchImageKey = null;
 }
 function renderVerification(data, version) {
   const top = data.top_cosines[0];
@@ -630,18 +646,25 @@ function renderVerification(data, version) {
   $('score-threshold').textContent = String(data.threshold);
   const result = {
     MATCH:['匹配', 'match'], BELOW_THRESHOLD:['低于阈值 · 未匹配', 'below'],
-    TIED:['最高分并列 · 请移开手后重试', 'below'], EMPTY:['照片库还没有已登记的掌纹']
+    TIED:['最高分并列 · 可调整手掌后重试', 'below'], EMPTY:['照片库还没有已登记的掌纹']
   };
   scoreStatus(...result[data.decision]);
   const match = data.best_match;
-  if (!match) return;
-  $('best-match').hidden = false;
+  $('best-match').hidden = !match;
+  if (!match) {
+    clearMatchPhoto();
+    return;
+  }
   $('match-name').textContent = match.display_name;
   $('match-detail').textContent = [match.user_id, match.hand && handing(match.hand)].filter(Boolean).join(' · ');
-  if (match.archive_id) {
+  const key = match.archive_id ? match.archive_id + ':' + match.sample_index : null;
+  if (key !== matchImageKey) {
+    clearMatchPhoto();
+    if (!key) return;
+    matchImageKey = key;
     const body = {archive:match.archive_id, index:match.sample_index, kind:'model'};
     request('/api/library/image', body, true).then(blob => {
-      if (version !== verificationVersion) return;
+      if (version !== verificationVersion || matchImageKey !== key) return;
       matchImageUrl = URL.createObjectURL(blob);
       $('match-photo').src = matchImageUrl;
       $('match-photo').hidden = false;
@@ -651,16 +674,15 @@ function renderVerification(data, version) {
 async function verifyPalm() {
   verifying = true;
   const version = verificationVersion;
-  scoreStatus('正在比对掌纹');
+  if ($('score-value').textContent === '—') scoreStatus('正在比对掌纹');
   try {
     const data = await request('/api/fpn/verify',{token:gateToken});
     if (version !== verificationVersion) return;
-    verificationDone = true;
     renderVerification(data, version);
-    closeGateCamera();
+    nextProbeAt = performance.now() + 900;
   } catch (error) {
     if (version !== verificationVersion) return;
-    retryAfter = performance.now() + 1800;
+    nextProbeAt = performance.now() + 1800;
     scoreStatus((error.status ? error.message : '暂时无法完成比对。') + ' 稍后自动重试。');
   } finally { verifying = false; }
 }
@@ -674,11 +696,6 @@ function updateVerification(state) {
     return;
   }
   const now = performance.now();
-  if (!verifying && now - gateStarted >= 60000) {
-    closeGateCamera();
-    resetVerification('等待放掌超时，相机已关闭。可重新开始验证。');
-    return;
-  }
   if (now >= nextKeepalive) {
     nextKeepalive = now + 4000;
     const token = gateToken;
@@ -692,17 +709,18 @@ function updateVerification(state) {
   if (!liveReady) return;
   if (!palmReady) {
     absentSince ??= now;
-    if (now - absentSince >= 750) resetVerification('等待放掌');
+    if (lastProbeFrame !== null && now - absentSince >= 750) resetVerification('等待放掌');
     return;
   }
   absentSince = null;
-  if (verifying || verificationDone || now < retryAfter) return;
+  if (verifying || now < nextProbeAt) return;
   const frame = state.processed_frame_id;
   if (!Number.isInteger(frame)) return;
-  if (firstProbeFrame === null) {
-    firstProbeFrame = frame;
+  if (lastProbeFrame === null) {
+    lastProbeFrame = frame;
     scoreStatus('已检测到掌区，请停稳');
-  } else if (frame > firstProbeFrame) {
+  } else if (frame > lastProbeFrame) {
+    lastProbeFrame = frame;
     void verifyPalm();
   }
 }
@@ -717,8 +735,7 @@ $('verify-start').onclick = async () => {
   try {
     const result = await request(gateCamera,{token,action:'start'});
     if (!result.camera_open) throw Error('相机未能启动。');
-    gateStarted = performance.now();
-    nextKeepalive = gateStarted + 4000;
+    nextKeepalive = performance.now() + 4000;
     scoreStatus('等待放掌');
   } catch (error) {
     closeGateCamera();
@@ -730,9 +747,10 @@ $('verify-start').onclick = async () => {
 };
 $('verify-stop').onclick = () => {
   closeGateCamera();
-  resetVerification('验证已停止，相机已关闭。');
+  verificationVersion++;
+  scoreStatus('验证已停止，相机已关闭。');
 };
-window.addEventListener('pagehide', () => {
+function sleepOnLeave() {
   const captureToken = page === '/enroll' && session?.token;
   const verificationToken = page === '/gate' && gateToken;
   if (captureToken) {
@@ -740,6 +758,10 @@ window.addEventListener('pagehide', () => {
   } else if (verificationToken) {
     navigator.sendBeacon(gateCamera, new Blob([JSON.stringify({token:verificationToken,action:'stop'})], {type:'application/json'}));
   }
+}
+window.addEventListener('pagehide', sleepOnLeave);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && page === '/enroll') sleepOnLeave();
 });
 
 let libraryBusy = false;
@@ -815,7 +837,7 @@ async function library() {
 
 if (page === '/enroll') {
   $('title').textContent = '掌纹采集';
-  $('subtitle').textContent = 'FPN + C E10 · 连续采集，选齐 10 张后确认保存。';
+  $('subtitle').textContent = 'FPN + C E10 · 至少采集 60 秒，结束时挑选 10 张。';
   $('camera-page').hidden = $('capture').hidden = $('capture-reference').hidden = false;
   setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
   try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}

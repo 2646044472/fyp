@@ -99,6 +99,7 @@ class Window:
     retained: tuple = ()
     latest_consumed_id: int = -1
     target_count: int = 5
+    wait_for_deadline: bool = False
     pool: list = field(default_factory=list, init=False)
     first_valid_s: float|None = field(default=None, init=False)
     _sealed: tuple|None = field(default=None, init=False)
@@ -139,7 +140,7 @@ class Window:
             enough = len(selected) == self.target_count
             # Bootstrap with several opportunities, not simply the first five.
             matured = self.first_valid_s is not None and now >= self.first_valid_s + self.useful_window_s
-            if now >= self.deadline or (enough and (len(self.pool) >= 12 or matured)):
+            if now >= self.deadline or (not self.wait_for_deadline and enough and (len(self.pool) >= 12 or matured)):
                 self._sealed=selected
             else:
                 return "collecting", selected
@@ -157,4 +158,4 @@ class Window:
         if state != "partial":
             raise ValueError("Only a completed partial window can be resumed.")
         return Window(now, self.absolute_timeout_s, self.useful_window_s, chosen, self.latest_consumed_id,
-                      self.target_count)
+                      self.target_count, self.wait_for_deadline)

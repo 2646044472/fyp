@@ -4,9 +4,10 @@ import time
 
 
 class CameraPower:
-    def __init__(self, create_feed, idle_seconds=15):
+    def __init__(self, create_feed, idle_seconds=15, *, on_idle=None):
         self.create_feed = create_feed
         self.idle_seconds = idle_seconds
+        self.on_idle = on_idle
         self.lock = threading.RLock()
         self.feed = None
         self.owner = None
@@ -38,7 +39,11 @@ class CameraPower:
             if remaining > 0:
                 self._schedule_expiry(remaining)
             else:
-                self.close()
+                try:
+                    if self.on_idle is not None and self.owner is not None:
+                        self.on_idle(self.owner)
+                finally:
+                    self.close()
 
     def close(self, owner=None):
         with self.lock:

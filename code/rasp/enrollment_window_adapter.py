@@ -57,6 +57,11 @@ MAX_TOTAL_CAPTURE_SECONDS = 59
 
 
 def capture_remaining(s):
+    if s.get("station_continuous"):
+        if s.get("station_minimum_complete"):
+            return 0
+        paused_at = s.get("station_paused_at")
+        return s["station_window"].deadline - (time.monotonic() if paused_at is None else paused_at)
     return s["station_started"] + s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS) - time.monotonic()
 
 
@@ -64,12 +69,14 @@ def can_resume(s):
     return s.get("station_continuous", False) or capture_remaining(s) > 0
 
 
-def begin_next_window(s, now, seconds, last_frame_id):
+def begin_next_window(s, now, seconds, last_frame_id, *, pool=()):
     s["station_window"] = Window(
         now, absolute_timeout_s=seconds, useful_window_s=min(12., seconds),
         retained=s.get("station_retained", ()), latest_consumed_id=last_frame_id,
         target_count=s.get("station_target_count", 5),
+        wait_for_deadline=s.get("station_continuous", False),
     )
+    s["station_window"].pool.extend(pool)
     s["station_state"] = "collecting"
 
 
@@ -83,7 +90,7 @@ def initialize(s):
     return s["station_started"]
 
 
-def sync_selection(s, *, stop=False):
+def sync_selection(s, *, stop=False, select=False):
     """Only called under the flow lock, including during status and review."""
     initialize(s)
     w=s.get("station_window")
@@ -92,18 +99,42 @@ def sync_selection(s, *, stop=False):
         s["station_state"] = state
         return state
     now=time.monotonic()
+    if s.get("station_continuous"):
+        return sync_continuous(s, w, now, stop=stop, select=select)
     state,chosen=w.stop(now) if stop else w.status(now)
-    if state == "collecting" and s.get("station_continuous") and len(chosen) == w.target_count:
-        state, chosen = w.stop(now)
     s["station_eligible_count"] = len(chosen)
     if state!="collecting":
         retain(s,chosen)
         s["selection_mode"]="bounded_best_frame_set"
-    if (state == "partial" and not stop and s.get("station_continuous")
-            and s.get("station_state") == "collecting" and now >= w.deadline):
-        s["station_started"] = now
-        begin_next_window(s, now, w.absolute_timeout_s, w.latest_consumed_id)
-        return "collecting"
+    s["station_state"] = state
+    return state
+
+
+def sync_continuous(s, window, now, *, stop, select):
+    paused_at = s.get("station_paused_at")
+    capture_now = now if paused_at is None else paused_at
+    _, chosen = window.status(capture_now)
+    s["station_eligible_count"] = len(chosen)
+    if capture_now >= window.deadline:
+        s["station_minimum_complete"] = True
+    if select:
+        if not s.get("station_minimum_complete") or len(chosen) != window.target_count:
+            raise ValueError("请至少采集 60 秒并累积 10 张不同的候选照片。")
+        retain(s, chosen)
+        s["selection_mode"] = "bounded_best_frame_set"
+        s["station_window"] = None
+        s.pop("station_paused_at", None)
+        state = "ready"
+    elif paused_at is not None:
+        state = "partial"
+    elif stop:
+        s["station_paused_at"] = now
+        state = "partial"
+    else:
+        if now >= window.deadline:
+            # Keep the ranked pool available for the user's final selection.
+            begin_next_window(s, now, s["station_capture_seconds"], window.latest_consumed_id, pool=window.pool)
+        state = "collecting"
     s["station_state"] = state
     return state
 
@@ -132,14 +163,21 @@ def start_refill(flow, token):
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
         now=time.monotonic()
+        previous = s.get("station_window")
+        pool = ()
+        last_frame = s.get("last_capture_frame_id") or -1
         if s.get("station_continuous"):
-            s["station_started"] = now
-            cap = s["station_capture_seconds"]
+            paused_at = s.pop("station_paused_at", None)
+            if previous is not None and paused_at is not None:
+                pool, last_frame = previous.pool, previous.latest_consumed_id
+            cap = (max(.001, previous.deadline - paused_at)
+                   if paused_at is not None and not s.get("station_minimum_complete")
+                   else s["station_capture_seconds"])
         else:
             cap = capture_remaining(s)
         if cap<=0:
             raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
-        begin_next_window(s, now, cap, s.get("last_capture_frame_id") or -1)
+        begin_next_window(s, now, cap, last_frame, pool=pool)
         s["last_activity"]=now
         return {"status":"CONTINUING","kept":len(s["features"])}
 
@@ -170,7 +208,8 @@ def run_step(flow, original, local, token, *args, **kwargs):
         with flow.lock:
             if flow.enrollment_session is not s or base.get("status")=="STOPPED":
                 return base
-            if fresh is not None and time.monotonic() < w.deadline and w._sealed is None:
+            if (fresh is not None and time.monotonic() < w.deadline and w._sealed is None
+                    and s["station_window"] is w and s.get("station_paused_at") is None):
                 p=next((x for x in s["photo_candidates"] if x.frame_id==fresh[0]),None)
                 if p is not None:
                     cand=descriptor(p,fresh[2])
@@ -179,6 +218,8 @@ def run_step(flow, original, local, token, *args, **kwargs):
                     active_ids = {item.frame_id for item in (*w.retained, *w.pool)}
                     s["station_payloads"] = {i: photo for i, photo in s["station_payloads"].items() if i in active_ids}
                     s["photo_candidates"][:] = [photo for photo in s["photo_candidates"] if photo.frame_id in active_ids]
+            elif s.get("station_continuous"):
+                s["photo_candidates"][:] = [photo for photo in s["photo_candidates"] if photo.frame_id in s["station_payloads"]]
             # Review/status/stop may have sealed this same Window during I/O.
             # Publish only its chosen descriptors; never retain a late arrival.
             state=sync_selection(s)

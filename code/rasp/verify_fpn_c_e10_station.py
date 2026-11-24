@@ -120,9 +120,12 @@ def main():
                 w = app.demo.enrollment_session["station_window"]
                 assert w.absolute_timeout_s == 60 and w.target_count == sut.CAPTURE_COUNT
                 for _ in range(sut.CAPTURE_COUNT + 3):
-                    if http("/api/demo/enroll/step", t)["status"] == "READY":
-                        break
-                result = http("/api/station/enroll-stop", t)
+                    assert http("/api/demo/enroll/step", t)["status"] != "READY"
+                http("/api/station/enroll-select", t, status=400)
+                with app.demo.lock:
+                    w.absolute_timeout_s = time.monotonic() - w.started_s
+                assert http("/api/station/enroll-review", t)["state"] == "collecting"
+                result = http("/api/station/enroll-select", t)
                 assert result["kept"] == sut.CAPTURE_COUNT, result["state"]
                 assert not list((root / "templates").glob("*"))
                 for item in result["items"]:
@@ -140,7 +143,7 @@ def main():
                 http("/api/station/enroll-refill", t)
                 for _ in range(2):
                     http("/api/demo/enroll/step", t)
-                assert http("/api/station/enroll-stop", t)["kept"] == sut.CAPTURE_COUNT
+                assert http("/api/station/enroll-select", t)["kept"] == sut.CAPTURE_COUNT
                 http("/api/demo/enroll/commit", dict(t, confirm_hand="right"), status=400)
                 result = http("/api/demo/enroll/commit", dict(t, confirm_hand="left"))
                 assert "token" not in result and "balance_cents" not in result
