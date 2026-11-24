@@ -159,6 +159,8 @@ def install(app):
             with self.lock:
                 ses=self.enrollment_session
                 if ses is not None and ses["token"] == result["token"]:
+                    if hasattr(self, "station_capture_seconds"):
+                        ses["station_capture_seconds"] = self.station_capture_seconds
                     initialize(ses) # Idempotent retries do not reset the deadline.
             return result
         flow.DemoFlow.enrollment_start=enrollment_start

@@ -118,6 +118,23 @@ def score_gallery(np, probe, store, required):
 
 def make_camera(base, frame_class, backend, localizer, np, cv):
     class Camera(base):
+        def jpeg_frame(self):
+            with self._jpeg_lock:
+                with self.lock:
+                    if not self._camera_frame_state()["camera_ready"] or self.latest is None:
+                        raise RuntimeError("camera unavailable")
+                    frame = self.latest_processed
+                    annotated = (frame is not None and frame.enrollment_quad is not None
+                                 and 0 <= time.monotonic() - frame.captured.captured_monotonic <= MAX_FRAME_AGE)
+                    source = frame.captured if annotated else self.latest
+                    key = (source.frame_id, annotated)
+                    if getattr(self, "_station_preview_key", None) == key:
+                        return self._station_preview
+                data = self._encode_preview(source.image, frame.enrollment_quad if annotated else None,
+                                            frame.roi_status if annotated else {"roi_mode": "capture"})
+                self._station_preview_key, self._station_preview = key, data
+                return data
+
         def _processing_loop(self):
             while self.running:
                 with self.frame_condition:
@@ -184,6 +201,9 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
             return result
 
     class ShadowFlow(demo_flow.DemoFlow):
+        station_capture_seconds = 60
+        archive_native_roi = True
+
         def __init__(self, feed, candidate):
             self.algorithm = SimpleNamespace(name=PIPELINE)
             self.gallery = SimpleNamespace(required_metadata=required)
@@ -276,33 +296,12 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
     return base.CameraFeed, base.App
 
 
-SCORE_PAGE = """<!doctype html><html lang="zh"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>FPN + C E10 分数</title>
-<style>body{font:17px system-ui;max-width:850px;margin:auto;padding:24px;color:#20394b}
-img{width:min(100%,640px);display:block}button{padding:10px;margin:12px 0;font:inherit}</style></head>
-<body><h1>FPN + C E10 分数预览</h1><p>仅测分，不显示身份，不判定通过，无放行。</p>
-<img id="live" alt="当前镜头帧"><button id="score">计算当前帧分数</button>
-<p id="result" role="status"></p><p><a href="/enroll">返回 60 秒登记</a></p>
-<script>
-const img=document.querySelector('#live'), btn=document.querySelector('#score'), out=document.querySelector('#result');
-let url;
-async function preview(){try{if(!document.hidden){const r=await fetch('/frame.jpg',{cache:'no-store'});if(r.ok){
- const next=URL.createObjectURL(await r.blob());img.src=next;if(url)URL.revokeObjectURL(url);url=next;}}}
-catch(_){}finally{setTimeout(preview,240)}}preview();
-btn.onclick=async()=>{btn.disabled=true;out.textContent='读取当前有效掌区…';try{
- const r=await fetch('/api/fpn/score',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
- const data=await r.json();if(!r.ok)throw new Error(data.message);
- out.textContent=data.gallery_size===0?'还没有已确认的 FPN+C 模板。':
- '库内 '+data.gallery_size+' 掌；最高余弦 '+data.top_cosines.map(x=>x.toFixed(4)).join(' / ')+
- (data.tied_top?'（最高分并列）':'')+'；仅作分数记录，不判定身份。';
-}catch(e){out.textContent=e.message||'分数未返回。'}finally{btn.disabled=false}};
-</script></body></html>"""
-
-
 def build_handler(application, enrollment_html):
     from capture_station import send
     from enrollment_best_frame import ranking_status
-    from enrollment_review import mutate
+    from enrollment_review import mutate, selected_photo
+    from enrollment_archive import native_roi_png
+    from station_library import list_archives, archive_image
     from enrollment_window_adapter import start_refill
     from demo_flow import CaptureProcessingFailure
 
@@ -321,14 +320,25 @@ def build_handler(application, enrollment_html):
                 self.headers.get("Origin") in {None, "http://" + h}
             )
 
+        def image(self, data, mime):
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            try:
+                self.wfile.write(data)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+
         def do_GET(self):
             if not self.local_request():
                 return self.respond({"message": "仅限本站。"}, 403)
             route = urlsplit(self.path).path
             if route in ("/", "/enroll"):
                 return send(self, enrollment_html)
-            if route == "/gate":
-                return send(self, SCORE_PAGE)
+            if route in ("/gate", "/collect", "/library"):
+                return send(self, render_enrollment("/gate" if route == "/gate" else "/collect"))
             if route in ("/api/status", "/api/station/enroll-status"):
                 status = application.status()
                 return self.respond(ranking_status(status) if route.endswith("enroll-status") else status)
@@ -345,16 +355,7 @@ def build_handler(application, enrollment_html):
                     data = application.camera.jpeg_frame()
                 except (OSError, RuntimeError, ValueError):
                     return self.respond({"message": "等待本机摄像头。"}, 503)
-                self.send_response(200)
-                self.send_header("Content-Type", "image/jpeg")
-                self.send_header("Content-Length", str(len(data)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                try:
-                    self.wfile.write(data)
-                except (BrokenPipeError, ConnectionResetError):
-                    pass
-                return
+                return self.image(data, "image/jpeg")
             return self.respond({"message": "影子服务不提供此路由。"}, 404)
 
         def do_POST(self):
@@ -365,7 +366,7 @@ def build_handler(application, enrollment_html):
                 "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step",
                 "/api/demo/enroll/commit", "/api/demo/enroll/cancel", "/api/station/enroll-review",
                 "/api/station/enroll-remove", "/api/station/enroll-refill", "/api/station/enroll-stop",
-                "/api/fpn/score",
+                "/api/fpn/score", "/api/station/enroll-image", "/api/library/list", "/api/library/image",
             }
             if route not in allow:
                 return self.respond({"message": "影子服务没有通行、支付或旧模板写入。"}, 404)
@@ -381,9 +382,23 @@ def build_handler(application, enrollment_html):
                         raise ValueError("只可使用当前镜头帧。")
                     return self.respond(application.check_score())
                 flow = application.demo
+                if route.startswith("/api/library/"):
+                    root = flow.enrollment_archive_root
+                    if route.endswith("/list"):
+                        with flow.lock:
+                            result = list_archives(root)
+                        return self.respond({"archives": result})
+                    return self.image(*archive_image(root, data))
                 token = data.get("token")
                 if not isinstance(token, str) or len(token) != 32:
                     raise ValueError("本次登记已失效。")
+                if route.endswith("-image"):
+                    candidate = selected_photo(flow, token, data.get("frame"))
+                    if data.get("kind") == "original":
+                        return self.image(candidate.payload["station_original_jpeg"], "image/jpeg")
+                    if data.get("kind") == "detail":
+                        return self.image(native_roi_png(candidate)[0], "image/png")
+                    raise ValueError("未知图片类型。")
                 if route.endswith("/start"):
                     result = flow.enrollment_start(str(data.get("user_id", "")),
                                                    str(data.get("display_name", "")), str(data.get("hand", "")), token)
@@ -402,7 +417,7 @@ def build_handler(application, enrollment_html):
                     frame = data.get("frame") if route.endswith("-remove") else None
                     if route.endswith("-remove") and type(frame) is not int:
                         raise ValueError("请选择本次登记的一张照片。")
-                    result = mutate(flow, token, frame, stop=route.endswith("-stop"))
+                    result = mutate(flow, token, frame, stop=route.endswith("-stop"), geometry=True)
                 return self.respond(result)
             except (ValueError, TypeError, CaptureProcessingFailure):
                 return self.respond({"message": "当前请求不可用：检查登记状态、帧是否有效、或目录是否匹配。"}, 400)
@@ -412,13 +427,11 @@ def build_handler(application, enrollment_html):
     return Handler
 
 
-def render_enrollment():
-    import capture_station
-    from demo_page import HTML
-    page = capture_station.render(HTML, "/enroll")
-    page = page.replace("<body>", '<body><p role="note"><strong>FPN + C E10</strong> · 独立影子登记，仅显示分数，无通行判断。</p>', 1)
-    page = page.replace("前往放掌验证 →", "前往分数预览 →").replace("可以返回通行体验。", "可以返回分数预览。")
-    return page.replace('<a href="/collect">③ 数据管理</a>', "")
+def render_enrollment(active="/enroll"):
+    from capture_station import nav
+    page = Path(__file__).with_name("fpn_station.html").read_text("utf-8")
+    navigation = nav(active).replace("③ 数据管理", "③ 照片库")
+    return page.replace("<!--station-nav-->", navigation).replace("__ACTIVE_PAGE__", active)
 
 
 def main(argv=None):

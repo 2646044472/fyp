@@ -26,8 +26,19 @@ def attach_frame(flow, token, incoming, *, original_jpeg=None):
             candidate.payload["station_native_original"] = original_jpeg is not None
 
 
-def mutate(flow, token, frame_id=None, *, stop=False):
-    from enrollment_window_adapter import MAX_TOTAL_CAPTURE_SECONDS, sync_selection
+def selected_photo(flow, token, frame_id):
+    with flow.lock:
+        s = flow.enrollment_session
+        if (s is not None and s["token"] == token and time.monotonic() - s["last_activity"] < DEFAULT_TIMEOUT
+                and type(frame_id) is int and frame_id in s["selected_frame_ids"]):
+            for photo in s["photo_candidates"]:
+                if photo.frame_id == frame_id and photo.payload.get("station_original_jpeg"):
+                    return photo
+    raise ValueError("这张照片已不在本次选择中。")
+
+
+def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
+    from enrollment_window_adapter import capture_remaining, sync_selection
     with flow.lock:
         s = flow.enrollment_session
         if s is None or s["token"] != token or time.monotonic() - s["last_activity"] >= DEFAULT_TIMEOUT:
@@ -60,9 +71,15 @@ def mutate(flow, token, frame_id=None, *, stop=False):
         by_id = {c.frame_id: c for c in s["photo_candidates"]}
         items = [{"frame": k, "rgb": by_id[k].payload.get("station_review_rgb"),
                   "roi": by_id[k].payload.get("encoded_roi")} for k in selected if k in by_id]
+        if geometry:
+            for item in items:
+                photo = by_id[item["frame"]]
+                item.update(quad=photo.roi_quad.tolist(), size=list(photo.frame_size))
         return {"status": "REVIEW", "items": items, "kept": len(selected),
+                "station_capture_ms_remaining": max(0, int(1000 * capture_remaining(s))),
+                "candidate_count": len(s["station_payloads"]),
                 "state": state, "inFlight": bool(s["capture_in_flight"] or s.get("station_step_in_flight")),
-                "resumeAllowed": time.monotonic()<s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS}
+                "resumeAllowed": capture_remaining(s)>0}
 
 
 PANEL = '''<style>

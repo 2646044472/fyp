@@ -37,7 +37,7 @@ def response(s, state, base=None):
     if failure:
         s["station_last_rejection"] = failure
     d["station_last_rejection"] = s.get("station_last_rejection")
-    remaining = max(0, int(1000 * (s["station_started"] + MAX_TOTAL_CAPTURE_SECONDS - time.monotonic())))
+    remaining = max(0, int(1000 * capture_remaining(s)))
     d["station_capture_ms_remaining"] = remaining
     if state == "ready":
         d["reason"] = "所选照片已就绪。确认后会保存五组原图与 ROI，以及登记模板。"
@@ -55,12 +55,16 @@ def response(s, state, base=None):
 MAX_TOTAL_CAPTURE_SECONDS = 59
 
 
+def capture_remaining(s):
+    return s["station_started"] + s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS) - time.monotonic()
+
+
 def initialize(s):
     """Start timing at the successful legacy enrollment Start, not first ROI."""
     if "station_started" not in s:
         s["station_started"] = s.get("started", s["last_activity"])
         s["station_payloads"] = {}
-        s["station_window"] = Window(s["station_started"],
+        s["station_window"] = Window(s["station_started"], absolute_timeout_s=s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS),
             latest_consumed_id=s.get("last_capture_frame_id") or -1)
     return s["station_started"]
 
@@ -86,7 +90,7 @@ def session_status(s, d):
                   station_partial=state=="partial", station_state=state,
                   kept=len(s["features"]), candidate_pool_count=len(s["station_payloads"]),
                   selected_roi_images=list(s["selected_roi_images"]),
-                  resume_allowed=time.monotonic()<s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS)
+                  resume_allowed=capture_remaining(s)>0)
     if state!="collecting":
         result.update(candidate_roi_image=None,fallback_after_ms=None,candidate_pool_required=5)
     return result
@@ -101,7 +105,7 @@ def start_refill(flow, token):
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
         now=time.monotonic()
-        cap=s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS-now
+        cap=capture_remaining(s)
         if cap<=0:
             raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
         s["station_window"] = Window(now,absolute_timeout_s=cap,useful_window_s=min(12.,cap),

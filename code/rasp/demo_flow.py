@@ -586,7 +586,8 @@ class DemoFlow:
                 self.store.save(user_id, batch, metadata)
             else:
                 from enrollment_archive import save_enrollment
-                archive_id = save_enrollment(self.enrollment_archive_root, self.store, user_id, batch, metadata, session)
+                archive_id = save_enrollment(self.enrollment_archive_root, self.store, user_id, batch, metadata, session,
+                                             include_native_roi=getattr(self, "archive_native_roi", False))
             if not refreshing:
                 try:
                     self.payments.create_account(user_id, display_name, 10000)

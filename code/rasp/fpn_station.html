@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FYP 掌纹采集站</title>
+<style>
+:root{color-scheme:light;--ink:#142b3f;--muted:#48627a;--edge:#d5e0e9;--blue:#135e96}
+*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:var(--ink);font:16px/1.55 system-ui,"Microsoft YaHei",sans-serif}
+[hidden]{display:none!important}main{max-width:1220px;margin:auto;padding:30px 22px 56px}
+h1,h2,p{margin:0}h1{font-size:1.85rem}h2{font-size:1.12rem}.hint{color:var(--muted);font-size:.9rem}
+.intro{margin-bottom:19px}.split{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:18px;align-items:start}
+.card{background:white;border:1px solid var(--edge);border-radius:15px;padding:19px;box-shadow:0 2px 8px #163c6010}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.preview{display:grid;place-items:center;aspect-ratio:4/3;background:#142334;border-radius:10px;overflow:hidden;margin:11px 0;color:#cfdeed}
+.preview>*{grid-area:1/1}.preview img{width:100%;height:100%;object-fit:contain;display:block}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.fields label:last-child{grid-column:1/-1}
+label{display:grid;gap:4px;font-size:.88rem;font-weight:650}input,select,button{font:inherit;color:inherit}
+input,select{width:100%;min-width:0;border:1px solid #b6c8d8;border-radius:8px;background:#fff;padding:8px 10px}
+button{border:1px solid transparent;border-radius:8px;padding:8px 13px;cursor:pointer;background:var(--blue);color:white;font-weight:650}
+button.secondary{background:#eef4fa;color:#204a6c;border-color:var(--edge)}button:disabled{opacity:.52;cursor:not-allowed}
+:focus-visible{outline:3px solid #50a5da;outline-offset:3px}.status{padding:10px 12px;border-radius:8px;background:#edf4fb;margin-top:12px}
+.clock{font-size:1.55rem;font-variant-numeric:tabular-nums;font-weight:700;color:var(--blue)}
+.review{margin-top:18px}.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;margin-top:14px}
+.group{border:1px solid var(--edge);border-radius:12px;background:#f8fbfd;padding:12px}
+.pair{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:8px;margin:9px 0}
+.pair button{padding:0 0 5px;overflow:hidden;background:white;color:var(--ink);border-color:var(--edge);font-size:.81rem}
+.pair button:hover,.secondary:hover{border-color:#75a8ce}.photo{position:relative;width:100%}
+.pair .photo{aspect-ratio:4/3;background:#142334}.photo img{display:block;width:100%;height:100%;object-fit:contain}
+.pair .roi{image-rendering:pixelated}.outline{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.outline polygon{fill:none;stroke:#4fffc2;stroke-width:2.4;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px #111)}
+.small-button{font-size:.85rem;padding:5px 9px}.library-header{margin-bottom:12px}.library-header input{max-width:260px}
+.library-item{border:1px solid var(--edge);border-radius:10px;padding:11px 14px;margin-top:9px}.library-item summary{cursor:pointer;font-weight:650}
+dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);border-radius:14px;padding:15px;color:var(--ink)}
+dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:flex;overflow:auto;background:#152638;border-radius:8px;margin-top:11px;color:#deebf6}
+.viewport .photo{margin:auto;flex:none;display:none}.viewport .photo.visible{display:block}.viewport .pixel img{image-rendering:pixelated}
+.viewport p{margin:auto;padding:14px}.score{font-size:1.75rem;font-weight:700;font-variant-numeric:tabular-nums}
+@media(max-width:760px){main{padding:18px 13px 32px}.split{grid-template-columns:1fr}.card{padding:14px}.station-nav small{display:none}.station-nav b{width:100%}}
+</style>
+</head>
+<body data-page="__ACTIVE_PAGE__">
+<!--station-nav-->
+<main>
+<header class="intro"><h1 id="title"></h1><p id="subtitle" class="hint"></p></header>
+<div class="split" id="camera-page" hidden>
+  <section class="card" aria-label="实时画面">
+    <div class="row between"><h2>实时画面</h2><span class="hint" id="camera-status" role="status">正在连接相机</span></div>
+    <div class="preview"><span id="camera-placeholder">等待画面</span><img id="live" alt="相机实时预览" hidden></div>
+    <p class="hint">掌心朝向镜头。绿色四边形标出模型检测到的掌区。</p>
+  </section>
+  <section id="capture" class="card" hidden>
+    <div class="row between"><h2>本轮采集</h2><span class="clock" id="clock" aria-label="采集剩余时间">01:00</span></div>
+    <form id="form">
+      <div class="fields">
+        <label>编号<input name="user_id" placeholder="例如 p01_left" required maxlength="40" pattern="[A-Za-z0-9_\-]+"></label>
+        <label>显示名<input name="display_name" placeholder="输入显示名" required maxlength="60"></label>
+        <label>采集手<select name="hand" required><option value="">选择左右手</option><option value="left">左手</option><option value="right">右手</option></select></label>
+      </div>
+      <div class="row">
+        <button id="start" disabled>开始采集</button>
+        <button type="button" class="secondary" id="stop" hidden>停止选帧</button>
+        <button type="button" class="secondary" id="refill" hidden>补拍缺额</button>
+        <button type="button" class="secondary" id="cancel" hidden>取消本轮</button>
+        <button type="button" class="secondary" id="recover" hidden>恢复状态</button>
+      </div>
+    </form>
+    <p class="status" id="capture-status" role="status">选择一只手，最多采集 60 秒。</p>
+  </section>
+  <section id="verification" class="card" hidden>
+    <h2>匹配分数</h2><p class="hint">使用 FPN + C E10 与已登记模板比对，仅显示分数。</p>
+    <p class="status score" id="score-value" hidden></p>
+    <p class="status" id="score-status" role="status">将掌心放入画面，看到绿色 ROI 框后可测分。</p>
+    <button id="score" style="margin-top:12px" disabled>计算当前帧分数</button>
+  </section>
+</div>
+<section class="card review" id="station-review" hidden>
+  <div class="row between"><div><h2 id="review-title">所选照片</h2><p class="hint">点开可查看相机原图、高清掌区和对应的 128 × 128 ROI。</p></div>
+    <button id="save" hidden>确认同一只手并保存</button>
+  </div>
+  <div class="groups" id="photos"></div>
+</section>
+<section class="card" id="library" hidden>
+  <div class="row between library-header"><h2>已保存的照片组</h2>
+    <input type="search" id="search" placeholder="按编号筛选" aria-label="筛选照片编号"></div>
+  <p id="library-status" class="hint" role="status">正在读取照片库</p>
+  <div id="archives"></div>
+</section>
+</main>
+<dialog id="viewer" aria-labelledby="photo-title">
+  <div class="row between"><div><h2 id="photo-title"></h2><p class="hint" id="dimensions"></p></div>
+  <div class="row">
+    <button class="secondary small-button" id="box" hidden aria-pressed="true">隐藏 ROI 框</button>
+    <button class="secondary small-button" id="zoom" disabled>放大</button>
+    <button class="secondary small-button" id="fit" disabled>适合窗口</button>
+    <form method="dialog"><button class="secondary small-button">关闭</button></form>
+  </div></div>
+  <div class="viewport" id="viewport" tabindex="0" aria-label="照片，放大后可滚动">
+    <p id="image-status" role="status"></p>
+    <div class="photo" id="full-photo"><img id="full-image" alt=""></div>
+  </div>
+</dialog>
+<script>
+const $ = id => document.getElementById(id);
+const page = document.body.dataset.page;
+const enroll = '/api/demo/enroll/';
+const station = '/api/station/enroll-';
+const storage = 'fypFpnEnrollment';
+let liveReady = false, palmReady = false, measuring = false;
+
+async function request(path, body, binary = false) {
+  const reply = await fetch(path, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body), cache:'no-store', signal:AbortSignal.timeout(12000)
+  });
+  if (!reply.ok) {
+    const data = await reply.json().catch(() => ({}));
+    throw Object.assign(new Error(data.message || '请求失败，请重试。'), {status:reply.status});
+  }
+  return binary ? reply.blob() : reply.json();
+}
+
+let previewUrl;
+async function preview() {
+  try {
+    if (document.hidden) return;
+    const r = await fetch('/frame.jpg', {cache:'no-store', signal:AbortSignal.timeout(4000)});
+    if (!r.ok) throw Error();
+    const next = URL.createObjectURL(await r.blob());
+    $('live').src = next;
+    $('live').hidden = false;
+    $('camera-placeholder').hidden = true;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = next;
+  } catch (_) {
+    $('live').hidden = true;
+    $('camera-placeholder').hidden = false;
+  } finally {
+    setTimeout(preview, 240);
+  }
+}
+async function cameraStatus() {
+  try {
+    if (document.hidden) return;
+    const r = await fetch('/api/station/enroll-status', {cache:'no-store', signal:AbortSignal.timeout(4000)});
+    if (!r.ok) throw Error();
+    const state = await r.json();
+    liveReady = state.camera_ready && state.processing_thread_alive;
+    palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
+    $('camera-status').textContent = palmReady ? '已检测到掌区' : liveReady ? '等待掌心入镜' : '等待相机';
+  } catch (_) {
+    liveReady = palmReady = false;
+    $('camera-status').textContent = '相机连接中断';
+  } finally {
+    controls();
+    $('score').disabled = !palmReady || measuring;
+    setTimeout(cameraStatus, 500);
+  }
+}
+
+const handing = hand => hand === 'left' ? '左手' : '右手';
+const names = {original:'相机原图', detail:'高清 ROI', model:'识别 ROI'};
+const viewer = $('viewer'), full = $('full-image'), fullPhoto = $('full-photo');
+let viewerVersion = 0, photoUrl, magnification = 0;
+function outline(photo, sample) {
+  if (!sample.quad || !sample.size) return;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.classList.add('outline');
+  svg.setAttribute('viewBox', '0 0 ' + sample.size.join(' '));
+  svg.setAttribute('aria-hidden', 'true');
+  const polygon = document.createElementNS(ns, 'polygon');
+  polygon.setAttribute('points', sample.quad.map(([x,y]) => (x+.5)+','+(y+.5)).join(' '));
+  svg.append(polygon);
+  photo.append(svg);
+  return svg;
+}
+function clearViewer() {
+  viewerVersion++;
+  full.removeAttribute('src');
+  fullPhoto.classList.remove('visible');
+  fullPhoto.querySelector('.outline')?.remove();
+  if (photoUrl) URL.revokeObjectURL(photoUrl);
+  photoUrl = null;
+}
+function sizePhoto() {
+  const width = full.naturalWidth, height = full.naturalHeight;
+  if (!width || !height || !viewer.open) return;
+  const viewport = $('viewport');
+  const fit = Math.min(1, viewport.clientWidth / width, viewport.clientHeight / height);
+  const scale = magnification || fit;
+  fullPhoto.style.width = Math.floor(width * scale) + 'px';
+  fullPhoto.style.height = Math.floor(height * scale) + 'px';
+  $('dimensions').textContent = width + ' × ' + height + ' 像素 · ' + Math.round(scale*100) + '%';
+}
+viewer.addEventListener('close', clearViewer);
+window.addEventListener('resize', sizePhoto);
+$('fit').onclick = () => { magnification = 0; sizePhoto(); };
+$('zoom').onclick = () => {
+  magnification = magnification === 0 ? (fullPhoto.clientWidth < full.naturalWidth ? 1 : 2) :
+    magnification >= 4 ? 1 : magnification * 2;
+  sizePhoto();
+};
+$('box').onclick = () => {
+  const mark = fullPhoto.querySelector('.outline');
+  if (!mark) return;
+  mark.style.display = mark.style.display ? '' : 'none';
+  $('box').setAttribute('aria-pressed', String(!mark.style.display));
+  $('box').textContent = mark.style.display ? '显示 ROI 框' : '隐藏 ROI 框';
+};
+async function showPhoto(sample, kind, load) {
+  clearViewer();
+  const version = viewerVersion;
+  magnification = 0;
+  $('photo-title').textContent = names[kind];
+  $('dimensions').textContent = '';
+  $('image-status').textContent = '正在读取图片';
+  $('image-status').hidden = false;
+  $('box').hidden = true;
+  $('zoom').disabled = $('fit').disabled = true;
+  if (!viewer.open) viewer.showModal();
+  try {
+    const source = await load(kind);
+    if (version !== viewerVersion || !viewer.open) return;
+    if (source instanceof Blob) photoUrl = URL.createObjectURL(source);
+    full.alt = names[kind];
+    full.src = photoUrl || source;
+    await full.decode();
+    if (version !== viewerVersion || !viewer.open) return;
+    fullPhoto.classList.toggle('pixel', kind === 'model');
+    if (kind === 'original' && outline(fullPhoto, sample)) {
+      $('box').hidden = false;
+      $('box').textContent = '隐藏 ROI 框';
+      $('box').setAttribute('aria-pressed', 'true');
+    }
+    $('image-status').hidden = true;
+    fullPhoto.classList.add('visible');
+    $('zoom').disabled = $('fit').disabled = false;
+    sizePhoto();
+    $('viewport').scrollTop = $('viewport').scrollLeft = 0;
+  } catch (_) {
+    if (version === viewerVersion) $('image-status').textContent = '图片暂时无法打开，请关闭后重试。';
+  }
+}
+const png = data => 'data:image/png;base64,' + data;
+function photoCard(sample, index, load, thumbnail, remove) {
+  const card = document.createElement('article');
+  card.className = 'group';
+  const heading = document.createElement('strong');
+  heading.textContent = '第 ' + index + ' 组';
+  const pair = document.createElement('div');
+  pair.className = 'pair';
+  for (const kind of ['original','model']) {
+    const button = document.createElement('button'), photo = document.createElement('div'), image = new Image();
+    button.type = 'button';
+    photo.className = 'photo' + (kind === 'model' ? ' roi' : '');
+    image.alt = '';
+    photo.append(image);
+    if (kind === 'original') outline(photo, sample);
+    button.append(photo, kind === 'model' ? '128 × 128 ROI' : names[kind]);
+    button.onclick = () => showPhoto(sample, kind, load);
+    pair.append(button);
+    thumbnail(kind).then(src => {
+      if (!(src instanceof Blob)) { image.src = src; return; }
+      const url = URL.createObjectURL(src);
+      image.onload = image.onerror = () => URL.revokeObjectURL(url);
+      image.src = url;
+    }).catch(() => photo.setAttribute('title','预览暂不可用'));
+  }
+  const actions = document.createElement('div');
+  actions.className = 'row';
+  const detail = document.createElement('button');
+  detail.className = 'secondary small-button';
+  detail.textContent = names.detail;
+  detail.onclick = () => showPhoto(sample, 'detail', load);
+  actions.append(detail);
+  if (remove) {
+    const drop = document.createElement('button');
+    drop.className = 'secondary small-button drop';
+    drop.textContent = '移除';
+    drop.onclick = remove;
+    actions.append(drop);
+  }
+  card.append(heading, pair, actions);
+  return card;
+}
+
+let session, review, deadline = null, busy = false, step = false, paused = false, timer, signature = '', revision = 0;
+const fields = Array.from($('form').querySelectorAll('input,select'));
+function remember(value) {
+  if (value) sessionStorage.setItem(storage, JSON.stringify(value));
+  else sessionStorage.removeItem(storage);
+  session = value;
+}
+function controls() {
+  const collecting = review?.state === 'collecting';
+  const locked = busy || step || review?.inFlight;
+  for (const field of fields) field.disabled = !!session || busy;
+  $('start').hidden = !!session;
+  $('start').disabled = !liveReady || busy;
+  $('stop').hidden = !session || !collecting || paused;
+  $('cancel').hidden = !session;
+  $('refill').hidden = !session || review?.state !== 'partial' || !review.resumeAllowed || paused;
+  $('recover').hidden = !session || !paused;
+  $('save').hidden = !session || review?.state !== 'ready';
+  $('stop').disabled = $('cancel').disabled = $('recover').disabled = busy;
+  $('refill').disabled = $('save').disabled = !!locked || paused;
+  for (const b of $('photos').querySelectorAll('.drop')) b.disabled = !!locked || collecting || paused;
+}
+function clock() {
+  const seconds = deadline === null ? 60 : Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
+  $('clock').textContent = String(Math.floor(seconds / 60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0');
+}
+function applyReview(data) {
+  review = data;
+  const collecting = data.state === 'collecting';
+  if (collecting || deadline === null) deadline = performance.now() + data.station_capture_ms_remaining;
+  if (!collecting && !data.resumeAllowed) deadline = performance.now();
+  clock();
+  $('station-review').hidden = !data.items.length && collecting;
+  $('review-title').textContent = '所选照片 · ' + data.kept + ' / 5';
+  const msg = collecting ? '正在采集 · 已有 ' + data.candidate_count + ' 张候选' :
+    data.state === 'ready' ? '已选齐。放大检查后确认保存。' :
+    data.resumeAllowed ? '采集已停止，可补拍缺少的照片。' : '本轮已到 60 秒。若照片不足，可取消后重新开始。';
+  $('capture-status').textContent = msg;
+  const key = data.items.map(s => s.frame).join(',');
+  if (key !== signature) {
+    signature = key;
+    $('photos').replaceChildren(...data.items.map((sample,i) => {
+      const token = session.token;
+      const load = kind => kind === 'model' ? Promise.resolve(png(sample.roi)) :
+        request(station+'image', {token,frame:sample.frame,kind}, true);
+      return photoCard(sample, i+1, load,
+        async kind => kind === 'original' ? 'data:image/jpeg;base64,' + sample.rgb : png(sample.roi),
+        () => { if (confirm('移除这一组未保存照片？')) void action(station+'remove',{frame:sample.frame}); });
+    }));
+  }
+  controls();
+}
+function finish(message) {
+  remember(null);
+  clearTimeout(timer);
+  deadline = null;
+  paused = false;
+  review = null;
+  signature = '';
+  $('photos').replaceChildren();
+  $('station-review').hidden = true;
+  $('capture-status').textContent = message;
+  clock();
+  controls();
+}
+async function sync(token) {
+  const requested = revision;
+  const data = await request(station+'review',{token});
+  if (session?.token !== token || requested !== revision) return;
+  if (data.status === 'REVIEW') applyReview(data);
+  else {
+    const status = await request(enroll+'status',{token});
+    if (session?.token !== token || requested !== revision) return;
+    const message = status.status === 'COMPLETED' ? '五组照片已保存，可在照片库打开。' :
+      session.saving && status.status === 'LOST' ? '服务已重启，请到照片库检查保存结果。' : '本轮已结束，可以开始新一轮。';
+    finish(message);
+  }
+}
+function schedule(delay = 250) {
+  clearTimeout(timer);
+  if (session && !paused) timer = setTimeout(tick, delay);
+}
+async function tick() {
+  if (!session || paused || busy) return;
+  if (document.hidden) { schedule(1000); return; }
+  const token = session.token;
+  try {
+    if (review?.state === 'collecting' && (palmReady || performance.now() >= deadline)) {
+      step = true;
+      controls();
+      await request(enroll+'step',{token});
+    }
+    if (session?.token === token && !busy) await sync(token);
+  } catch (_) {
+    if (session?.token === token && !busy) {
+      try { await sync(token); }
+      catch (error) {
+        paused = true;
+        $('capture-status').textContent = '连接中断。恢复状态后可继续。';
+      }
+    }
+  } finally {
+    step = false;
+    controls();
+    schedule(review?.state === 'collecting' ? 250 : 1600);
+  }
+}
+async function action(path, extra={}) {
+  if (!session || busy) return;
+  busy = true;
+  revision++;
+  clearTimeout(timer);
+  controls();
+  const token = session.token;
+  try {
+    if (path === enroll+'commit') remember({...session,saving:true});
+    const data = await request(path,{token,...extra});
+    if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
+    else if (path === enroll+'commit') finish('五组照片已保存，可在照片库打开。');
+    else if (data.status === 'REVIEW') applyReview(data);
+    else await sync(token);
+  } catch (error) {
+    if (path === enroll+'commit' || path === enroll+'cancel') paused = true;
+    $('capture-status').textContent = error.message;
+  } finally {
+    busy = false;
+    controls();
+    schedule();
+  }
+}
+async function restore(start = false) {
+  busy = true;
+  paused = false;
+  controls();
+  try {
+    if (session.start && (start || (await request(enroll+'status',{token:session.token})).status === 'LOST')) {
+      await request(enroll+'start',{token:session.token,...session.start});
+    }
+    const data = await request(enroll+'status',{token:session.token});
+    if (data.hand) {
+      const settings = {user_id:data.user_id,display_name:data.display_name,hand:data.hand};
+      fields.forEach(field => { field.value = settings[field.name]; });
+      remember({token:session.token,saving:session.saving});
+    }
+    await sync(session.token);
+  } catch (error) {
+    if (start && error.status === 400) finish(error.message);
+    else {
+      paused = true;
+      $('capture-status').textContent = '暂时无法确认本轮状态。' + error.message;
+    }
+  } finally {
+    busy = false;
+    controls();
+    schedule();
+  }
+}
+$('form').onsubmit = event => {
+  event.preventDefault();
+  if (session || busy || !liveReady) return;
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join('');
+  try { remember({token,start:Object.fromEntries(new FormData($('form')))}); }
+  catch (_) { $('capture-status').textContent = '浏览器无法保存本轮会话。'; return; }
+  void restore(true);
+};
+$('recover').onclick = () => void restore();
+$('stop').onclick = () => void action(station+'stop');
+$('refill').onclick = () => void action(station+'refill');
+$('cancel').onclick = () => { if (confirm('取消本轮并丢弃这些未保存的照片？')) void action(enroll+'cancel'); };
+$('save').onclick = () => {
+  const hand = $('form').elements.hand.value;
+  if (confirm('确认五组照片都来自同一人的' + handing(hand) + '，并保存？')) void action(enroll+'commit',{confirm_hand:hand});
+};
+$('score').onclick = async () => {
+  measuring = true;
+  $('score').disabled = true;
+  $('score-value').hidden = true;
+  $('score-status').textContent = '正在计算当前帧';
+  try {
+    const data = await request('/api/fpn/score',{});
+    const scores = data.top_cosines;
+    $('score-value').textContent = scores.map(x => x.toFixed(4)).join(' / ');
+    $('score-value').hidden = !scores.length;
+    $('score-status').textContent = scores.length ? '共比对 ' + data.gallery_size + ' 个掌纹模板' +
+      (data.tied_top ? ' · 最高分并列' : '') : '照片库里还没有已登记的模板。';
+  } catch (error) { $('score-status').textContent = error.message; }
+  finally { measuring = false; $('score').disabled = !palmReady; }
+};
+
+async function library() {
+  try {
+    const {archives} = await request('/api/library/list',{});
+    const rows = archives.map(archive => {
+      const details = document.createElement('details'), label = document.createElement('summary');
+      details.className = 'library-item';
+      label.textContent = archive.participant + ' · ' + handing(archive.hand) + ' · ' +
+        new Date(archive.saved).toLocaleString() + ' · ' + archive.samples.length + ' 组';
+      details.append(label);
+      details.ontoggle = () => {
+        if (!details.open || details.children.length > 1) return;
+        const photos = document.createElement('div');
+        photos.className = 'groups';
+        archive.samples.forEach((sample,i) => {
+          const load = kind => request('/api/library/image',{archive:archive.id,index:i+1,kind},true);
+          photos.append(photoCard(sample,i+1,load,kind => load(kind === 'original' ? 'preview' : kind)));
+        });
+        details.append(photos);
+      };
+      return {details,key:archive.participant.toLocaleLowerCase()};
+    });
+    $('archives').replaceChildren(...rows.map(row=>row.details));
+    function filter() {
+      const query = $('search').value.trim().toLocaleLowerCase();
+      let count=0;
+      for (const row of rows) {
+        row.details.hidden = !row.key.includes(query);
+        if (!row.details.hidden) count++;
+      }
+      $('library-status').textContent = count ? count + ' 条登记记录' : query ? '找不到这个编号。' : '还没有已保存的照片。';
+    }
+    $('search').oninput = filter;
+    filter();
+  } catch (error) { $('library-status').textContent = error.message; }
+}
+
+if (page === '/enroll') {
+  $('title').textContent = '掌纹采集';
+  $('subtitle').textContent = 'FPN + C E10 · 60 秒内选帧，确认后保存五组照片。';
+  $('camera-page').hidden = $('capture').hidden = false;
+  setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
+  try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}
+  if (session) void restore();
+} else if (page === '/gate') {
+  $('title').textContent = '放掌验证';
+  $('subtitle').textContent = 'FPN + C E10 · 查看当前掌区与本机样本的匹配分数。';
+  $('camera-page').hidden = $('verification').hidden = false;
+} else {
+  $('title').textContent = '照片库';
+  $('subtitle').textContent = '按编号查找采集记录，逐组查看已保存的照片。';
+  $('library').hidden = false;
+  void library();
+}
+if (page !== '/collect') {
+  void preview();
+  void cameraStatus();
+}
+</script>
+</body>
+</html>

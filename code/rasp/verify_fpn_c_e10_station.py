@@ -88,7 +88,8 @@ def main():
             app = App(feed)
             page = sut.render_enrollment()
             assert "FPN + C E10" in page and "60 秒" in page and "station-review" in page
-            assert "function scheduleEnrollmentCommit(token,retries=0){return;" in page
+            assert 'id="save" hidden' in page
+            assert 'aria-current=page>② 放掌验证' in sut.render_enrollment("/gate")
             server = ThreadingHTTPServer(("127.0.0.1", 0), sut.build_handler(app, page))
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
@@ -117,7 +118,7 @@ def main():
                 t = {"token": token}
                 http("/api/demo/enroll/start", dict(t, user_id="synthetic", display_name="Synthetic", hand="left"))
                 w = app.demo.enrollment_session["station_window"]
-                assert w.absolute_timeout_s == 59
+                assert w.absolute_timeout_s == 60
                 for _ in range(6):
                     http("/api/demo/enroll/step", t)
                 result = http("/api/station/enroll-stop", t)

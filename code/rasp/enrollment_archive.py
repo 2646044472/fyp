@@ -27,7 +27,26 @@ def sync_directory(path):
             os.close(directory)
 
 
-def save_enrollment(root, store, user_id, batch, metadata, session):
+def native_roi_png(candidate):
+    """Rectify the selected quad directly from its camera JPEG at source density."""
+    import cv2
+    import numpy as np
+
+    jpeg = candidate.payload["station_original_jpeg"]
+    with Image.open(BytesIO(jpeg)) as image:
+        scale = np.asarray(image.size) / candidate.frame_size
+        rgb = np.asarray(image.convert("RGB"))
+    corners = ((np.asarray(candidate.roi_quad) + .5) * scale - .5).astype(np.float32)
+    sides = np.linalg.norm(np.roll(corners, -1, axis=0) - corners, axis=1)
+    width, height = (max(1, round(float(v))) for v in (sides[::2].mean(), sides[1::2].mean()))
+    target = np.float32(((0, 0), (width, 0), (width, height), (0, height)))
+    crop = cv2.warpPerspective(rgb, cv2.getPerspectiveTransform(corners, target), (width, height))
+    out = BytesIO()
+    Image.fromarray(crop).save(out, "PNG")
+    return out.getvalue(), (width, height)
+
+
+def save_enrollment(root, store, user_id, batch, metadata, session, *, include_native_roi=False):
     frame_ids = session["selected_frame_ids"]
     candidates = {candidate.frame_id: candidate for candidate in session["photo_candidates"]}
     if len(frame_ids) != 5 or len(set(frame_ids)) != 5 or any(frame_id not in candidates for frame_id in frame_ids):
@@ -57,6 +76,11 @@ def save_enrollment(root, store, user_id, batch, metadata, session):
                             "original_size": size, "native_camera_jpeg": payload["station_native_original"],
                             "analysis_size": list(candidate.frame_size),
                             "roi_quad_at_analysis_size": candidate.roi_quad.tolist()})
+            if include_native_roi:
+                detail, detail_size = native_roi_png(candidate)
+                name = f"{index:02d}-roi-native.png"
+                write_file(temp / name, detail)
+                samples[-1].update(native_roi=name, native_roi_size=detail_size)
         manifest = {"participant_code": user_id, "hand": session["hand"], "samples": samples}
         write_file(temp / "manifest.json", json.dumps(manifest, ensure_ascii=False, allow_nan=False, indent=2).encode("utf-8"))
         sync_directory(temp)
