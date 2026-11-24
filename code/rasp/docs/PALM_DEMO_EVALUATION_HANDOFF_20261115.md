@@ -17,7 +17,7 @@ D127 21-point ROI is not promoted as the default. It has good coverage on some d
 - **TCD/Tongji:** D127, RTM and PKLNet fixed-ROI recognition results exist on the available 12,000-row release; there are no stranger rows or reference ROI, and person/hand/device identity mapping is inadequate for cross-device claims.
 - **BJTU_PalmV2:** existing fixed pre-cropped ROI recognition result only. No raw image or matching reference/D127 ROI arm is available; the reserved cohort must not be retested.
 
-Full denominators, per-sample records, protocols and source hashes remain in the local-only runtime ledger at `code/palm_demo/runtime/palm-full-evaluation-ledger-X-20261115-001/REPORT.md`. Runtime artifacts and biometric records are intentionally excluded from this document and from Git.
+Full denominators, per-sample records, protocols and source hashes remain in the local-only runtime ledger at `code/rasp/runtime/palm-full-evaluation-ledger-X-20261115-001/REPORT.md`. Runtime artifacts and biometric records are intentionally excluded from this document and from Git.
 
 ## Recommended next validation
 

@@ -125,7 +125,7 @@ Resume evidence (ignored/private):
 - ORB full audit: `orb-default-audit/`; exact refactor replay: `orb-refactored-audit/`.
 - ORB cascade screen: `orb-default-audit/cascade-screen.json`.
 - Pi ORB per-query evidence: `orb-pi-compute.json`; Pi directory
-  `/home/fyp5/demo-indexed-v7-20261028/orb-pi-compute/`.
+  `/home/PI_USER/demo-indexed-v7-20261028/orb-pi-compute/`.
 - Portable cached-geometry input: `orb-geometry-bundle/` on both hosts.
 - AKAZE: `akaze-cv410-audit.log` and `akaze-cv410-audit/protocol.json`.
   No extracted-feature checkpoint was written, so resume requires a fresh output

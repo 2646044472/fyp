@@ -1,0 +1,17 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+palm-capture-station.env
+runtime/
+var/
+*.py[cod]
+data/processed/
+vendor/
+offline_wheels/
+dist/
+models/
+*.onnx
+*.pth
+*.pt
+*.sqlite3

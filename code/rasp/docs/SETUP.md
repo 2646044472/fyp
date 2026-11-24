@@ -2,7 +2,7 @@
 
 ## Pi 5 connection repair and replay verification (2026-10-27)
 
-Verified host: `rasp5`, user `fyp5`, Wi-Fi `192.168.31.55`, USB `10.55.0.1`.
+Verified host: `rasp5`, user `PI_USER`, Wi-Fi `PI_LAN_IP`, USB `10.55.0.1`.
 Wi-Fi addresses can change. The USB fault was reproduced with UDC `configured`
 and a working Windows RNDIS driver, while `usb0` was down and NetworkManager
 reported reason 77 (unmanaged through udev). Debian's
@@ -30,7 +30,7 @@ using sustained camera/inference load. These observations do not establish the
 cause of a previous boot's freeze, whose journal was not retained.
 
 Runtime code and service configuration were backed up on the Pi under
-`/home/fyp5/maintenance-20261027/` before the heatmap-v3 deployment. The service
+`/home/PI_USER/maintenance-20261027/` before the heatmap-v3 deployment. The service
 keeps its capture-only mode. Original captures and production account/template
 stores were not used as replay outputs.
 
@@ -53,7 +53,7 @@ twelve sessions in `sessions.json` are available, giving 40 images for this run.
 
 ## Pi 5 deployment (2026-10-20)
 
-Host `rasp5`, user `fyp5`, application `/home/fyp5/palm_demo`. Wi-Fi IP at
+Host `rasp5`, user `PI_USER`, application `/home/PI_USER/palm_demo`. Wi-Fi IP at
 deployment: `10.176.249.94` (may change); use `rasp5.local` when available.
 The installed USB Ethernet gadget uses `10.55.0.1/24`, with NetworkManager
 shared mode assigning a connected computer an address automatically. Connect
@@ -78,7 +78,7 @@ Power off and unplug the Pi before changing CSI camera cables. After boot, check
 This application uses Picamera2/libcamera; an arbitrary USB webcam may need a
 different capture backend. The current deployment is capture-only, with ROI
 processing deferred; optional PKLNet recognition dependencies are not installed.
-USB network/boot configuration backups are in `/home/fyp5/usb-gadget-backup/`
+USB network/boot configuration backups are in `/home/PI_USER/usb-gadget-backup/`
 on the Pi. Credentials are not stored in the repository.
 
 Run application commands from ~/palm_demo. Last verified USB connection:
@@ -122,7 +122,7 @@ a new/changed host key. Enable SSH through Imager or systemctl on the Pi.
 
 ## Package and install
 
-From code/palm_demo on Windows:
+From code/rasp on Windows:
 
 ```powershell
 ./deploy/make_deploy_bundle.ps1
@@ -206,7 +206,7 @@ V4 was separately validated on Pi using a single CPU core (`taskset -c 3`,
 new-camera images: geometry 40/40, enrollment 4/4, HTTP DoN 13/20, four isolated
 simulated payments. Median ROI 1.52 s, p95 3.06 s; no undervoltage flags in this
 run. This is historical replay, not a live-camera acceptance test. Source backup:
-`/home/fyp5/maintenance-20261027/pre-aspect-v4-231905/`. Deployed file hashes are
+`/home/PI_USER/maintenance-20261027/pre-aspect-v4-231905/`. Deployed file hashes are
 in the local evidence directory's `deployment.json`. Service mode stayed
 capture-only; originals and production account data were not changed. Geometry
 version migration requires re-enrollment before recognition with old templates.

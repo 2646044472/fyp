@@ -7,7 +7,7 @@ Can a camera recognize the same hand after its distance, pose or device changes,
 | Prepare a project update | [School handoff](gitea-um/README.md) for the dated meeting record; [progress notes](gitea-um/minutes_note/progess%20notes/README.md) for experiments completed after those meetings. |
 | Check the evidence for a result | [17-table benchmark](gitea-um/minutes_note/progess%20notes/2026-11-18-experimental-results.md) for datasets and denominators; [crop fallback and augmentation](gitea-um/minutes_note/progess%20notes/2026-11-18-crop-routing-and-training.md) for paired comparisons and acceptance decisions. |
 | Run an example without a device or biometric data | [Research code](gitea-um/research_code/README.md) for the crop, trainer and decision-accounting examples. |
-| Work on the Raspberry Pi prototype | [Code map](code/README.md) → [camera app](code/palm_demo/README.md) → [setup and hardware precautions](code/palm_demo/docs/SETUP.md). |
+| Work on the Raspberry Pi prototype | [Code map](code/README.md) → [Pi capture station and deployment](code/rasp/README.md). |
 
 **Try one decision from the report.** With stock Python 3.10+ at the repository root:
 

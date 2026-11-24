@@ -88,7 +88,7 @@ def render(data, runs):
     for key in ids:
         lines.append(f'### {key}')
         for name in runs.get(key, []):
-            lines.append(f'- [{name}](../code/palm_demo/runtime/{name}/)')
+            lines.append(f'- [{name}](../code/rasp/runtime/{name}/)')
         if key not in runs:
             lines.append('- No matching top-level run directory was found in this inventory. Check the source report.')
         row = by_id.get(key)

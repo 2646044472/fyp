@@ -1,6 +1,6 @@
 # Pi 5 demo deployment — 2026-10-28
 
-V6 is deployed to `rasp5:/home/fyp5/palm_demo`. The service now uses the optional
+V6 is deployed to `rasp5:/home/PI_USER/palm_demo`. The service now uses the optional
 `deploy/demo-v6.conf` systemd drop-in: FastCCDemo-v6, OpenCV 4 threads and PKLNet
 ONNX 2 threads. It is active and waiting for a camera; live camera acquisition
 and the browser/live-preview end-to-end path were not tested in this session.
@@ -52,10 +52,10 @@ No throttling or undervoltage was observed (`get_throttled=0x0`).
 
 42 installed source files match local SHA-256 values. All 526 pre-existing runtime
 files remain byte-identical after deployment; replay templates/accounts stay under
-`/home/fyp5/demo-v6-20261028`, outside production runtime. The matcher and ONNX model
+`/home/PI_USER/demo-v6-20261028`, outside production runtime. The matcher and ONNX model
 load successfully from the installed directory. No benchmark processes remain.
 
-Backup: `/home/fyp5/maintenance-20261028/pre-demo-v6-192340/`.
+Backup: `/home/PI_USER/maintenance-20261028/pre-demo-v6-192340/`.
 The backup contains original source files, `original-service.txt`, and
 `deployment.json` (installed file hashes and whether each file previously existed).
 The installed override is
@@ -67,7 +67,7 @@ Do not copy simulated replay accounts into the production runtime.
 
 Local evidence: `runtime/pi5-v6-20261028/report.html`, `comparison.json`,
 `pi-parity.json`, `deployment.json`, and `parity/prepared-parity-parallel.json`.
-Pi evidence: `/home/fyp5/demo-v6-20261028/{baseline-new-r2,baseline-old,final-new,final-old}`.
+Pi evidence: `/home/PI_USER/demo-v6-20261028/{baseline-new-r2,baseline-old,final-new,final-old}`.
 
 Reproduce a cohort using a manifest whose original paths exist on the target host:
 

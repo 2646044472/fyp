@@ -1,0 +1,67 @@
+# 树莓派掌纹采集站（rasp）
+
+这是 FYP 的 **Pi 5 本地采集界面与部署代码**，不是独立识别模型。它使用已有的 **PKLNet + FastCC v6**，不包含 X 上的 FPN+C E10，不修改验证阈值。照片、ROI、登记模板、采集记录和模型文件均不随此目录分发。
+
+| 页面 | 能做什么 |
+| --- | --- |
+| `/enroll` | 连续预览，从有效 ROI 中挑出清楚、互补的五张；可放大原图和 ROI、删掉某一对及其候选特征、只补缺额。点击「确认同一只手并保存」才提交。 |
+| `/gate` | 放掌后自动试一次；移开后再开始下一轮。 |
+| `/collect` | 在 Pi 本机管理采集记录。 |
+
+每轮从按下「开始」起最多 20 秒，第一张可用后最多再筛 8 秒；集齐五张即停，未满可继续补拍，同一登记合计不超过 120 秒。程序不默认保存整段视频。
+
+## 换一台电脑开发
+
+如果尚未克隆，可以只检出应用代码，跳过仓库历史数据目录：
+
+```sh
+GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --filter=blob:none --sparse https://github.com/2646044472/fyp.git
+cd fyp
+GIT_LFS_SKIP_SMUDGE=1 git sparse-checkout set code/rasp
+cd code/rasp
+```
+
+在已有克隆中更新 `main` 即可。逻辑和回归测试在普通电脑用 Python 3 运行，不需要 Pi、模型、相机或真实样本：
+
+```sh
+python3 verify_best_frame.py
+python3 verify_review.py
+python3 verify_ranked_window.py
+python3 verify_adapter.py
+bash -n install-on-pi.sh && bash -n rollback-on-pi.sh
+```
+
+- `capture_station.py` 提供三页、用户服务的入口和采集站请求处理。
+- `enrollment_best_frame.py` 连接基础识别程序；`ranked_window.py` 选帧；`enrollment_window_adapter.py` 管开始、超时、停止与补拍；`enrollment_review.py` 管本次待确认的原图和 ROI。
+- `palm-capture-station.service` 是 **用户** systemd 单元；`palm-capture-station.env.example` 是无机器信息的相机配置模板。
+
+## 部署到 Pi 5
+
+基础应用的配置、依赖、回退方法见 [识别引擎说明](ENGINE-README.md)。采集站服务假定 Pi 上已有 `${HOME}/palm_demo`、该目录可用的 `.venv/bin/python`，以及可用的 PKLNet/FastCC v6 本地模型。基础引擎源码也在本目录。新建 Pi 基础环境时，把本目录中的源码部署至运行目录，不要覆盖已有的本机模型、设置与采集数据。采集站本身不安装基础模型或系统依赖。部署前先在 Pi 上用基础应用的虚拟环境验证导入（此命令不开摄像头）：
+
+```sh
+(cd "$HOME/palm_demo" && .venv/bin/python -c 'from palm_app import debug_ui; from demo_flow import enrollment_quality_issue')
+```
+
+**更新已装采集站**：先保存或结束所有进行中的登记，然后在 Pi 上进入本目录运行 `bash install-on-pi.sh`。脚本先测试，再备份代码并重启用户服务；页面未恢复时还原。页面响应不等同摄像头就绪，下面仍要实机检查。它不会修改登记或模型；重启会丢失尚未保存的候选。手动回退：`bash rollback-on-pi.sh <安装时打印的备份目录>`。
+
+**新增采集站**：基础应用就绪后，在 Pi 上从本目录放入代码及服务（用户权限即可）：
+
+```sh
+install -d -m 700 "$HOME/.local/share/palm-capture-station" "$HOME/.config/systemd/user"
+install -m 600 capture_station.py enrollment_best_frame.py enrollment_review.py ranked_window.py enrollment_window_adapter.py "$HOME/.local/share/palm-capture-station/"
+install -m 644 palm-capture-station.service "$HOME/.config/systemd/user/"
+systemctl --user daemon-reload
+```
+
+USB 相机用 `v4l2-ctl --list-devices` 核对真实 Video Capture 节点，把稳定的设备路径写入 Pi 本机 `~/.config/palm-capture-station.env`，可参考随附模板；不要把其他机器的设备路径复制进去。CSI 排线应关机后接入，默认走已有高清采集路径；可选连续 CSI 实验模式仅在实机验证过后启用。若以前的 `palm-debug-ui.service` 正在占用同一相机，先在 Pi 上停止旧应用再启动新服务；避免两个服务同时抢占相机。准备好后运行 `systemctl --user start palm-capture-station.service`。开机要不要启动及启动顺序由实际部署决定；本目录不自动修改旧服务或用户登录策略。
+
+旧版 Pi 基础应用可能缺 `enrollment_quality_issue` 或使用不同状态字段。如果导入报错或页面正常但候选一直不能保留，先检查基础应用/采集站版本，不要放宽验证阈值。现场 Pi 的 USB 本机配置与临时兼容补丁未同步，这个目录不能当作现场 Pi 文件系统的逐字备份。
+
+## 现场验收与访问
+
+Pi 本机打开 [登记页](http://127.0.0.1:8088/enroll)。新电脑如果可以通过自己的 SSH 连接访问 Pi，可在新电脑运行 `ssh -N -L 127.0.0.1:8089:127.0.0.1:8088 <用户>@<Pi地址>`，再打开 [本机 8089](http://127.0.0.1:8089/enroll)，不要改成公网监听。站点只监听回环地址。
+
+先确认 `systemctl --user is-active palm-capture-station.service` 返回 `active`，且画面实时更新、不停在等待页。用同意参加的测试编号走一轮：登记预览 → 比对原图与 ROI → 删除一对并补齐 → 手动保存 → 移开手 → 同掌验证 → 再用未登记的掌确认不误通过。浏览器显示的请求时间不含把手举进画面和等到合格 ROI 的时间，不能当作全程响应时间。仓库里的测试只验证软件流程，不证明实际采集、识别准确率或硬件速度。
+
+请勿提交原图、ROI、模板、运行日志、模型、私钥或相机本机配置。

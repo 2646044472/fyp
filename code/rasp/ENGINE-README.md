@@ -2,7 +2,7 @@
 
 Local Raspberry Pi palmprint enrollment and 1:1 verification. For connection,
 installation and hardware precautions, see [SETUP](docs/SETUP.md).
-Commands below run from `code/palm_demo` on Windows or `~/palm_demo` on the Pi.
+Commands below run from `code/rasp` on Windows or `~/palm_demo` on the Pi.
 
 ## Dataset and experiment records
 
@@ -553,7 +553,7 @@ It is not official PalmIR and is not enabled in default recognition.
 
 Tests: 43 passed. Tools: `audit_roi_robustness.py`, `audit_roi_consistency.py`,
 `stress_roi_pipeline.py`, `write_roi_v5_report.py`; final Pi replay:
-`/home/fyp5/pipeline-roi-v5-consistent-20261028/`. Use
+`/home/PI_USER/pipeline-roi-v5-consistent-20261028/`. Use
 `tools/replay_pi_pipeline.py <source> <new-output> --policies illumination`
 for current-only real HTTP replay. Earlier policy audits remain explicit controls.
 

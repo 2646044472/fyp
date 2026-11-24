@@ -3,7 +3,7 @@
 Frozen matcher: `FastCCQualityEvidence-v24-experimental`, source snapshot
 `0eb9679af7332820bd050c8ddd35e6df80468e9d` plus SHA-pinned evaluation tools.
 No recognition code, weights, thresholds, candidate rules or labels changed.
-Pi 5 connected through Wi-Fi at 192.168.31.55. Production and real accounts
+Pi 5 connected through Wi-Fi at PI_LAN_IP. Production and real accounts
 were not modified. Only isolated simulated payments were exercised.
 
 ## Data and protocol
