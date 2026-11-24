@@ -123,6 +123,7 @@ class CapturedFrame:
     frame_id: int
     image: Image.Image
     captured_monotonic: float
+    original_jpeg: bytes | None = None
 
 
 @dataclass(frozen=True)
@@ -202,6 +203,7 @@ class CameraFeed:
         pklnet_provider: str = "cpu",
         camera_backend: str = "picamera2",
         uvc_device: Path | None = None,
+        uvc_native_size: tuple[int, int] | None = None,
     ) -> None:
         if capture_only:
             roi_mode = "capture"
@@ -209,6 +211,7 @@ class CameraFeed:
             raise ValueError(f"unsupported ROI mode: {roi_mode}")
         self.camera_backend = camera_backend
         self.uvc_camera = None
+        self.uvc_native_size = uvc_native_size
         if camera_backend == "picamera2":
             from picamera2 import Picamera2
 
@@ -238,12 +241,12 @@ class CameraFeed:
             from palm_app.uvc_camera import UvcCamera
 
             self.camera = None
-            self.uvc_camera = UvcCamera(uvc_device, width, height)
+            self.uvc_camera = UvcCamera(uvc_device, width, height, native_size=uvc_native_size)
             self.still_size = (self.uvc_camera.width, self.uvc_camera.height)
             self.preview_sensor_size = None
             self.still_config = None
             self.camera_index = None
-            self.capture_size = self.still_size
+            self.capture_size = (width, height) if uvc_native_size else self.still_size
             self.camera_tuning_file = None
             self.capture_profile = self.uvc_camera.capture_profile
             self.capture_source = self.uvc_camera.capture_source
@@ -324,9 +327,13 @@ class CameraFeed:
                 return
             next_capture_at = time.monotonic() + self._capture_interval_s
             try:
+                original_jpeg = None
                 if self.camera_backend == "uvc":
                     with self.camera_io_lock:
-                        bgr = self.uvc_camera.read_bgr()
+                        if self.uvc_native_size:
+                            bgr, original_jpeg = self.uvc_camera.read_native()
+                        else:
+                            bgr = self.uvc_camera.read_bgr()
                     image = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
                 else:
                     # Picamera2 RGB888 arrays have BGR byte order; PIL expects RGB.
@@ -336,7 +343,7 @@ class CameraFeed:
                 captured_monotonic = time.monotonic()
                 with self.frame_condition:
                     self._next_frame_id += 1
-                    captured = CapturedFrame(self._next_frame_id, image, captured_monotonic)
+                    captured = CapturedFrame(self._next_frame_id, image, captured_monotonic, original_jpeg)
                     self.latest = captured
                     if self.capture_only:
                         self.latest_roi_status.pop("error", None)
@@ -737,12 +744,17 @@ class CameraFeed:
                 captured = self.latest
             if captured is None or time.monotonic() - captured.captured_monotonic > 1.2:
                 raise RuntimeError("Waiting for a fresh UVC frame")
-            frame = captured.image.copy()
-            return frame.copy(), frame, {
+            preview = captured.image.copy()
+            if captured.original_jpeg is None:
+                original = preview.copy()
+            else:
+                with Image.open(io.BytesIO(captured.original_jpeg)) as image:
+                    original = image.convert("RGB")
+            return preview, original, {
                 "capture_backend": "uvc",
-                "capture_kind": "fresh_stream_frame",
+                "capture_kind": "native_mjpeg" if captured.original_jpeg else "fresh_stream_frame",
                 "capture_frame_id": captured.frame_id,
-                "capture_resolution": list(frame.size),
+                "capture_resolution": list(original.size),
                 "color_order": "RGB",
                 "capture_profile": self.capture_profile,
             }
@@ -2156,6 +2168,8 @@ def main() -> int:
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--camera-backend", choices=("picamera2", "uvc"), default="picamera2")
     parser.add_argument("--uvc-device", type=Path, help="Explicit stable /dev/v4l/by-id/... path for X development")
+    parser.add_argument("--uvc-native-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"),
+                        help="Keep native MJPEG exposures while processing at preview size.")
     parser.add_argument("--width", type=int, default=480)
     parser.add_argument("--height", type=int, default=360)
     parser.add_argument("--roi-mode", choices=("dynamic", "fixed", "pklnet"), default="pklnet")
@@ -2182,6 +2196,9 @@ def main() -> int:
     args = parser.parse_args()
     if args.camera_backend == "uvc" and args.uvc_device is None:
         parser.error("--camera-backend uvc requires --uvc-device")
+    if args.uvc_native_size and (args.camera_backend != "uvc" or
+                                 args.uvc_native_size[0] < args.width or args.uvc_native_size[1] < args.height):
+        parser.error("--uvc-native-size requires UVC and dimensions at least the preview size")
     if args.camera_backend == "picamera2" and args.uvc_device is not None:
         parser.error("--uvc-device is only valid with --camera-backend uvc")
     if args.native_registration is not None:
@@ -2210,6 +2227,7 @@ def main() -> int:
         pklnet_provider=args.pklnet_provider,
         camera_backend=args.camera_backend,
         uvc_device=args.uvc_device,
+        uvc_native_size=tuple(args.uvc_native_size) if args.uvc_native_size else None,
     )
     try:
         app = App(feed, demo_matcher=args.demo_matcher, ppnet_model_root=args.ppnet_model_root,

@@ -7,7 +7,7 @@ SLOTS = ("features", "sources", "rois", "qualities", "selected_roi_images", "sel
 DEFAULT_TIMEOUT = 600
 
 
-def attach_frame(flow, token, incoming):
+def attach_frame(flow, token, incoming, *, original_jpeg=None):
     if incoming is None:
         return
     frame_id, image = incoming
@@ -17,10 +17,13 @@ def attach_frame(flow, token, incoming):
             return
         candidate = next((x for x in s["photo_candidates"] if x.frame_id == frame_id), None)
         if candidate is not None:
-            # Original capture-sized RGB, not the enlarged preview or a different frame.
+            # Keep review traffic small. The archive uses the camera's JPEG when available.
             output = BytesIO()
             image.save(output, format="JPEG", quality=87)
-            candidate.payload["station_review_rgb"] = b64encode(output.getvalue()).decode("ascii")
+            preview_jpeg = output.getvalue()
+            candidate.payload["station_review_rgb"] = b64encode(preview_jpeg).decode("ascii")
+            candidate.payload["station_original_jpeg"] = original_jpeg if original_jpeg is not None else preview_jpeg
+            candidate.payload["station_native_original"] = original_jpeg is not None
 
 
 def mutate(flow, token, frame_id=None, *, stop=False):

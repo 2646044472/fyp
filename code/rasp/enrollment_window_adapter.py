@@ -40,7 +40,7 @@ def response(s, state, base=None):
     remaining = max(0, int(1000 * (s["station_started"] + MAX_TOTAL_CAPTURE_SECONDS - time.monotonic())))
     d["station_capture_ms_remaining"] = remaining
     if state == "ready":
-        d["reason"] = "所选照片已就绪，检查原图和 ROI 后确认保存。"
+        d["reason"] = "所选照片已就绪。确认后会保存五组原图与 ROI，以及登记模板。"
     elif state == "partial" and not d["kept"]:
         d["reason"] = ("这轮没有可用掌区。请让一只手的掌心完整进入画面，稳一下再开始；"
                        "如预览不动，请检查相机连接。")
@@ -134,7 +134,7 @@ def run_step(flow, original, local, token, *args, **kwargs):
         base=original(flow,token,*args,**kwargs)
         fresh=local.review_frame
         if fresh is not None and time.monotonic()<w.deadline and w._sealed is None:
-            attach_frame(flow,token,fresh[:2])
+            attach_frame(flow, token, fresh[:2], original_jpeg=fresh[3] if len(fresh) > 3 else None)
         with flow.lock:
             if flow.enrollment_session is not s or base.get("status")=="STOPPED":
                 return base

@@ -84,6 +84,7 @@ def select_frame(feed, is_ready, failure_class, *, clock=time.monotonic,
             "processed_roi_quad": quad.copy(),
             "processed_roi_quality": dict(p.roi_status.get("quality", {})),
             "processed_roi_mode": p.roi_status.get("roi_mode"),
+            "station_original_jpeg": getattr(c, "original_jpeg", None),
         }
 
 
@@ -113,7 +114,8 @@ def install(app):
     def capture_best(camera):
         recorded = select_frame(camera, strict_ready, app.CaptureProcessingFailure,
                                 hard_deadline=getattr(local,"capture_deadline",math.inf))
-        local.review_frame = recorded[2]["capture_frame_id"], recorded[1], recorded[2]["station_captured_s"]
+        local.review_frame = (recorded[2]["capture_frame_id"], recorded[1],
+                              recorded[2]["station_captured_s"], recorded[2]["station_original_jpeg"])
         return recorded
 
     class Camera(base_camera):

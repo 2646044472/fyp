@@ -112,7 +112,7 @@ def render(html, selected):
         from enrollment_review import PANEL
         html = html.replace("</body>", PANEL + "</body>", 1)
         html = html.replace("继续采集</button>", "继续采集 / 补拍</button>", 1)
-        html = html.replace("系统会自动筛选五张合格掌区并保存。", "系统会自动挑选五个有效掌区。放大检查，不合适的可以先删除再补拍，确认后才保存。", 1)
+        html = html.replace("系统会自动筛选五张合格掌区并保存。", "系统会自动挑选五组原图和 ROI。可以放大检查、删除并补拍；确认后保存这五组图片和登记模板。", 1)
         html = html.replace("/api/status?t=", "/api/station/enroll-status?t=")
         html = html.replace("if(last.status==='READY'||last.status==='STOPPED'", "if(last.status==='STATION_PARTIAL'||last.status==='READY'||last.status==='STOPPED'")
         html = html.replace("if(last.status==='READY'){$('enroll-commit')", "if(last.status==='STATION_PARTIAL'){stationPartial=true;enrollmentPaused=true;enrollmentSawNotReady=false;notice.textContent=last.reason;controls()}else if(last.status==='READY'){$('enroll-commit')")
@@ -129,6 +129,7 @@ $('enroll-resume').onclick=stationResume;
         html = html.replace("$('enroll-resume').disabled=", "$('enroll-resume').disabled=!stationResumeAllowed||", 1)
         html = html.replace("候选池凑齐后会自动选 ${required} 张保存。", "候选池会自动选出 ${required} 张供预览，确认后才保存。")
         html = html.replace("正在保存。${elapsed}", "请检查原图和 ROI，再确认保存。${elapsed}")
+        html = html.replace("clearStoredEnrollment();enrollmentCommitUncertain=false;enrollmentToken='';enrollmentPaused=false;enrollmentSettings=null;$('enroll-commit').hidden=true;$('enroll-progress').textContent=", "clearStoredEnrollment();enrollmentCommitUncertain=false;enrollmentToken='';enrollmentPaused=false;enrollmentSettings=null;$('enroll-commit').hidden=true;$('enroll-progress').textContent=d.enrollment_archive_id?'原图、ROI 和登记模板已保存。':", 1)
         html = html.replace("正在核实上次自动保存；若服务端仍显示待保存，系统会安全续存。", "请确认是否已保存；本页不会自动提交。")
         html = html.replace("已恢复未完成的录入；预览就绪后将继续自动采集，也可手动继续或取消。", "已恢复本次录入；已选候选会保留，补拍只补缺额。")
         html = html.replace("掌纹支付 · 基础演示", "登记手掌", 1)
@@ -227,6 +228,7 @@ def engine():
     original = app.make_handler
     pages = {p: render(html, p) for p, html in zip((x[0] for x in PAGES), (app.DEMO_HTML,app.GATE_HTML,app.COLLECTION_HTML))}
     def overlay(application):
+        application.demo.enrollment_archive_root = app.palm_demo.RUNTIME / "enrollment_pairs"
         base = original(application)
         class Handler(base):
             def do_POST(self):
@@ -262,7 +264,9 @@ def engine():
                 if path in ("/", "/enroll", "/gate", "/collect"):
                     return send(self, pages["/enroll" if path == "/" else path])
                 if path == "/api/station/enroll-status":
-                    return send(self, json.dumps(enrollment_best_frame.ranking_status(application.status())), mime="application/json")
+                    status = enrollment_best_frame.ranking_status(application.status())
+                    status["original_capture_size"] = list(application.camera.uvc_native_size or application.camera.capture_size)
+                    return send(self, json.dumps(status), mime="application/json")
                 if path == "/station-health":
                     return send(self, '{"ready":true}', mime="application/json")
                 return super().do_GET()
@@ -274,6 +278,9 @@ def engine():
     uvc = os.environ.get("PALM_STATION_UVC")
     if uvc:
         sys.argv += ["--camera-backend", "uvc", "--uvc-device", uvc]
+        native = os.environ.get("PALM_STATION_UVC_NATIVE_SIZE")
+        if native:
+            sys.argv += ["--uvc-native-size", *native.split("x")]
     tuning = os.environ.get("PALM_STATION_TUNING")
     if tuning and not uvc:
         sys.argv += ["--camera-tuning-file", tuning]

@@ -126,6 +126,7 @@ class DemoFlow:
         self.enrollment_candidate: Callable[[], tuple] | None = None
         self.enrollment_session: dict[str, Any] | None = None
         self.enrollment_request_states: dict[str, str] = {}
+        self.enrollment_archive_root: Path | None = None
 
     def enroll(self, user_id: str, display_name: str) -> dict[str, Any]:
         user_id = safe_user_id(user_id)
@@ -554,7 +555,7 @@ class DemoFlow:
             if time.monotonic() - session["last_activity"] >= ENROLLMENT_TIMEOUT_SECONDS:
                 self._finish_enrollment(session, "EXPIRED")
                 raise ValueError("Enrollment session timed out; candidates were not saved. Cancel and start again.")
-            if session["capture_in_flight"]:
+            if session["capture_in_flight"] or session.get("station_step_in_flight"):
                 raise ValueError("Capture in progress. Wait before confirming.")
             if len(session["features"]) != 5 or confirm_hand != session["hand"]:
                 raise ValueError("Confirm that all five photos show the same selected hand.")
@@ -580,7 +581,12 @@ class DemoFlow:
             }
             if self.runtime_identity is not None:
                 metadata["matcher_runtime_identity"] = self.runtime_identity
-            self.store.save(user_id, batch, metadata)
+            archive_id = None
+            if self.enrollment_archive_root is None:
+                self.store.save(user_id, batch, metadata)
+            else:
+                from enrollment_archive import save_enrollment
+                archive_id = save_enrollment(self.enrollment_archive_root, self.store, user_id, batch, metadata, session)
             if not refreshing:
                 try:
                     self.payments.create_account(user_id, display_name, 10000)
@@ -591,6 +597,8 @@ class DemoFlow:
             response = {"user_id": user_id, "display_name": display_name,
                         "diagnostic_id": session["diagnostic_id"], "selection_mode": session["selection_mode"],
                         "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
+            if archive_id is not None:
+                response["enrollment_archive_id"] = archive_id
             if hasattr(self.algorithm, 'prepare_gallery'):
                 try:
                     integrity_reason = self._gallery_integrity_reason()

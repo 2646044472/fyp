@@ -9,7 +9,7 @@ systemctl --user cat palm-capture-station | grep -qF '/palm-capture-station/capt
 "$venv" verify_review.py
 "$venv" verify_ranked_window.py
 "$venv" verify_adapter.py
-module_files=(enrollment_best_frame.py enrollment_review.py ranked_window.py enrollment_window_adapter.py)
+module_files=(enrollment_archive.py enrollment_best_frame.py enrollment_review.py ranked_window.py enrollment_window_adapter.py)
 stamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 backup="$dir/best-frame-rollback-$stamp"
 mkdir -m 700 "$backup"

@@ -10,7 +10,7 @@
 | `/gate` | 放掌后自动试一次；移开后再开始下一轮。 |
 | `/collect` | 在 Pi 本机管理采集记录。 |
 
-每次登记从按下「开始」起最多 60 秒（服务端 59 秒取帧上限，含补拍）。凑齐五张后也会短暂浏览已有候选，正常可提前结束；不足五张时可预览已有的。程序不保存整段视频。
+每次登记从按下「开始」起最多 60 秒（服务端 59 秒取帧上限，含补拍）。凑齐五张后也会短暂浏览已有候选，正常可提前结束；不足五张时可预览已有的。确认保存后，最终五组原图和对应 ROI 写入 Pi 的 `runtime/enrollment_pairs/<登记归档 ID>/`，每组分别为 JPEG 和 PNG。程序不保存整段视频。
 
 开发新基线：另有以原生 PyTorch 运行的 [FPN + C E10 60 秒独立采集站](fpn-c-e10-station.md)（8089）。它使用 V3 登记和复核、另存模板且只显示分数。也可先用 [独立命令行](fpn-c-e10-shadow.md) 做本机预检。以下 8088 的现有服务和回退步骤不变；新入口尚未在 Pi 实拍验收。
 
@@ -58,12 +58,12 @@ bash -n install-on-pi.sh && bash -n rollback-on-pi.sh
 
 ```sh
 install -d -m 700 "$HOME/.local/share/palm-capture-station" "$HOME/.config/systemd/user"
-install -m 600 capture_station.py enrollment_best_frame.py enrollment_review.py ranked_window.py enrollment_window_adapter.py "$HOME/.local/share/palm-capture-station/"
+install -m 600 capture_station.py enrollment_archive.py enrollment_best_frame.py enrollment_review.py ranked_window.py enrollment_window_adapter.py "$HOME/.local/share/palm-capture-station/"
 install -m 644 palm-capture-station.service "$HOME/.config/systemd/user/"
 systemctl --user daemon-reload
 ```
 
-USB 相机用 `v4l2-ctl --list-devices` 核对真实 Video Capture 节点，把稳定的设备路径写入 Pi 本机 `~/.config/palm-capture-station.env`，可参考随附模板；不要把其他机器的设备路径复制进去。CSI 排线应关机后接入，默认走已有高清采集路径；可选连续 CSI 实验模式仅在实机验证过后启用。若以前的 `palm-debug-ui.service` 正在占用同一相机，先在 Pi 上停止旧应用再启动新服务；避免两个服务同时抢占相机。准备好后运行 `systemctl --user start palm-capture-station.service`。开机要不要启动及启动顺序由实际部署决定；本目录不自动修改旧服务或用户登录策略。
+USB 相机用 `v4l2-ctl --list-devices` 核对真实 Video Capture 节点，把稳定的设备路径写入 Pi 本机 `~/.config/palm-capture-station.env`，可参考随附模板；不要把其他机器的设备路径复制进去。可用 `v4l2-ctl --list-formats-ext` 核对 MJPEG 模式，再设置 `PALM_STATION_UVC_NATIVE_SIZE=1600x1200` 等实际支持的尺寸。预览和识别在小图上运行，归档保留相机原始 JPEG；切换相机格式或分辨率后，旧格式模板可能需要重新登记。CSI 排线应关机后接入，默认走已有高清采集路径；可选连续 CSI 实验模式仅在实机验证过后启用。若以前的 `palm-debug-ui.service` 正在占用同一相机，先在 Pi 上停止旧应用再启动新服务；避免两个服务同时抢占相机。准备好后运行 `systemctl --user start palm-capture-station.service`。开机要不要启动及启动顺序由实际部署决定；本目录不自动修改旧服务或用户登录策略。
 
 旧版 Pi 基础应用可能缺 `enrollment_quality_issue` 或使用不同状态字段。如果导入报错或页面正常但候选一直不能保留，先检查基础应用/采集站版本，不要放宽验证阈值。现场 Pi 的 USB 本机配置与临时兼容补丁未同步，这个目录不能当作现场 Pi 文件系统的逐字备份。
 

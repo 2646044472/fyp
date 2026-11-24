@@ -1,0 +1,81 @@
+"""Private, complete image-pair archives for explicitly confirmed enrollments."""
+from base64 import b64decode
+from io import BytesIO
+import json
+import os
+from pathlib import Path
+import shutil
+import tempfile
+from uuid import uuid4
+
+from PIL import Image
+
+
+def write_file(path, data):
+    with path.open("xb") as stream:
+        stream.write(data)
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def sync_directory(path):
+    if os.name != "nt":
+        directory = os.open(path, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+
+
+def save_enrollment(root, store, user_id, batch, metadata, session):
+    frame_ids = session["selected_frame_ids"]
+    candidates = {candidate.frame_id: candidate for candidate in session["photo_candidates"]}
+    if len(frame_ids) != 5 or len(set(frame_ids)) != 5 or any(frame_id not in candidates for frame_id in frame_ids):
+        raise ValueError("原图与 ROI 未配齐。请重新采集后再保存。")
+
+    root = Path(root)
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    archive_id = uuid4().hex
+    target = root / archive_id
+    temp = Path(tempfile.mkdtemp(dir=root, prefix=".enrollment-"))
+    try:
+        samples = []
+        for index, (frame_id, selected_roi) in enumerate(zip(frame_ids, session["selected_roi_images"], strict=True), 1):
+            candidate = candidates[frame_id]
+            payload = candidate.payload
+            jpeg = payload.get("station_original_jpeg")
+            if not jpeg or not selected_roi or selected_roi != payload.get("encoded_roi"):
+                raise ValueError("原图与 ROI 未配齐。请重新采集后再保存。")
+            with Image.open(BytesIO(jpeg)) as image:
+                if image.format != "JPEG":
+                    raise ValueError("保存原图失败：相机没有返回 JPEG。")
+                size = list(image.size)
+            original_name, roi_name = f"{index:02d}-original.jpg", f"{index:02d}-roi.png"
+            write_file(temp / original_name, jpeg)
+            write_file(temp / roi_name, b64decode(selected_roi, validate=True))
+            samples.append({"frame_id": frame_id, "original": original_name, "roi": roi_name,
+                            "original_size": size, "native_camera_jpeg": payload["station_native_original"],
+                            "analysis_size": list(candidate.frame_size),
+                            "roi_quad_at_analysis_size": candidate.roi_quad.tolist()})
+        manifest = {"participant_code": user_id, "hand": session["hand"], "samples": samples}
+        write_file(temp / "manifest.json", json.dumps(manifest, ensure_ascii=False, allow_nan=False, indent=2).encode("utf-8"))
+        sync_directory(temp)
+        os.replace(temp, target)
+        try:
+            sync_directory(root)
+            store.save(user_id, batch, {**metadata, "enrollment_archive_id": archive_id})
+        except Exception:
+            # If save failed after the atomic replace, preserve its associated image set.
+            try:
+                committed = store.read_metadata(user_id).get("enrollment_archive_id") == archive_id
+            except FileNotFoundError:
+                committed = False
+            except (ValueError, OSError):
+                committed = True  # Commit outcome unknown; do not discard captured images.
+            if not committed:
+                shutil.rmtree(target)
+            raise
+    finally:
+        if temp.exists():
+            shutil.rmtree(temp)
+    return archive_id
