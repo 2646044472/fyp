@@ -15,3 +15,7 @@ models/
 *.pth
 *.pt
 *.sqlite3
+
+# The frozen native model and its populated release manifest stay local.
+*.safetensors
+fpn-c-e10.local.json

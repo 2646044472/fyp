@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "pipeline": "fpn-c-e10-frozen",
+  "assets": {
+    "fpn": {
+      "file": "fpn.safetensors",
+      "sha256": "<TRUSTED_LOCAL_FPN_SHA256>"
+    },
+    "c": {
+      "file": "c-e10.safetensors",
+      "sha256": "<TRUSTED_LOCAL_C_E10_SHA256>"
+    }
+  }
+}

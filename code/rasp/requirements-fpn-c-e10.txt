@@ -1,0 +1,9 @@
+# Matches the tested X software versions. Raspberry Pi AArch64 support is not yet verified.
+# Choose compatible CPU wheels for torch/torchvision on the target machine.
+torch==2.8.0
+torchvision==0.23.0
+timm==0.9.16
+safetensors==0.8.0
+numpy==2.2.6
+opencv-python-headless==4.12.0.88
+Pillow==13.0.0
