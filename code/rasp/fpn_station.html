@@ -21,13 +21,16 @@ button{border:1px solid transparent;border-radius:8px;padding:8px 13px;cursor:po
 button.secondary{background:#eef4fa;color:#204a6c;border-color:var(--edge)}button:disabled{opacity:.52;cursor:not-allowed}
 :focus-visible{outline:3px solid #50a5da;outline-offset:3px}.status{padding:10px 12px;border-radius:8px;background:#edf4fb;margin-top:12px}
 .clock{font-size:1.55rem;font-variant-numeric:tabular-nums;font-weight:700;color:var(--blue)}
-.review{margin-top:18px}.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;margin-top:14px}
+.review{margin-top:18px}.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:12px;margin-top:14px}
 .group{border:1px solid var(--edge);border-radius:12px;background:#f8fbfd;padding:12px}
-.pair{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:8px;margin:9px 0}
-.pair button{padding:0 0 5px;overflow:hidden;background:white;color:var(--ink);border-color:var(--edge);font-size:.81rem}
-.pair button:hover,.secondary:hover{border-color:#75a8ce}.photo{position:relative;width:100%}
-.pair .photo{aspect-ratio:4/3;background:#142334}.photo img{display:block;width:100%;height:100%;object-fit:contain}
-.pair .roi{image-rendering:pixelated}.outline{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.photo-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:9px 0}
+.photo-types button{display:grid;grid-template-rows:auto 1fr;align-items:start;padding:0;overflow:hidden;background:white;color:var(--ink);border-color:var(--edge);font-size:.83rem}
+.photo-types button:hover,.secondary:hover{border-color:#75a8ce}.photo{position:relative;width:100%}
+.photo-types .photo{aspect-ratio:4/3;background:#142334}.photo img{display:block;width:100%;height:100%;object-fit:contain}
+.photo-types .roi{image-rendering:pixelated}.outline{position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+.photo-caption{padding:6px 3px}.photo-caption small{display:block;font-weight:400;color:var(--muted)}
+.thumb-state{position:absolute;inset:0;display:grid;place-items:center;color:#d5e7f7;font-weight:400}
+.viewer-switch{margin-top:12px}.viewer-switch button[aria-pressed=true]{background:var(--blue);color:white;border-color:var(--blue)}
 .outline polygon{fill:none;stroke:#4fffc2;stroke-width:2.4;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px #111)}
 .small-button{font-size:.85rem;padding:5px 9px}.library-header{margin-bottom:12px}.library-header input{max-width:260px}
 .library-item{border:1px solid var(--edge);border-radius:10px;padding:11px 14px;margin-top:9px}.library-item summary{cursor:pointer;font-weight:650}
@@ -37,9 +40,16 @@ dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);borde
 dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:flex;overflow:auto;background:#152638;border-radius:8px;margin-top:11px;color:#deebf6}
 .viewport .photo{margin:auto;flex:none;display:none}.viewport .photo.visible{display:block}.viewport .pixel img{image-rendering:pixelated}
 .viewport p{margin:auto;padding:14px}
-.verification-values{margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.verification-values small{display:block;color:var(--muted);font-size:.84rem}
-.verification-values strong{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.verification-values{margin:17px 0 14px;padding:13px;border:1px solid var(--edge);border-radius:10px;background:#f8fbfd}
+.verification-values strong{font-size:1.65rem;font-variant-numeric:tabular-nums}
+.verification-values .hint{font-variant-numeric:tabular-nums}
+.score-track{height:7px;border-radius:10px;background:#dce7ef;position:relative;margin-top:9px}
+.score-track span{position:absolute;transform:translateX(-50%)}
+.score-track #score-mark{width:11px;height:11px;top:-2px;border-radius:50%;background:#17689f;box-shadow:0 0 0 2px white}
+.score-track #threshold-mark{width:2px;height:15px;top:-4px;background:#7a4a1a}
+.threshold-controls{display:grid;grid-template-columns:minmax(0,1fr) 5.5rem;gap:12px;align-items:center;margin:6px 0}
+.threshold-controls input[type=range]{accent-color:var(--blue);padding:0}
+.threshold-controls input[type=number]{font-variant-numeric:tabular-nums}
 .verification-match{border-top:1px solid var(--edge);padding-top:12px;margin-top:12px}
 .verification-match img{display:block;width:128px;height:128px;border-radius:8px;margin-top:8px}
 .status.match{background:#e4f5ec;color:#175c40}
@@ -55,6 +65,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 .reference-help{padding-left:20px;margin:6px 0}
 .reference-help li{margin:5px 0}
 @media(max-width:760px){main{padding:18px 13px 32px}.split{grid-template-columns:1fr}.card{padding:14px}.station-nav small{display:none}.station-nav b{width:100%}}
+@media(max-width:460px){.photo-types{grid-template-columns:repeat(2,minmax(0,1fr))}.photo-types button:first-child{grid-column:1/-1}}
 </style>
 </head>
 <body data-page="__ACTIVE_PAGE__">
@@ -110,14 +121,21 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <p class="status" id="capture-status" role="status">选择一只手，至少采集 60 秒再挑选照片。</p>
   </section>
   <section id="verification" class="card" hidden>
-    <h2>匹配结果</h2><p class="hint">开始后持续预览和比对，点停止验证关闭相机。</p>
+    <div class="row between"><h2>放掌比对</h2><span class="hint" id="verify-run-state">相机待机</span></div>
     <div class="row" style="margin-top:12px"><button id="verify-start">开始验证</button>
       <button id="verify-stop" class="secondary" hidden>停止验证</button></div>
     <div class="verification-values">
-      <div><small>最高余弦分数</small><strong id="score-value">—</strong></div>
-      <div><small>演示阈值</small><strong id="score-threshold">—</strong></div>
+      <p class="hint">最近一帧最高分</p>
+      <div class="row between"><strong id="score-value">—</strong><span id="score-gap" class="hint"></span></div>
+      <div class="score-track" aria-hidden="true"><span id="threshold-mark"></span><span id="score-mark" hidden></span></div>
     </div>
-    <p class="hint">最高分达到阈值且无并列时，显示「匹配」。阈值待实拍校准。</p>
+    <div class="row between"><label for="threshold-slider">演示阈值</label>
+      <button type="button" class="secondary small-button" id="reset-threshold">恢复默认</button></div>
+    <div class="threshold-controls">
+      <input id="threshold-slider" type="range" min="0" max="1" step="0.01" value="0.8">
+      <input id="threshold-number" type="number" min="0" max="1" step="any" inputmode="decimal" value="0.8" aria-label="阈值数值">
+    </div>
+    <p class="hint">可在 0–1 间调整，设置记在当前浏览器。最高分达到阈值且无并列时显示「匹配」。</p>
     <p class="status" id="score-status" role="status">点击开始验证打开相机。</p>
     <div class="verification-match" id="best-match" hidden>
       <small class="hint">最高候选</small><p><strong id="match-name"></strong></p>
@@ -127,7 +145,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
   </section>
 </div>
 <section class="card review" id="station-review" hidden>
-  <div class="row between"><div><h2 id="review-title">所选照片</h2><p class="hint">点开可查看相机原图、高清掌区和对应的 128 × 128 ROI。</p></div>
+  <div class="row between"><div><h2 id="review-title">所选照片</h2><p class="hint">原 ROI 是按绿框裁出并拉正的彩色掌区。处理后 ROI 是模型读取的 128 × 128 灰度图。</p></div>
   </div>
   <div class="groups" id="photos"></div>
 </section>
@@ -146,6 +164,11 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <button class="secondary small-button" id="zoom" disabled aria-label="放大" aria-pressed="false"><span aria-hidden="true">🔍</span> <span id="zoom-label">放大</span></button>
     <form method="dialog"><button class="secondary small-button">关闭</button></form>
   </div></div>
+  <div class="row viewer-switch" aria-label="切换同一次拍摄的图片">
+    <button type="button" class="secondary small-button" data-view-kind="original">相机原图</button>
+    <button type="button" class="secondary small-button" data-view-kind="detail">原 ROI</button>
+    <button type="button" class="secondary small-button" data-view-kind="model">处理后 ROI</button>
+  </div>
   <div class="viewport" id="viewport" tabindex="0" aria-label="照片，放大后可滚动">
     <p id="image-status" role="status"></p>
     <div class="photo" id="full-photo"><img id="full-image" alt=""></div>
@@ -269,9 +292,12 @@ function renderReference(state) {
 }
 
 const handing = hand => hand === 'left' ? '左手' : '右手';
-const names = {original:'相机原图', detail:'高清 ROI', model:'识别 ROI'};
+const names = {original:'相机原图', detail:'原 ROI', model:'处理后 ROI'};
+const photoNotes = {original:'相机 JPEG', detail:'彩色 · 原尺寸', model:'灰度 · 128 × 128'};
+const previewKinds = {original:'preview', detail:'detail-preview', model:'model'};
 const viewer = $('viewer'), full = $('full-image'), fullPhoto = $('full-photo');
-let viewerVersion = 0, photoUrl, magnified = false;
+const viewSwitches = Array.from(viewer.querySelectorAll('[data-view-kind]'));
+let viewerVersion = 0, photoUrl, magnified = false, viewedSample;
 function outline(photo, sample) {
   if (!sample.quad || !sample.size) return;
   const ns = 'http://www.w3.org/2000/svg';
@@ -306,7 +332,13 @@ function sizePhoto() {
   $('zoom').setAttribute('aria-label', $('zoom-label').textContent);
   $('zoom').setAttribute('aria-pressed', String(magnified));
 }
-viewer.addEventListener('close', clearViewer);
+viewer.addEventListener('close', () => { clearViewer(); viewedSample = null; });
+for (const button of viewSwitches) button.onclick = () => {
+  if (viewedSample && viewedSample.kind !== button.dataset.viewKind) {
+    const {sample, load, index} = viewedSample;
+    void showPhoto(sample, button.dataset.viewKind, load, index);
+  }
+};
 window.addEventListener('resize', sizePhoto);
 $('zoom').onclick = () => {
   magnified = !magnified;
@@ -324,14 +356,16 @@ $('box').onclick = () => {
   $('box').setAttribute('aria-pressed', String(!mark.style.display));
   $('box').textContent = mark.style.display ? '显示 ROI 框' : '隐藏 ROI 框';
 };
-async function showPhoto(sample, kind, load) {
+async function showPhoto(sample, kind, load, index) {
   clearViewer();
   const version = viewerVersion;
+  viewedSample = {sample, kind, load, index};
+  for (const button of viewSwitches) button.setAttribute('aria-pressed', String(button.dataset.viewKind === kind));
   magnified = false;
   $('zoom-label').textContent = '放大';
   $('zoom').setAttribute('aria-label', '放大');
   $('zoom').setAttribute('aria-pressed', 'false');
-  $('photo-title').textContent = names[kind];
+  $('photo-title').textContent = '第 ' + index + ' 组 · ' + names[kind];
   $('dimensions').textContent = '';
   $('image-status').textContent = '正在读取图片';
   $('image-status').hidden = false;
@@ -367,40 +401,46 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
   card.className = 'group';
   const heading = document.createElement('strong');
   heading.textContent = '第 ' + index + ' 组';
-  const pair = document.createElement('div');
-  pair.className = 'pair';
-  for (const kind of ['original','model']) {
+  const previews = document.createElement('div');
+  previews.className = 'photo-types';
+  for (const kind of Object.keys(names)) {
     const button = document.createElement('button'), photo = document.createElement('div'), image = new Image();
+    const caption = document.createElement('span'), note = document.createElement('small'), loadState = document.createElement('span');
     button.type = 'button';
     photo.className = 'photo' + (kind === 'model' ? ' roi' : '');
     image.alt = '';
-    photo.append(image);
+    loadState.className = 'thumb-state';
+    loadState.textContent = '读取中';
+    photo.append(image, loadState);
     if (kind === 'original') outline(photo, sample);
-    button.append(photo, kind === 'model' ? '128 × 128 ROI' : names[kind]);
-    button.onclick = () => showPhoto(sample, kind, load);
-    pair.append(button);
+    caption.className = 'photo-caption';
+    note.textContent = photoNotes[kind];
+    caption.append(names[kind], note);
+    button.append(photo, caption);
+    button.onclick = () => showPhoto(sample, kind, load, index);
+    previews.append(button);
     thumbnail(kind).then(src => {
-      if (!(src instanceof Blob)) { image.src = src; return; }
-      const url = URL.createObjectURL(src);
-      image.onload = image.onerror = () => URL.revokeObjectURL(url);
+      const blob = src instanceof Blob;
+      const url = blob ? URL.createObjectURL(src) : src;
+      image.onload = () => {
+        if (blob) URL.revokeObjectURL(url);
+        loadState.hidden = true;
+      };
+      image.onerror = () => {
+        if (blob) URL.revokeObjectURL(url);
+        loadState.textContent = '点开重试';
+      };
       image.src = url;
-    }).catch(() => photo.setAttribute('title','预览暂不可用'));
+    }).catch(() => { loadState.textContent = '点开重试'; });
   }
-  const actions = document.createElement('div');
-  actions.className = 'row';
-  const detail = document.createElement('button');
-  detail.className = 'secondary small-button';
-  detail.textContent = names.detail;
-  detail.onclick = () => showPhoto(sample, 'detail', load);
-  actions.append(detail);
+  card.append(heading, previews);
   if (remove) {
     const drop = document.createElement('button');
     drop.className = saved ? 'danger small-button library-delete' : 'secondary small-button drop';
     drop.textContent = saved ? '删除这张' : '移除';
     drop.onclick = remove;
-    actions.append(drop);
+    card.append(drop);
   }
-  card.append(heading, pair, actions);
   return card;
 }
 
@@ -465,8 +505,11 @@ function applyReview(data) {
       const token = session.token;
       const load = kind => kind === 'model' ? Promise.resolve(png(sample.roi)) :
         request(station+'image', {token,frame:sample.frame,kind}, true);
-      return photoCard(sample, i+1, load,
-        async kind => kind === 'original' ? 'data:image/jpeg;base64,' + sample.rgb : png(sample.roi),
+      const thumbnail = kind => {
+        if (kind === 'detail') return load('detail-preview');
+        return Promise.resolve(kind === 'original' ? 'data:image/jpeg;base64,' + sample.rgb : png(sample.roi));
+      };
+      return photoCard(sample, i+1, load, thumbnail,
         () => { if (confirm('移除这一组未保存照片？')) void action(station+'remove',{frame:sample.frame}); });
     }));
   }
@@ -608,11 +651,51 @@ let lastProbeFrame = null, absentSince = null, verificationVersion = 0;
 let verifying = false, nextProbeAt = 0, matchImageUrl, matchImageKey;
 let gateToken, gateStarting = false, nextKeepalive = 0;
 const gateCamera = '/api/fpn/camera';
+const thresholdStorage = 'fypVerificationThreshold';
+let defaultThreshold = 0.8, thresholdOverride = null, lastVerification = null;
+try {
+  const stored = localStorage.getItem(thresholdStorage);
+  if (stored !== null && stored.trim() && Number(stored) >= 0 && Number(stored) <= 1) {
+    thresholdOverride = Number(stored);
+  }
+} catch (_) {}
+const thresholdValue = () => thresholdOverride ?? defaultThreshold;
+function renderThreshold() {
+  const value = thresholdValue();
+  $('threshold-slider').value = String(value);
+  if (document.activeElement !== $('threshold-number')) $('threshold-number').value = String(value);
+  $('threshold-mark').style.left = (value + 1) * 50 + '%';
+  $('reset-threshold').disabled = thresholdOverride === null;
+}
+function applyThreshold(value) {
+  thresholdOverride = value;
+  try {
+    if (value === null) localStorage.removeItem(thresholdStorage);
+    else localStorage.setItem(thresholdStorage, String(value));
+  } catch (_) {}
+  $('threshold-number').value = String(thresholdValue());
+  renderThreshold();
+  if (lastVerification) renderScore(lastVerification);
+}
+$('threshold-slider').oninput = event => applyThreshold(event.target.valueAsNumber);
+$('threshold-number').onchange = event => {
+  const n = event.target.valueAsNumber;
+  if (n >= 0 && n <= 1) applyThreshold(n);
+  else {
+    event.target.value = String(thresholdValue());
+    event.target.setCustomValidity('请输入 0 到 1 的阈值。');
+    event.target.reportValidity();
+    event.target.setCustomValidity('');
+  }
+};
+$('reset-threshold').onclick = () => applyThreshold(null);
+
 function gateControls() {
   $('verify-start').hidden = !!gateToken && !gateStarting;
   $('verify-start').disabled = gateStarting;
   $('verify-stop').hidden = !gateToken || gateStarting;
   $('verify-start').textContent = gateStarting ? '相机正在启动' : '开始验证';
+  $('verify-run-state').textContent = gateStarting ? '正在打开相机' : gateToken ? '等待放掌' : '相机待机';
 }
 function closeGateCamera() {
   const token = gateToken;
@@ -629,7 +712,10 @@ function resetVerification(message) {
   lastProbeFrame = null;
   verificationVersion++;
   nextProbeAt = 0;
+  lastVerification = null;
   $('score-value').textContent = '—';
+  $('score-gap').textContent = '';
+  $('score-mark').hidden = true;
   $('best-match').hidden = true;
   clearMatchPhoto();
   scoreStatus(message);
@@ -640,15 +726,27 @@ function clearMatchPhoto() {
   if (matchImageUrl) URL.revokeObjectURL(matchImageUrl);
   matchImageUrl = matchImageKey = null;
 }
-function renderVerification(data, version) {
+function renderScore(data) {
   const top = data.top_cosines[0];
-  $('score-value').textContent = Number.isFinite(top) ? top.toFixed(5) : '—';
-  $('score-threshold').textContent = String(data.threshold);
-  const result = {
-    MATCH:['匹配', 'match'], BELOW_THRESHOLD:['低于阈值 · 未匹配', 'below'],
-    TIED:['最高分并列 · 可调整手掌后重试', 'below'], EMPTY:['照片库还没有已登记的掌纹']
-  };
-  scoreStatus(...result[data.decision]);
+  $('score-mark').hidden = !Number.isFinite(top);
+  if (!Number.isFinite(top)) {
+    $('score-value').textContent = '—';
+    $('score-gap').textContent = '';
+    scoreStatus('照片库还没有已登记的掌纹');
+    return;
+  }
+  const gap = top - thresholdValue();
+  $('score-value').textContent = top.toFixed(5);
+  $('score-mark').style.left = (top + 1) * 50 + '%';
+  $('score-gap').textContent = gap === 0 ? '达到阈值' :
+    (gap > 0 ? '高于阈值 ' : '低于阈值 ') + Math.abs(gap).toFixed(4);
+  if (data.tied_top) scoreStatus('最高分并列 · 可调整手掌后重试', 'below');
+  else if (gap >= 0) scoreStatus('匹配', 'match');
+  else scoreStatus('未匹配', 'below');
+}
+function renderVerification(data, version) {
+  lastVerification = data;
+  renderScore(data);
   const match = data.best_match;
   $('best-match').hidden = !match;
   if (!match) {
@@ -676,7 +774,9 @@ async function verifyPalm() {
   const version = verificationVersion;
   if ($('score-value').textContent === '—') scoreStatus('正在比对掌纹');
   try {
-    const data = await request('/api/fpn/verify',{token:gateToken});
+    const body = {token:gateToken};
+    if (thresholdOverride !== null) body.threshold = thresholdOverride;
+    const data = await request('/api/fpn/verify',body);
     if (version !== verificationVersion) return;
     renderVerification(data, version);
     nextProbeAt = performance.now() + 900;
@@ -687,7 +787,11 @@ async function verifyPalm() {
   } finally { verifying = false; }
 }
 function updateVerification(state) {
-  if (Number.isFinite(state?.match_threshold)) $('score-threshold').textContent = String(state.match_threshold);
+  if (Number.isFinite(state?.match_threshold) && state.match_threshold !== defaultThreshold) {
+    defaultThreshold = state.match_threshold;
+    renderThreshold();
+    if (lastVerification) renderScore(lastVerification);
+  }
   if (!gateToken || gateStarting) return;
   if (state?.enrollment_active) {
     absentSince = null;
@@ -706,10 +810,18 @@ function updateVerification(state) {
       }
     }).catch(() => {});
   }
-  if (!liveReady) return;
+  if (!liveReady) {
+    $('verify-run-state').textContent = '等待相机';
+    return;
+  }
+  $('verify-run-state').textContent = palmReady ? '持续比对中' : '等待放掌';
   if (!palmReady) {
     absentSince ??= now;
-    if (lastProbeFrame !== null && now - absentSince >= 750) resetVerification('等待放掌');
+    if (lastProbeFrame !== null && now - absentSince >= 750) {
+      lastProbeFrame = null;
+      verificationVersion++;
+      if (!lastVerification) scoreStatus('等待放掌');
+    }
     return;
   }
   absentSince = null;
@@ -718,7 +830,7 @@ function updateVerification(state) {
   if (!Number.isInteger(frame)) return;
   if (lastProbeFrame === null) {
     lastProbeFrame = frame;
-    scoreStatus('已检测到掌区，请停稳');
+    if (!lastVerification) scoreStatus('已检测到掌区，请停稳');
   } else if (frame > lastProbeFrame) {
     lastProbeFrame = frame;
     void verifyPalm();
@@ -812,7 +924,7 @@ async function library() {
         photos.className = 'groups';
         archive.samples.forEach(sample => {
           const load = kind => request('/api/library/image',{archive:archive.id,index:sample.index,kind},true);
-          photos.append(photoCard(sample, sample.index, load, kind => load(kind === 'original' ? 'preview' : kind),
+          photos.append(photoCard(sample, sample.index, load, kind => load(previewKinds[kind]),
             () => void removeSavedPhotos(archive, sample.index), true));
         });
         details.append(toolbar, photos);
@@ -846,6 +958,7 @@ if (page === '/enroll') {
   $('title').textContent = '放掌验证';
   $('subtitle').textContent = 'FPN + C E10 · 自动比对当前掌区与本机登记掌纹。';
   $('camera-page').hidden = $('verification').hidden = false;
+  renderThreshold();
 } else {
   $('title').textContent = '照片库';
   $('subtitle').textContent = '按编号查找采集记录，逐组查看已保存的照片。';

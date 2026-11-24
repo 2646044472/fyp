@@ -411,7 +411,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     "capture_kind": CAPTURE_SOURCE, "localization_reused": True, "feature_deferred": True}
             return (lambda: self.encode(crop), base64.b64encode(out.getvalue()).decode("ascii"),
                     PIPELINE, snapshot["processed_roi_quality"], crop, tags)
-        def check_score(self, *, verify=False, token=None):
+        def check_score(self, *, verify=False, token=None, threshold=None):
             if not self.score_lock.acquire(blocking=False):
                 raise VerificationUnavailable("上一次比对还在计算，请稍候。")
             try:
@@ -438,7 +438,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     if active_enrollment(self.demo):
                         raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
                     return score_gallery(np, feature, self.demo.store, required,
-                                         threshold=match_threshold if verify else None)
+                                         threshold=(match_threshold if threshold is None else threshold) if verify else None)
             finally:
                 self.score_lock.release()
 
@@ -452,7 +452,7 @@ def build_handler(application, enrollment_html):
     from capture_station import send
     from enrollment_best_frame import ranking_status
     from enrollment_review import mutate, selected_photo
-    from enrollment_archive import native_roi_png
+    from enrollment_archive import native_roi_png, rectified_roi_png
     from station_library import list_archives, archive_image, delete_archive
     from enrollment_window_adapter import start_refill
     from demo_flow import CaptureProcessingFailure
@@ -541,7 +541,10 @@ def build_handler(application, enrollment_html):
                         raise ValueError("只可使用当前镜头帧。")
                     return self.respond(application.check_score())
                 if route == "/api/fpn/verify":
-                    return self.respond(application.check_score(verify=True, token=data.get("token")))
+                    threshold = data.get("threshold")
+                    if "threshold" in data and (type(threshold) not in (int, float) or not 0 <= threshold <= 1):
+                        return self.respond({"message": "请输入 0 到 1 的阈值。"}, 400)
+                    return self.respond(application.check_score(verify=True, token=data.get("token"), threshold=threshold))
                 flow = application.demo
                 if route.startswith("/api/library/"):
                     root = flow.enrollment_archive_root
@@ -572,10 +575,14 @@ def build_handler(application, enrollment_html):
                     return self.respond({"camera_open": False})
                 if route.endswith("-image"):
                     candidate = selected_photo(flow, token, data.get("frame"))
-                    if data.get("kind") == "original":
+                    kind = data.get("kind")
+                    if kind == "original":
                         return self.image(candidate.payload["station_original_jpeg"], "image/jpeg")
-                    if data.get("kind") == "detail":
+                    if kind == "detail":
                         return self.image(native_roi_png(candidate)[0], "image/png")
+                    if kind == "detail-preview" and candidate.payload.get("station_review_rgb"):
+                        jpeg = base64.b64decode(candidate.payload["station_review_rgb"])
+                        return self.image(rectified_roi_png(candidate, jpeg)[0], "image/png")
                     raise ValueError("未知图片类型。")
                 if route.endswith("/start"):
                     result = flow.enrollment_start(str(data.get("user_id", "")),

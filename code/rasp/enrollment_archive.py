@@ -29,10 +29,13 @@ def sync_directory(path):
 
 def native_roi_png(candidate):
     """Rectify the selected quad directly from its camera JPEG at source density."""
+    return rectified_roi_png(candidate, candidate.payload["station_original_jpeg"])
+
+
+def rectified_roi_png(candidate, jpeg):
     import cv2
     import numpy as np
 
-    jpeg = candidate.payload["station_original_jpeg"]
     with Image.open(BytesIO(jpeg)) as image:
         scale = np.asarray(image.size) / candidate.frame_size
         rgb = np.asarray(image.convert("RGB"))

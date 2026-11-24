@@ -11,6 +11,7 @@ from PIL import Image
 from enrollment_archive import native_roi_png, sync_directory
 
 IMAGE_SUFFIXES = {"original": "original.jpg", "model": "roi.png", "detail": "roi-native.png"}
+PREVIEW_KINDS = {"preview": "original", "detail-preview": "detail"}
 
 
 def valid_id(value):
@@ -48,27 +49,32 @@ def list_archives(root):
 
 def archive_image(root, request):
     archive, index, kind = (request.get(k) for k in ("archive", "index", "kind"))
-    if not valid_id(archive) or type(index) is not int or index < 1:
+    if not valid_id(archive) or type(index) is not int or index < 1 or not isinstance(kind, str):
         raise ValueError("无效归档照片。")
     folder = root / archive
     samples = read_manifest(folder)["samples"]
-    if index > len(samples) or kind not in ("original", "preview", "detail", "model"):
+    source_kind = PREVIEW_KINDS.get(kind, kind)
+    if index > len(samples) or source_kind not in IMAGE_SUFFIXES:
         raise ValueError("无效归档照片。")
     if deleted_sample(folder, index).exists():
         raise FileNotFoundError("照片已移出照片库。")
-    suffix = IMAGE_SUFFIXES["original" if kind == "preview" else kind]
+    suffix = IMAGE_SUFFIXES[source_kind]
     path = folder / f"{index:02d}-{suffix}"
     if path.is_symlink():
         raise ValueError("无效归档文件。")
-    if kind == "detail" and not path.exists():
+    source = path
+    if source_kind == "detail" and not path.exists():
         # Earlier confirmed sets have the original and the exact crop coordinates.
         sample = samples[index - 1]
         original, _ = archive_image(root, {**request, "kind": "original"})
         photo = SimpleNamespace(payload={"station_original_jpeg": original},
                                 frame_size=sample["analysis_size"], roi_quad=sample["roi_quad_at_analysis_size"])
-        return native_roi_png(photo)[0], "image/png"
-    if kind == "preview":
-        with Image.open(path) as image:
+        data, _ = native_roi_png(photo)
+        if kind == "detail":
+            return data, "image/png"
+        source = BytesIO(data)
+    if kind in PREVIEW_KINDS:
+        with Image.open(source) as image:
             image.thumbnail((480, 360))
             out = BytesIO()
             image.save(out, "JPEG", quality=85)
