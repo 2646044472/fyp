@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Opt-in loopback FPN+C V3 capture. No authorization routes or legacy templates."""
+"""Loopback FPN+C capture and demonstration verification."""
 import argparse
 import base64
 import fcntl
@@ -23,9 +23,26 @@ from fpn_c_e10_shadow import PIPELINE, ShadowFailure, load_pipeline, parse_manif
 GEOMETRY = "fpn-native-gray128-v1"
 MAX_FRAME_AGE = 1.2
 SCORE_AGE_LIMIT = 1.25
+DEMO_MATCH_THRESHOLD = 0.80
+CAPTURE_COUNT = 10
+TEMPLATE_COUNT = 5
 # Explicitly separate from old 8088, which may still own the camera.
 PORT = 8080
 CAPTURE_SOURCE = "fpn-c-e10-v3-video-native"
+START_ERRORS = {
+    "Enter a name and choose left or right hand.": "请输入显示名并选择左右手。",
+    "user must contain a letter or number": "请输入有效编号。",
+    "Invalid enrollment request ID. Start again.": "登记会话无效，请重新开始。",
+    "The hand suffix in the ID does not match the selected hand.": "编号末尾的左右手与选择不一致。",
+    "An enrollment is already in progress. Cancel it first.": "已有一轮采集在进行，请先保存或取消。",
+    "This enrollment request has ended. Start again.": "这一轮采集已结束，请重新开始。",
+    "This ID is already enrolled. Choose another ID.": "这个编号已登记。新一轮采集请使用另一个编号。",
+    "The hand in the original ID differs from the selected hand.": "这个编号已有另一只手的登记。",
+}
+
+
+class VerificationUnavailable(ValueError):
+    """A recoverable verification request with a message for the station UI."""
 
 
 def identify_namespace(config):
@@ -117,12 +134,12 @@ def read_uvc_controls(camera):
 def require_template(np, features, metadata, required):
     if any(metadata.get(key) != value for key, value in required.items()):
         raise ValueError("FPN+C 模板版本不符；请用独立目录重新登记。")
-    if (features.shape != (5, 512) or features.dtype != np.float32 or not np.isfinite(features).all()
+    if (features.shape != (TEMPLATE_COUNT, 512) or features.dtype != np.float32 or not np.isfinite(features).all()
             or np.any(np.linalg.norm(features.astype(np.float64), axis=1) <= 0)):
         raise ValueError("FPN+C 模板损坏或不完整。")
 
 
-def score_gallery(np, probe, store, required):
+def score_gallery(np, probe, store, required, *, threshold=None):
     vector = np.asarray(probe, dtype=np.float64)
     length = np.linalg.norm(vector)
     if vector.shape != (512,) or not np.isfinite(vector).all() or not math.isfinite(length) or length <= 0:
@@ -136,13 +153,29 @@ def score_gallery(np, probe, store, required):
         require_template(np, features, metadata, required)
         template = features.astype(np.float64)
         template /= np.linalg.norm(template, axis=1, keepdims=True)
-        a = (template @ vector).max()
+        similarities = template @ vector
+        sample_index = int(np.argmax(similarities))
+        a = similarities[sample_index]
         if not np.isfinite(a) or abs(float(a)) > 1 + 1e-12:
             raise ValueError("分数无效。")
-        scores.append(float(np.clip(a, -1., 1.)))
-    scores.sort(reverse=True)
-    return {"mode": "scores_only", "gallery_size": len(scores), "top_cosines": scores[:2],
-            "tied_top": bool(len(scores) > 1 and scores[0] == scores[1])}
+        scores.append((float(np.clip(a, -1., 1.)), name, metadata, sample_index + 1))
+    scores.sort(key=lambda item: item[0], reverse=True)
+    top = [item[0] for item in scores[:2]]
+    tied = len(top) == 2 and abs(top[0] - top[1]) <= 1e-12
+    result = {"mode": "scores_only", "gallery_size": len(scores), "top_cosines": top, "tied_top": tied}
+    if threshold is None:
+        return result
+    result.update(mode="demo_verification", threshold=threshold, decision="EMPTY", best_match=None)
+    if tied:
+        result["decision"] = "TIED"
+    elif scores:
+        score, name, meta, index = scores[0]
+        result["decision"] = "MATCH" if score >= threshold else "BELOW_THRESHOLD"
+        result["best_match"] = {
+            "user_id": name, "display_name": meta.get("display_name", name), "hand": meta.get("hand_declared_by_user"),
+            "archive_id": meta.get("enrollment_archive_id"), "sample_index": index,
+        }
+    return result
 
 
 def make_camera(base, frame_class, backend, localizer, np, cv):
@@ -202,13 +235,17 @@ def make_camera(base, frame_class, backend, localizer, np, cv):
     return Camera
 
 
-def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
+def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, match_threshold=DEMO_MATCH_THRESHOLD):
     """Reuse V3 session window and review, no DemoFlow payment/storage bootstrap."""
     import demo_flow
     import enrollment_best_frame
     from templates import TemplateStore
 
     required = {"algorithm": PIPELINE, "roi_geometry": GEOMETRY, "matcher_runtime_identity": identity}
+
+    def active_enrollment(flow):
+        session = flow.enrollment_session
+        return bool(session and time.monotonic() - session["last_activity"] < demo_flow.ENROLLMENT_TIMEOUT_SECONDS)
 
     class Roster:
         """Compatibility facade for the enrollment lifecycle; no payment system."""
@@ -232,6 +269,9 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
 
     class ShadowFlow(demo_flow.DemoFlow):
         station_capture_seconds = 60
+        station_target_count = CAPTURE_COUNT
+        station_template_count = TEMPLATE_COUNT
+        allow_repeat_capture = True
         archive_native_roi = True
 
         def __init__(self, feed, candidate):
@@ -269,6 +309,9 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
             self.demo = ShadowFlow(feed, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
         def status(self):
             status = dict(self.camera.status(), backend=PIPELINE, mode="scores_only", acceptance_available=False)
+            status.update(match_threshold=match_threshold, capture_target_count=CAPTURE_COUNT)
+            with self.demo.lock:
+                status["enrollment_active"] = active_enrollment(self.demo)
             uvc = getattr(self.camera, "uvc_camera", None)
             if uvc is not None:
                 status.update(capture_format=uvc.fourcc, analysis_size=list(uvc.analysis_size))
@@ -300,13 +343,13 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
                     "capture_kind": CAPTURE_SOURCE, "localization_reused": True, "feature_deferred": True}
             return (lambda: self.encode(crop), base64.b64encode(out.getvalue()).decode("ascii"),
                     PIPELINE, snapshot["processed_roi_quality"], crop, tags)
-        def check_score(self):
+        def check_score(self, *, verify=False):
             if not self.score_lock.acquire(blocking=False):
-                raise ValueError("上一轮分数尚未完成。")
+                raise VerificationUnavailable("上一次比对还在计算，请稍候。")
             try:
                 with self.demo.lock:
-                    if self.demo.enrollment_session is not None:
-                        raise ValueError("先确认或取消本次登记。")
+                    if active_enrollment(self.demo):
+                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
                 # Read a current processed exposure once, no second localization.
                 with self.camera.lock:
                     frame = self.camera.latest_processed
@@ -315,14 +358,15 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
                             or not 0 <= now - frame.captured.captured_monotonic <= SCORE_AGE_LIMIT
                             or frame.roi_status.get("roi_mode") != PIPELINE or frame.enrollment_quad is None
                             or not self.camera._camera_frame_state()["camera_ready"]):
-                        raise ValueError("没有新的有效 FPN 掌区；请调整手掌后再试。")
+                        raise VerificationUnavailable("还没有新的有效掌区。掌心朝向镜头并停稳。")
                     self.last_probe_frame = frame.captured.frame_id
                     roi = frame.roi.copy()
                 feature = self.encode(roi)
                 with self.demo.lock:
-                    if self.demo.enrollment_session is not None:
-                        raise ValueError("先确认或取消本次登记。")
-                    return score_gallery(np, feature, self.demo.store, required)
+                    if active_enrollment(self.demo):
+                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
+                    return score_gallery(np, feature, self.demo.store, required,
+                                         threshold=match_threshold if verify else None)
             finally:
                 self.score_lock.release()
 
@@ -402,7 +446,7 @@ def build_handler(application, enrollment_html):
                 "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step",
                 "/api/demo/enroll/commit", "/api/demo/enroll/cancel", "/api/station/enroll-review",
                 "/api/station/enroll-remove", "/api/station/enroll-refill", "/api/station/enroll-stop",
-                "/api/fpn/score", "/api/station/enroll-image", "/api/library/list", "/api/library/image",
+                "/api/fpn/score", "/api/fpn/verify", "/api/station/enroll-image", "/api/library/list", "/api/library/image",
             }
             if route not in allow:
                 return self.respond({"message": "影子服务没有通行、支付或旧模板写入。"}, 404)
@@ -417,6 +461,10 @@ def build_handler(application, enrollment_html):
                     if data:
                         raise ValueError("只可使用当前镜头帧。")
                     return self.respond(application.check_score())
+                if route == "/api/fpn/verify":
+                    if data:
+                        raise ValueError("只可使用当前镜头帧。")
+                    return self.respond(application.check_score(verify=True))
                 flow = application.demo
                 if route.startswith("/api/library/"):
                     root = flow.enrollment_archive_root
@@ -455,8 +503,15 @@ def build_handler(application, enrollment_html):
                         raise ValueError("请选择本次登记的一张照片。")
                     result = mutate(flow, token, frame, stop=route.endswith("-stop"), geometry=True)
                 return self.respond(result)
-            except (ValueError, TypeError, CaptureProcessingFailure):
-                return self.respond({"message": "当前请求不可用：检查登记状态、帧是否有效、或目录是否匹配。"}, 400)
+            except VerificationUnavailable as error:
+                return self.respond({"message": str(error)}, 409 if route == "/api/fpn/verify" else 400)
+            except (ValueError, TypeError, CaptureProcessingFailure) as error:
+                message = START_ERRORS.get(str(error)) if route.endswith("/start") else None
+                if route.endswith("/commit"):
+                    message = "暂时无法保存。请确认照片已选齐、左右手正确，再恢复状态。"
+                elif route == "/api/fpn/verify":
+                    message = "无法比对已登记模板，请刷新后重试。"
+                return self.respond({"message": message or "这项操作暂时不可用，请刷新当前页面后重试。"}, 400)
             except (OSError, RuntimeError):
                 return self.respond({"message": "本机相机或影子模板不可用。"}, 503)
 
@@ -480,9 +535,13 @@ def main(argv=None):
     parser.add_argument("--uvc-native-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"),
                         help="Keep native MJPEG originals while processing at 640×480.")
     parser.add_argument("--cpu-threads", type=int, choices=(1, 2, 3, 4), default=2)
+    parser.add_argument("--match-threshold", type=float, default=DEMO_MATCH_THRESHOLD,
+                        help="Demo cosine threshold. Default 0.80 is an uncalibrated starting point.")
     args = parser.parse_args(argv)
     if args.uvc_native_size and (not args.uvc_device or args.uvc_native_size[0] < 640 or args.uvc_native_size[1] < 480):
         parser.error("--uvc-native-size requires a UVC device and dimensions at least 640×480")
+    if not 0 <= args.match_threshold <= 1:
+        parser.error("--match-threshold must be between 0 and 1")
     try:
         import cv2
         import numpy as np
@@ -498,7 +557,8 @@ def main(argv=None):
             # Bind first; no camera race if an existing process owns this port.
             server = ThreadingHTTPServer(("127.0.0.1", PORT), BaseHTTPRequestHandler)
             try:
-                Camera, App = station_stack(base, backend, fpn, c, args.runtime, identity, np, cv2)
+                Camera, App = station_stack(base, backend, fpn, c, args.runtime, identity, np, cv2,
+                                            match_threshold=args.match_threshold)
                 # Internal 'fixed' prevents creating any legacy tracker; the override
                 # supplies the one native FPN worker and explicit frame provenance.
                 feed = Camera(
@@ -511,7 +571,7 @@ def main(argv=None):
                 )
                 try:
                     server.RequestHandlerClass = build_handler(App(feed), render_enrollment())
-                    print(f"FPN+C score-only: http://127.0.0.1:{PORT}/enroll", flush=True)
+                    print(f"FPN+C capture and verification: http://127.0.0.1:{PORT}/enroll", flush=True)
                     server.serve_forever()
                 finally:
                     feed.close()

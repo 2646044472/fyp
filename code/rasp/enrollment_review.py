@@ -58,7 +58,7 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
             for key in SLOTS:
                 s[key].pop(idx)
             s["photo_candidates"][:] = [by_id[x] for x in remaining]
-            s["candidate_pool_required"] = 5
+            s["candidate_pool_required"] = s.get("station_target_count", 5)
             s["five_candidates_since"] = None
             s["last_activity"] = time.monotonic()
             s["station_retained"] = tuple(c for c in s.get("station_retained",()) if c.frame_id != frame_id)
@@ -75,9 +75,11 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
             for item in items:
                 photo = by_id[item["frame"]]
                 item.update(quad=photo.roi_quad.tolist(), size=list(photo.frame_size))
-        return {"status": "REVIEW", "items": items, "kept": len(selected),
+        return {"status": "REVIEW", "items": items, "kept": len(selected), "required": s.get("station_target_count", 5),
                 "station_capture_ms_remaining": max(0, int(1000 * capture_remaining(s))),
                 "candidate_count": len(s["station_payloads"]),
+                "eligible_count": s.get("station_eligible_count", 0) if state == "collecting" else len(selected),
+                "archive_only": s.get("archive_only", False),
                 "state": state, "inFlight": bool(s["capture_in_flight"] or s.get("station_step_in_flight")),
                 "resumeAllowed": capture_remaining(s)>0}
 

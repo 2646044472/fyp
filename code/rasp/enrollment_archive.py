@@ -46,10 +46,11 @@ def native_roi_png(candidate):
     return out.getvalue(), (width, height)
 
 
-def save_enrollment(root, store, user_id, batch, metadata, session, *, include_native_roi=False):
+def save_enrollment(root, store, user_id, batch, metadata, session, *, update_template=True, include_native_roi=False):
     frame_ids = session["selected_frame_ids"]
     candidates = {candidate.frame_id: candidate for candidate in session["photo_candidates"]}
-    if len(frame_ids) != 5 or len(set(frame_ids)) != 5 or any(frame_id not in candidates for frame_id in frame_ids):
+    target = session.get("station_target_count", 5)
+    if len(frame_ids) != target or len(set(frame_ids)) != target or any(frame_id not in candidates for frame_id in frame_ids):
         raise ValueError("原图与 ROI 未配齐。请重新采集后再保存。")
 
     root = Path(root)
@@ -87,7 +88,8 @@ def save_enrollment(root, store, user_id, batch, metadata, session, *, include_n
         os.replace(temp, target)
         try:
             sync_directory(root)
-            store.save(user_id, batch, {**metadata, "enrollment_archive_id": archive_id})
+            if update_template:
+                store.save(user_id, batch, {**metadata, "enrollment_archive_id": archive_id})
         except Exception:
             # If save failed after the atomic replace, preserve its associated image set.
             try:

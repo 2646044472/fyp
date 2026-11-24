@@ -27,9 +27,10 @@ def retain(s, chosen):
 
 def response(s, state, base=None):
     d = dict(base or {})
+    target = s.get("station_target_count", 5)
     d.update(status={"partial":"STATION_PARTIAL","ready":"READY","collecting":"COLLECTING"}[state],
-             kept=len(s["features"]), required=5, attempts=s["attempts"],
-             candidate_pool_count=len(s["station_payloads"]), candidate_pool_required=5,
+             kept=len(s["features"]), required=target, attempts=s["attempts"],
+             candidate_pool_count=len(s["station_payloads"]), candidate_pool_required=target,
              quality_failures=s["quality_failures"], duplicate_frames=s["duplicate_frames"],
              feature_failures=s["feature_failures"], timeout_ms_remaining=max(0,int((600-time.monotonic()+s["last_activity"])*1000)),
              selected_roi_images=list(s["selected_roi_images"]), retry_after_ms=250)
@@ -40,13 +41,13 @@ def response(s, state, base=None):
     remaining = max(0, int(1000 * capture_remaining(s)))
     d["station_capture_ms_remaining"] = remaining
     if state == "ready":
-        d["reason"] = "所选照片已就绪。确认后会保存五组原图与 ROI，以及登记模板。"
+        d["reason"] = f"所选照片已就绪。确认后会保存 {target} 组原图与 ROI，以及登记模板。"
     elif state == "partial" and not d["kept"]:
         d["reason"] = ("这轮没有可用掌区。请让一只手的掌心完整进入画面，稳一下再开始；"
                        "如预览不动，请检查相机连接。")
     elif state == "partial":
         d["reason"] = ("采集已停止，已选照片可查看；需要时只补齐缺额。" if remaining else
-                       "已达本次采集上限；已有照片可查看，若不足五张可重新开始。")
+                       f"已达本次采集上限；已有照片可查看，若不足 {target} 张可重新开始。")
     else:
         d["reason"] = d.get("reason") or "正在从可用掌区里挑选；请保持同一只手。"
     return d
@@ -65,7 +66,7 @@ def initialize(s):
         s["station_started"] = s.get("started", s["last_activity"])
         s["station_payloads"] = {}
         s["station_window"] = Window(s["station_started"], absolute_timeout_s=s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS),
-            latest_consumed_id=s.get("last_capture_frame_id") or -1)
+            latest_consumed_id=s.get("last_capture_frame_id") or -1, target_count=s.get("station_target_count", 5))
     return s["station_started"]
 
 
@@ -74,9 +75,10 @@ def sync_selection(s, *, stop=False):
     initialize(s)
     w=s.get("station_window")
     if w is None:
-        return "ready" if len(s["features"]) == 5 else "partial"
+        return "ready" if len(s["features"]) == s.get("station_target_count", 5) else "partial"
     now=time.monotonic()
     state,chosen=w.stop(now) if stop else w.status(now)
+    s["station_eligible_count"] = len(chosen)
     if state!="collecting":
         retain(s,chosen)
         s["selection_mode"]="bounded_best_frame_set"
@@ -87,19 +89,21 @@ def session_status(s, d):
     state=sync_selection(s)
     result=dict(d)
     result.update(status="READY" if state=="ready" else "PAUSED",
+                  required=s.get("station_target_count", 5),
                   station_partial=state=="partial", station_state=state,
                   kept=len(s["features"]), candidate_pool_count=len(s["station_payloads"]),
                   selected_roi_images=list(s["selected_roi_images"]),
                   resume_allowed=capture_remaining(s)>0)
     if state!="collecting":
-        result.update(candidate_roi_image=None,fallback_after_ms=None,candidate_pool_required=5)
+        result.update(candidate_roi_image=None, fallback_after_ms=None, candidate_pool_required=result["required"])
     return result
 
 
 def start_refill(flow, token):
     with flow.lock:
         s = flow._active_enrollment(token)
-        if s["capture_in_flight"] or s.get("station_step_in_flight") or len(s["features"])>=5:
+        target = s.get("station_target_count", 5)
+        if s["capture_in_flight"] or s.get("station_step_in_flight") or len(s["features"]) >= target:
             raise ValueError("本次照片仍在处理，或已选齐。")
         state=sync_selection(s)
         if state!="partial":
@@ -110,7 +114,7 @@ def start_refill(flow, token):
             raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
         s["station_window"] = Window(now,absolute_timeout_s=cap,useful_window_s=min(12.,cap),
                                      retained=s.get("station_retained",()),
-                                     latest_consumed_id=s.get("last_capture_frame_id") or -1)
+                                     latest_consumed_id=s.get("last_capture_frame_id") or -1, target_count=target)
         s["last_activity"]=now
         return {"status":"CONTINUING","kept":len(s["features"])}
 
@@ -125,14 +129,13 @@ def run_step(flow, original, local, token, *args, **kwargs):
         if state!="collecting":
             return response(s,state)
         if s["capture_in_flight"] or s.get("station_step_in_flight"):
-            return dict(status="WAIT",required=5,kept=len(s["features"]),retry_after_ms=250,
+            return dict(status="WAIT",required=s.get("station_target_count", 5),
+                        kept=len(s["features"]),retry_after_ms=250,
                         attempts=s["attempts"])
         w=s["station_window"]
         s["station_step_in_flight"]=True
         # Existing flow still handles capture/feature safety and de-duplication;
         # disable only its legacy finalizer (8+second wait, absolute quality).
-        s["candidate_pool_required"]=25
-        s["five_candidates_since"]=None
         local.capture_deadline=w.deadline
     try:
         base=original(flow,token,*args,**kwargs)
@@ -147,11 +150,10 @@ def run_step(flow, original, local, token, *args, **kwargs):
                 if p is not None:
                     cand=descriptor(p,fresh[2])
                     s["station_payloads"][cand.frame_id]=p
-                    state,chosen=w.observe(cand,time.monotonic())
-                else:
-                    state,chosen=w.status(time.monotonic())
-            else:
-                state,chosen=w.status(time.monotonic())
+                    w.observe(cand, time.monotonic())
+                    active_ids = {item.frame_id for item in (*w.retained, *w.pool)}
+                    s["station_payloads"] = {i: photo for i, photo in s["station_payloads"].items() if i in active_ids}
+                    s["photo_candidates"][:] = [photo for photo in s["photo_candidates"] if photo.frame_id in active_ids]
             # Review/status/stop may have sealed this same Window during I/O.
             # Publish only its chosen descriptors; never retain a late arrival.
             state=sync_selection(s)

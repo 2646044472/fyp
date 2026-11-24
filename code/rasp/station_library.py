@@ -38,7 +38,7 @@ def list_archives(root):
 
 def archive_image(root, request):
     archive, index, kind = (request.get(k) for k in ("archive", "index", "kind"))
-    if not valid_id(archive) or type(index) is not int or not 1 <= index <= 5:
+    if not valid_id(archive) or type(index) is not int or index < 1:
         raise ValueError("无效归档照片。")
     folder = root / archive
     samples = read_manifest(folder)["samples"]

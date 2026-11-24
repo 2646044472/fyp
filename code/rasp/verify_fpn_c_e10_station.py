@@ -118,11 +118,12 @@ def main():
                 t = {"token": token}
                 http("/api/demo/enroll/start", dict(t, user_id="synthetic", display_name="Synthetic", hand="left"))
                 w = app.demo.enrollment_session["station_window"]
-                assert w.absolute_timeout_s == 60
-                for _ in range(6):
-                    http("/api/demo/enroll/step", t)
+                assert w.absolute_timeout_s == 60 and w.target_count == sut.CAPTURE_COUNT
+                for _ in range(sut.CAPTURE_COUNT + 3):
+                    if http("/api/demo/enroll/step", t)["status"] == "READY":
+                        break
                 result = http("/api/station/enroll-stop", t)
-                assert result["kept"] == 5, result["state"]
+                assert result["kept"] == sut.CAPTURE_COUNT, result["state"]
                 assert not list((root / "templates").glob("*"))
                 for item in result["items"]:
                     # Prove review image/crop refer to the same accepted exposure.
@@ -134,17 +135,25 @@ def main():
                     assert np.array_equal(frame, np.asarray(roi))
                 drop = result["items"][0]["frame"]
                 after_remove = http("/api/station/enroll-remove", dict(t, frame=drop))
-                assert after_remove["kept"] == 4 and drop not in [x["frame"] for x in after_remove["items"]]
+                assert after_remove["kept"] == sut.CAPTURE_COUNT - 1 and drop not in [x["frame"] for x in after_remove["items"]]
                 http("/api/demo/enroll/commit", dict(t, confirm_hand="left"), status=400)
                 http("/api/station/enroll-refill", t)
                 for _ in range(2):
                     http("/api/demo/enroll/step", t)
-                assert http("/api/station/enroll-stop", t)["kept"] == 5
+                assert http("/api/station/enroll-stop", t)["kept"] == sut.CAPTURE_COUNT
                 http("/api/demo/enroll/commit", dict(t, confirm_hand="right"), status=400)
                 result = http("/api/demo/enroll/commit", dict(t, confirm_hand="left"))
                 assert "token" not in result and "balance_cents" not in result
-                _, meta = app.demo.store.load("synthetic")
+                data, meta = app.demo.store.load("synthetic")
                 assert meta["algorithm"] == sut.PIPELINE and meta["matcher_runtime_identity"] == identity
+                assert data.shape == (sut.TEMPLATE_COUNT, 512)
+                archive = result["enrollment_archive_id"]
+                assert len(http("/api/library/list", {})["archives"][0]["samples"]) == sut.CAPTURE_COUNT
+                assert Image.open(io.BytesIO(http("/api/library/image",
+                    {"archive": archive, "index": sut.CAPTURE_COUNT, "kind": "model"}))).size == (128, 128)
+                verified = sut.score_gallery(np, data[0], app.demo.store, app.demo.gallery.required_metadata,
+                                             threshold=sut.DEMO_MATCH_THRESHOLD)
+                assert verified["decision"] == "MATCH" and verified["best_match"]["archive_id"] == archive
                 assert not list(root.rglob("*.sqlite3"))
                 score = http("/api/fpn/score", {})
                 assert set(score) == {"mode", "gallery_size", "top_cosines", "tied_top"}

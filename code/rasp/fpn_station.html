@@ -34,7 +34,14 @@ button.secondary{background:#eef4fa;color:#204a6c;border-color:var(--edge)}butto
 dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);border-radius:14px;padding:15px;color:var(--ink)}
 dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:flex;overflow:auto;background:#152638;border-radius:8px;margin-top:11px;color:#deebf6}
 .viewport .photo{margin:auto;flex:none;display:none}.viewport .photo.visible{display:block}.viewport .pixel img{image-rendering:pixelated}
-.viewport p{margin:auto;padding:14px}.score{font-size:1.75rem;font-weight:700;font-variant-numeric:tabular-nums}
+.viewport p{margin:auto;padding:14px}
+.verification-values{margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.verification-values small{display:block;color:var(--muted);font-size:.84rem}
+.verification-values strong{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.verification-match{border-top:1px solid var(--edge);padding-top:12px;margin-top:12px}
+.verification-match img{display:block;width:128px;height:128px;border-radius:8px;margin-top:8px}
+.status.match{background:#e4f5ec;color:#175c40}
+.status.below{background:#fff3df;color:#794817}
 .diagnostics{border-top:1px solid var(--edge);margin-top:14px;padding-top:13px}
 .measurements{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0}
 .measurements div{padding:7px 9px;border-radius:7px;background:#f1f6fa}
@@ -89,10 +96,18 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <p class="status" id="capture-status" role="status">选择一只手，最多采集 60 秒。</p>
   </section>
   <section id="verification" class="card" hidden>
-    <h2>匹配分数</h2><p class="hint">使用 FPN + C E10 与已登记模板比对，仅显示分数。</p>
-    <p class="status score" id="score-value" hidden></p>
-    <p class="status" id="score-status" role="status">将掌心放入画面，看到绿色 ROI 框后可测分。</p>
-    <button id="score" style="margin-top:12px" disabled>计算当前帧分数</button>
+    <h2>匹配结果</h2><p class="hint">放掌停稳后自动比对。移开手掌，再放入即可重试。</p>
+    <div class="verification-values">
+      <div><small>最高余弦分数</small><strong id="score-value">—</strong></div>
+      <div><small>演示阈值</small><strong id="score-threshold">—</strong></div>
+    </div>
+    <p class="hint">最高分达到阈值且无并列时，显示「匹配」。阈值待实拍校准。</p>
+    <p class="status" id="score-status" role="status">等待放掌</p>
+    <div class="verification-match" id="best-match" hidden>
+      <small class="hint">最高候选</small><p><strong id="match-name"></strong></p>
+      <p id="match-detail" class="hint"></p>
+      <img id="match-photo" alt="最高候选的登记掌区" hidden>
+    </div>
   </section>
 </div>
 <section class="card review" id="station-review" hidden>
@@ -126,7 +141,7 @@ const page = document.body.dataset.page;
 const enroll = '/api/demo/enroll/';
 const station = '/api/station/enroll-';
 const storage = 'fypFpnEnrollment';
-let liveReady = false, palmReady = false, measuring = false;
+let liveReady = false, palmReady = false, captureTarget = 10;
 
 async function request(path, body, binary = false) {
   const reply = await fetch(path, {
@@ -165,17 +180,19 @@ async function cameraStatus() {
     const r = await fetch('/api/station/enroll-status', {cache:'no-store', signal:AbortSignal.timeout(4000)});
     if (!r.ok) throw Error();
     const state = await r.json();
+    if (Number.isInteger(state.capture_target_count)) captureTarget = state.capture_target_count;
     liveReady = state.camera_ready && state.processing_thread_alive;
     palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
     $('camera-status').textContent = palmReady ? '已检测到掌区' : liveReady ? '等待稳定掌区' : '等待相机';
     if (page === '/enroll') renderReference(state);
+    else if (page === '/gate') updateVerification(state);
   } catch (_) {
     liveReady = palmReady = false;
     $('camera-status').textContent = '相机连接中断';
     if (page === '/enroll') renderReference();
+    else if (page === '/gate') updateVerification();
   } finally {
     controls();
-    $('score').disabled = !palmReady || measuring;
     setTimeout(cameraStatus, 500);
   }
 }
@@ -388,11 +405,12 @@ function applyReview(data) {
   if (!collecting && !data.resumeAllowed) deadline = performance.now();
   clock();
   $('station-review').hidden = !data.items.length && collecting;
-  $('review-title').textContent = '所选照片 · ' + data.kept + ' / 5';
-  const msg = collecting ? '正在采集 · 已有 ' + data.candidate_count + ' 张候选' :
+  $('review-title').textContent = '所选照片 · ' + data.kept + ' / ' + data.required;
+  const msg = collecting ? '正在选帧 · 已找到 ' + data.eligible_count + ' / ' + data.required +
+      ' 组。轻微转动手掌，每次移动后停稳。' :
     data.state === 'ready' ? '已选齐。放大检查后确认保存。' :
     data.resumeAllowed ? '采集已停止，可补拍缺少的照片。' : '本轮已到 60 秒。若照片不足，可取消后重新开始。';
-  $('capture-status').textContent = msg;
+  $('capture-status').textContent = msg + (data.archive_only ? ' 本轮追加照片，沿用已有验证模板。' : '');
   const key = data.items.map(s => s.frame).join(',');
   if (key !== signature) {
     signature = key;
@@ -428,7 +446,7 @@ async function sync(token) {
   else {
     const status = await request(enroll+'status',{token});
     if (session?.token !== token || requested !== revision) return;
-    const message = status.status === 'COMPLETED' ? '五组照片已保存，可在照片库打开。' :
+    const message = status.status === 'COMPLETED' ? '照片已保存，可在照片库打开。' :
       session.saving && status.status === 'LOST' ? '服务已重启，请到照片库检查保存结果。' : '本轮已结束，可以开始新一轮。';
     finish(message);
   }
@@ -473,7 +491,10 @@ async function action(path, extra={}) {
     if (path === enroll+'commit') remember({...session,saving:true});
     const data = await request(path,{token,...extra});
     if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
-    else if (path === enroll+'commit') finish('五组照片已保存，可在照片库打开。');
+    else if (path === enroll+'commit') {
+      const prefix = data.archive_only ? '已追加 ' : '已保存 ';
+      finish(prefix + captureTarget + ' 组照片，可在照片库打开。');
+    }
     else if (data.status === 'REVIEW') applyReview(data);
     else await sync(token);
   } catch (error) {
@@ -526,23 +547,90 @@ $('refill').onclick = () => void action(station+'refill');
 $('cancel').onclick = () => { if (confirm('取消本轮并丢弃这些未保存的照片？')) void action(enroll+'cancel'); };
 $('save').onclick = () => {
   const hand = $('form').elements.hand.value;
-  if (confirm('确认五组照片都来自同一人的' + handing(hand) + '，并保存？')) void action(enroll+'commit',{confirm_hand:hand});
+  if (confirm('确认这 ' + captureTarget + ' 组照片都来自同一人的' + handing(hand) + '，并保存？')) void action(enroll+'commit',{confirm_hand:hand});
 };
-$('score').onclick = async () => {
-  measuring = true;
-  $('score').disabled = true;
-  $('score-value').hidden = true;
-  $('score-status').textContent = '正在计算当前帧';
+
+let firstProbeFrame = null, absentSince = null, verificationVersion = 0;
+let verificationDone = false, verifying = false, retryAfter = 0, matchImageUrl;
+function scoreStatus(message, tone = '') {
+  $('score-status').className = tone ? 'status ' + tone : 'status';
+  $('score-status').textContent = message;
+}
+function resetVerification(message) {
+  firstProbeFrame = null;
+  verificationDone = false;
+  verificationVersion++;
+  retryAfter = 0;
+  $('score-value').textContent = '—';
+  $('best-match').hidden = $('match-photo').hidden = true;
+  $('match-photo').removeAttribute('src');
+  if (matchImageUrl) URL.revokeObjectURL(matchImageUrl);
+  matchImageUrl = null;
+  scoreStatus(message);
+}
+function renderVerification(data, version) {
+  const top = data.top_cosines[0];
+  $('score-value').textContent = Number.isFinite(top) ? top.toFixed(5) : '—';
+  $('score-threshold').textContent = String(data.threshold);
+  const result = {
+    MATCH:['匹配', 'match'], BELOW_THRESHOLD:['低于阈值 · 未匹配', 'below'],
+    TIED:['最高分并列 · 请移开手后重试', 'below'], EMPTY:['照片库还没有已登记的掌纹']
+  };
+  scoreStatus(...result[data.decision]);
+  const match = data.best_match;
+  if (!match) return;
+  $('best-match').hidden = false;
+  $('match-name').textContent = match.display_name;
+  $('match-detail').textContent = [match.user_id, match.hand && handing(match.hand)].filter(Boolean).join(' · ');
+  if (match.archive_id) {
+    const body = {archive:match.archive_id, index:match.sample_index, kind:'model'};
+    request('/api/library/image', body, true).then(blob => {
+      if (version !== verificationVersion) return;
+      matchImageUrl = URL.createObjectURL(blob);
+      $('match-photo').src = matchImageUrl;
+      $('match-photo').hidden = false;
+    }).catch(() => {});
+  }
+}
+async function verifyPalm() {
+  verifying = true;
+  const version = verificationVersion;
+  scoreStatus('正在比对掌纹');
   try {
-    const data = await request('/api/fpn/score',{});
-    const scores = data.top_cosines;
-    $('score-value').textContent = scores.map(x => x.toFixed(4)).join(' / ');
-    $('score-value').hidden = !scores.length;
-    $('score-status').textContent = scores.length ? '共比对 ' + data.gallery_size + ' 个掌纹模板' +
-      (data.tied_top ? ' · 最高分并列' : '') : '照片库里还没有已登记的模板。';
-  } catch (error) { $('score-status').textContent = error.message; }
-  finally { measuring = false; $('score').disabled = !palmReady; }
-};
+    const data = await request('/api/fpn/verify',{});
+    if (version !== verificationVersion) return;
+    verificationDone = true;
+    renderVerification(data, version);
+  } catch (error) {
+    if (version !== verificationVersion) return;
+    retryAfter = performance.now() + 1800;
+    scoreStatus((error.status ? error.message : '暂时无法完成比对。') + ' 稍后自动重试。');
+  } finally { verifying = false; }
+}
+function updateVerification(state) {
+  if (Number.isFinite(state?.match_threshold)) $('score-threshold').textContent = String(state.match_threshold);
+  if (!liveReady || state?.enrollment_active) {
+    absentSince = null;
+    resetVerification(state?.enrollment_active ? '采集进行中，保存或取消采集后可验证。' : '等待相机连接');
+    return;
+  }
+  const now = performance.now();
+  if (!palmReady) {
+    absentSince ??= now;
+    if (now - absentSince >= 750) resetVerification('等待放掌');
+    return;
+  }
+  absentSince = null;
+  if (verifying || verificationDone || now < retryAfter) return;
+  const frame = state.processed_frame_id;
+  if (!Number.isInteger(frame)) return;
+  if (firstProbeFrame === null) {
+    firstProbeFrame = frame;
+    scoreStatus('已检测到掌区，请停稳');
+  } else if (frame > firstProbeFrame) {
+    void verifyPalm();
+  }
+}
 
 async function library() {
   try {
@@ -582,14 +670,14 @@ async function library() {
 
 if (page === '/enroll') {
   $('title').textContent = '掌纹采集';
-  $('subtitle').textContent = 'FPN + C E10 · 60 秒内选帧，确认后保存五组照片。';
+  $('subtitle').textContent = 'FPN + C E10 · 60 秒内选帧，确认后保存 10 组照片。';
   $('camera-page').hidden = $('capture').hidden = $('capture-reference').hidden = false;
   setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
   try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}
   if (session) void restore();
 } else if (page === '/gate') {
   $('title').textContent = '放掌验证';
-  $('subtitle').textContent = 'FPN + C E10 · 查看当前掌区与本机样本的匹配分数。';
+  $('subtitle').textContent = 'FPN + C E10 · 自动比对当前掌区与本机登记掌纹。';
   $('camera-page').hidden = $('verification').hidden = false;
 } else {
   $('title').textContent = '照片库';

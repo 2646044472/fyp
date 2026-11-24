@@ -228,18 +228,20 @@ class DemoFlow:
             if has_template != has_account:
                 raise ValueError("The template or account for this ID is incomplete. Check the existing record first.")
             refreshing = False
+            archive_only = False
             if has_template:
                 _, metadata = self.store.load(user_id)
                 if metadata.get("hand_declared_by_user") not in (None, hand):
                     raise ValueError("The hand in the original ID differs from the selected hand.")
                 refreshing = any(metadata.get(k) != v for k, v in self.gallery.required_metadata.items())
-                if not refreshing:
+                archive_only = not refreshing and getattr(self, "allow_repeat_capture", False)
+                if not refreshing and not archive_only:
                     raise ValueError("This ID is already enrolled. Choose another ID.")
                 display_name = self.payments.display_name_for(user_id)
             started = time.monotonic()
             session = {"token": request_token or uuid.uuid4().hex, "diagnostic_id": uuid.uuid4().hex, "user_id": user_id,
                        "request_display_name": request_display_name, "display_name": display_name,
-                       "refreshing": refreshing, "hand": hand, "features": [], "sources": [],
+                       "refreshing": refreshing, "archive_only": archive_only, "hand": hand, "features": [], "sources": [],
                        "rois": [], "qualities": [], "attempts": 0, "quality_failures": 0,
                        "feature_failures": 0, "quality_failure_streak": 0,
                        "duplicate_frames": 0, "photo_candidates": [], "candidate_pool_required": 8,
@@ -326,6 +328,7 @@ class DemoFlow:
         with self.lock:
             session = self._active_enrollment(token)
             kept = len(session["features"])
+            station_managed = bool(session.get("station_step_in_flight"))
             def progress(status: str, reason: str | None = None, **extra: Any) -> dict[str, Any]:
                 elapsed = max(0.0, time.monotonic() - session["started"])
                 idle = max(0.0, time.monotonic() - session["last_activity"])
@@ -375,11 +378,11 @@ class DemoFlow:
                 return progress("STOPPED", "Enrollment session idle for 600 seconds. No collected candidates were saved. Cancel and start again.")
             if session["capture_in_flight"]:
                 return progress("WAIT", "Capture in progress. Please wait.", retry_after_ms=1000)
-            if kept == 5:
+            if not station_managed and kept == 5:
                 session["last_activity"] = time.monotonic()
                 return progress("READY")
             five_since = session["five_candidates_since"]
-            if (len(session["photo_candidates"]) >= 5 and five_since is not None and
+            if (not station_managed and len(session["photo_candidates"]) >= 5 and five_since is not None and
                     time.monotonic() - five_since >= ENROLLMENT_FIVE_CANDIDATE_WAIT_SECONDS):
                 session["last_activity"] = time.monotonic()
                 return finish_selection(session["photo_candidates"], True)
@@ -527,7 +530,7 @@ class DemoFlow:
                         return deferred_result
                     candidate_pool[index] = photo
                 five_since = session["five_candidates_since"]
-                fallback_ready = (len(candidate_pool) >= 5 and five_since is not None and
+                fallback_ready = (not station_managed and len(candidate_pool) >= 5 and five_since is not None and
                                   time.monotonic() - five_since >= ENROLLMENT_FIVE_CANDIDATE_WAIT_SECONDS)
                 if fallback_ready:
                     break
@@ -541,9 +544,9 @@ class DemoFlow:
                 if deferred_result is not None:
                     return deferred_result
                 candidate_pool.append(photo)
-                if len(candidate_pool) == 5:
+                if not station_managed and len(candidate_pool) == 5:
                     session["five_candidates_since"] = time.monotonic()
-            if not fallback_ready and len(candidate_pool) < session["candidate_pool_required"]:
+            if station_managed or (not fallback_ready and len(candidate_pool) < session["candidate_pool_required"]):
                 return progress("COLLECTING", "Collecting clear candidate frames with different poses.",
                                 candidate_roi_image=encoded_roi, retry_after_ms=500)
             return finish_selection(candidate_pool, fallback_ready)
@@ -557,18 +560,22 @@ class DemoFlow:
                 raise ValueError("Enrollment session timed out; candidates were not saved. Cancel and start again.")
             if session["capture_in_flight"] or session.get("station_step_in_flight"):
                 raise ValueError("Capture in progress. Wait before confirming.")
-            if len(session["features"]) != 5 or confirm_hand != session["hand"]:
-                raise ValueError("Confirm that all five photos show the same selected hand.")
+            target = session.get("station_target_count", 5)
+            if len(session["features"]) != target or confirm_hand != session["hand"]:
+                raise ValueError(f"Confirm that all {target} photos show the same selected hand.")
             user_id, display_name, refreshing = session["user_id"], session["display_name"], session["refreshing"]
+            archive_only = session.get("archive_only", False)
+            expected_existing = refreshing or archive_only
             if not self.store.exists(user_id) and user_id in self.store.list_template_ids():
                 raise ValueError("Template files for this ID are incomplete. Check the existing record first.")
-            if self.store.exists(user_id) != refreshing or self.payments.user_exists(user_id) != refreshing:
+            if self.store.exists(user_id) != expected_existing or self.payments.user_exists(user_id) != expected_existing:
                 raise ValueError("Account status changed during enrollment. Start again.")
-            batch = getattr(self.store, 'batch_features', np.stack)(session["features"])
+            template_count = getattr(self, "station_template_count", target)
+            batch = getattr(self.store, 'batch_features', np.stack)(session["features"][:template_count])
             metadata = {
                 "user": user_id, "display_name": display_name, "algorithm": self.algorithm.name,
-                "capture_profile": self.capture_profile, "samples": 5, "source": self.capture_source,
-                "roi_geometry": self.roi_geometry, "roi_sources": session["sources"],
+                "capture_profile": self.capture_profile, "samples": template_count, "source": self.capture_source,
+                "roi_geometry": self.roi_geometry, "roi_sources": session["sources"][:template_count],
                 "hand_declared_by_user": session["hand"],
                 "enrollment_selection": {
                     "mode": session["selection_mode"],
@@ -587,8 +594,9 @@ class DemoFlow:
             else:
                 from enrollment_archive import save_enrollment
                 archive_id = save_enrollment(self.enrollment_archive_root, self.store, user_id, batch, metadata, session,
+                                             update_template=not archive_only,
                                              include_native_roi=getattr(self, "archive_native_roi", False))
-            if not refreshing:
+            if not expected_existing:
                 try:
                     self.payments.create_account(user_id, display_name, 10000)
                 except Exception as error:
@@ -600,6 +608,8 @@ class DemoFlow:
                         "balance_cents": self.payments.balance_for(user_id), "reenrolled": refreshing}
             if archive_id is not None:
                 response["enrollment_archive_id"] = archive_id
+                if archive_only:
+                    response["archive_only"] = True
             if hasattr(self.algorithm, 'prepare_gallery'):
                 try:
                     integrity_reason = self._gallery_integrity_reason()

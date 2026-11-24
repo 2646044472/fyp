@@ -98,6 +98,7 @@ class Window:
     useful_window_s: float = 12
     retained: tuple = ()
     latest_consumed_id: int = -1
+    target_count: int = 5
     pool: list = field(default_factory=list, init=False)
     first_valid_s: float|None = field(default=None, init=False)
     _sealed: tuple|None = field(default=None, init=False)
@@ -106,7 +107,7 @@ class Window:
         if not (math.isfinite(self.started_s)
                 and 0 < self.useful_window_s <= self.absolute_timeout_s <= 60):
             raise ValueError("Invalid capture window; never exceed one minute.")
-        if len(self.retained)>5 or not all(usable(c) for c in self.retained):
+        if not 1 <= self.target_count <= 12 or len(self.retained) > self.target_count or not all(usable(c) for c in self.retained):
             raise ValueError("Invalid retained descriptors.")
         self.latest_consumed_id = max([self.latest_consumed_id]+[c.frame_id for c in self.retained])
 
@@ -123,33 +124,37 @@ class Window:
         if usable(c) and self.started_s<=c.captured_s<=now:
             if self.first_valid_s is None:
                 self.first_valid_s=now
-            if len(self.pool)<24:
-                self.pool.append(c)
+            if len(self.pool) >= 24:
+                protected = select_set(self.pool, retained=self.retained, count=self.target_count)
+                discard = next(item for item in self.pool if item not in protected)
+                self.pool.remove(discard)
+            self.pool.append(c)
         return self.status(now)
 
     def status(self,now):
         if not math.isfinite(now):
             raise ValueError("Monotonic time is required.")
         if self._sealed is None:
-            selected = select_set(self.pool,retained=self.retained)
-            enough = len(selected) >= 5
+            selected = select_set(self.pool, retained=self.retained, count=self.target_count)
+            enough = len(selected) == self.target_count
             # Bootstrap with several opportunities, not simply the first five.
             matured = self.first_valid_s is not None and now >= self.first_valid_s + self.useful_window_s
             if now >= self.deadline or (enough and (len(self.pool) >= 12 or matured)):
                 self._sealed=selected
             else:
                 return "collecting", selected
-        return ("ready" if len(self._sealed)>=5 else "partial"),self._sealed
+        return ("ready" if len(self._sealed) == self.target_count else "partial"),self._sealed
 
     def stop(self,now):
         """Seal at the current time, without waiting for an existing capture."""
         self.status(now)
         if self._sealed is None:
-            self._sealed=select_set(self.pool,retained=self.retained)
+            self._sealed = select_set(self.pool, retained=self.retained, count=self.target_count)
         return self.status(now)
 
     def fill_missing(self,now):
         state, chosen = self.status(now)
         if state != "partial":
             raise ValueError("Only a completed partial window can be resumed.")
-        return Window(now,self.absolute_timeout_s,self.useful_window_s,chosen,self.latest_consumed_id)
+        return Window(now, self.absolute_timeout_s, self.useful_window_s, chosen, self.latest_consumed_id,
+                      self.target_count)
