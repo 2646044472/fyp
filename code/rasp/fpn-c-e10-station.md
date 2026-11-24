@@ -13,18 +13,19 @@ mkdir -m 700 -p "$HOME/.local/share/fpn-c-e10-v3-local"
 python fpn_c_e10_station.py \
   --manifest /PATH/TO/LOCAL/manifest.json \
   --runtime "$HOME/.local/share/fpn-c-e10-v3-local" \
-  --uvc-device /dev/v4l/by-id/YOUR-CAMERA-video-index0
+  --uvc-device /dev/v4l/by-id/YOUR-CAMERA-video-index0 \
+  --uvc-native-size 1600 1200
 ```
 
-以上在 `code/rasp/` 内运行。UVC 参数必须指向本机真实 Video Capture 设备；用 CSI 时省略 `--uvc-device`，如需要可加 `--csi-tuning /PATH/TO/LOCAL/tuning.json`。主进程首次加载依赖/模型，然后开相机；设备不适配时非零退出，不默默换回旧模型。服务只绑定 `127.0.0.1:8089`，不要暴露到 LAN/公网。
+以上在 `code/rasp/` 内运行。UVC 参数必须指向本机真实 Video Capture 设备，`--uvc-native-size` 必须是 `v4l2-ctl --list-formats-ext` 列出的 MJPEG 尺寸。指定后保留相机原始 JPEG，实时预览与识别使用 640×480。用 CSI 时省略两个 UVC 参数，如需要可加 `--csi-tuning /PATH/TO/LOCAL/tuning.json`。主进程首次加载依赖/模型，然后开相机；设备不适配时非零退出，不默默换回旧模型。服务只绑定 `127.0.0.1:8080`，不要暴露到 LAN/公网。
 
 ## 登记与分数验收
 
-- 打开 [8089 登记界面](http://127.0.0.1:8089/enroll)，页面标明 **FPN + C E10**。[`/station-health`](http://127.0.0.1:8089/station-health) 显示 `backend: fpn-c-e10-frozen`、`mode: scores_only` 和设备就绪；`ready: true` 不代表任意一帧可用于登记。相机预览独立运行，FPN 只处理最新待用帧；过时不复用（如状态出现 `fpn_frame_stale`，要查 Pi 实际推理耗时）。
-- 从 Yesand 连接时，另选一个未占用的本机端口。旧 README 的「本机 8089 → Pi 8088」仍是 PKLNet + FastCC，不是本入口。示例：`ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8090:127.0.0.1:8089 PI_SSH_ALIAS`（把 `PI_SSH_ALIAS` 换成自己的 Pi SSH 别名）。先打开 `http://127.0.0.1:8090/station-health`，确认 `backend: fpn-c-e10-frozen` 和 `mode: scores_only`，再打开 `http://127.0.0.1:8090/enroll`。
+- 打开 [8080 登记界面](http://127.0.0.1:8080/enroll)，页面标明 **FPN + C E10**。[`/station-health`](http://127.0.0.1:8080/station-health) 显示 `backend: fpn-c-e10-frozen`、`mode: scores_only` 和设备就绪；`ready: true` 不代表任意一帧可用于登记。相机预览独立运行，FPN 只处理最新待用帧；过时不复用（如状态出现 `fpn_frame_stale`，要查 Pi 实际推理耗时）。
+- 从 Yesand 连接时，本机和 Pi 都用 8080。运行 `ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8080:127.0.0.1:8080 PI_SSH_ALIAS`，把 `PI_SSH_ALIAS` 换成自己的 Pi SSH 别名。用 `/station-health` 确认后端后，打开同一个登记地址。
 - 从按下「开始」计时，取帧服务端最长 59 秒，页面最多约 60 秒，补拍不重开总计时。得到五张不简单立刻锁定，V3 策略从较好的且相互有帮助的有效帧中选。浏览器、相机或系统资源异常时不能保证总问答延迟；延迟送达的帧不能混进已结束轮次。
-- 逐对查看原图和 128×128 ROI，点击可放大。删除某一对会移除同一候选的图和特征，剩余有效图可继续补齐；只有明确点击「确认同一只手并保存」且五张齐全才写入独立本机模板。未确认的图不作为持久照片或视频写盘；本入口不实现旧的原图批次归档（如需可复用的全分辨率原图与采集元数据，请另用旧程序的 `/collect`，先停用当前占用相机的进程，不要同时开同一相机）。
-- [分数预览](http://127.0.0.1:8089/gate) 手动取一次当前新鲜 FPN 掌区，显示每个掌模板五张取最大余弦后的前两分（不显示身份）。并列如实显示，不给自动判断；陌生掌和同掌都只会得到分数。旧的 identify、confirm、支付、旧模板访问路由在这个服务不可用。
+- 逐对查看原图和 128×128 ROI，点击可放大。删除某一对会移除同一候选的图和特征，剩余有效图可继续补齐。明确点击「确认同一只手并保存」且五张齐全后，独立模板和五对同次曝光的 JPEG 原图、PNG ROI 一起保存。图片在 `--runtime` 目录下的 `enrollment_pairs/<归档 ID>/`，每组带尺寸和配对清单。未确认的候选不会保存。
+- [分数预览](http://127.0.0.1:8080/gate) 手动取一次当前新鲜 FPN 掌区，显示每个掌模板五张取最大余弦后的前两分（不显示身份）。并列如实显示，不给自动判断；陌生掌和同掌都只会得到分数。旧的 identify、confirm、支付、旧模板访问路由在这个服务不可用。
 - 在授权实拍中检查登记、复核、删除补拍、刷新状态、明确保存以及移开手后新鲜分数。测试 CPU 内存、连续帧和处理时延。这个分数路线还不能加载旧模板，也不能拿旧系统的阈值上线。
 
 合成测试（无真实相机、模型、掌纹）：

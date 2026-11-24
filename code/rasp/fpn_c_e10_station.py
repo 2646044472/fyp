@@ -22,7 +22,7 @@ GEOMETRY = "fpn-native-gray128-v1"
 MAX_FRAME_AGE = 1.2
 SCORE_AGE_LIMIT = 1.25
 # Explicitly separate from old 8088, which may still own the camera.
-PORT = 8089
+PORT = 8080
 CAPTURE_SOURCE = "fpn-c-e10-v3-video-native"
 
 
@@ -199,6 +199,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
             self.pending = {}
             self.enrollment_session = None
             self.enrollment_request_states = {}
+            self.enrollment_archive_root = root / "enrollment_pairs"
         def enrollment_start(self, user_id, display_name, hand, request_token=None):
             # Do not use base refresh semantics to overwrite wrong-version records.
             user_id = demo_flow.safe_user_id(user_id)
@@ -216,7 +217,11 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
             self.last_probe_frame = -1
             self.demo = ShadowFlow(feed, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
         def status(self):
-            return dict(self.camera.status(), backend=PIPELINE, mode="scores_only", acceptance_available=False)
+            status = dict(self.camera.status(), backend=PIPELINE, mode="scores_only", acceptance_available=False)
+            original_size = getattr(self.camera, "uvc_native_size", None) or getattr(self.camera, "capture_size", None)
+            if original_size is not None:
+                status["original_capture_size"] = list(original_size)
+            return status
         def encode(self, crop):
             with self.encode_lock:
                 feature = np.asarray(backend.encode_c(c_model, crop[None], device="cpu"))
@@ -423,8 +428,12 @@ def main(argv=None):
     camera = parser.add_mutually_exclusive_group()
     camera.add_argument("--uvc-device", type=Path)
     camera.add_argument("--csi-tuning", type=Path)
+    parser.add_argument("--uvc-native-size", nargs=2, type=int, metavar=("WIDTH", "HEIGHT"),
+                        help="Keep native MJPEG originals while processing at 640×480.")
     parser.add_argument("--cpu-threads", type=int, choices=(1, 2, 3, 4), default=2)
     args = parser.parse_args(argv)
+    if args.uvc_native_size and (not args.uvc_device or args.uvc_native_size[0] < 640 or args.uvc_native_size[1] < 480):
+        parser.error("--uvc-native-size requires a UVC device and dimensions at least 640×480")
     try:
         import cv2
         import numpy as np
@@ -449,10 +458,11 @@ def main(argv=None):
                     inference_ms=0., input_size=(256, 320), recovery_pass=False,
                     camera_tuning_file=args.csi_tuning, capture_only=False,
                     camera_backend="uvc" if args.uvc_device else "picamera2", uvc_device=args.uvc_device,
+                    uvc_native_size=tuple(args.uvc_native_size) if args.uvc_native_size else None,
                 )
                 try:
                     server.RequestHandlerClass = build_handler(App(feed), render_enrollment())
-                    print("FPN+C score-only: http://127.0.0.1:8089/enroll", flush=True)
+                    print(f"FPN+C score-only: http://127.0.0.1:{PORT}/enroll", flush=True)
                     server.serve_forever()
                 finally:
                     feed.close()
