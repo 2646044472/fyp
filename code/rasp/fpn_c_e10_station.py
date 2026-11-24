@@ -222,6 +222,7 @@ def make_camera(base, frame_class, backend, localizer, np, cv):
                     "demo_quality_status": state, "demo_quality_reason": None if valid else reason,
                     "demo_quality_consecutive_frames": int(valid), "demo_quality_required_frames": 1,
                     "enrollment_geometry_valid": valid, "quality": quality,
+                    "preview_label": "FPN ROI",
                     "capture_reference": capture_reference(np, cv, roi, corners, captured.image.size) if valid else None,
                     "captured_monotonic_ms": captured.captured_monotonic * 1000.,
                     "processed_monotonic_ms": time.monotonic() * 1000.,
@@ -240,6 +241,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
     """Reuse V3 session window and review, no DemoFlow payment/storage bootstrap."""
     import demo_flow
     import enrollment_best_frame
+    from enrollment_window_adapter import arm_preview, sync_selection
     from templates import TemplateStore
 
     required = {"algorithm": PIPELINE, "roi_geometry": GEOMETRY, "matcher_runtime_identity": identity}
@@ -313,6 +315,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
             self.last_probe_frame = -1
             profile = feed.capture_profile if feed is not None else "camera-off"
             self.demo = ShadowFlow(profile, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
+            self.demo.station_preview_seconds = 5 if self.managed_camera else 0
 
         @property
         def camera(self):
@@ -337,13 +340,19 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                                   and s.get("station_state") == "collecting")
                 if collecting:
                     self.use_camera(owner)
+                    if s.get("station_preview_until") is None:
+                        camera = self.camera
+                        with camera.lock:
+                            camera_ready = camera._camera_frame_state()["camera_ready"]
+                        if camera_ready:
+                            with self.demo.lock:
+                                if self.demo.enrollment_session is s and s.get("station_state") == "collecting":
+                                    arm_preview(s, time.monotonic())
                 else:
                     self.power.close(owner)
 
         def pause_camera(self, owner):
             if owner[0] == "capture":
-                from enrollment_window_adapter import sync_selection
-
                 with self.demo.lock:
                     s = self.demo.enrollment_session
                     if active_enrollment(self.demo) and s["token"] == owner[1] and s.get("station_state") == "collecting":

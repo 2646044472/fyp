@@ -1,7 +1,7 @@
 """Bridge the old enrollment candidate callbacks to one bounded staged selection."""
 import math
 import time
-from ranked_window import Candidate, Window
+from ranked_window import Candidate, Window, candidate_exclusion
 from enrollment_review import SLOTS, attach_frame
 
 
@@ -40,6 +40,7 @@ def response(s, state, base=None):
     d["station_last_rejection"] = s.get("station_last_rejection")
     remaining = max(0, int(1000 * capture_remaining(s)))
     d["station_capture_ms_remaining"] = remaining
+    d["preview_ms_remaining"] = math.ceil(1000 * preview_remaining(s))
     if state == "ready":
         d["reason"] = f"所选照片已就绪。确认后会保存 {target} 组原图与 ROI，以及登记模板。"
     elif state == "partial" and not d["kept"]:
@@ -56,7 +57,27 @@ def response(s, state, base=None):
 MAX_TOTAL_CAPTURE_SECONDS = 59
 
 
+def preview_remaining(s):
+    duration = s.get("station_preview_seconds", 0)
+    if not duration:
+        return 0
+    until = s.get("station_preview_until")
+    if until is None:
+        return duration
+    paused_at = s.get("station_paused_at")
+    return max(0, until - (time.monotonic() if paused_at is None else paused_at))
+
+
+def arm_preview(s, now):
+    if s.get("station_preview_seconds") and s.get("station_preview_until") is None:
+        until = now + s["station_preview_seconds"]
+        s["station_preview_until"] = until
+        begin_next_window(s, until, s["station_capture_seconds"], s["station_window"].latest_consumed_id)
+
+
 def capture_remaining(s):
+    if preview_remaining(s):
+        return s["station_capture_seconds"]
     if s.get("station_continuous"):
         if s.get("station_minimum_complete"):
             return 0
@@ -99,6 +120,14 @@ def sync_selection(s, *, stop=False, select=False):
         s["station_state"] = state
         return state
     now=time.monotonic()
+    if preview_remaining(s):
+        if select:
+            raise ValueError("请先完成预览和正式采集。")
+        if stop and s.get("station_paused_at") is None:
+            s["station_paused_at"] = now
+        state = "partial" if s.get("station_paused_at") is not None else "collecting"
+        s["station_state"] = state
+        return state
     if s.get("station_continuous"):
         return sync_continuous(s, w, now, stop=stop, select=select)
     state,chosen=w.stop(now) if stop else w.status(now)
@@ -163,6 +192,12 @@ def start_refill(flow, token):
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
         now=time.monotonic()
+        if preview_remaining(s):
+            s.pop("station_paused_at", None)
+            s["station_preview_until"] = None
+            s["last_activity"] = now
+            s["station_state"] = "collecting"
+            return {"status": "CONTINUING", "kept": len(s["features"])}
         previous = s.get("station_window")
         pool = ()
         last_frame = s.get("last_capture_frame_id") or -1
@@ -191,6 +226,8 @@ def run_step(flow, original, local, token, *args, **kwargs):
         state=sync_selection(s,stop=bool(kwargs.get("selection_only")))
         if state!="collecting":
             return response(s,state)
+        if preview_remaining(s):
+            return response(s, state)
         if s["capture_in_flight"] or s.get("station_step_in_flight"):
             return dict(status="WAIT",required=s.get("station_target_count", 5),
                         kept=len(s["features"]),retry_after_ms=250,
@@ -208,18 +245,22 @@ def run_step(flow, original, local, token, *args, **kwargs):
         with flow.lock:
             if flow.enrollment_session is not s or base.get("status")=="STOPPED":
                 return base
+            last_attempt = base.get("capture_failure")
             if (fresh is not None and time.monotonic() < w.deadline and w._sealed is None
                     and s["station_window"] is w and s.get("station_paused_at") is None):
                 p=next((x for x in s["photo_candidates"] if x.frame_id==fresh[0]),None)
                 if p is not None:
                     cand=descriptor(p,fresh[2])
                     s["station_payloads"][cand.frame_id]=p
-                    w.observe(cand, time.monotonic())
+                    _, chosen = w.observe(cand, time.monotonic())
+                    if last_attempt is None:
+                        last_attempt = ("LOW_QUALITY" if cand not in w.pool else candidate_exclusion(cand, chosen))
                     active_ids = {item.frame_id for item in (*w.retained, *w.pool)}
                     s["station_payloads"] = {i: photo for i, photo in s["station_payloads"].items() if i in active_ids}
                     s["photo_candidates"][:] = [photo for photo in s["photo_candidates"] if photo.frame_id in active_ids]
             elif s.get("station_continuous"):
                 s["photo_candidates"][:] = [photo for photo in s["photo_candidates"] if photo.frame_id in s["station_payloads"]]
+            s["station_last_rejection"] = last_attempt
             # Review/status/stop may have sealed this same Window during I/O.
             # Publish only its chosen descriptors; never retain a late arrival.
             state=sync_selection(s)

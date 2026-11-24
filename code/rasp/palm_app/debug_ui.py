@@ -546,7 +546,7 @@ class CameraFeed:
         top = 8
         reason = str(roi_status.get("demo_quality_reason") or roi_status.get("roi_reason") or "")
         suffix = f" · {reason[:28]}" if reason else ""
-        label = f"PALM ROI · {status}{suffix}"
+        label = roi_status.get("preview_label") or f"PALM ROI · {status}{suffix}"
         draw.rounded_rectangle((8, top, min(width - 8, 410), top + 26), radius=5, fill=label_color)
         draw.text((16, top + 5), label, fill=white)
         return preview

@@ -1,6 +1,7 @@
 """Review and mutation of this token's provisional enrollment only."""
 from base64 import b64encode
 from io import BytesIO
+import math
 import time
 
 SLOTS = ("features", "sources", "rois", "qualities", "selected_roi_images", "selected_frame_ids")
@@ -38,7 +39,7 @@ def selected_photo(flow, token, frame_id):
 
 
 def mutate(flow, token, frame_id=None, *, stop=False, select=False, geometry=False):
-    from enrollment_window_adapter import can_resume, capture_remaining, sync_selection
+    from enrollment_window_adapter import can_resume, capture_remaining, preview_remaining, sync_selection
     with flow.lock:
         s = flow.enrollment_session
         if s is None or s["token"] != token or time.monotonic() - s["last_activity"] >= DEFAULT_TIMEOUT:
@@ -80,8 +81,13 @@ def mutate(flow, token, frame_id=None, *, stop=False, select=False, geometry=Fal
                 photo = by_id[item["frame"]]
                 item.update(quad=photo.roi_quad.tolist(), size=list(photo.frame_size))
         return {"status": "REVIEW", "items": items, "kept": len(selected), "required": s.get("station_target_count", 5),
+                "preview_ms_remaining": math.ceil(1000 * preview_remaining(s)),
+                "preview_waiting_camera": bool(s.get("station_preview_seconds") and s.get("station_preview_until") is None),
                 "station_capture_ms_remaining": max(0, int(1000 * capture_remaining(s))),
                 "candidate_count": len(s["station_payloads"]),
+                "attempts": s.get("attempts", 0),
+                "duplicates": s.get("duplicate_frames", 0),
+                "last_rejection": s.get("station_last_rejection"),
                 "eligible_count": max(len(selected), s.get("station_eligible_count", 0)) if state != "ready" else len(selected),
                 "minimumComplete": s.get("station_minimum_complete", False),
                 "archive_only": s.get("archive_only", False),

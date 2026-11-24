@@ -119,6 +119,11 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
       </div>
     </form>
     <p class="status" id="capture-status" role="status">选择一只手，至少采集 60 秒再挑选照片。</p>
+    <section class="diagnostics" id="capture-feedback" hidden aria-label="采集诊断">
+      <h2>当前画面</h2><p id="frame-feedback" class="hint"></p>
+      <h2 style="margin-top:10px">最近一次取帧</h2><p id="attempt-feedback" class="hint"></p>
+      <p id="capture-counts" class="hint" style="margin-top:8px"></p>
+    </section>
   </section>
   <section id="verification" class="card" hidden>
     <div class="row between"><h2>放掌比对</h2><span class="hint" id="verify-run-state">相机待机</span></div>
@@ -238,12 +243,20 @@ async function cameraStatus() {
     palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
     $('camera-status').textContent = palmReady ? '已检测到掌区' :
       liveReady ? '等待稳定掌区' : cameraOpen ? '相机正在启动' : '相机待机';
-    if (page === '/enroll') renderReference(state);
+    if (page === '/enroll') {
+      renderReference(state);
+      captureCameraState = state;
+      renderCaptureFeedback();
+    }
     else if (page === '/gate') updateVerification(state);
   } catch (_) {
     liveReady = palmReady = cameraOpen = false;
     $('camera-status').textContent = '相机连接中断';
-    if (page === '/enroll') renderReference();
+    if (page === '/enroll') {
+      renderReference();
+      captureCameraState = null;
+      renderCaptureFeedback();
+    }
     else if (page === '/gate') updateVerification();
   } finally {
     controls();
@@ -444,7 +457,52 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
   return card;
 }
 
-let session, review, deadline = null, busy = false, step = null, paused = false, timer, signature = '', revision = 0;
+let session, review, deadline = null, previewDeadline = null, captureCameraState;
+let busy = false, step = null, paused = false, timer, signature = '', revision = 0;
+const attemptReasons = {
+  NEAR_DUPLICATE: '这帧和已有候选太像。保持同一只手，轻转手掌或横移一点，再停稳。',
+  SHARPER_DUPLICATE: '覆盖范围和已有候选接近，已取更清楚的一帧。可稍转手掌或横移后再拍。',
+  DUPLICATE_FRAME: '相机回传了已经处理过的帧，正在等下一帧。',
+  POSITION_OUTSIDE_SET: '掌区离本轮其他照片的位置太远。把掌心移回原来的位置附近。',
+  TOO_CLOSE_TO_CAMERA: '掌区比本轮的参考帧大太多。手掌稍微往回收，距离镜头远一点。',
+  TOO_FAR_FROM_CAMERA: '掌区比本轮的参考帧小太多。手掌稍微靠近镜头。',
+  ANGLE_OUTSIDE_SET: '手掌偏转太大。转回一半，掌心尽量朝着镜头。',
+  LOWER_RANK: '这帧进入候选池，当前排序还没选中它。可再换一点角度或等焦点稳定。',
+  LOW_QUALITY: '这一帧缺少可用的纹理对比。先停稳，检查焦点和补光。',
+  NO_HAND: '未获得可用掌区。请把掌心完整放在画面中间。',
+  ROI_NOT_READY: '本次等待结束时没有取得新的有效掌区。结合上面的当前画面提示调整。',
+  ROI_UNSTABLE: '掌区在取帧时不稳定。移动后停一下再拍。',
+  CAMERA_UNAVAILABLE: '本次取帧时相机未就绪。等预览恢复后重试。',
+  FEATURE_ERROR: '这一帧的掌纹特征提取失败，系统会用新帧重试。',
+  CAPTURE_ERROR: '这一帧读取或处理失败，系统会重试。'
+};
+function liveCaptureReason(state) {
+  if (!state) return '状态连接中断，正在重连。';
+  if (!cameraOpen) return '相机待机。';
+  if (!liveReady) return '相机还没输出可用画面。';
+  if (state.roi_reason === 'fpn_frame_stale' || (state.roi_status_age_ms && !state.roi_status_fresh)) {
+    const age = state.roi_status_age_ms;
+    return '定位结果来得太晚' + (Number.isFinite(age) ? '（帧龄 ' + Math.round(age) + ' ms）' : '') +
+      '。系统正在等新帧，先保持当前位置。';
+  }
+  if (state.roi_reason === 'low_chart_confidence') return '掌区定位置信度低。把掌心朝向镜头，放到中间，并避开桌面亮斑。';
+  if (state.roi_reason === 'invalid_original_geometry') return '掌区框不完整或越界。往画面中间移，给掌心四周留空。';
+  if (['constant_native_gray','fpn_crop_unusable'].includes(state.roi_reason)) return '框内纹理变化太少。检查对焦和补光，避免反光。';
+  if (state.roi_reason === 'fpn_processing_error' || state.roi_reason === 'fpn_output_mismatch') return '这一帧的定位处理异常，正在等待下一帧。';
+  if (!palmReady) return '正在等待新的掌区定位结果。';
+  return '已定位 ROI，接下来还会检查重复、位置、角度和图像质量。';
+}
+function renderCaptureFeedback() {
+  $('capture-feedback').hidden = !session || !review || review.state !== 'collecting';
+  if ($('capture-feedback').hidden) return;
+  $('frame-feedback').textContent = liveCaptureReason(captureCameraState);
+  if (review.preview_ms_remaining > 0) $('attempt-feedback').textContent = '预览阶段，先调整手掌位置和光线。';
+  else if (review.last_rejection) $('attempt-feedback').textContent = attemptReasons[review.last_rejection] || '这次未加入候选，系统会继续检查新帧。';
+  else if (review.attempts) $('attempt-feedback').textContent = '最近一帧已加入候选。';
+  else $('attempt-feedback').textContent = '正在等第一张可用候选。';
+  $('capture-counts').textContent = '候选池 ' + review.candidate_count + ' 张 · 取帧 ' + review.attempts +
+    ' 次 · 重复 ' + review.duplicates + ' 次';
+}
 const fields = Array.from($('form').querySelectorAll('input,select'));
 function remember(value) {
   if (value) sessionStorage.setItem(storage, JSON.stringify(value));
@@ -471,6 +529,11 @@ function controls() {
   for (const b of $('photos').querySelectorAll('.drop')) b.disabled = !!locked || collecting || paused;
 }
 function clock() {
+  if (review?.preview_ms_remaining > 0 && review.state === 'collecting') {
+    const seconds = review.preview_waiting_camera ? 5 : Math.max(0, Math.ceil((previewDeadline - performance.now()) / 1000));
+    $('clock').textContent = seconds ? '预览 ' + seconds + ' 秒' : '01:00';
+    return;
+  }
   const seconds = deadline === null ? 60 : Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
   $('clock').textContent = String(Math.floor(seconds / 60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0');
 }
@@ -478,13 +541,16 @@ function applyReview(data) {
   review = data;
   const collecting = data.state === 'collecting';
   deadline = performance.now() + data.station_capture_ms_remaining;
+  previewDeadline = performance.now() + data.preview_ms_remaining;
   clock();
   $('station-review').hidden = !data.items.length;
   $('review-title').textContent = '所选照片 · ' + data.kept + ' / ' + data.required;
   let msg;
   const enough = data.eligible_count >= data.required;
   if (collecting) {
-    if (data.minimumComplete && enough) {
+    if (data.preview_ms_remaining > 0) {
+      msg = data.preview_waiting_camera ? '正在打开相机，预览画面出现后开始倒数。' : '先预览 5 秒调整位置，随后开始正式采集。';
+    } else if (data.minimumComplete && enough) {
       msg = '已采满 60 秒，候选池有 ' + data.candidate_count + ' 张。可以继续拍，也可以挑选 10 张。';
     } else {
       msg = (data.minimumComplete ? '继续补拍' : '正在采集') + ' · 可选 ' +
@@ -514,6 +580,7 @@ function applyReview(data) {
     }));
   }
   controls();
+  renderCaptureFeedback();
 }
 function finish(message) {
   remember(null);
@@ -521,12 +588,14 @@ function finish(message) {
   deadline = null;
   paused = false;
   review = null;
+  previewDeadline = null;
   signature = '';
   $('photos').replaceChildren();
   $('station-review').hidden = true;
   $('capture-status').textContent = message;
   clock();
   controls();
+  renderCaptureFeedback();
 }
 async function sync(token) {
   const requested = revision;
@@ -550,7 +619,7 @@ async function tick() {
   if (document.hidden) { schedule(1000); return; }
   const token = session.token;
   try {
-    if (review?.state === 'collecting' && palmReady) {
+    if (review?.state === 'collecting' && liveReady && !review.preview_ms_remaining) {
       step = request(enroll+'step',{token});
       controls();
       await step;

@@ -470,7 +470,8 @@ class DemoFlow:
             if issue is not None:
                 session["quality_failures"] += 1
                 session["quality_failure_streak"] += 1
-                return progress("WAIT", issue, retry_after_ms=2000 if session["quality_failure_streak"] >= 15 else 500)
+                return progress("WAIT", issue, capture_failure="LOW_QUALITY",
+                                retry_after_ms=2000 if session["quality_failure_streak"] >= 15 else 500)
             session["quality_failure_streak"] = 0
             roi = np.asarray(roi, dtype=np.uint8)
             candidate_pool = session["photo_candidates"]
@@ -536,9 +537,9 @@ class DemoFlow:
                     break
                 if improved:
                     return progress("COLLECTING", "Replaced a duplicate with a sharper frame. Continue capturing different angles.",
-                                    candidate_roi_image=encoded_roi, retry_after_ms=300)
+                                    candidate_roi_image=encoded_roi, capture_failure="SHARPER_DUPLICATE", retry_after_ms=300)
                 return progress("WAIT", "Duplicate candidate frame. Move or rotate the same hand slightly, then hold it steady.",
-                                retry_after_ms=700)
+                                capture_failure="NEAR_DUPLICATE", retry_after_ms=700)
             else:
                 deferred_result = materialize_feature()
                 if deferred_result is not None:

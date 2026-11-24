@@ -33,8 +33,9 @@ def pose(a,b):
 def texture(a,b):
     if len(a.texture) != len(b.texture):
         return None
-    x = tuple(v-sum(a.texture)/len(a.texture) for v in a.texture)
-    y = tuple(v-sum(b.texture)/len(b.texture) for v in b.texture)
+    mean_a, mean_b = sum(a.texture) / len(a.texture), sum(b.texture) / len(b.texture)
+    x = tuple(v - mean_a for v in a.texture)
+    y = tuple(v - mean_b for v in b.texture)
     return max(-1,min(1,sum(i*j for i,j in zip(x,y)) /
                 math.sqrt(sum(v*v for v in x)*sum(v*v for v in y))))
 
@@ -58,6 +59,23 @@ def coverage(c,a):
             + .25*min(1, tilt/math.radians(11)) +
             .16*min(1,max(0,1-(similarity if similarity is not None else 1))/.08))
 
+
+def candidate_exclusion(candidate, selected):
+    if not selected or any(item.frame_id == candidate.frame_id for item in selected):
+        return None
+    anchor = selected[0]
+    center, scale, tilt = pose(candidate, anchor)
+    if center > .60:
+        return "POSITION_OUTSIDE_SET"
+    if scale > math.log(1.45):
+        return "TOO_CLOSE_TO_CAMERA" if candidate.scale > anchor.scale else "TOO_FAR_FROM_CAMERA"
+    if tilt > math.radians(24):
+        return "ANGLE_OUTSIDE_SET"
+    if any(duplicate(candidate, item) for item in selected):
+        return "NEAR_DUPLICATE"
+    return "LOWER_RANK"
+
+
 def select_set(candidates, *, retained=(), count=5):
     chosen = list(retained)
     clean = [c for c in candidates if usable(c)]
@@ -80,15 +98,40 @@ def select_set(candidates, *, retained=(), count=5):
     sharp = sorted([c.sharpness for c in pool]+[anchor.sharpness])
     contrast = sorted([c.contrast for c in pool]+[anchor.contrast])
     ref_s,ref_c = sharp[len(sharp)//2],contrast[len(contrast)//2]
-    while len(chosen)<count:
-        eligible = [c for c in pool if not any(duplicate(c,o) for o in chosen)]
-        if not eligible:
+    compared = {}
+
+    def overlaps(c, other):
+        key = tuple(sorted((c.frame_id, other.frame_id)))
+        if key not in compared:
+            compared[key] = duplicate(c, other)
+        return compared[key]
+
+    def choices(selected):
+        return [c for c in pool if not any(overlaps(c, other) for other in selected)]
+
+    def score(c, selected):
+        quality = .65 * min(1.5, c.sharpness / ref_s) + .35 * min(1.5, c.contrast / ref_c)
+        spread = min(coverage(c, other) for other in selected)
+        return (.62 * quality + .38 * spread, c.sharpness, c.contrast, -c.frame_id)
+
+    while len(chosen) < count:
+        eligible = choices(chosen)
+        if eligible:
+            chosen.append(max(eligible, key=lambda c: score(c, chosen)))
+            continue
+        if count < 10:
             break
-        def score(c):
-            quality = .65*min(1.5,c.sharpness/ref_s)+.35*min(1.5,c.contrast/ref_c)
-            spread = min(coverage(c,o) for o in chosen)
-            return (.62*quality+.38*spread,c.sharpness,c.contrast,-c.frame_id)
-        chosen.append(max(eligible,key=score))
+        # A greedy pick can overlap two otherwise compatible frames.
+        # Try exchanging it without moving the anchor or any user-retained pick.
+        for index in range(len(chosen) - 1, max(1, len(retained)) - 1, -1):
+            fixed = chosen[:index] + chosen[index + 1:]
+            ranked = sorted(choices(fixed), key=lambda c: score(c, fixed), reverse=True)
+            pair = next(((a, b) for i, a in enumerate(ranked) for b in ranked[i + 1:] if not overlaps(a, b)), None)
+            if pair is not None:
+                chosen[index:index + 1] = pair
+                break
+        else:
+            break
     return tuple(chosen)
 
 @dataclass
@@ -103,6 +146,7 @@ class Window:
     pool: list = field(default_factory=list, init=False)
     first_valid_s: float|None = field(default=None, init=False)
     _sealed: tuple|None = field(default=None, init=False)
+    _ranked: tuple|None = field(default=None, init=False)
 
     def __post_init__(self):
         if not (math.isfinite(self.started_s)
@@ -116,6 +160,11 @@ class Window:
     def deadline(self):
         return self.started_s+self.absolute_timeout_s
 
+    def picks(self):
+        if self._ranked is None:
+            self._ranked = select_set(self.pool, retained=self.retained, count=self.target_count)
+        return self._ranked
+
     def observe(self,c,now):
         if self._sealed is not None or not math.isfinite(now) or now >= self.deadline:
             return self.status(now)
@@ -126,17 +175,18 @@ class Window:
             if self.first_valid_s is None:
                 self.first_valid_s=now
             if len(self.pool) >= 24:
-                protected = select_set(self.pool, retained=self.retained, count=self.target_count)
+                protected = self.picks()
                 discard = next(item for item in self.pool if item not in protected)
                 self.pool.remove(discard)
             self.pool.append(c)
+            self._ranked = None
         return self.status(now)
 
     def status(self,now):
         if not math.isfinite(now):
             raise ValueError("Monotonic time is required.")
         if self._sealed is None:
-            selected = select_set(self.pool, retained=self.retained, count=self.target_count)
+            selected = self.picks()
             enough = len(selected) == self.target_count
             # Bootstrap with several opportunities, not simply the first five.
             matured = self.first_valid_s is not None and now >= self.first_valid_s + self.useful_window_s
@@ -150,7 +200,7 @@ class Window:
         """Seal at the current time, without waiting for an existing capture."""
         self.status(now)
         if self._sealed is None:
-            self._sealed = select_set(self.pool, retained=self.retained, count=self.target_count)
+            self._sealed = self.picks()
         return self.status(now)
 
     def fill_missing(self,now):
