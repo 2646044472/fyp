@@ -47,7 +47,12 @@ bash -n install-on-pi.sh && bash -n rollback-on-pi.sh
 
 **更新已装采集站**：旧的基础运行目录必须先更新相机代码。先备份本机基础应用和采集站代码，按上面的基础应用说明更新到兼容的完整源码，并确认上面的导入检查成功；不要用单个基础模块强行覆盖异版。保存或结束所有进行中的登记，然后在 Pi 上进入本目录运行 `bash install-on-pi.sh`。脚本先测试，再备份代码并重启用户服务；页面未恢复时还原。页面响应不等同摄像头就绪，下面仍要实机检查。它不会修改登记或模型；重启会丢失尚未保存的候选。手动回退：`bash rollback-on-pi.sh <安装时打印的备份目录>`。
 
-**新增采集站**：基础应用就绪后，在 Pi 上从本目录放入代码及服务（用户权限即可）：
+**全新 Pi（仅克隆仓库不能直接运行）**：先准备基础引擎、相机依赖和已获准的模型。确认以下两项，再把采集站装为用户服务：
+
+1. 服务实际运行的是 `$HOME/palm_demo/.venv/bin/python`，不是 `.venv-pklnet`。该环境需要能导入 `onnxruntime`，以及基础引擎所需的 OpenCV、NumPy、Pillow 和相机依赖。旧 `deploy/install_pi.sh --with-pklnet` 只给另一个环境安装 PKLNet 依赖，不能代替这项检查。
+2. 从已获准的本地来源准备匹配的三件套：`net_params_500.pth`、`pklnet-keypoints-diagnostics.onnx` 和 `pklnet-keypoints-diagnostics.json`。三件套放在与 `$HOME/palm_demo` 并列的 `pklnet/`（若该目录存在会优先使用），或放在应用目录内的 `pklnet/`。引擎会校验 JSON 中的原始权重及 ONNX 摘要。旧导出教程中的 `pklnet-keypoints.onnx` 不是当前默认裁掌策略所用的诊断版，不能替代。未经许可不要通过 Git 或共享附件转发模型文件。
+
+基础应用和上述依赖就绪后，在 Pi 上从本目录放入代码及服务（用户权限即可）：
 
 ```sh
 install -d -m 700 "$HOME/.local/share/palm-capture-station" "$HOME/.config/systemd/user"
@@ -67,4 +72,3 @@ Pi 本机打开 [登记页](http://127.0.0.1:8088/enroll)。新电脑如果可�
 先确认 `systemctl --user is-active palm-capture-station.service` 返回 `active`，且画面实时更新、不停在等待页。用同意参加的测试编号走一轮：登记预览 → 比对原图与 ROI → 删除一对并补齐 → 手动保存 → 移开手 → 同掌验证 → 再用未登记的掌确认不误通过。浏览器显示的请求时间不含把手举进画面和等到合格 ROI 的时间，不能当作全程响应时间。仓库里的测试只验证软件流程，不证明实际采集、识别准确率或硬件速度。
 
 请勿提交原图、ROI、模板、运行日志、模型、私钥或相机本机配置。
-
