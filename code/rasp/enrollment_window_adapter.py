@@ -60,13 +60,26 @@ def capture_remaining(s):
     return s["station_started"] + s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS) - time.monotonic()
 
 
+def can_resume(s):
+    return s.get("station_continuous", False) or capture_remaining(s) > 0
+
+
+def begin_next_window(s, now, seconds, last_frame_id):
+    s["station_window"] = Window(
+        now, absolute_timeout_s=seconds, useful_window_s=min(12., seconds),
+        retained=s.get("station_retained", ()), latest_consumed_id=last_frame_id,
+        target_count=s.get("station_target_count", 5),
+    )
+    s["station_state"] = "collecting"
+
+
 def initialize(s):
     """Start timing at the successful legacy enrollment Start, not first ROI."""
     if "station_started" not in s:
         s["station_started"] = s.get("started", s["last_activity"])
         s["station_payloads"] = {}
-        s["station_window"] = Window(s["station_started"], absolute_timeout_s=s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS),
-            latest_consumed_id=s.get("last_capture_frame_id") or -1, target_count=s.get("station_target_count", 5))
+        begin_next_window(s, s["station_started"], s.get("station_capture_seconds", MAX_TOTAL_CAPTURE_SECONDS),
+                          s.get("last_capture_frame_id") or -1)
     return s["station_started"]
 
 
@@ -75,13 +88,23 @@ def sync_selection(s, *, stop=False):
     initialize(s)
     w=s.get("station_window")
     if w is None:
-        return "ready" if len(s["features"]) == s.get("station_target_count", 5) else "partial"
+        state = "ready" if len(s["features"]) == s.get("station_target_count", 5) else "partial"
+        s["station_state"] = state
+        return state
     now=time.monotonic()
     state,chosen=w.stop(now) if stop else w.status(now)
+    if state == "collecting" and s.get("station_continuous") and len(chosen) == w.target_count:
+        state, chosen = w.stop(now)
     s["station_eligible_count"] = len(chosen)
     if state!="collecting":
         retain(s,chosen)
         s["selection_mode"]="bounded_best_frame_set"
+    if (state == "partial" and not stop and s.get("station_continuous")
+            and s.get("station_state") == "collecting" and now >= w.deadline):
+        s["station_started"] = now
+        begin_next_window(s, now, w.absolute_timeout_s, w.latest_consumed_id)
+        return "collecting"
+    s["station_state"] = state
     return state
 
 
@@ -93,7 +116,7 @@ def session_status(s, d):
                   station_partial=state=="partial", station_state=state,
                   kept=len(s["features"]), candidate_pool_count=len(s["station_payloads"]),
                   selected_roi_images=list(s["selected_roi_images"]),
-                  resume_allowed=capture_remaining(s)>0)
+                  resume_allowed=can_resume(s))
     if state!="collecting":
         result.update(candidate_roi_image=None, fallback_after_ms=None, candidate_pool_required=result["required"])
     return result
@@ -109,12 +132,14 @@ def start_refill(flow, token):
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
         now=time.monotonic()
-        cap=capture_remaining(s)
+        if s.get("station_continuous"):
+            s["station_started"] = now
+            cap = s["station_capture_seconds"]
+        else:
+            cap = capture_remaining(s)
         if cap<=0:
             raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
-        s["station_window"] = Window(now,absolute_timeout_s=cap,useful_window_s=min(12.,cap),
-                                     retained=s.get("station_retained",()),
-                                     latest_consumed_id=s.get("last_capture_frame_id") or -1, target_count=target)
+        begin_next_window(s, now, cap, s.get("last_capture_frame_id") or -1)
         s["last_activity"]=now
         return {"status":"CONTINUING","kept":len(s["features"])}
 

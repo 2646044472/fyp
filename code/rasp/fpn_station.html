@@ -31,6 +31,8 @@ button.secondary{background:#eef4fa;color:#204a6c;border-color:var(--edge)}butto
 .outline polygon{fill:none;stroke:#4fffc2;stroke-width:2.4;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px #111)}
 .small-button{font-size:.85rem;padding:5px 9px}.library-header{margin-bottom:12px}.library-header input{max-width:260px}
 .library-item{border:1px solid var(--edge);border-radius:10px;padding:11px 14px;margin-top:9px}.library-item summary{cursor:pointer;font-weight:650}
+button.danger{background:#fff3f1;color:#9a2924;border-color:#efc6c1}
+button.danger:hover{border-color:#c05650}
 dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);border-radius:14px;padding:15px;color:var(--ink)}
 dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:flex;overflow:auto;background:#152638;border-radius:8px;margin-top:11px;color:#deebf6}
 .viewport .photo{margin:auto;flex:none;display:none}.viewport .photo.visible{display:block}.viewport .pixel img{image-rendering:pixelated}
@@ -47,8 +49,11 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 .measurements div{padding:7px 9px;border-radius:7px;background:#f1f6fa}
 .measurements dt{color:var(--muted);font-size:.82rem}
 .measurements dd{margin:0;font-weight:650;font-variant-numeric:tabular-nums}
+.measurements small{display:block;margin-top:2px;color:var(--muted);font-size:.76rem}
 .diagnostics details{margin-top:9px}.diagnostics summary{cursor:pointer;width:fit-content}
 .diagnostics details p{margin-top:4px}
+.reference-help{padding-left:20px;margin:6px 0}
+.reference-help li{margin:5px 0}
 @media(max-width:760px){main{padding:18px 13px 32px}.split{grid-template-columns:1fr}.card{padding:14px}.station-nav small{display:none}.station-nav b{width:100%}}
 </style>
 </head>
@@ -58,21 +63,28 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 <header class="intro"><h1 id="title"></h1><p id="subtitle" class="hint"></p></header>
 <div class="split" id="camera-page" hidden>
   <section class="card" aria-label="实时画面">
-    <div class="row between"><h2>实时画面</h2><span class="hint" id="camera-status" role="status">正在连接相机</span></div>
-    <div class="preview"><span id="camera-placeholder">等待画面</span><img id="live" alt="相机实时预览" hidden></div>
+    <div class="row between"><h2>实时画面</h2><span class="hint" id="camera-status" role="status">相机待机</span></div>
+    <div class="preview"><span id="camera-placeholder">开始后打开相机</span><img id="live" alt="相机实时预览" hidden></div>
     <p class="hint">掌心朝向镜头。绿色四边形标出模型检测到的掌区。</p>
     <section class="diagnostics" id="capture-reference" hidden aria-labelledby="reference-title">
       <div class="row between"><h2 id="reference-title">掌区实时参考</h2><span class="hint" id="model-status"></span></div>
       <dl class="measurements">
-        <div><dt>ROI 占画面</dt><dd id="roi-area">—</dd></div>
-        <div><dt>掌区亮度 / 255</dt><dd id="roi-brightness">—</dd></div>
-        <div><dt>相对清晰度</dt><dd id="roi-sharpness">—</dd></div>
-        <div><dt>掌区对比度</dt><dd id="roi-contrast">—</dd></div>
+        <div><dt>ROI 占画面</dt><dd id="roi-area">—</dd><small>起步约 8–12%，用来调距离</small></div>
+        <div><dt>掌区亮度 / 255</dt><dd id="roi-brightness">—</dd><small>起步约 110–185，留意亮斑</small></div>
+        <div><dt>相对清晰度</dt><dd id="roi-sharpness">—</dd><small>同一只手、同样光线下比较</small></div>
+        <div><dt>掌区对比度</dt><dd id="roi-contrast">—</dd><small>表示灰度差，结合掌纹看</small></div>
       </dl>
       <p class="status" id="capture-advice">掌心放在画面中间，等绿色框稳定。</p>
-      <details class="hint"><summary>相机参数和采集建议</summary>
+      <details class="hint"><summary>参数怎么读 · 相机设置</summary>
+        <ul class="reference-help">
+          <li><strong>ROI 占画面</strong>是绿色掌区框占整帧的面积比例。用它复现拍摄距离，同时给手掌四周留空。</li>
+          <li><strong>掌区亮度</strong>是 128 × 128 掌区灰度的中间值。0 是黑，255 是白。中间值合适时，仍可以检查局部亮斑。</li>
+          <li><strong>相对清晰度</strong>衡量掌区里边缘强度的差异。对准同一只手、光线和姿势后，比较不同距离下的细纹与读数。</li>
+          <li><strong>掌区对比度</strong>是灰度的标准差。细纹、亮斑、大块阴影都能抬高读数，放大看掌纹才能判断是哪一种。</li>
+        </ul>
         <p id="camera-format"></p><p id="camera-controls"></p><p id="camera-timing"></p>
-        <p>清晰度用于在同一光线和姿势下比较。掌心若出现亮斑，先把补光移到侧面或打散，再观察细纹。</p>
+        <p>占比和亮度范围用来调机，最后以原图里的掌纹细节为准。</p>
+        <p>掌心若出现亮斑，先把补光移到侧面或打散，再观察细纹。</p>
         <p>固定相机与手掌的距离，短暂停稳让镜头对焦。轻微调整同一只手的角度，每次移动后再停稳。</p>
       </details>
     </section>
@@ -87,8 +99,9 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
       </div>
       <div class="row">
         <button id="start" disabled>开始采集</button>
-        <button type="button" class="secondary" id="stop" hidden>停止选帧</button>
-        <button type="button" class="secondary" id="refill" hidden>补拍缺额</button>
+        <button type="button" id="save" hidden>保存已选照片</button>
+        <button type="button" class="secondary" id="stop" hidden>暂停采集</button>
+        <button type="button" class="secondary" id="refill" hidden>继续采集</button>
         <button type="button" class="secondary" id="cancel" hidden>取消本轮</button>
         <button type="button" class="secondary" id="recover" hidden>恢复状态</button>
       </div>
@@ -96,13 +109,15 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <p class="status" id="capture-status" role="status">选择一只手，最多采集 60 秒。</p>
   </section>
   <section id="verification" class="card" hidden>
-    <h2>匹配结果</h2><p class="hint">放掌停稳后自动比对。移开手掌，再放入即可重试。</p>
+    <h2>匹配结果</h2><p class="hint">开始验证后，放掌停稳即可自动比对。</p>
+    <div class="row" style="margin-top:12px"><button id="verify-start">开始验证</button>
+      <button id="verify-stop" class="secondary" hidden>停止验证</button></div>
     <div class="verification-values">
       <div><small>最高余弦分数</small><strong id="score-value">—</strong></div>
       <div><small>演示阈值</small><strong id="score-threshold">—</strong></div>
     </div>
     <p class="hint">最高分达到阈值且无并列时，显示「匹配」。阈值待实拍校准。</p>
-    <p class="status" id="score-status" role="status">等待放掌</p>
+    <p class="status" id="score-status" role="status">点击开始验证打开相机。</p>
     <div class="verification-match" id="best-match" hidden>
       <small class="hint">最高候选</small><p><strong id="match-name"></strong></p>
       <p id="match-detail" class="hint"></p>
@@ -112,7 +127,6 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 </div>
 <section class="card review" id="station-review" hidden>
   <div class="row between"><div><h2 id="review-title">所选照片</h2><p class="hint">点开可查看相机原图、高清掌区和对应的 128 × 128 ROI。</p></div>
-    <button id="save" hidden>确认同一只手并保存</button>
   </div>
   <div class="groups" id="photos"></div>
 </section>
@@ -120,6 +134,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
   <div class="row between library-header"><h2>已保存的照片组</h2>
     <input type="search" id="search" placeholder="按编号筛选" aria-label="筛选照片编号"></div>
   <p id="library-status" class="hint" role="status">正在读取照片库</p>
+  <p id="library-feedback" class="status" role="status" hidden></p>
   <div id="archives"></div>
 </section>
 </main>
@@ -141,7 +156,9 @@ const page = document.body.dataset.page;
 const enroll = '/api/demo/enroll/';
 const station = '/api/station/enroll-';
 const storage = 'fypFpnEnrollment';
-let liveReady = false, palmReady = false, captureTarget = 10;
+let liveReady = false, palmReady = false, cameraOpen = false, captureTarget = 10;
+const newToken = () => Array.from(crypto.getRandomValues(new Uint8Array(16)),
+  b => b.toString(16).padStart(2,'0')).join('');
 
 async function request(path, body, binary = false) {
   const reply = await fetch(path, {
@@ -159,6 +176,15 @@ let previewUrl;
 async function preview() {
   try {
     if (document.hidden) return;
+    if (!cameraOpen) {
+      $('live').hidden = true;
+      $('live').removeAttribute('src');
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      $('camera-placeholder').textContent = '开始后打开相机';
+      $('camera-placeholder').hidden = false;
+      return;
+    }
     const r = await fetch('/frame.jpg', {cache:'no-store', signal:AbortSignal.timeout(4000)});
     if (!r.ok) throw Error();
     const next = URL.createObjectURL(await r.blob());
@@ -169,6 +195,7 @@ async function preview() {
     previewUrl = next;
   } catch (_) {
     $('live').hidden = true;
+    $('camera-placeholder').textContent = cameraOpen ? '等待画面' : '开始后打开相机';
     $('camera-placeholder').hidden = false;
   } finally {
     setTimeout(preview, 240);
@@ -181,13 +208,16 @@ async function cameraStatus() {
     if (!r.ok) throw Error();
     const state = await r.json();
     if (Number.isInteger(state.capture_target_count)) captureTarget = state.capture_target_count;
-    liveReady = state.camera_ready && state.processing_thread_alive;
+    cameraOpen = state.camera_open && (page === '/enroll' ? state.camera_mode === 'capture' && !!session :
+      state.camera_mode === 'verify' && !!gateToken);
+    liveReady = cameraOpen && state.camera_ready && state.processing_thread_alive;
     palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
-    $('camera-status').textContent = palmReady ? '已检测到掌区' : liveReady ? '等待稳定掌区' : '等待相机';
+    $('camera-status').textContent = palmReady ? '已检测到掌区' :
+      liveReady ? '等待稳定掌区' : cameraOpen ? '相机正在启动' : '相机待机';
     if (page === '/enroll') renderReference(state);
     else if (page === '/gate') updateVerification(state);
   } catch (_) {
-    liveReady = palmReady = false;
+    liveReady = palmReady = cameraOpen = false;
     $('camera-status').textContent = '相机连接中断';
     if (page === '/enroll') renderReference();
     else if (page === '/gate') updateVerification();
@@ -224,7 +254,8 @@ function renderReference(state) {
     '最近一帧掌区处理耗时 ' + Math.round(latency) + ' ms' : '';
 
   let advice = '掌心入镜，手指自然张开，等绿色框稳定后停一会儿。';
-  if (!liveReady) advice = '相机暂未就绪，等实时画面恢复。';
+  if (!cameraOpen) advice = '相机待机。开始采集后会显示掌区参考。';
+  else if (!liveReady) advice = '相机正在启动，等实时画面恢复。';
   else if (!state.roi_status_fresh || state.roi_reason === 'fpn_frame_stale') advice = '正在等新鲜掌区帧，先停稳手掌。';
   else if (state.roi_reason === 'invalid_original_geometry') advice = '把掌心往画面中间移动，给掌区四周留出空隙。';
   else if (metrics) {
@@ -330,7 +361,7 @@ async function showPhoto(sample, kind, load) {
   }
 }
 const png = data => 'data:image/png;base64,' + data;
-function photoCard(sample, index, load, thumbnail, remove) {
+function photoCard(sample, index, load, thumbnail, remove, saved = false) {
   const card = document.createElement('article');
   card.className = 'group';
   const heading = document.createElement('strong');
@@ -363,8 +394,8 @@ function photoCard(sample, index, load, thumbnail, remove) {
   actions.append(detail);
   if (remove) {
     const drop = document.createElement('button');
-    drop.className = 'secondary small-button drop';
-    drop.textContent = '移除';
+    drop.className = saved ? 'danger small-button library-delete' : 'secondary small-button drop';
+    drop.textContent = saved ? '删除这张' : '移除';
     drop.onclick = remove;
     actions.append(drop);
   }
@@ -384,12 +415,13 @@ function controls() {
   const locked = busy || step || review?.inFlight;
   for (const field of fields) field.disabled = !!session || busy;
   $('start').hidden = !!session;
-  $('start').disabled = !liveReady || busy;
+  $('start').disabled = busy;
   $('stop').hidden = !session || !collecting || paused;
   $('cancel').hidden = !session;
   $('refill').hidden = !session || review?.state !== 'partial' || !review.resumeAllowed || paused;
   $('recover').hidden = !session || !paused;
   $('save').hidden = !session || review?.state !== 'ready';
+  if (review?.state === 'ready') $('save').textContent = '保存 ' + review.kept + ' 张';
   $('stop').disabled = $('cancel').disabled = $('recover').disabled = busy;
   $('refill').disabled = $('save').disabled = !!locked || paused;
   for (const b of $('photos').querySelectorAll('.drop')) b.disabled = !!locked || collecting || paused;
@@ -404,13 +436,20 @@ function applyReview(data) {
   if (collecting || deadline === null) deadline = performance.now() + data.station_capture_ms_remaining;
   if (!collecting && !data.resumeAllowed) deadline = performance.now();
   clock();
-  $('station-review').hidden = !data.items.length && collecting;
+  $('station-review').hidden = !data.items.length;
   $('review-title').textContent = '所选照片 · ' + data.kept + ' / ' + data.required;
-  const msg = collecting ? '正在选帧 · 已找到 ' + data.eligible_count + ' / ' + data.required +
-      ' 组。轻微转动手掌，每次移动后停稳。' :
-    data.state === 'ready' ? '已选齐。放大检查后确认保存。' :
-    data.resumeAllowed ? '采集已停止，可补拍缺少的照片。' : '本轮已到 60 秒。若照片不足，可取消后重新开始。';
-  $('capture-status').textContent = msg + (data.archive_only ? ' 本轮追加照片，沿用已有验证模板。' : '');
+  let msg;
+  if (collecting) {
+    msg = '正在选帧 · 已找到 ' + data.eligible_count + ' / ' + data.required +
+      ' 张。轻微转动手掌，每次移动后停稳。';
+  } else if (data.state === 'ready') {
+    msg = '已选齐 ' + data.required + ' 张，确认后保存。';
+  } else {
+    msg = '已暂停 · 已选 ' + data.kept + ' / ' + data.required + ' 张。';
+    msg += data.resumeAllowed ? ' 继续采集即可补齐。' : ' 请取消后重新开始。';
+  }
+  if (data.archive_only) msg += ' 本轮追加照片，沿用已有验证模板。';
+  $('capture-status').textContent = msg;
   const key = data.items.map(s => s.frame).join(',');
   if (key !== signature) {
     signature = key;
@@ -493,7 +532,7 @@ async function action(path, extra={}) {
     if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
     else if (path === enroll+'commit') {
       const prefix = data.archive_only ? '已追加 ' : '已保存 ';
-      finish(prefix + captureTarget + ' 组照片，可在照片库打开。');
+      finish(prefix + captureTarget + ' 张照片，可在照片库打开。');
     }
     else if (data.status === 'REVIEW') applyReview(data);
     else await sync(token);
@@ -535,8 +574,8 @@ async function restore(start = false) {
 }
 $('form').onsubmit = event => {
   event.preventDefault();
-  if (session || busy || !liveReady) return;
-  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join('');
+  if (session || busy) return;
+  const token = newToken();
   try { remember({token,start:Object.fromEntries(new FormData($('form')))}); }
   catch (_) { $('capture-status').textContent = '浏览器无法保存本轮会话。'; return; }
   void restore(true);
@@ -547,11 +586,28 @@ $('refill').onclick = () => void action(station+'refill');
 $('cancel').onclick = () => { if (confirm('取消本轮并丢弃这些未保存的照片？')) void action(enroll+'cancel'); };
 $('save').onclick = () => {
   const hand = $('form').elements.hand.value;
-  if (confirm('确认这 ' + captureTarget + ' 组照片都来自同一人的' + handing(hand) + '，并保存？')) void action(enroll+'commit',{confirm_hand:hand});
+  if (review?.kept && confirm('确认这 ' + review.kept + ' 张照片都来自同一人的' + handing(hand) + '，并保存？')) {
+    void action(enroll+'commit',{confirm_hand:hand});
+  }
 };
 
 let firstProbeFrame = null, absentSince = null, verificationVersion = 0;
 let verificationDone = false, verifying = false, retryAfter = 0, matchImageUrl;
+let gateToken, gateStarted = 0, gateStarting = false, nextKeepalive = 0;
+const gateCamera = '/api/fpn/camera';
+function gateControls() {
+  $('verify-start').hidden = !!gateToken && !gateStarting;
+  $('verify-start').disabled = gateStarting;
+  $('verify-stop').hidden = !gateToken || gateStarting;
+  $('verify-start').textContent = gateStarting ? '相机正在启动' : '开始验证';
+}
+function closeGateCamera() {
+  const token = gateToken;
+  gateToken = null;
+  cameraOpen = false;
+  gateControls();
+  if (token) void request(gateCamera,{token,action:'stop'}).catch(() => {});
+}
 function scoreStatus(message, tone = '') {
   $('score-status').className = tone ? 'status ' + tone : 'status';
   $('score-status').textContent = message;
@@ -597,10 +653,11 @@ async function verifyPalm() {
   const version = verificationVersion;
   scoreStatus('正在比对掌纹');
   try {
-    const data = await request('/api/fpn/verify',{});
+    const data = await request('/api/fpn/verify',{token:gateToken});
     if (version !== verificationVersion) return;
     verificationDone = true;
     renderVerification(data, version);
+    closeGateCamera();
   } catch (error) {
     if (version !== verificationVersion) return;
     retryAfter = performance.now() + 1800;
@@ -609,12 +666,30 @@ async function verifyPalm() {
 }
 function updateVerification(state) {
   if (Number.isFinite(state?.match_threshold)) $('score-threshold').textContent = String(state.match_threshold);
-  if (!liveReady || state?.enrollment_active) {
+  if (!gateToken || gateStarting) return;
+  if (state?.enrollment_active) {
     absentSince = null;
-    resetVerification(state?.enrollment_active ? '采集进行中，保存或取消采集后可验证。' : '等待相机连接');
+    closeGateCamera();
+    resetVerification('采集进行中，保存或取消采集后可验证。');
     return;
   }
   const now = performance.now();
+  if (!verifying && now - gateStarted >= 60000) {
+    closeGateCamera();
+    resetVerification('等待放掌超时，相机已关闭。可重新开始验证。');
+    return;
+  }
+  if (now >= nextKeepalive) {
+    nextKeepalive = now + 4000;
+    const token = gateToken;
+    request(gateCamera,{token,action:'keepalive'}).then(result => {
+      if (gateToken === token && !result.camera_open) {
+        closeGateCamera();
+        resetVerification('相机已待机，请重新开始验证。');
+      }
+    }).catch(() => {});
+  }
+  if (!liveReady) return;
   if (!palmReady) {
     absentSince ??= now;
     if (now - absentSince >= 750) resetVerification('等待放掌');
@@ -631,26 +706,96 @@ function updateVerification(state) {
     void verifyPalm();
   }
 }
+$('verify-start').onclick = async () => {
+  if (gateStarting || gateToken) return;
+  const token = newToken();
+  gateToken = token;
+  gateStarting = true;
+  absentSince = null;
+  resetVerification('正在打开相机');
+  gateControls();
+  try {
+    const result = await request(gateCamera,{token,action:'start'});
+    if (!result.camera_open) throw Error('相机未能启动。');
+    gateStarted = performance.now();
+    nextKeepalive = gateStarted + 4000;
+    scoreStatus('等待放掌');
+  } catch (error) {
+    closeGateCamera();
+    scoreStatus(error.message);
+  } finally {
+    gateStarting = false;
+    gateControls();
+  }
+};
+$('verify-stop').onclick = () => {
+  closeGateCamera();
+  resetVerification('验证已停止，相机已关闭。');
+};
+window.addEventListener('pagehide', () => {
+  const captureToken = page === '/enroll' && session?.token;
+  const verificationToken = page === '/gate' && gateToken;
+  if (captureToken) {
+    navigator.sendBeacon('/api/station/camera-sleep', new Blob([JSON.stringify({token:captureToken})], {type:'application/json'}));
+  } else if (verificationToken) {
+    navigator.sendBeacon(gateCamera, new Blob([JSON.stringify({token:verificationToken,action:'stop'})], {type:'application/json'}));
+  }
+});
 
+let libraryBusy = false;
+async function removeSavedPhotos(archive, index) {
+  if (libraryBusy) return;
+  const whole = index === undefined;
+  const action = whole ? '删除整组 ' + archive.samples.length + ' 张' : '删除第 ' + index + ' 张';
+  if (!confirm(action + '？同次拍摄的原图和两种 ROI 会一起移出照片库，验证模板会保留。')) return;
+  libraryBusy = true;
+  const buttons = $('archives').querySelectorAll('.library-delete');
+  for (const button of buttons) button.disabled = true;
+  const feedback = $('library-feedback');
+  feedback.hidden = false;
+  feedback.textContent = '正在删除…';
+  try {
+    const body = whole ? {archive:archive.id} : {archive:archive.id,index};
+    const {remaining} = await request('/api/library/delete', body);
+    await library();
+    feedback.textContent = remaining ? '已删除，当前这组剩余 ' + remaining + ' 张。' : '已移出照片库。';
+  } catch (error) {
+    feedback.textContent = error.message;
+  } finally {
+    libraryBusy = false;
+    for (const button of buttons) button.disabled = false;
+  }
+}
 async function library() {
+  const active = new Set(Array.from($('archives').querySelectorAll('details[open]'), item => item.dataset.archive));
   try {
     const {archives} = await request('/api/library/list',{});
     const rows = archives.map(archive => {
       const details = document.createElement('details'), label = document.createElement('summary');
       details.className = 'library-item';
+      details.dataset.archive = archive.id;
       label.textContent = archive.participant + ' · ' + handing(archive.hand) + ' · ' +
         new Date(archive.saved).toLocaleString() + ' · ' + archive.samples.length + ' 组';
       details.append(label);
       details.ontoggle = () => {
         if (!details.open || details.children.length > 1) return;
+        const toolbar = document.createElement('div'), remove = document.createElement('button');
+        toolbar.className = 'row';
+        toolbar.style.marginTop = '12px';
+        remove.className = 'danger small-button library-delete';
+        remove.textContent = '删除整组';
+        remove.onclick = () => void removeSavedPhotos(archive);
+        toolbar.append(remove);
         const photos = document.createElement('div');
         photos.className = 'groups';
-        archive.samples.forEach((sample,i) => {
-          const load = kind => request('/api/library/image',{archive:archive.id,index:i+1,kind},true);
-          photos.append(photoCard(sample,i+1,load,kind => load(kind === 'original' ? 'preview' : kind)));
+        archive.samples.forEach(sample => {
+          const load = kind => request('/api/library/image',{archive:archive.id,index:sample.index,kind},true);
+          photos.append(photoCard(sample, sample.index, load, kind => load(kind === 'original' ? 'preview' : kind),
+            () => void removeSavedPhotos(archive, sample.index), true));
         });
-        details.append(photos);
+        details.append(toolbar, photos);
       };
+      details.open = active.has(archive.id);
       return {details,key:archive.participant.toLocaleLowerCase()};
     });
     $('archives').replaceChildren(...rows.map(row=>row.details));
@@ -670,7 +815,7 @@ async function library() {
 
 if (page === '/enroll') {
   $('title').textContent = '掌纹采集';
-  $('subtitle').textContent = 'FPN + C E10 · 60 秒内选帧，确认后保存 10 组照片。';
+  $('subtitle').textContent = 'FPN + C E10 · 连续采集，选齐 10 张后确认保存。';
   $('camera-page').hidden = $('capture').hidden = $('capture-reference').hidden = false;
   setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
   try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}

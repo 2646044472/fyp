@@ -38,7 +38,7 @@ def selected_photo(flow, token, frame_id):
 
 
 def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
-    from enrollment_window_adapter import capture_remaining, sync_selection
+    from enrollment_window_adapter import can_resume, capture_remaining, sync_selection
     with flow.lock:
         s = flow.enrollment_session
         if s is None or s["token"] != token or time.monotonic() - s["last_activity"] >= DEFAULT_TIMEOUT:
@@ -65,6 +65,7 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
             s["station_payloads"].pop(frame_id, None)
             s["station_window"] = None
             state = "partial"
+            s["station_state"] = state
             selected = remaining
         # Do not enumerate a gallery. Before selection the base capture UI
         # displays progress; the review only shows chosen pairs and replacements.
@@ -81,7 +82,7 @@ def mutate(flow, token, frame_id=None, *, stop=False, geometry=False):
                 "eligible_count": s.get("station_eligible_count", 0) if state == "collecting" else len(selected),
                 "archive_only": s.get("archive_only", False),
                 "state": state, "inFlight": bool(s["capture_in_flight"] or s.get("station_step_in_flight")),
-                "resumeAllowed": capture_remaining(s)>0}
+                "resumeAllowed": state == "partial" and can_resume(s)}
 
 
 PANEL = '''<style>

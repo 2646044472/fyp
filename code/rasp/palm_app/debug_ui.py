@@ -204,6 +204,7 @@ class CameraFeed:
         camera_backend: str = "picamera2",
         uvc_device: Path | None = None,
         uvc_native_size: tuple[int, int] | None = None,
+        initial_frame_id: int = 0,
     ) -> None:
         if capture_only:
             roi_mode = "capture"
@@ -306,7 +307,7 @@ class CameraFeed:
         self._capture_interval_s = 1.0 / CAPTURE_FPS_CAP
         self._preview_interval_s = 1.0 / PREVIEW_FPS_CAP
         self._last_preview_time = 0.0
-        self._next_frame_id = 0
+        self._next_frame_id = initial_frame_id
         self.pending_frame: CapturedFrame | None = None
         self.preview_overlay = LiveROIOverlay(max_age_s=8.0 if roi_mode == "pklnet" else 1.5) if roi_mode in ("dynamic", "pklnet") else None
         self.latest_preview_status: dict[str, Any] = {}

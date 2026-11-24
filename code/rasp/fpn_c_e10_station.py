@@ -19,6 +19,7 @@ from types import SimpleNamespace
 from urllib.parse import urlsplit
 
 from fpn_c_e10_shadow import PIPELINE, ShadowFailure, load_pipeline, parse_manifest
+from station_camera_power import CameraPower
 
 GEOMETRY = "fpn-native-gray128-v1"
 MAX_FRAME_AGE = 1.2
@@ -269,17 +270,18 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
 
     class ShadowFlow(demo_flow.DemoFlow):
         station_capture_seconds = 60
+        station_continuous = True
         station_target_count = CAPTURE_COUNT
         station_template_count = TEMPLATE_COUNT
         allow_repeat_capture = True
         archive_native_roi = True
 
-        def __init__(self, feed, candidate):
+        def __init__(self, capture_profile, candidate):
             self.algorithm = SimpleNamespace(name=PIPELINE)
             self.gallery = SimpleNamespace(required_metadata=required)
             self.runtime_identity = identity
             self.roi_geometry = GEOMETRY
-            self.capture_profile = "fpn-shadow-" + feed.capture_profile
+            self.capture_profile = "fpn-shadow-" + capture_profile
             self.capture_source = CAPTURE_SOURCE
             self.store = TemplateStore(root / "templates", compression_level=1)
             self.payments = Roster(self.store)
@@ -300,24 +302,80 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
             raise ValueError("没有可用的通行判定。")
 
     class ShadowApp:
-        def __init__(self, feed):
-            self.camera = feed
+        def __init__(self, feed=None, *, create_feed=None, native_size=None):
+            self.power = CameraPower(create_feed)
+            self.power.feed = feed
+            self.managed_camera = create_feed is not None
+            self.native_size = native_size
             self.camera_controls = read_uvc_controls(getattr(feed, "uvc_camera", None))
             self.score_lock = threading.Lock()
             self.encode_lock = threading.Lock()
             self.last_probe_frame = -1
-            self.demo = ShadowFlow(feed, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
+            profile = feed.capture_profile if feed is not None else "camera-off"
+            self.demo = ShadowFlow(profile, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
+
+        @property
+        def camera(self):
+            return self.power.feed
+
+        def use_camera(self, owner):
+            previous = self.camera
+            feed = self.power.use(owner)
+            if feed is not previous:
+                self.camera_controls = read_uvc_controls(getattr(feed, "uvc_camera", None))
+                with self.demo.lock:
+                    self.demo.capture_profile = "fpn-shadow-" + feed.capture_profile
+
+        def reconcile_capture(self, token):
+            if not self.managed_camera:
+                return
+            owner = ("capture", token)
+            with self.power.lock:
+                with self.demo.lock:
+                    s = self.demo.enrollment_session
+                    collecting = (active_enrollment(self.demo) and s["token"] == token
+                                  and s.get("station_state") == "collecting")
+                if collecting:
+                    self.use_camera(owner)
+                else:
+                    self.power.close(owner)
+
+        def verify_camera(self, token, action):
+            owner = ("verify", token)
+            with self.power.lock:
+                if action == "stop":
+                    self.power.close(owner)
+                    return {"camera_open": False}
+                with self.demo.lock:
+                    if active_enrollment(self.demo):
+                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
+                if action == "keepalive" and self.power.owner != owner:
+                    return {"camera_open": False}
+                if self.power.owner not in (None, owner):
+                    raise VerificationUnavailable("相机在另一个页签中使用。")
+                if self.managed_camera:
+                    self.use_camera(owner)
+                return {"camera_open": self.camera is not None}
+
         def status(self):
-            status = dict(self.camera.status(), backend=PIPELINE, mode="scores_only", acceptance_available=False)
+            with self.power.lock:
+                camera = self.camera
+                mode = self.power.owner[0] if self.power.owner else None
+                controls = self.camera_controls
+            status = camera.status() if camera is not None else {
+                "camera_ready": False, "processing_thread_alive": False, "roi_status_fresh": False,
+            }
+            status.update(backend=PIPELINE, mode="scores_only", acceptance_available=False,
+                          camera_open=camera is not None, camera_mode=mode)
             status.update(match_threshold=match_threshold, capture_target_count=CAPTURE_COUNT)
             with self.demo.lock:
                 status["enrollment_active"] = active_enrollment(self.demo)
-            uvc = getattr(self.camera, "uvc_camera", None)
+            uvc = getattr(camera, "uvc_camera", None)
             if uvc is not None:
                 status.update(capture_format=uvc.fourcc, analysis_size=list(uvc.analysis_size))
-            if self.camera_controls:
-                status["camera_controls_at_start"] = self.camera_controls
-            original_size = getattr(self.camera, "uvc_native_size", None) or getattr(self.camera, "capture_size", None)
+            if controls:
+                status["camera_controls_at_start"] = controls
+            original_size = self.native_size or getattr(camera, "uvc_native_size", None) or getattr(camera, "capture_size", None)
             if original_size is not None:
                 status["original_capture_size"] = list(original_size)
             return status
@@ -328,9 +386,10 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                 raise ValueError("FPN+C 未生成有效特征。")
             return feature[0].copy()
         def capture_demo_feature(self, *, enrollment, include_candidate):
-            if not enrollment or not include_candidate:
+            camera = self.camera
+            if not enrollment or not include_candidate or camera is None:
                 raise demo_flow.CaptureProcessingFailure("ROI_NOT_READY")
-            _preview, full, snapshot = self.camera.capture_ready_processed_frame()
+            _preview, full, snapshot = camera.capture_ready_processed_frame()
             if snapshot.get("processed_roi_mode") != PIPELINE:
                 raise demo_flow.CaptureProcessingFailure("ROI_NOT_READY")
             crop, quad = snapshot["processed_roi"], snapshot["processed_roi_quad"]
@@ -343,7 +402,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     "capture_kind": CAPTURE_SOURCE, "localization_reused": True, "feature_deferred": True}
             return (lambda: self.encode(crop), base64.b64encode(out.getvalue()).decode("ascii"),
                     PIPELINE, snapshot["processed_roi_quality"], crop, tags)
-        def check_score(self, *, verify=False):
+        def check_score(self, *, verify=False, token=None):
             if not self.score_lock.acquire(blocking=False):
                 raise VerificationUnavailable("上一次比对还在计算，请稍候。")
             try:
@@ -351,13 +410,17 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     if active_enrollment(self.demo):
                         raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
                 # Read a current processed exposure once, no second localization.
-                with self.camera.lock:
-                    frame = self.camera.latest_processed
+                with self.power.lock:
+                    camera = self.camera
+                    if (camera is None or (self.managed_camera and verify and self.power.owner != ("verify", token))):
+                        raise VerificationUnavailable("请先点开始验证打开相机。")
+                with camera.lock:
+                    frame = camera.latest_processed
                     now = time.monotonic()
                     if (frame is None or frame.captured.frame_id <= self.last_probe_frame
                             or not 0 <= now - frame.captured.captured_monotonic <= SCORE_AGE_LIMIT
                             or frame.roi_status.get("roi_mode") != PIPELINE or frame.enrollment_quad is None
-                            or not self.camera._camera_frame_state()["camera_ready"]):
+                            or not camera._camera_frame_state()["camera_ready"]):
                         raise VerificationUnavailable("还没有新的有效掌区。掌心朝向镜头并停稳。")
                     self.last_probe_frame = frame.captured.frame_id
                     roi = frame.roi.copy()
@@ -381,7 +444,7 @@ def build_handler(application, enrollment_html):
     from enrollment_best_frame import ranking_status
     from enrollment_review import mutate, selected_photo
     from enrollment_archive import native_roi_png
-    from station_library import list_archives, archive_image
+    from station_library import list_archives, archive_image, delete_archive
     from enrollment_window_adapter import start_refill
     from demo_flow import CaptureProcessingFailure
 
@@ -425,14 +488,19 @@ def build_handler(application, enrollment_html):
             if route == "/station-health":
                 status = application.status()
                 return self.respond({"backend": PIPELINE, "mode": "scores_only",
-                                    "ready": bool(status.get("camera_ready") and status.get("processing_thread_alive")),
+                                    "ready": not status["camera_open"] or bool(status.get("camera_ready") and status.get("processing_thread_alive")),
+                                    "camera_open": status["camera_open"],
+                                    "camera_ready": status["camera_ready"],
                                     "acceptance_available": False})
             if route == "/api/demo/users":
                 with application.demo.lock:
                     return self.respond({"users": application.demo.users()})
             if route == "/frame.jpg":
                 try:
-                    data = application.camera.jpeg_frame()
+                    camera = application.camera
+                    if camera is None:
+                        return self.respond({"message": "相机待机。"}, 503)
+                    data = camera.jpeg_frame()
                 except (OSError, RuntimeError, ValueError):
                     return self.respond({"message": "等待本机摄像头。"}, 503)
                 return self.image(data, "image/jpeg")
@@ -446,7 +514,8 @@ def build_handler(application, enrollment_html):
                 "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step",
                 "/api/demo/enroll/commit", "/api/demo/enroll/cancel", "/api/station/enroll-review",
                 "/api/station/enroll-remove", "/api/station/enroll-refill", "/api/station/enroll-stop",
-                "/api/fpn/score", "/api/fpn/verify", "/api/station/enroll-image", "/api/library/list", "/api/library/image",
+                "/api/fpn/score", "/api/fpn/verify", "/api/fpn/camera", "/api/station/camera-sleep", "/api/station/enroll-image",
+                "/api/library/list", "/api/library/image", "/api/library/delete",
             }
             if route not in allow:
                 return self.respond({"message": "影子服务没有通行、支付或旧模板写入。"}, 404)
@@ -462,20 +531,31 @@ def build_handler(application, enrollment_html):
                         raise ValueError("只可使用当前镜头帧。")
                     return self.respond(application.check_score())
                 if route == "/api/fpn/verify":
-                    if data:
-                        raise ValueError("只可使用当前镜头帧。")
-                    return self.respond(application.check_score(verify=True))
+                    return self.respond(application.check_score(verify=True, token=data.get("token")))
                 flow = application.demo
                 if route.startswith("/api/library/"):
                     root = flow.enrollment_archive_root
-                    if route.endswith("/list"):
-                        with flow.lock:
-                            result = list_archives(root)
-                        return self.respond({"archives": result})
-                    return self.image(*archive_image(root, data))
+                    with flow.lock:
+                        if route.endswith("/list"):
+                            result = {"archives": list_archives(root)}
+                        elif route.endswith("/delete"):
+                            result = delete_archive(root, data)
+                        else:
+                            image = archive_image(root, data)
+                    if route.endswith("/image"):
+                        return self.image(*image)
+                    return self.respond(result)
                 token = data.get("token")
                 if not isinstance(token, str) or len(token) != 32:
                     raise ValueError("本次登记已失效。")
+                if route == "/api/fpn/camera":
+                    action = data.get("action")
+                    if action not in ("start", "stop", "keepalive"):
+                        raise ValueError("无效相机指令。")
+                    return self.respond(application.verify_camera(token, action))
+                if route == "/api/station/camera-sleep":
+                    application.power.close(("capture", token))
+                    return self.respond({"camera_open": False})
                 if route.endswith("-image"):
                     candidate = selected_photo(flow, token, data.get("frame"))
                     if data.get("kind") == "original":
@@ -502,13 +582,18 @@ def build_handler(application, enrollment_html):
                     if route.endswith("-remove") and type(frame) is not int:
                         raise ValueError("请选择本次登记的一张照片。")
                     result = mutate(flow, token, frame, stop=route.endswith("-stop"), geometry=True)
+                application.reconcile_capture(token)
                 return self.respond(result)
+            except FileNotFoundError:
+                if route.startswith("/api/library/"):
+                    return self.respond({"message": "照片已移出照片库，请刷新。"}, 404)
+                return self.respond({"message": "所需文件暂时不可用。"}, 503)
             except VerificationUnavailable as error:
-                return self.respond({"message": str(error)}, 409 if route == "/api/fpn/verify" else 400)
+                return self.respond({"message": str(error)}, 400 if route == "/api/fpn/score" else 409)
             except (ValueError, TypeError, CaptureProcessingFailure) as error:
                 message = START_ERRORS.get(str(error)) if route.endswith("/start") else None
                 if route.endswith("/commit"):
-                    message = "暂时无法保存。请确认照片已选齐、左右手正确，再恢复状态。"
+                    message = "暂时无法保存。请确认已选齐 10 张，且左右手正确。"
                 elif route == "/api/fpn/verify":
                     message = "无法比对已登记模板，请刷新后重试。"
                 return self.respond({"message": message or "这项操作暂时不可用，请刷新当前页面后重试。"}, 400)
@@ -561,20 +646,23 @@ def main(argv=None):
                                             match_threshold=args.match_threshold)
                 # Internal 'fixed' prevents creating any legacy tracker; the override
                 # supplies the one native FPN worker and explicit frame provenance.
-                feed = Camera(
-                    0, 640, 480, roi_mode="fixed", hand_model=base.DEFAULT_HAND_MODEL,
-                    hand_pose_model=base.DEFAULT_HAND_POSE_MODEL, refine_pose=False,
-                    inference_ms=0., input_size=(256, 320), recovery_pass=False,
-                    camera_tuning_file=args.csi_tuning, capture_only=False,
-                    camera_backend="uvc" if args.uvc_device else "picamera2", uvc_device=args.uvc_device,
-                    uvc_native_size=tuple(args.uvc_native_size) if args.uvc_native_size else None,
-                )
+                native_size = tuple(args.uvc_native_size) if args.uvc_native_size else None
+                def create_feed(last_frame):
+                    return Camera(
+                        0, 640, 480, roi_mode="fixed", hand_model=base.DEFAULT_HAND_MODEL,
+                        hand_pose_model=base.DEFAULT_HAND_POSE_MODEL, refine_pose=False,
+                        inference_ms=0., input_size=(256, 320), recovery_pass=False,
+                        camera_tuning_file=args.csi_tuning, capture_only=False,
+                        camera_backend="uvc" if args.uvc_device else "picamera2", uvc_device=args.uvc_device,
+                        uvc_native_size=native_size, initial_frame_id=last_frame,
+                    )
+                application = App(create_feed=create_feed, native_size=native_size)
                 try:
-                    server.RequestHandlerClass = build_handler(App(feed), render_enrollment())
+                    server.RequestHandlerClass = build_handler(application, render_enrollment())
                     print(f"FPN+C capture and verification: http://127.0.0.1:{PORT}/enroll", flush=True)
                     server.serve_forever()
                 finally:
-                    feed.close()
+                    application.power.close()
             finally:
                 server.server_close()
     except KeyboardInterrupt:

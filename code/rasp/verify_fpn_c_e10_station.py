@@ -88,7 +88,7 @@ def main():
             app = App(feed)
             page = sut.render_enrollment()
             assert "FPN + C E10" in page and "60 秒" in page and "station-review" in page
-            assert 'id="save" hidden' in page
+            assert 'id="save" hidden' in page and 'id="verify-start"' in page
             assert 'aria-current=page>② 放掌验证' in sut.render_enrollment("/gate")
             server = ThreadingHTTPServer(("127.0.0.1", 0), sut.build_handler(app, page))
             worker = threading.Thread(target=server.serve_forever, daemon=True)
