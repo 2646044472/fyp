@@ -1,0 +1,4 @@
+# Source documentation only: local datasets and derived data never enter Git.
+/*
+!/.gitignore
+!/README.md

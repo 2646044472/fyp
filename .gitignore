@@ -64,3 +64,23 @@ external/
 /code/palm_demo/docs/protocols/SMPD_PROSPECTIVE_OPTIMIZATION_SPLIT_20261030.json
 /code/palm_demo/docs/protocols/V26_FOUR_ERROR_AUDIT_20261030.json
 /code/palm_demo/docs/protocols/V26_FULL_SCORE_RECONCILIATION_20261030.json
+
+# Maintain the same case-level exclusions at the new Pi application path.
+/code/rasp/docs/figures/rejection_policy_20261030.png
+/code/rasp/docs/protocols/*.csv
+/code/rasp/debug_samples/
+code/rasp/noir-focus-test*.jpg
+/code/rasp/docs/protocols/ACCURACY_DIAGNOSTICS_20261030.json
+/code/rasp/docs/protocols/ANATOMICAL_ORACLE_20261030.json
+/code/rasp/docs/protocols/FROZEN_PUBLIC_VALIDATION_20261030.json
+/code/rasp/docs/protocols/OPERATION_COST_ORACLE_20261030.json
+/code/rasp/docs/protocols/PI5_EXCLUSIVE_TIMING_TREE_20261030.json
+/code/rasp/docs/protocols/PI5_ORACLE_CANDIDATE_COST_20261030.json
+/code/rasp/docs/protocols/PSEUDO_UNREGISTERED_20261030.json
+/code/rasp/docs/protocols/REJECTION_POLICY_AUDIT_20261030.json
+/code/rasp/docs/protocols/REJECTION_POLICY_HTTP_20261030.json
+/code/rasp/docs/protocols/RETAINED_EVIDENCE_PILOT_20261030.json
+/code/rasp/docs/protocols/SHARED_LOCALIZER_SESSION_PILOT_20261030.json
+/code/rasp/docs/protocols/SMPD_PROSPECTIVE_OPTIMIZATION_SPLIT_20261030.json
+/code/rasp/docs/protocols/V26_FOUR_ERROR_AUDIT_20261030.json
+/code/rasp/docs/protocols/V26_FULL_SCORE_RECONCILIATION_20261030.json
