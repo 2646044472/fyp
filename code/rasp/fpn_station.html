@@ -35,6 +35,13 @@ dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);borde
 dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:flex;overflow:auto;background:#152638;border-radius:8px;margin-top:11px;color:#deebf6}
 .viewport .photo{margin:auto;flex:none;display:none}.viewport .photo.visible{display:block}.viewport .pixel img{image-rendering:pixelated}
 .viewport p{margin:auto;padding:14px}.score{font-size:1.75rem;font-weight:700;font-variant-numeric:tabular-nums}
+.diagnostics{border-top:1px solid var(--edge);margin-top:14px;padding-top:13px}
+.measurements{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0}
+.measurements div{padding:7px 9px;border-radius:7px;background:#f1f6fa}
+.measurements dt{color:var(--muted);font-size:.82rem}
+.measurements dd{margin:0;font-weight:650;font-variant-numeric:tabular-nums}
+.diagnostics details{margin-top:9px}.diagnostics summary{cursor:pointer;width:fit-content}
+.diagnostics details p{margin-top:4px}
 @media(max-width:760px){main{padding:18px 13px 32px}.split{grid-template-columns:1fr}.card{padding:14px}.station-nav small{display:none}.station-nav b{width:100%}}
 </style>
 </head>
@@ -47,6 +54,21 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <div class="row between"><h2>实时画面</h2><span class="hint" id="camera-status" role="status">正在连接相机</span></div>
     <div class="preview"><span id="camera-placeholder">等待画面</span><img id="live" alt="相机实时预览" hidden></div>
     <p class="hint">掌心朝向镜头。绿色四边形标出模型检测到的掌区。</p>
+    <section class="diagnostics" id="capture-reference" hidden aria-labelledby="reference-title">
+      <div class="row between"><h2 id="reference-title">掌区实时参考</h2><span class="hint" id="model-status"></span></div>
+      <dl class="measurements">
+        <div><dt>ROI 占画面</dt><dd id="roi-area">—</dd></div>
+        <div><dt>掌区亮度 / 255</dt><dd id="roi-brightness">—</dd></div>
+        <div><dt>相对清晰度</dt><dd id="roi-sharpness">—</dd></div>
+        <div><dt>掌区对比度</dt><dd id="roi-contrast">—</dd></div>
+      </dl>
+      <p class="status" id="capture-advice">掌心放在画面中间，等绿色框稳定。</p>
+      <details class="hint"><summary>相机参数和采集建议</summary>
+        <p id="camera-format"></p><p id="camera-controls"></p><p id="camera-timing"></p>
+        <p>清晰度用于在同一光线和姿势下比较。掌心若出现亮斑，先把补光移到侧面或打散，再观察细纹。</p>
+        <p>固定相机与手掌的距离，短暂停稳让镜头对焦。轻微调整同一只手的角度，每次移动后再停稳。</p>
+      </details>
+    </section>
   </section>
   <section id="capture" class="card" hidden>
     <div class="row between"><h2>本轮采集</h2><span class="clock" id="clock" aria-label="采集剩余时间">01:00</span></div>
@@ -90,8 +112,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
   <div class="row between"><div><h2 id="photo-title"></h2><p class="hint" id="dimensions"></p></div>
   <div class="row">
     <button class="secondary small-button" id="box" hidden aria-pressed="true">隐藏 ROI 框</button>
-    <button class="secondary small-button" id="zoom" disabled>放大</button>
-    <button class="secondary small-button" id="fit" disabled>适合窗口</button>
+    <button class="secondary small-button" id="zoom" disabled aria-label="放大" aria-pressed="false"><span aria-hidden="true">🔍</span> <span id="zoom-label">放大</span></button>
     <form method="dialog"><button class="secondary small-button">关闭</button></form>
   </div></div>
   <div class="viewport" id="viewport" tabindex="0" aria-label="照片，放大后可滚动">
@@ -146,10 +167,12 @@ async function cameraStatus() {
     const state = await r.json();
     liveReady = state.camera_ready && state.processing_thread_alive;
     palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
-    $('camera-status').textContent = palmReady ? '已检测到掌区' : liveReady ? '等待掌心入镜' : '等待相机';
+    $('camera-status').textContent = palmReady ? '已检测到掌区' : liveReady ? '等待稳定掌区' : '等待相机';
+    if (page === '/enroll') renderReference(state);
   } catch (_) {
     liveReady = palmReady = false;
     $('camera-status').textContent = '相机连接中断';
+    if (page === '/enroll') renderReference();
   } finally {
     controls();
     $('score').disabled = !palmReady || measuring;
@@ -157,10 +180,49 @@ async function cameraStatus() {
   }
 }
 
+function renderReference(state) {
+  const metrics = palmReady ? state.capture_reference : null;
+  const value = (n, digits = 1) => Number.isFinite(n) ? n.toFixed(digits) : '—';
+  const size = values => values?.join(' × ') || '—';
+  $('model-status').textContent = state?.backend === 'fpn-c-e10-frozen' ? 'FPN + C E10 在线' : '';
+  $('roi-area').textContent = metrics ? value(metrics.roi_area_pct) + '%' : '—';
+  $('roi-brightness').textContent = value(metrics?.median_gray, 0);
+  $('roi-sharpness').textContent = value(metrics && state.quality.sharpness, 0);
+  $('roi-contrast').textContent = value(metrics && state.quality.contrast);
+  $('camera-format').textContent = state ? '相机原图 ' + size(state.original_capture_size) +
+    (state.capture_format ? ' ' + state.capture_format : '') + ' · 分析 ' + size(state.analysis_size) + ' · 识别 ROI 128 × 128' : '';
+  const settings = state?.camera_controls_at_start;
+  const cameraControls = [];
+  if (settings?.focus_automatic_continuous !== undefined) cameraControls.push(settings.focus_automatic_continuous ? '连续自动对焦' : '连续自动对焦关闭');
+  if (settings?.auto_exposure !== undefined) {
+    const modes = ['自动曝光','手动曝光','快门优先','光圈优先自动曝光'];
+    cameraControls.push(modes[settings.auto_exposure] || '曝光模式 ' + settings.auto_exposure);
+  }
+  for (const [key, label] of [['brightness','亮度'],['contrast','对比度'],['sharpness','锐度']]) {
+    if (settings?.[key] !== undefined) cameraControls.push(label + ' ' + settings[key]);
+  }
+  $('camera-controls').textContent = cameraControls.length ? '启动时相机设置 · ' + cameraControls.join(' · ') : '';
+  const latency = state?.processed_monotonic_ms - state?.captured_monotonic_ms;
+  $('camera-timing').textContent = Number.isFinite(latency) && state.roi_status_fresh ?
+    '最近一帧掌区处理耗时 ' + Math.round(latency) + ' ms' : '';
+
+  let advice = '掌心入镜，手指自然张开，等绿色框稳定后停一会儿。';
+  if (!liveReady) advice = '相机暂未就绪，等实时画面恢复。';
+  else if (!state.roi_status_fresh || state.roi_reason === 'fpn_frame_stale') advice = '正在等新鲜掌区帧，先停稳手掌。';
+  else if (state.roi_reason === 'invalid_original_geometry') advice = '把掌心往画面中间移动，给掌区四周留出空隙。';
+  else if (metrics) {
+    if (metrics.median_gray >= 195 || metrics.bright_pct >= 2) advice = '掌区偏亮。把补光略移到侧面或减弱，检查亮斑内的细纹。';
+    else if (metrics.median_gray < 65 || metrics.dark_pct >= 8) advice = '掌区偏暗。补一点均匀的光，减少深阴影。';
+    else if (metrics.roi_area_pct < 4) advice = '掌区在画面里较小。稍靠近镜头，停稳后观察清晰度。';
+    else advice = '掌区已定位。停稳让镜头对焦，保存前放大检查主纹和细纹。';
+  }
+  $('capture-advice').textContent = advice;
+}
+
 const handing = hand => hand === 'left' ? '左手' : '右手';
 const names = {original:'相机原图', detail:'高清 ROI', model:'识别 ROI'};
 const viewer = $('viewer'), full = $('full-image'), fullPhoto = $('full-photo');
-let viewerVersion = 0, photoUrl, magnification = 0;
+let viewerVersion = 0, photoUrl, magnified = false;
 function outline(photo, sample) {
   if (!sample.quad || !sample.size) return;
   const ns = 'http://www.w3.org/2000/svg';
@@ -187,18 +249,24 @@ function sizePhoto() {
   if (!width || !height || !viewer.open) return;
   const viewport = $('viewport');
   const fit = Math.min(1, viewport.clientWidth / width, viewport.clientHeight / height);
-  const scale = magnification || fit;
+  const scale = magnified ? Math.max(1, fit * 2, width <= 128 ? 3 : 1) : fit;
   fullPhoto.style.width = Math.floor(width * scale) + 'px';
   fullPhoto.style.height = Math.floor(height * scale) + 'px';
   $('dimensions').textContent = width + ' × ' + height + ' 像素 · ' + Math.round(scale*100) + '%';
+  $('zoom-label').textContent = magnified ? '缩小' : '放大';
+  $('zoom').setAttribute('aria-label', $('zoom-label').textContent);
+  $('zoom').setAttribute('aria-pressed', String(magnified));
 }
 viewer.addEventListener('close', clearViewer);
 window.addEventListener('resize', sizePhoto);
-$('fit').onclick = () => { magnification = 0; sizePhoto(); };
 $('zoom').onclick = () => {
-  magnification = magnification === 0 ? (fullPhoto.clientWidth < full.naturalWidth ? 1 : 2) :
-    magnification >= 4 ? 1 : magnification * 2;
+  magnified = !magnified;
   sizePhoto();
+  if (magnified) {
+    const view = $('viewport');
+    view.scrollLeft = (view.scrollWidth - view.clientWidth) / 2;
+    view.scrollTop = (view.scrollHeight - view.clientHeight) / 2;
+  }
 };
 $('box').onclick = () => {
   const mark = fullPhoto.querySelector('.outline');
@@ -210,13 +278,16 @@ $('box').onclick = () => {
 async function showPhoto(sample, kind, load) {
   clearViewer();
   const version = viewerVersion;
-  magnification = 0;
+  magnified = false;
+  $('zoom-label').textContent = '放大';
+  $('zoom').setAttribute('aria-label', '放大');
+  $('zoom').setAttribute('aria-pressed', 'false');
   $('photo-title').textContent = names[kind];
   $('dimensions').textContent = '';
   $('image-status').textContent = '正在读取图片';
   $('image-status').hidden = false;
   $('box').hidden = true;
-  $('zoom').disabled = $('fit').disabled = true;
+  $('zoom').disabled = true;
   if (!viewer.open) viewer.showModal();
   try {
     const source = await load(kind);
@@ -234,7 +305,7 @@ async function showPhoto(sample, kind, load) {
     }
     $('image-status').hidden = true;
     fullPhoto.classList.add('visible');
-    $('zoom').disabled = $('fit').disabled = false;
+    $('zoom').disabled = false;
     sizePhoto();
     $('viewport').scrollTop = $('viewport').scrollLeft = 0;
   } catch (_) {
@@ -512,7 +583,7 @@ async function library() {
 if (page === '/enroll') {
   $('title').textContent = '掌纹采集';
   $('subtitle').textContent = 'FPN + C E10 · 60 秒内选帧，确认后保存五组照片。';
-  $('camera-page').hidden = $('capture').hidden = false;
+  $('camera-page').hidden = $('capture').hidden = $('capture-reference').hidden = false;
   setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
   try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}
   if (session) void restore();

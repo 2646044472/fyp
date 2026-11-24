@@ -9,6 +9,8 @@ import json
 import math
 import os
 from pathlib import Path
+import re
+import subprocess
 import sys
 import threading
 import time
@@ -85,6 +87,33 @@ def classify_frame(np, cv, backend, model, rgb, *, processed_age):
     return roi, corners, quality, "valid"
 
 
+def capture_reference(np, cv, roi, corners, size):
+    """Descriptive measurements from the same exposure as the visible ROI."""
+    return {
+        "roi_area_pct": round(100 * cv.contourArea(corners.astype(np.float32)) / math.prod(size), 1),
+        "median_gray": round(float(np.median(roi)), 1),
+        "dark_pct": round(100 * float(np.mean(roi <= 5)), 1),
+        "bright_pct": round(100 * float(np.mean(roi >= 250)), 1),
+    }
+
+
+def read_uvc_controls(camera):
+    settings = {}
+    if camera is None:
+        return settings
+    try:
+        result = subprocess.run(["v4l2-ctl", "--device", str(camera.device), "--list-ctrls"],
+                                capture_output=True, text=True, timeout=1.5, check=True)
+    except (OSError, subprocess.SubprocessError):
+        return settings
+    controls = {"auto_exposure", "focus_automatic_continuous", "brightness", "contrast", "sharpness"}
+    for line in result.stdout.splitlines():
+        match = re.match(r"\s*(\w+)\s+0x\w+.*?\bvalue=(-?\d+)", line)
+        if match and match[1] in controls:
+            settings[match[1]] = int(match[2])
+    return settings
+
+
 def require_template(np, features, metadata, required):
     if any(metadata.get(key) != value for key, value in required.items()):
         raise ValueError("FPN+C 模板版本不符；请用独立目录重新登记。")
@@ -159,6 +188,7 @@ def make_camera(base, frame_class, backend, localizer, np, cv):
                     "demo_quality_status": state, "demo_quality_reason": None if valid else reason,
                     "demo_quality_consecutive_frames": int(valid), "demo_quality_required_frames": 1,
                     "enrollment_geometry_valid": valid, "quality": quality,
+                    "capture_reference": capture_reference(np, cv, roi, corners, captured.image.size) if valid else None,
                     "captured_monotonic_ms": captured.captured_monotonic * 1000.,
                     "processed_monotonic_ms": time.monotonic() * 1000.,
                 }
@@ -232,12 +262,18 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv):
     class ShadowApp:
         def __init__(self, feed):
             self.camera = feed
+            self.camera_controls = read_uvc_controls(getattr(feed, "uvc_camera", None))
             self.score_lock = threading.Lock()
             self.encode_lock = threading.Lock()
             self.last_probe_frame = -1
             self.demo = ShadowFlow(feed, lambda: self.capture_demo_feature(enrollment=True, include_candidate=True))
         def status(self):
             status = dict(self.camera.status(), backend=PIPELINE, mode="scores_only", acceptance_available=False)
+            uvc = getattr(self.camera, "uvc_camera", None)
+            if uvc is not None:
+                status.update(capture_format=uvc.fourcc, analysis_size=list(uvc.analysis_size))
+            if self.camera_controls:
+                status["camera_controls_at_start"] = self.camera_controls
             original_size = getattr(self.camera, "uvc_native_size", None) or getattr(self.camera, "capture_size", None)
             if original_size is not None:
                 status["original_capture_size"] = list(original_size)
