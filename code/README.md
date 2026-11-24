@@ -28,6 +28,8 @@
 | MPD 配对的 C／PalmBridge、Tongji 跨访次配对、非 MPD 多库、MPD 全图与手视野诊断 | X 本地实验已有成套运行脚本；公开侧从[计数协议](../gitea-um/research_code/README.md)、[分析报告](../gitea-um/README.md)和[数据来源](../dataset/README.md)核对条件 | 经过路径和依赖审查，原脚本仍绑定本机实验、数据适配器或授权工件；当前公共检出不能重跑这些冻结读数。未把它们混入应用目录或包装成可移植 CLI |
 | ROI 缺失、方向、可见覆盖和规则切换 | [离线几何](offline_roi_audit/README.md)及 [覆盖计数示例](../gitea-um/research_code/README.md#replay-the-crop-fallback-without-biometric-data) | 原图和诊断样本，尚未推广的留出验证、现场替换和新优化均不在此交接中 |
 
+若已在本机取得两个方法的逐查询结果，使用 [配对结果计数器](experiment_registry/paired_outcomes.py) 把它们放在一份固定查询计划里，只输出汇总（`python code/experiment_registry/paired_outcomes.py --self-test` 无外部依赖）。它不执行模型、不拟合阈值、不复跑历史实验。
+
 按固定协议统计时保留全部计划查询，包括未登记、缺图和未裁出 ROI 的查询；识别名次与接受／拒绝单独报，不用测试集调阈值。配对比较使用同一独立名单、固定注册张数和相同查询。
 
 ## 改代码先跑合成检查
