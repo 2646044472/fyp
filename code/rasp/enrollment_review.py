@@ -82,9 +82,9 @@ function draw(d,t){const items=Array.isArray(d.items)?d.items:[];const key=items
 if(d.status!=='REVIEW'){reload();return}panel.hidden=false;
 const partial=d.state==='partial';stationResumeAllowed=d.resumeAllowed!==false;stop.hidden=d.state!=='collecting';
 if(partial&&!stationPartial){stationPartial=true;enrollmentPaused=true;enrollmentSawNotReady=false;
-notice.textContent=d.kept?'本轮已停止，已选照片已保留；可只补缺额。':'本轮未发现可用掌区；可放稳手掌再补拍。';controls()}
+notice.textContent=d.kept?'本轮已停止，已选照片已保留；可只补缺额。':'没选到可用掌区：请把一只手的掌心放完整并稳一下；若画面不动，检查摄像头。';controls()}
 heading.textContent='已选 '+d.kept+'/5 张'+(d.kept<5?(d.state==='collecting'?'，正在挑选':'，还差 '+(5-d.kept)+' 张'):'，点击原图或 ROI 可放大');
-if(partial&&!stationResumeAllowed)heading.textContent+='；已达本次两分钟上限';
+if(partial&&!stationResumeAllowed)heading.textContent+='；已达本次 60 秒上限';
 const locked=d.inFlight||d.state==='collecting';
 enrollmentThumbnails=items.map(i=>i.roi).filter(Boolean);document.getElementById('enroll-thumbs').replaceChildren();
 if(d.state==='ready'&&!d.inFlight&&!busy&&!enrollmentStopping){document.getElementById('enroll-commit').hidden=false;enrollmentPaused=false;controls()}

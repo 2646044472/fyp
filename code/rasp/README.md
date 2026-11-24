@@ -1,5 +1,7 @@
 # 树莓派掌纹采集站（rasp）
 
+如需了解当前登记取帧时限、候选排行与双图复核，请看 [60 秒登记与排查](capture-60s.md)。
+
 这是 FYP 的 **Pi 5 本地采集界面与部署代码**，不是独立识别模型。它使用已有的 **PKLNet + FastCC v6**，不包含 X 上的 FPN+C E10，不修改验证阈值。照片、ROI、登记模板、采集记录和模型文件均不随此目录分发。
 
 | 页面 | 能做什么 |
@@ -8,7 +10,7 @@
 | `/gate` | 放掌后自动试一次；移开后再开始下一轮。 |
 | `/collect` | 在 Pi 本机管理采集记录。 |
 
-每轮从按下「开始」起最多 20 秒，第一张可用后最多再筛 8 秒；集齐五张即停，未满可继续补拍，同一登记合计不超过 120 秒。程序不默认保存整段视频。
+每次登记从按下「开始」起最多 60 秒（服务端 59 秒取帧上限，含补拍）。凑齐五张后也会短暂浏览已有候选，正常可提前结束；不足五张时可预览已有的。程序不保存整段视频。
 
 ## 换一台电脑开发
 
@@ -40,10 +42,10 @@ bash -n install-on-pi.sh && bash -n rollback-on-pi.sh
 基础应用的配置、依赖、回退方法见 [识别引擎说明](ENGINE-README.md)。采集站服务假定 Pi 上已有 `${HOME}/palm_demo`、该目录可用的 `.venv/bin/python`，以及可用的 PKLNet/FastCC v6 本地模型。基础引擎源码也在本目录。新建 Pi 基础环境时，把本目录中的源码部署至运行目录，不要覆盖已有的本机模型、设置与采集数据。采集站本身不安装基础模型或系统依赖。部署前先在 Pi 上用基础应用的虚拟环境验证导入（此命令不开摄像头）：
 
 ```sh
-(cd "$HOME/palm_demo" && .venv/bin/python -c 'from palm_app import debug_ui; from demo_flow import enrollment_quality_issue')
+(cd "$HOME/palm_demo" && .venv/bin/python -c 'from palm_app import debug_ui; from demo_flow import enrollment_quality_issue; assert "enrollment_quad" in debug_ui.ProcessedFrame.__dataclass_fields__, "sync compatible camera module before v3 install"')
 ```
 
-**更新已装采集站**：先保存或结束所有进行中的登记，然后在 Pi 上进入本目录运行 `bash install-on-pi.sh`。脚本先测试，再备份代码并重启用户服务；页面未恢复时还原。页面响应不等同摄像头就绪，下面仍要实机检查。它不会修改登记或模型；重启会丢失尚未保存的候选。手动回退：`bash rollback-on-pi.sh <安装时打印的备份目录>`。
+**更新已装采集站**：旧的基础运行目录必须先更新相机代码。先备份本机基础应用和采集站代码，按上面的基础应用说明更新到兼容的完整源码，并确认上面的导入检查成功；不要用单个基础模块强行覆盖异版。保存或结束所有进行中的登记，然后在 Pi 上进入本目录运行 `bash install-on-pi.sh`。脚本先测试，再备份代码并重启用户服务；页面未恢复时还原。页面响应不等同摄像头就绪，下面仍要实机检查。它不会修改登记或模型；重启会丢失尚未保存的候选。手动回退：`bash rollback-on-pi.sh <安装时打印的备份目录>`。
 
 **新增采集站**：基础应用就绪后，在 Pi 上从本目录放入代码及服务（用户权限即可）：
 
@@ -65,3 +67,4 @@ Pi 本机打开 [登记页](http://127.0.0.1:8088/enroll)。新电脑如果可�
 先确认 `systemctl --user is-active palm-capture-station.service` 返回 `active`，且画面实时更新、不停在等待页。用同意参加的测试编号走一轮：登记预览 → 比对原图与 ROI → 删除一对并补齐 → 手动保存 → 移开手 → 同掌验证 → 再用未登记的掌确认不误通过。浏览器显示的请求时间不含把手举进画面和等到合格 ROI 的时间，不能当作全程响应时间。仓库里的测试只验证软件流程，不证明实际采集、识别准确率或硬件速度。
 
 请勿提交原图、ROI、模板、运行日志、模型、私钥或相机本机配置。
+

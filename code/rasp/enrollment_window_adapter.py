@@ -29,18 +29,30 @@ def response(s, state, base=None):
     d = dict(base or {})
     d.update(status={"partial":"STATION_PARTIAL","ready":"READY","collecting":"COLLECTING"}[state],
              kept=len(s["features"]), required=5, attempts=s["attempts"],
-             candidate_pool_count=len(s["photo_candidates"]), candidate_pool_required=5,
+             candidate_pool_count=len(s["station_payloads"]), candidate_pool_required=5,
              quality_failures=s["quality_failures"], duplicate_frames=s["duplicate_frames"],
              feature_failures=s["feature_failures"], timeout_ms_remaining=max(0,int((600-time.monotonic()+s["last_activity"])*1000)),
              selected_roi_images=list(s["selected_roi_images"]), retry_after_ms=250)
-    d.pop("capture_failure",None)
-    d["reason"] = ("所选照片已就绪，检查后确认保存。" if state=="ready" else
-                   ("本轮取帧已停止，已保留所选候选；需要时只补齐缺额。" if state=="partial" else
-                    "正在从新鲜、有效的掌区里挑选；请保持同一只手。"))
+    failure = d.pop("capture_failure", None)
+    if failure:
+        s["station_last_rejection"] = failure
+    d["station_last_rejection"] = s.get("station_last_rejection")
+    remaining = max(0, int(1000 * (s["station_started"] + MAX_TOTAL_CAPTURE_SECONDS - time.monotonic())))
+    d["station_capture_ms_remaining"] = remaining
+    if state == "ready":
+        d["reason"] = "所选照片已就绪，检查原图和 ROI 后确认保存。"
+    elif state == "partial" and not d["kept"]:
+        d["reason"] = ("这轮没有可用掌区。请让一只手的掌心完整进入画面，稳一下再开始；"
+                       "如预览不动，请检查相机连接。")
+    elif state == "partial":
+        d["reason"] = ("采集已停止，已选照片可查看；需要时只补齐缺额。" if remaining else
+                       "已达本次采集上限；已有照片可查看，若不足五张可重新开始。")
+    else:
+        d["reason"] = d.get("reason") or "正在从可用掌区里挑选；请保持同一只手。"
     return d
 
 
-MAX_TOTAL_CAPTURE_SECONDS = 120
+MAX_TOTAL_CAPTURE_SECONDS = 59
 
 
 def initialize(s):
@@ -72,7 +84,7 @@ def session_status(s, d):
     result=dict(d)
     result.update(status="READY" if state=="ready" else "PAUSED",
                   station_partial=state=="partial", station_state=state,
-                  kept=len(s["features"]), candidate_pool_count=len(s["photo_candidates"]),
+                  kept=len(s["features"]), candidate_pool_count=len(s["station_payloads"]),
                   selected_roi_images=list(s["selected_roi_images"]),
                   resume_allowed=time.monotonic()<s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS)
     if state!="collecting":
@@ -89,10 +101,10 @@ def start_refill(flow, token):
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
         now=time.monotonic()
-        cap=min(20.,s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS-now)
+        cap=s["station_started"]+MAX_TOTAL_CAPTURE_SECONDS-now
         if cap<=0:
-            raise ValueError("本次已达两分钟采集上限。已有照片仍可查看；请取消后重新开始。")
-        s["station_window"] = Window(now,absolute_timeout_s=cap,useful_window_s=min(8.,cap),
+            raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
+        s["station_window"] = Window(now,absolute_timeout_s=cap,useful_window_s=min(12.,cap),
                                      retained=s.get("station_retained",()),
                                      latest_consumed_id=s.get("last_capture_frame_id") or -1)
         s["last_activity"]=now
@@ -105,12 +117,12 @@ def run_step(flow, original, local, token, *args, **kwargs):
         return original(flow, token, *args, **kwargs)
     with flow.lock:
         s=flow._active_enrollment(token)
-        if s["capture_in_flight"] or s.get("station_step_in_flight"):
-            return dict(status="WAIT",required=5,kept=len(s["features"]),retry_after_ms=250,
-                        attempts=s["attempts"])
         state=sync_selection(s,stop=bool(kwargs.get("selection_only")))
         if state!="collecting":
             return response(s,state)
+        if s["capture_in_flight"] or s.get("station_step_in_flight"):
+            return dict(status="WAIT",required=5,kept=len(s["features"]),retry_after_ms=250,
+                        attempts=s["attempts"])
         w=s["station_window"]
         s["station_step_in_flight"]=True
         # Existing flow still handles capture/feature safety and de-duplication;

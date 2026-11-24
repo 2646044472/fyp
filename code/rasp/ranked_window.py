@@ -76,18 +76,16 @@ def select_set(candidates, *, retained=(), count=5):
     pool = [c for c in clean if plausible(c,anchor)]
     if not pool:
         return tuple(chosen[:count])
-    # Relative quality floor: a 0.7 frame is eligible if this camera's
-    # current valid pool is around 0.7, independent of the old absolute floor.
+    # Score all usable frames relative to this camera; no absolute quality floor.
     sharp = sorted([c.sharpness for c in pool]+[anchor.sharpness])
     contrast = sorted([c.contrast for c in pool]+[anchor.contrast])
     ref_s,ref_c = sharp[len(sharp)//2],contrast[len(contrast)//2]
-    pool = [c for c in pool if c.sharpness >= ref_s*.50 and c.contrast >= ref_c*.52]
     while len(chosen)<count:
         eligible = [c for c in pool if not any(duplicate(c,o) for o in chosen)]
         if not eligible:
             break
         def score(c):
-            quality = .65*min(1,c.sharpness/ref_s)+.35*min(1,c.contrast/ref_c)
+            quality = .65*min(1.5,c.sharpness/ref_s)+.35*min(1.5,c.contrast/ref_c)
             spread = min(coverage(c,o) for o in chosen)
             return (.62*quality+.38*spread,c.sharpness,c.contrast,-c.frame_id)
         chosen.append(max(eligible,key=score))
@@ -96,8 +94,8 @@ def select_set(candidates, *, retained=(), count=5):
 @dataclass
 class Window:
     started_s: float
-    absolute_timeout_s: float = 20
-    useful_window_s: float = 8
+    absolute_timeout_s: float = 59
+    useful_window_s: float = 12
     retained: tuple = ()
     latest_consumed_id: int = -1
     pool: list = field(default_factory=list, init=False)
@@ -106,16 +104,15 @@ class Window:
 
     def __post_init__(self):
         if not (math.isfinite(self.started_s)
-                and 0 < self.useful_window_s <= self.absolute_timeout_s <= 120):
-            raise ValueError("Invalid capture window; never exceed two minutes.")
+                and 0 < self.useful_window_s <= self.absolute_timeout_s <= 60):
+            raise ValueError("Invalid capture window; never exceed one minute.")
         if len(self.retained)>5 or not all(usable(c) for c in self.retained):
             raise ValueError("Invalid retained descriptors.")
         self.latest_consumed_id = max([self.latest_consumed_id]+[c.frame_id for c in self.retained])
 
     @property
     def deadline(self):
-        cut = self.started_s+self.absolute_timeout_s
-        return min(cut, self.first_valid_s+self.useful_window_s) if self.first_valid_s is not None else cut
+        return self.started_s+self.absolute_timeout_s
 
     def observe(self,c,now):
         if self._sealed is not None or not math.isfinite(now) or now >= self.deadline:
@@ -135,7 +132,10 @@ class Window:
             raise ValueError("Monotonic time is required.")
         if self._sealed is None:
             selected = select_set(self.pool,retained=self.retained)
-            if len(selected)>=5 or now>=self.deadline:
+            enough = len(selected) >= 5
+            # Bootstrap with several opportunities, not simply the first five.
+            matured = self.first_valid_s is not None and now >= self.first_valid_s + self.useful_window_s
+            if now >= self.deadline or (enough and (len(self.pool) >= 12 or matured)):
                 self._sealed=selected
             else:
                 return "collecting", selected

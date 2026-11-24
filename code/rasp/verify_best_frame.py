@@ -82,3 +82,25 @@ assert flow.enrollment_quality_issue({"sharpness": .7, "contrast": 8}) == "old s
 assert "/api/station/enroll-status?t=" in s.render("<body>/api/status?t=</body>", "/enroll")
 assert "/api/station/enroll-status?t=" not in s.render("<body>/api/status?t=</body>", "/gate")
 print("PASS: ranked among valid fresh frames, consumed distinct exposures, blocked invalid geometry/zero/stale, scoped enrollment UI and runtime, verification gate remained strict")
+
+# Geometry and pixels can survive a strict quality rejection: the older
+# ProcessedFrame would expose the ROI pixels but lose its accepted quad.
+frames = [frame(i, 1 + i/10, .65) for i in range(2, 23)]
+for p in frames:
+    p.enrollment_quad, p.roi_quad = p.roi_quad, None
+    p.roi_status.update(quality_status="LOW_QUALITY", quality_reason="sharpness_below_minimum",
+                        enrollment_geometry_valid=True)
+    raw = dict(p.roi_status, camera_ready=True, roi_status_fresh=True)
+    assert strict(raw) == "blocked" and strict(b.ranking_status(raw)) is None
+    assert raw["quality_status"] == "LOW_QUALITY"  # no verification mutation
+f = FakeFeed(frames)
+assert b.select_frame(f,strict,Failure,clock=lambda:f.now,sample_window=.85)[2]["processed_roi_quad"] < 0
+f = FakeFeed([frames[0]])
+frames[0].enrollment_quad = None  # visible pixels, but invalid geometry
+try:
+    b.select_frame(f,strict,Failure,clock=lambda:f.now)
+except Failure:
+    pass
+else:
+    raise AssertionError("enrollment status alone cannot admit unsafe geometry")
+print("PASS: low-sharpness sidecar fixes lost geometry; verification unchanged; missing geometry rejected")

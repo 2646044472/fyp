@@ -135,7 +135,7 @@ $('enroll-resume').onclick=stationResume;
         html = html.replace("<h2>2. 模拟支付</h2>", '<h2>登记后</h2><p><a href="/gate">前往放掌验证 →</a></p><h2 hidden>旧版监督演示</h2>', 1)
         html = html.replace('<p>演示商品 · MOP 20.00</p>', "", 1)
         html = html.replace('id="identify"', 'id="identify" hidden', 1)
-        html = html.replace("先录入，再拍照识别。", "选择左／右手。全程只放同一只手，不用连按拍照。")
+        html = html.replace("先录入，再拍照识别。", "选择左／右手。全程只放同一只手。最多 60 秒，自动选出最好的五张供检查，不用连按拍照。")
         html = html.replace("const GATE_MODE=new URLSearchParams(location.search).get('mode')==='gate'", "const GATE_MODE=true", 1)
         html = html.replace("async function preview(){", "async function preview(){\n if(document.hidden){setTimeout(preview,400);return;}", 1)
         html = html.replace("收集完成后自动选出 ${required} 张", "目标 ${required} 张；自动挑清晰度较高的有效掌区，不设固定锐度下限", 1)

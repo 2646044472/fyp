@@ -9,6 +9,13 @@ def ranking_status(status):
     out = dict(status)
     for key in ("status", "reason", "consecutive_frames", "required_frames"):
         out["demo_quality_" + key] = out.get("quality_" + key)
+    # The browser/CSI precheck may start scanning, but only the camera loop's
+    # exact fresh quadrilateral and usable pixels can become a candidate.
+    if (out.get("enrollment_geometry_valid") is True
+            and out.get("camera_ready") is True and out.get("roi_status_fresh") is True
+            and finite_roi_quality(out.get("quality", {})) is not None):
+        out.update(demo_quality_status="READY", demo_quality_reason=None,
+                   demo_quality_consecutive_frames=1, demo_quality_required_frames=1)
     out["demo_quality"] = out.get("quality", {})
     out["demo_quality_config"] = {}
     return out
@@ -45,14 +52,15 @@ def select_frame(feed, is_ready, failure_class, *, clock=time.monotonic,
                 stat["roi_status_fresh"] = (feed.processing_thread.is_alive()
                                             and 0 <= age <= 1.25)
                 score = finite_roi_quality(stat.get("quality", {}))
+                quad = getattr(p, "enrollment_quad", p.roi_quad)
                 if (c.captured_monotonic >= started and score is not None
-                        and p.roi is not None and p.roi_quad is not None
+                        and p.roi is not None and quad is not None
                         and not is_ready(ranking_status(stat))):
                     key = (*score, c.frame_id)
                     if best is None:
                         deadline = min(now + sample_window,hard_deadline)
                     if best is None or key > best[0]:
-                        best = key, p
+                        best = key, p, quad
             if now >= deadline:
                 break
             feed.frame_condition.wait(timeout=max(0.0, deadline - clock()))
@@ -60,7 +68,7 @@ def select_frame(feed, is_ready, failure_class, *, clock=time.monotonic,
         # taken inside this bounded window stale, but device loss does.
         if best is None or not feed.running or not feed._camera_frame_state().get("camera_ready"):
             raise failure_class("ROI_NOT_READY", "没等到可用的新掌区；请把手掌放入画面。")
-        p = best[1]
+        _, p, quad = best
         c = p.captured
         feed.station_enroll_last = after
         image = c.image.copy()
@@ -73,7 +81,7 @@ def select_frame(feed, is_ready, failure_class, *, clock=time.monotonic,
             "color_order": "RGB",
             "capture_profile": feed.capture_profile,
             "processed_roi": p.roi.copy(),
-            "processed_roi_quad": p.roi_quad.copy(),
+            "processed_roi_quad": quad.copy(),
             "processed_roi_quality": dict(p.roi_status.get("quality", {})),
             "processed_roi_mode": p.roi_status.get("roi_mode"),
         }

@@ -43,37 +43,41 @@ try:
         loc.review_frame=(fid,Picture(),now)
         assert a.run_step(f,base,loc,"session")["status"]=="COLLECTING"
     now+=9
-    d=a.run_step(f,base,loc,"session")
+    d=a.run_step(f,base,loc,"session",selection_only=True)
     assert (d["status"],d["kept"])==("STATION_PARTIAL",4)
     assert f.enrollment_session["attempts"]==4
     assert dict(r.mutate(f,"session")["items"][0])["rgb"]=="c3ludGhldGlj"
     a.start_refill(f,"session")
     now += .5
     loc.review_frame=(5,Picture(),now)
-    d=a.run_step(f,base,loc,"session")
+    a.run_step(f,base,loc,"session")
+    d=a.run_step(f,base,loc,"session",selection_only=True)
     assert (d["status"],d["kept"])==("READY",5)
     assert r.mutate(f,"session",5)["kept"]==4
     retained_ids=list(f.enrollment_session["selected_frame_ids"])
     a.start_refill(f,"session")
     now += .5
     loc.review_frame=(6,Picture(),now)
-    d=a.run_step(f,base,loc,"session")
+    a.run_step(f,base,loc,"session")
+    d=a.run_step(f,base,loc,"session",selection_only=True)
     assert (d["status"],d["kept"])==("READY",5)
     assert f.enrollment_session["selected_frame_ids"]==retained_ids+[6]
     g=Flow()
     g.enrollment_session["last_activity"]=now
     loc.review_frame=None
     assert a.run_step(g,base,loc,"session")["status"]=="COLLECTING"
-    now+=20
+    now+=59
     assert a.run_step(g,base,loc,"session")["status"]=="STATION_PARTIAL"
     assert g.enrollment_session["attempts"]==1
+    assert a.run_step(g,base,loc,"session")["station_last_rejection"]=="ROI_NOT_READY"
+    assert "相机连接" in a.run_step(g,base,loc,"session")["reason"]
     # A paused browser must not move the clock when the first request is late.
     now=200.0
     g=Flow()
     g.enrollment_session.update(started=now,last_activity=now)
     a.initialize(g.enrollment_session)
     a.initialize(g.enrollment_session)
-    now+=21
+    now+=60
     loc.review_frame=(1,Picture(),now)
     assert a.session_status(g.enrollment_session,{})["station_partial"]
     d=a.run_step(g,base,loc,"session")
@@ -88,6 +92,7 @@ try:
         loc.review_frame=(fid,Picture(),now)
         assert a.run_step(h,base,loc,"session")["status"]=="COLLECTING"
     now+=9
+    a.run_step(h,base,loc,"session",selection_only=True)
     d=a.session_status(h.enrollment_session,{})
     assert d["station_state"]=="partial" and d["kept"]==3
     assert sorted(x["frame"] for x in r.mutate(h,"session")["items"])==[1,2,3]
@@ -101,19 +106,20 @@ try:
     a.start_refill(h,"session")
     now+=.5
     loc.review_frame=(5,Picture(),now)
-    assert a.run_step(h,base,loc,"session")["kept"]==5
+    a.run_step(h,base,loc,"session")
+    assert a.run_step(h,base,loc,"session",selection_only=True)["kept"]==5
     assert r.mutate(h,"session",5)["kept"]==4
     assert sorted(h.enrollment_session["station_payloads"])==[1,2,3,4]
-    now=419.75
+    now=358.75
     assert a.start_refill(h,"session")["kept"]==4
-    assert h.enrollment_session["station_window"].deadline==420
-    now=420
+    assert h.enrollment_session["station_window"].deadline==359
+    now=359
     loc.review_frame=(6,Picture(),now)
     d=a.run_step(h,base,loc,"session")
     assert (d["status"],d["kept"],d["attempts"])==("STATION_PARTIAL",4,5)
     try:
         a.start_refill(h,"session")
-        raise AssertionError("refill after two minutes accepted")
+        raise AssertionError("refill after 59 seconds accepted")
     except ValueError:
         pass
 
@@ -137,4 +143,4 @@ try:
 
 finally:
     a.time.monotonic=original_clock
-print("PASS: Start-anchored timeout, status-only partial survival, explicit stop and late completion, payload eviction, fresh refill and 120s total cap")
+print("PASS: Start-anchored timeout, status-only partial survival, explicit stop and late completion, payload eviction, fresh refill and 59s server cap")

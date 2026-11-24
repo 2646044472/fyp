@@ -131,6 +131,7 @@ class ProcessedFrame:
     roi_quad: np.ndarray | None
     roi: np.ndarray
     roi_status: dict[str, Any]
+    enrollment_quad: np.ndarray | None = None
 
 
 HTML = """<!doctype html>
@@ -370,6 +371,7 @@ class CameraFeed:
             try:
                 roi_quad: np.ndarray | None = None
                 quality: dict[str, float]
+                enrollment_quad = None
                 if self.tracker is not None:
                     submitted = self.tracker.submit(captured.image, int(captured.captured_monotonic * 1000))
                     if submitted is False:
@@ -412,6 +414,12 @@ class CameraFeed:
                         tracker_status=str(roi_status["roi_status"]),
                         quality=quality,
                     )
+                    # Preserve independently validated geometry for enrollment ranking.
+                    # Never pass this quad to verification or the strict quality gate.
+                    if (candidate_quad is not None
+                            and self.quality_gate._geometry_reason(candidate_quad, captured.image.size) is None
+                            and quality_result.reason != "stale"):
+                        enrollment_quad = candidate_quad.copy()
                     roi_quad = quality_result.roi_quad
                 else:
                     roi_status = {
@@ -460,12 +468,14 @@ class CameraFeed:
                           sharpness=float(quality.get('sharpness', 0)),
                           contrast=float(quality.get('contrast', 0)))
                     self._last_logged_demo_quality = quality_key
+                roi_status["enrollment_geometry_valid"] = enrollment_quad is not None
                 with self.lock:
                     self.latest_processed = ProcessedFrame(
                         captured,
                         None if roi_quad is None else roi_quad.copy(),
                         roi.copy(),
                         roi_status,
+                        enrollment_quad,
                     )
                     self.latest_roi_status = roi_status
                     self.frame_condition.notify_all()
