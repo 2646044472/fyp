@@ -34,6 +34,9 @@ button.secondary{background:#eef4fa;color:#204a6c;border-color:var(--edge)}butto
 .outline polygon{fill:none;stroke:#4fffc2;stroke-width:2.4;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 2px #111)}
 .small-button{font-size:.85rem;padding:5px 9px}.library-header{margin-bottom:12px}.library-header input{max-width:260px}
 .library-item{border:1px solid var(--edge);border-radius:10px;padding:11px 14px;margin-top:9px}.library-item summary{cursor:pointer;font-weight:650}
+.archive-toolbar{margin-top:12px}
+#archive-editor{width:min(470px,94vw)}
+#archive-edit-form .fields{grid-template-columns:1fr}
 button.danger{background:#fff3f1;color:#9a2924;border-color:#efc6c1}
 button.danger:hover{border-color:#c05650}
 dialog{width:min(1120px,96vw);max-height:92vh;border:1px solid var(--edge);border-radius:14px;padding:15px;color:var(--ink)}
@@ -156,7 +159,7 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 </section>
 <section class="card" id="library" hidden>
   <div class="row between library-header"><h2>已保存的照片组</h2>
-    <input type="search" id="search" placeholder="按编号筛选" aria-label="筛选照片编号"></div>
+    <input type="search" id="search" placeholder="按姓名或编号筛选" aria-label="按姓名或编号筛选照片"></div>
   <p id="library-status" class="hint" role="status">正在读取照片库</p>
   <p id="library-feedback" class="status" role="status" hidden></p>
   <div id="archives"></div>
@@ -178,6 +181,22 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
     <p id="image-status" role="status"></p>
     <div class="photo" id="full-photo"><img id="full-image" alt=""></div>
   </div>
+</dialog>
+<dialog id="archive-editor" aria-labelledby="archive-edit-title">
+  <h2 id="archive-edit-title">编辑照片组信息</h2>
+  <form id="archive-edit-form">
+    <div class="fields">
+      <label>显示名<input name="display_name" required maxlength="60" autofocus></label>
+      <label>参与者编号<input name="participant" required maxlength="40"></label>
+      <label>采集手<select name="hand" required><option value="left">左手</option><option value="right">右手</option></select></label>
+    </div>
+    <p class="hint">这些标签用于照片库。验证时仍显示登记模板的资料。</p>
+    <p class="status" id="archive-edit-error" role="alert" hidden></p>
+    <div class="row" style="margin-top:12px">
+      <button id="archive-edit-save" type="submit">保存修改</button>
+      <button id="archive-edit-cancel" type="button" class="secondary">取消</button>
+    </div>
+  </form>
 </dialog>
 <script>
 const $ = id => document.getElementById(id);
@@ -651,6 +670,7 @@ async function action(path, extra={}) {
       $('capture-status').textContent = '等待当前帧处理完成，再挑选 10 张。';
       await step.catch(() => {});
     }
+    if (path === station+'select') $('capture-status').textContent = '正在比较候选的清晰度、光照和角度，挑选 10 张。';
     if (path === enroll+'commit') remember({...session,saving:true});
     const data = await request(path,{token,...extra});
     if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
@@ -946,6 +966,46 @@ document.addEventListener('visibilitychange', () => {
 });
 
 let libraryBusy = false;
+const archiveEditor = $('archive-editor'), archiveEditForm = $('archive-edit-form');
+let editingArchive;
+const archiveSearchText = archive => (archive.display_name + ' ' + archive.participant).toLocaleLowerCase();
+function openArchiveEditor(archive) {
+  if (libraryBusy || archiveEditor.open) return;
+  editingArchive = archive;
+  archiveEditForm.elements.display_name.value = archive.display_name;
+  archiveEditForm.elements.participant.value = archive.participant;
+  archiveEditForm.elements.hand.value = archive.hand;
+  $('archive-edit-error').hidden = true;
+  archiveEditor.showModal();
+}
+$('archive-edit-cancel').onclick = () => archiveEditor.close();
+archiveEditor.addEventListener('cancel', event => { if (libraryBusy) event.preventDefault(); });
+archiveEditForm.onsubmit = async event => {
+  event.preventDefault();
+  if (libraryBusy || !editingArchive) return;
+  const fields = Object.fromEntries(new FormData(archiveEditForm));
+  const body = {...fields, archive:editingArchive.id, revision:editingArchive.revision};
+  const errorText = $('archive-edit-error');
+  const save = $('archive-edit-save'), cancel = $('archive-edit-cancel');
+  libraryBusy = save.disabled = cancel.disabled = true;
+  errorText.hidden = true;
+  try {
+    await request('/api/library/edit', body);
+    archiveEditor.close();
+    const search = $('search');
+    if (!archiveSearchText(fields).includes(search.value.trim().toLocaleLowerCase())) search.value = '';
+    const feedback = $('library-feedback');
+    feedback.textContent = '照片组信息已更新。';
+    feedback.hidden = false;
+    await library();
+  } catch (error) {
+    errorText.textContent = error.message;
+    errorText.hidden = false;
+  } finally {
+    libraryBusy = save.disabled = cancel.disabled = false;
+  }
+};
+
 async function removeSavedPhotos(archive, index) {
   if (libraryBusy) return;
   const whole = index === undefined;
@@ -977,18 +1037,22 @@ async function library() {
       const details = document.createElement('details'), label = document.createElement('summary');
       details.className = 'library-item';
       details.dataset.archive = archive.id;
-      label.textContent = archive.participant + ' · ' + handing(archive.hand) + ' · ' +
+      const identity = archive.display_name === archive.participant ? archive.participant :
+        archive.display_name + ' · ' + archive.participant;
+      label.textContent = identity + ' · ' + handing(archive.hand) + ' · ' +
         new Date(archive.saved).toLocaleString() + ' · ' + archive.samples.length + ' 组';
       details.append(label);
       details.ontoggle = () => {
         if (!details.open || details.children.length > 1) return;
-        const toolbar = document.createElement('div'), remove = document.createElement('button');
-        toolbar.className = 'row';
-        toolbar.style.marginTop = '12px';
+        const toolbar = document.createElement('div'), edit = document.createElement('button'), remove = document.createElement('button');
+        toolbar.className = 'row archive-toolbar';
+        edit.className = 'secondary small-button';
+        edit.textContent = '编辑信息';
+        edit.onclick = () => openArchiveEditor(archive);
         remove.className = 'danger small-button library-delete';
         remove.textContent = '删除整组';
         remove.onclick = () => void removeSavedPhotos(archive);
-        toolbar.append(remove);
+        toolbar.append(edit, remove);
         const photos = document.createElement('div');
         photos.className = 'groups';
         archive.samples.forEach(sample => {
@@ -999,7 +1063,7 @@ async function library() {
         details.append(toolbar, photos);
       };
       details.open = active.has(archive.id);
-      return {details,key:archive.participant.toLocaleLowerCase()};
+      return {details,key:archiveSearchText(archive)};
     });
     $('archives').replaceChildren(...rows.map(row=>row.details));
     function filter() {
@@ -1009,7 +1073,7 @@ async function library() {
         row.details.hidden = !row.key.includes(query);
         if (!row.details.hidden) count++;
       }
-      $('library-status').textContent = count ? count + ' 条登记记录' : query ? '找不到这个编号。' : '还没有已保存的照片。';
+      $('library-status').textContent = count ? count + ' 条采集记录' : query ? '没有匹配的姓名或编号。' : '还没有已保存的照片。';
     }
     $('search').oninput = filter;
     filter();
@@ -1030,7 +1094,7 @@ if (page === '/enroll') {
   renderThreshold();
 } else {
   $('title').textContent = '照片库';
-  $('subtitle').textContent = '按编号查找采集记录，逐组查看已保存的照片。';
+  $('subtitle').textContent = '按姓名或编号查找，展开后可查看照片和编辑组信息。';
   $('library').hidden = false;
   void library();
 }

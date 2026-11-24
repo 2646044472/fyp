@@ -85,7 +85,8 @@ def save_enrollment(root, store, user_id, batch, metadata, session, *, update_te
                 name = f"{index:02d}-roi-native.png"
                 write_file(temp / name, detail)
                 samples[-1].update(native_roi=name, native_roi_size=detail_size)
-        manifest = {"participant_code": user_id, "hand": session["hand"], "samples": samples}
+        manifest = {"participant_code": user_id, "display_name": metadata["display_name"],
+                    "hand": session["hand"], "samples": samples}
         write_file(temp / "manifest.json", json.dumps(manifest, ensure_ascii=False, allow_nan=False, indent=2).encode("utf-8"))
         sync_directory(temp)
         os.replace(temp, target)

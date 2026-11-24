@@ -76,7 +76,7 @@ def candidate_exclusion(candidate, selected):
     return "LOWER_RANK"
 
 
-def select_set(candidates, *, retained=(), count=5):
+def select_set(candidates, *, retained=(), count=5, frame_quality=None):
     chosen = list(retained)
     clean = [c for c in candidates if usable(c)]
     if not clean or len(chosen) >= count:
@@ -89,7 +89,8 @@ def select_set(candidates, *, retained=(), count=5):
         neighbors = {c.frame_id: sum(plausible(c,o) for o in clean) for c in clean}
         support = max(neighbors.values())
         anchors = [c for c in clean if neighbors[c.frame_id] >= max(1, support-1)]
-        anchor = max(anchors,key=lambda c:(c.sharpness,c.contrast,-c.frame_id))
+        anchor = max(anchors, key=lambda c: (
+            frame_quality[c.frame_id] if frame_quality is not None else c.sharpness, c.contrast, -c.frame_id))
         chosen.append(anchor)
     pool = [c for c in clean if plausible(c,anchor)]
     if not pool:
@@ -110,7 +111,8 @@ def select_set(candidates, *, retained=(), count=5):
         return [c for c in pool if not any(overlaps(c, other) for other in selected)]
 
     def score(c, selected):
-        quality = .65 * min(1.5, c.sharpness / ref_s) + .35 * min(1.5, c.contrast / ref_c)
+        quality = (frame_quality[c.frame_id] if frame_quality is not None else
+                   .65 * min(1.5, c.sharpness / ref_s) + .35 * min(1.5, c.contrast / ref_c))
         spread = min(coverage(c, other) for other in selected)
         return (.62 * quality + .38 * spread, c.sharpness, c.contrast, -c.frame_id)
 
@@ -133,6 +135,65 @@ def select_set(candidates, *, retained=(), count=5):
         else:
             break
     return tuple(chosen)
+
+
+def refine_set(initial, candidates, quality, *, retained=(), alternative=()):
+    """Compare complete sets, with a bounded search for beneficial swaps."""
+    chosen = tuple(initial)
+    fixed_ids = {c.frame_id for c in retained}
+    pair_spread = {}
+    pair_duplicate = {}
+
+    def pair_key(a, b):
+        return tuple(sorted((a.frame_id, b.frame_id)))
+
+    def spread(a, b):
+        key = pair_key(a, b)
+        if key not in pair_spread:
+            pair_spread[key] = coverage(a, b)
+        return pair_spread[key]
+
+    def repeated(a, b):
+        key = pair_key(a, b)
+        if key not in pair_duplicate:
+            pair_duplicate[key] = duplicate(a, b)
+        return pair_duplicate[key]
+
+    def score(items):
+        average_quality = sum(quality[c.frame_id] for c in items) / len(items)
+        diversity = sum(min(spread(c, other) for other in items if other != c) for c in items) / len(items)
+        return .82 * average_quality + .18 * diversity
+
+    if len(chosen) < 2:
+        return chosen
+    best_score = score(chosen)
+    if len(alternative) == len(chosen):
+        alternative_score = score(alternative)
+        if alternative_score > best_score:
+            chosen, best_score = tuple(alternative), alternative_score
+    for _ in range(3):
+        best = chosen
+        selected_ids = {c.frame_id for c in chosen}
+        for index, outgoing in enumerate(chosen):
+            if outgoing.frame_id in fixed_ids:
+                continue
+            others = chosen[:index] + chosen[index + 1:]
+            for incoming in candidates:
+                if incoming.frame_id in selected_ids or any(repeated(incoming, other) for other in others):
+                    continue
+                if index == 0:
+                    if not all(plausible(other, incoming) for other in others):
+                        continue
+                elif not plausible(incoming, chosen[0]):
+                    continue
+                trial = chosen[:index] + (incoming,) + chosen[index + 1:]
+                value = score(trial)
+                if value > best_score + 1e-9:
+                    best, best_score = trial, value
+        if best is chosen:
+            break
+        chosen = best
+    return (chosen[0], *sorted(chosen[1:], key=lambda c: (-quality[c.frame_id], c.frame_id)))
 
 @dataclass
 class Window:

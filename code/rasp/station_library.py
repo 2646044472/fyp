@@ -4,6 +4,7 @@ from io import BytesIO
 import json
 import os
 import re
+import tempfile
 from types import SimpleNamespace
 
 from PIL import Image
@@ -12,6 +13,10 @@ from enrollment_archive import native_roi_png, sync_directory
 
 IMAGE_SUFFIXES = {"original": "original.jpg", "model": "roi.png", "detail": "roi-native.png"}
 PREVIEW_KINDS = {"preview": "original", "detail-preview": "detail"}
+
+
+class ArchiveEditError(ValueError):
+    """A participant metadata edit the user can correct on the station."""
 
 
 def valid_id(value):
@@ -29,6 +34,10 @@ def deleted_sample(folder, index):
     return folder / ".deleted" / f"{index:02d}"
 
 
+def archive_timestamp(data, stat):
+    return data.get("saved_at") or datetime.fromtimestamp(stat.st_mtime).astimezone().isoformat()
+
+
 def list_archives(root):
     archives = []
     if not root.exists():
@@ -41,8 +50,10 @@ def list_archives(root):
                    for i, s in enumerate(data["samples"], 1) if not deleted_sample(folder, i).exists()]
         if not samples:
             continue
+        stat = (folder / "manifest.json").stat()
         archives.append(dict(id=folder.name, participant=data["participant_code"], hand=data["hand"],
-                             saved=datetime.fromtimestamp((folder / "manifest.json").stat().st_mtime).astimezone().isoformat(),
+                             display_name=data.get("display_name") or data["participant_code"],
+                             saved=archive_timestamp(data, stat), revision=str(stat.st_mtime_ns),
                              samples=samples))
     return sorted(archives, key=lambda item: item["saved"], reverse=True)
 
@@ -80,6 +91,42 @@ def archive_image(root, request):
             image.save(out, "JPEG", quality=85)
             return out.getvalue(), "image/jpeg"
     return path.read_bytes(), "image/jpeg" if kind == "original" else "image/png"
+
+
+def edit_archive(root, request):
+    archive, participant, name, hand = (request.get(key) for key in ("archive", "participant", "display_name", "hand"))
+    if not valid_id(archive):
+        raise ArchiveEditError("这条照片记录无效，请刷新照片库。")
+    if not isinstance(participant, str):
+        raise ArchiveEditError("请输入参与者编号。")
+    participant = participant.strip()
+    if not 1 <= len(participant) <= 40 or not all(char.isalnum() or char in "-_" for char in participant):
+        raise ArchiveEditError("编号需要 1–40 个字母、数字、汉字、短横线或下划线。")
+    if not isinstance(name, str) or not 1 <= len(name.strip()) <= 60 or not name.strip().isprintable():
+        raise ArchiveEditError("请输入 1–60 个可显示字符作为显示名。")
+    if hand not in ("left", "right"):
+        raise ArchiveEditError("请选择左手或右手。")
+
+    folder = root / archive
+    manifest = folder / "manifest.json"
+    data = read_manifest(folder)
+    stat = manifest.stat()
+    if request.get("revision") != str(stat.st_mtime_ns):
+        raise ArchiveEditError("这条记录刚被修改。请刷新照片库后再编辑。")
+    data.update(participant_code=participant, display_name=name.strip(), hand=hand,
+                saved_at=archive_timestamp(data, stat))
+    fd, path = tempfile.mkstemp(prefix=".metadata-", dir=folder)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(data, stream, ensure_ascii=False, allow_nan=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(path, manifest)
+        sync_directory(folder)
+    finally:
+        if os.path.exists(path):
+            os.unlink(path)
+    return {"archive": archive}
 
 
 def delete_archive(root, request):

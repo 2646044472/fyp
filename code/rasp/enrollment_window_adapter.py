@@ -149,6 +149,9 @@ def sync_continuous(s, window, now, *, stop, select):
     if select:
         if not s.get("station_minimum_complete") or len(chosen) != window.target_count:
             raise ValueError("请至少采集 60 秒并累积 10 张不同的候选照片。")
+        from enrollment_final_rank import rank_final
+
+        chosen = rank_final(window, chosen, s["station_payloads"])
         retain(s, chosen)
         s["selection_mode"] = "bounded_best_frame_set"
         s["station_window"] = None

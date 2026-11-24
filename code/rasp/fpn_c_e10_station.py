@@ -462,7 +462,7 @@ def build_handler(application, enrollment_html):
     from enrollment_best_frame import ranking_status
     from enrollment_review import mutate, selected_photo
     from enrollment_archive import native_roi_png, rectified_roi_png
-    from station_library import list_archives, archive_image, delete_archive
+    from station_library import ArchiveEditError, list_archives, archive_image, delete_archive, edit_archive
     from enrollment_window_adapter import start_refill
     from demo_flow import CaptureProcessingFailure
 
@@ -534,7 +534,7 @@ def build_handler(application, enrollment_html):
                 "/api/station/enroll-remove", "/api/station/enroll-refill", "/api/station/enroll-stop",
                 "/api/station/enroll-select",
                 "/api/fpn/score", "/api/fpn/verify", "/api/fpn/camera", "/api/station/camera-sleep", "/api/station/enroll-image",
-                "/api/library/list", "/api/library/image", "/api/library/delete",
+                "/api/library/list", "/api/library/image", "/api/library/delete", "/api/library/edit",
             }
             if route not in allow:
                 return self.respond({"message": "影子服务没有通行、支付或旧模板写入。"}, 404)
@@ -562,6 +562,8 @@ def build_handler(application, enrollment_html):
                             result = {"archives": list_archives(root)}
                         elif route.endswith("/delete"):
                             result = delete_archive(root, data)
+                        elif route.endswith("/edit"):
+                            result = edit_archive(root, data)
                         else:
                             image = archive_image(root, data)
                     if route.endswith("/image"):
@@ -615,6 +617,8 @@ def build_handler(application, enrollment_html):
                                     select=route.endswith("-select"), geometry=True)
                 application.reconcile_capture(token)
                 return self.respond(result)
+            except ArchiveEditError as error:
+                return self.respond({"message": str(error)}, 400)
             except FileNotFoundError:
                 if route.startswith("/api/library/"):
                     return self.respond({"message": "照片已移出照片库，请刷新。"}, 404)
