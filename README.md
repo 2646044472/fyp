@@ -9,6 +9,7 @@ This developer repository contains the current FPN + C E10 station, evaluation u
 | Compare outcomes on a fixed set of queries | [Evaluation tools](code/evaluation/README.md) |
 | Find a dataset, its source, or the train/gallery/query protocol | [Dataset catalog](dataset/README.md) |
 | Reproduce the portable training and experiment checks | [Training and experiments](code/experiments/README.md) |
+| Sync the graded school submission to Gitea or review its benchmark write-ups | [School Gitea sync files](gitea-um/README.md). Keep this folder on the main branch; it is not a second deployment target. |
 
 Quick check without models, a camera, or a dataset:
 
@@ -19,4 +20,4 @@ python code/experiments/coverage_policy.py
 
 Models and real captures stay on authorized devices. Passing the synthetic checks is not a Raspberry Pi hardware or recognition-accuracy result. See [repository data rules](AGENTS.md).
 
-[Historical revision](https://github.com/2646044472/fyp/tree/dbe26352633e58769a1adeb12009c19eeb3df12a): school handoff, original benchmark write-ups, offline geometry audit, and the legacy station. Do not use the old stack or model files as dependencies for the current station.
+[Historical revision](https://github.com/2646044472/fyp/tree/dbe26352633e58769a1adeb12009c19eeb3df12a): older offline geometry audit and legacy station. Do not use the old stack or model files as dependencies for the current station.

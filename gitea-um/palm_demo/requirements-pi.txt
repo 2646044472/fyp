@@ -1,0 +1,3 @@
+# Dynamic palm ROI dependency. Fast-CC continues to use system NumPy/SciPy/Pillow
+# through the application's --system-site-packages virtual environment.
+opencv-contrib-python-headless==5.0.0.93

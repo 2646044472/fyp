@@ -1,5 +1,7 @@
 # Repository agent guidance
 
+- Keep `gitea-um/` on `main`. It is the graded school Gitea synchronization tree, not disposable history. Do not remove, rename, or restructure it as part of developer cleanup. Changes to school submission content and any push to the school Gitea require an explicit request.
+
 - Write repository documentation, developer-facing comments, and the active station interface in English. Preserve API identifiers, dataset release names, and historic capture or evaluation claims when translating.
 
 - Keep palmprint originals, ROI crops, templates, embeddings/feature caches, per-sample identity or score mappings, participant-linked capture archives, and generated runtime results out of Git remotes. Do not force-add the ignored `code/rasp/runtime/` tree or replace/stage local `code/data/` capture symlinks and deletions.

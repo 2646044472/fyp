@@ -1,0 +1,9 @@
+*.onnx
+*.docx
+*.pt
+*.pth
+*.npz
+*.jpg
+*.png
+__pycache__/
+.pytest_cache/
