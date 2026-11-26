@@ -1,23 +1,22 @@
-# FYP: Palmprint recognition
+# FYP: Contactless palmprint recognition
 
-Can a camera recognize the same hand after its distance, pose or device changes, and can it decline a match when it should? This project separates finding a usable palm crop, ranking enrolled hands and accepting or rejecting the proposed match.
+This developer repository contains the current FPN + C E10 station, evaluation utilities, the dataset catalog, and portable training and experiment code.
 
-| If you want to… | Start here |
+| Task | Start here |
 | --- | --- |
-| Prepare a project update | [School handoff](gitea-um/README.md) for the dated meeting record; [progress notes](gitea-um/minutes_note/progess%20notes/README.md) for experiments completed after those meetings. |
-| Check the evidence for a result | [17-table benchmark](gitea-um/minutes_note/progess%20notes/2026-11-18-experimental-results.md) for datasets and denominators; [crop fallback and augmentation](gitea-um/minutes_note/progess%20notes/2026-11-18-crop-routing-and-training.md) for paired comparisons and acceptance decisions. |
-| Run an example without a device or biometric data | [Research code](gitea-um/research_code/README.md) for the crop, trainer and decision-accounting examples. |
-| Start on a different computer or work on the Raspberry Pi prototype | [Code map](code/README.md) → [Pi capture station and deployment](code/rasp/README.md). |
-| Locate a dataset or understand how it was used | [Dataset catalog](dataset/README.md) for original releases, acquisition conditions, training and test pools, evaluation protocols, and access terms. This folder contains documentation only. |
+| Develop or start the Raspberry Pi capture and verification station | [Current station](code/rasp/README.md) |
+| Load the native models or score a single query without a camera | [FPN + C E10 inference](code/rasp/fpn-c-e10-shadow.md) |
+| Compare outcomes on a fixed set of queries | [Evaluation tools](code/evaluation/README.md) |
+| Find a dataset, its source, or the train/gallery/query protocol | [Dataset catalog](dataset/README.md) |
+| Reproduce the portable training and experiment checks | [Training and experiments](code/experiments/README.md) |
 
-**Try one decision from the report.** With stock Python 3.10+ at the repository root:
+Quick check without models, a camera, or a dataset:
 
 ```sh
-python gitea-um/research_code/coverage_policy.py
+python code/evaluation/paired_outcomes.py --self-test
+python code/experiments/coverage_policy.py
 ```
 
-The example scores four invented attempts. Look for `rank1_correct: 2` but only one correct acceptance: the other correct match fell below the cutoff. No model, dataset, camera or network is needed. It illustrates the counting rule rather than reproducing the measured scores.
+Models and real captures stay on authorized devices. Passing the synthetic checks is not a Raspberry Pi hardware or recognition-accuracy result. See [repository data rules](AGENTS.md).
 
-**Which copy should change?** `code/` holds the device application and offline diagnostics. `gitea-um/` preserves a school snapshot plus separately identified research examples and reports; its demo is not a second deployment target. Offline recognition gains are not a new Pi hardware acceptance test.
-
-**Sharing.** The school folder is a reading guide, not an access boundary. For a handoff, select reviewed reports and source files; do not distribute the entire repository, its history or a workstation archive as a substitute. See [project data-handling rules](AGENTS.md) before adding captures, templates, logs, weights or results. Historical root-level notes and retired workflows were separated from the active tree; rearranging files does not change Git history.
+[Historical revision](https://github.com/2646044472/fyp/tree/dbe26352633e58769a1adeb12009c19eeb3df12a): school handoff, original benchmark write-ups, offline geometry audit, and the legacy station. Do not use the old stack or model files as dependencies for the current station.

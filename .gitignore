@@ -29,7 +29,9 @@
 *.obj
 **/.pytest_cache/
 
-# Generated PKLNet CPU export; recreate from the pinned weights.
+# Old PKLNet assets are local only; do not re-add the retired package.
+/code/pklnet/
+**/net_params_500.pth
 /code/pklnet/pklnet-keypoints.onnx
 /code/pklnet/pklnet-keypoints.json
 /code/pklnet/pklnet-keypoints-diagnostics.onnx

@@ -1,3 +1,0 @@
-# Experiment dependency checks
-
-`registry.py` validates experiment IDs, explicit dependency edges and cycle freedom; computes which invalidated results propagate to a candidate; and renders a review index. An optional directory inventory looks only at immediate run directory names and skips symlinks. This is an importable library, not a training job. The previous workstation CLI and live registry are deliberately not shipped: they depend on a local runtime tree and evidence paths. The tests contain an example schema and use only synthetic records. Run `python -m unittest discover -s tests` from this directory (Python standard library).
