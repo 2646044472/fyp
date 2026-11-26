@@ -1,0 +1,2 @@
+# Current known X baseline; on another computer use compatible torch/torchvision wheels.
+-r ../rasp/requirements-fpn-c-e10.txt

@@ -86,3 +86,13 @@ code/rasp/noir-focus-test*.jpg
 /code/rasp/docs/protocols/SMPD_PROSPECTIVE_OPTIMIZATION_SPLIT_20261030.json
 /code/rasp/docs/protocols/V26_FOUR_ERROR_AUDIT_20261030.json
 /code/rasp/docs/protocols/V26_FULL_SCORE_RECONCILIATION_20261030.json
+
+# Development environments and local-only model/training output.
+.venv/
+.uv-cache/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+/code/training/runs/
+/code/training/local/

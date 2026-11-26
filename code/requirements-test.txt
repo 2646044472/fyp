@@ -1,0 +1,5 @@
+# Lightweight synthetic checks. Linux x86-64 / Python 3.12.
+numpy==2.2.6
+Pillow==13.0.0
+opencv-python-headless==4.12.0.88
+pytest==9.2.0
