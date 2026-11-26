@@ -1,5 +1,7 @@
 # Repository agent guidance
 
+- Write repository documentation, developer-facing comments, and the active station interface in English. Preserve API identifiers, dataset release names, and historic capture or evaluation claims when translating.
+
 - Keep palmprint originals, ROI crops, templates, embeddings/feature caches, per-sample identity or score mappings, participant-linked capture archives, and generated runtime results out of Git remotes. Do not force-add the ignored `code/rasp/runtime/` tree or replace/stage local `code/data/` capture symlinks and deletions.
 - Stage exact reviewed paths only; do not use `git add .` in this checkout. Exclude local caches such as `code/rasp/var/`.
 - Before sharing experiment scripts or reports, inspect added content for real participant identifiers, sample-level biometric records, private absolute paths, and dependencies on ignored runtime-only helpers. Prefer synthetic tests and aggregate, non-identifying summaries.

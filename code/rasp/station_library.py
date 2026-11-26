@@ -26,7 +26,7 @@ def valid_id(value):
 def read_manifest(folder):
     manifest = folder / "manifest.json"
     if folder.is_symlink() or manifest.is_symlink():
-        raise ValueError("无效归档。")
+        raise ValueError("Invalid photo archive.")
     return json.loads(manifest.read_text("utf-8"))
 
 
@@ -61,18 +61,18 @@ def list_archives(root):
 def archive_image(root, request):
     archive, index, kind = (request.get(k) for k in ("archive", "index", "kind"))
     if not valid_id(archive) or type(index) is not int or index < 1 or not isinstance(kind, str):
-        raise ValueError("无效归档照片。")
+        raise ValueError("Invalid archived photo.")
     folder = root / archive
     samples = read_manifest(folder)["samples"]
     source_kind = PREVIEW_KINDS.get(kind, kind)
     if index > len(samples) or source_kind not in IMAGE_SUFFIXES:
-        raise ValueError("无效归档照片。")
+        raise ValueError("Invalid archived photo.")
     if deleted_sample(folder, index).exists():
-        raise FileNotFoundError("照片已移出照片库。")
+        raise FileNotFoundError("This photo has been removed from the library.")
     suffix = IMAGE_SUFFIXES[source_kind]
     path = folder / f"{index:02d}-{suffix}"
     if path.is_symlink():
-        raise ValueError("无效归档文件。")
+        raise ValueError("Invalid archive file.")
     source = path
     if source_kind == "detail" and not path.exists():
         # Earlier confirmed sets have the original and the exact crop coordinates.
@@ -96,23 +96,23 @@ def archive_image(root, request):
 def edit_archive(root, request):
     archive, participant, name, hand = (request.get(key) for key in ("archive", "participant", "display_name", "hand"))
     if not valid_id(archive):
-        raise ArchiveEditError("这条照片记录无效，请刷新照片库。")
+        raise ArchiveEditError("Invalid photo record. Refresh the photo library.")
     if not isinstance(participant, str):
-        raise ArchiveEditError("请输入参与者编号。")
+        raise ArchiveEditError("Enter a participant ID.")
     participant = participant.strip()
     if not 1 <= len(participant) <= 40 or not all(char.isalnum() or char in "-_" for char in participant):
-        raise ArchiveEditError("编号需要 1–40 个字母、数字、汉字、短横线或下划线。")
+        raise ArchiveEditError("Use 1–40 letters or numbers (including Chinese characters), hyphens, or underscores for the ID.")
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= 60 or not name.strip().isprintable():
-        raise ArchiveEditError("请输入 1–60 个可显示字符作为显示名。")
+        raise ArchiveEditError("Enter 1–60 printable characters for the display name.")
     if hand not in ("left", "right"):
-        raise ArchiveEditError("请选择左手或右手。")
+        raise ArchiveEditError("Choose the left or right hand.")
 
     folder = root / archive
     manifest = folder / "manifest.json"
     data = read_manifest(folder)
     stat = manifest.stat()
     if request.get("revision") != str(stat.st_mtime_ns):
-        raise ArchiveEditError("这条记录刚被修改。请刷新照片库后再编辑。")
+        raise ArchiveEditError("This record just changed. Refresh the photo library before editing.")
     data.update(participant_code=participant, display_name=name.strip(), hand=hand,
                 saved_at=archive_timestamp(data, stat))
     fd, path = tempfile.mkstemp(prefix=".metadata-", dir=folder)
@@ -134,7 +134,7 @@ def delete_archive(root, request):
     archive = request.get("archive")
     index = request.get("index")
     if not valid_id(archive) or ("index" in request and (type(index) is not int or index < 1)):
-        raise ValueError("无效归档照片。")
+        raise ValueError("Invalid archived photo.")
     folder = root / archive
     trash = root / ".trash"
     removed = trash / archive
@@ -143,10 +143,10 @@ def delete_archive(root, request):
     data = read_manifest(folder)
     if index is not None:
         if index > len(data["samples"]):
-            raise ValueError("无效归档照片。")
+            raise ValueError("Invalid archived photo.")
         slot = deleted_sample(folder, index)
         if slot.parent.is_symlink() or slot.is_symlink():
-            raise ValueError("无效回收目录。")
+            raise ValueError("Invalid trash folder.")
         slot.parent.mkdir(mode=0o700, exist_ok=True)
         slot.mkdir(mode=0o700, exist_ok=True)
         # Publish the tombstone before moving bytes. A retry can finish a
@@ -164,7 +164,7 @@ def delete_archive(root, request):
         if remaining:
             return {"remaining": remaining}
     if trash.is_symlink():
-        raise ValueError("无效回收目录。")
+        raise ValueError("Invalid trash folder.")
     trash.mkdir(mode=0o700, exist_ok=True)
     os.replace(folder, removed)
     sync_directory(trash)

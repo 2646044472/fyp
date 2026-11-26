@@ -54,7 +54,7 @@ def save_enrollment(root, store, user_id, batch, metadata, session, *, update_te
     candidates = {candidate.frame_id: candidate for candidate in session["photo_candidates"]}
     target = session.get("station_target_count", 5)
     if len(frame_ids) != target or len(set(frame_ids)) != target or any(frame_id not in candidates for frame_id in frame_ids):
-        raise ValueError("原图与 ROI 未配齐。请重新采集后再保存。")
+        raise ValueError("An original or ROI is missing from a photo pair. Capture it again before saving.")
 
     root = Path(root)
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -68,10 +68,10 @@ def save_enrollment(root, store, user_id, batch, metadata, session, *, update_te
             payload = candidate.payload
             jpeg = payload.get("station_original_jpeg")
             if not jpeg or not selected_roi or selected_roi != payload.get("encoded_roi"):
-                raise ValueError("原图与 ROI 未配齐。请重新采集后再保存。")
+                raise ValueError("An original or ROI is missing from a photo pair. Capture it again before saving.")
             with Image.open(BytesIO(jpeg)) as image:
                 if image.format != "JPEG":
-                    raise ValueError("保存原图失败：相机没有返回 JPEG。")
+                    raise ValueError("Could not save the original: the camera did not return a JPEG.")
                 size = list(image.size)
             original_name, roi_name = f"{index:02d}-original.jpg", f"{index:02d}-roi.png"
             write_file(temp / original_name, jpeg)

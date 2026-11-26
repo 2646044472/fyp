@@ -20,8 +20,13 @@ from palm_app import debug_ui as camera_contract
 
 
 def main():
-    rng = np.random.default_rng(338)
-    images = [Image.fromarray(rng.integers(0, 256, (160, 192, 3), dtype=np.uint8)) for _ in range(41)]
+    def image_for(frame_id):
+        # The production best-frame selector repeatedly finds the same sharp
+        # pixels when a short test loop recycles them. A unique, reproducible
+        # image per exposure tests distinct capture without weakening de-dup.
+        rng = np.random.default_rng(338 + frame_id)
+        return Image.fromarray(rng.integers(0, 256, (160, 192, 3), dtype=np.uint8))
+
     frame_class = camera_contract.CapturedFrame
     backend = SimpleNamespace(
         crop_gray=lambda m, arr, *, device: (
@@ -31,7 +36,7 @@ def main():
     )
 
     # The FPN route must discard a geometrically valid but stale crop.
-    assert sut.classify_frame(np, cv2, backend, object(), np.asarray(images[0]),
+    assert sut.classify_frame(np, cv2, backend, object(), np.asarray(image_for(0)),
                               processed_age=lambda: sut.MAX_FRAME_AGE + .001)[-1] == "fpn_frame_stale"
 
     class Feed:
@@ -54,7 +59,7 @@ def main():
             while self.running:
                 with self.frame_condition:
                     index += 1
-                    self.latest = self.pending_frame = frame_class(index, images[index % len(images)], time.monotonic())
+                    self.latest = self.pending_frame = frame_class(index, image_for(index), time.monotonic())
                     self.frame_condition.notify_all()
                 time.sleep(.07)
 
@@ -87,9 +92,13 @@ def main():
             feed = Camera()
             app = App(feed)
             page = sut.render_enrollment()
-            assert "FPN + C E10" in page and "60 秒" in page and "station-review" in page
+            assert "FPN + C E10" in page and "at least 60 seconds" in page and "station-review" in page
             assert 'id="save" hidden' in page and 'id="verify-start"' in page
-            assert 'aria-current=page>② 放掌验证' in sut.render_enrollment("/gate")
+            assert 'aria-current=page>② Palm verification' in sut.render_enrollment("/gate")
+            assert 'aria-current=page>① Palm enrollment' in page
+            library = sut.render_enrollment("/collect")
+            assert 'aria-current=page>③ Photo library' in library
+            assert '③ Data management' not in library
             server = ThreadingHTTPServer(("127.0.0.1", 0), sut.build_handler(app, page))
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
@@ -113,15 +122,26 @@ def main():
                 for route in ("/api/demo/identify", "/api/demo/confirm", "/api/gate/identify", "/api/demo/cancel",
                               "/api/collection/start"):
                     http(route, {}, status=404)
-                http("/api/fpn/score", {}, status=403, headers={"Origin": "http://example.invalid"})
+                assert http("/api/fpn/score", {}, status=403, headers={"Origin": "http://example.invalid"}) == {
+                    "message": "This request is only available from this station.",
+                }
                 token = "a" * 32
                 t = {"token": token}
                 http("/api/demo/enroll/start", dict(t, user_id="synthetic", display_name="Synthetic", hand="left"))
                 w = app.demo.enrollment_session["station_window"]
                 assert w.absolute_timeout_s == 60 and w.target_count == sut.CAPTURE_COUNT
-                for _ in range(sut.CAPTURE_COUNT + 3):
+                # Space synthetic exposures beyond the station's 240 ms de-dup
+                # window. Verify enough eligible candidates without relying on
+                # the larger raw pool, and prove the timer still blocks selection.
+                for _ in range(2 * sut.CAPTURE_COUNT):
+                    time.sleep(.27)
                     assert http("/api/demo/enroll/step", t)["status"] != "READY"
-                http("/api/station/enroll-select", t, status=400)
+                    review = http("/api/station/enroll-review", t)
+                    if review["eligible_count"] == sut.CAPTURE_COUNT:
+                        break
+                assert review["eligible_count"] == sut.CAPTURE_COUNT
+                assert not review["minimumComplete"]
+                assert "Capture for at least 60 seconds" in http("/api/station/enroll-select", t, status=400)["message"]
                 with app.demo.lock:
                     w.absolute_timeout_s = time.monotonic() - w.started_s
                 assert http("/api/station/enroll-review", t)["state"] == "collecting"
@@ -130,10 +150,11 @@ def main():
                 assert not list((root / "templates").glob("*"))
                 for item in result["items"]:
                     # Prove review image/crop refer to the same accepted exposure.
-                    frame = np.asarray(images[item["frame"] % len(images)])[:128, :128, 0]
+                    exposure = image_for(item["frame"])
+                    frame = np.asarray(exposure)[:128, :128, 0]
                     roi = Image.open(io.BytesIO(base64.b64decode(item["roi"])))
                     expected = io.BytesIO()
-                    images[item["frame"] % len(images)].save(expected, "JPEG", quality=87)
+                    exposure.save(expected, "JPEG", quality=87)
                     assert base64.b64decode(item["rgb"]) == expected.getvalue()
                     assert np.array_equal(frame, np.asarray(roi))
                 drop = result["items"][0]["frame"]
@@ -142,6 +163,7 @@ def main():
                 http("/api/demo/enroll/commit", dict(t, confirm_hand="left"), status=400)
                 http("/api/station/enroll-refill", t)
                 for _ in range(2):
+                    time.sleep(.27)
                     http("/api/demo/enroll/step", t)
                 assert http("/api/station/enroll-select", t)["kept"] == sut.CAPTURE_COUNT
                 http("/api/demo/enroll/commit", dict(t, confirm_hand="right"), status=400)
@@ -168,7 +190,7 @@ def main():
                 try:
                     sut.score_gallery(np, data[0], app.demo.store, app.demo.gallery.required_metadata)
                 except ValueError as e:
-                    assert "模板版本" in str(e)
+                    assert "FPN+C template version mismatch" in str(e)
                 else:
                     raise AssertionError("shape-compatible legacy template accepted")
                 http("/api/fpn/score", {}, status=400)

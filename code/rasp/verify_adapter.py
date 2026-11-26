@@ -70,7 +70,7 @@ try:
     assert a.run_step(g,base,loc,"session")["status"]=="STATION_PARTIAL"
     assert g.enrollment_session["attempts"]==1
     assert a.run_step(g,base,loc,"session")["station_last_rejection"]=="ROI_NOT_READY"
-    assert "相机连接" in a.run_step(g,base,loc,"session")["reason"]
+    assert "check the camera connection" in a.run_step(g,base,loc,"session")["reason"]
     # A paused browser must not move the clock when the first request is late.
     now=200.0
     g=Flow()

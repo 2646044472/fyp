@@ -35,7 +35,7 @@ def selected_photo(flow, token, frame_id):
             for photo in s["photo_candidates"]:
                 if photo.frame_id == frame_id and photo.payload.get("station_original_jpeg"):
                     return photo
-    raise ValueError("这张照片已不在本次选择中。")
+    raise ValueError("This photo is no longer in the current selection.")
 
 
 def mutate(flow, token, frame_id=None, *, stop=False, select=False, geometry=False):
@@ -45,18 +45,18 @@ def mutate(flow, token, frame_id=None, *, stop=False, select=False, geometry=Fal
         if s is None or s["token"] != token or time.monotonic() - s["last_activity"] >= DEFAULT_TIMEOUT:
             return {"status": "INACTIVE", "items": [], "kept": 0}
         if select and (s["capture_in_flight"] or s.get("station_step_in_flight")):
-            raise ValueError("最后一帧还在处理，请稍等。")
+            raise ValueError("The last frame is still processing. Please wait.")
         state = sync_selection(s, stop=stop, select=select)
         selected = tuple(s["selected_frame_ids"])
         if frame_id is not None:
             if state=="collecting" or s["capture_in_flight"] or s.get("station_step_in_flight") or frame_id not in selected:
-                raise ValueError("照片状态已经变化，请刷新本次预览后再操作。")
+                raise ValueError("The photo status changed. Refresh the preview and try again.")
             if not all(len(s[k]) == len(selected) for k in SLOTS):
-                raise ValueError("本次照片列表状态不一致；未删除。")
+                raise ValueError("The photo list is out of sync. Nothing was removed.")
             remaining = tuple(x for x in selected if x != frame_id)
             by_id = {c.frame_id: c for c in s["photo_candidates"]}
             if not all(x in by_id for x in remaining):
-                raise ValueError("本次候选不可用；未删除。")
+                raise ValueError("This candidate is unavailable. Nothing was removed.")
             idx = selected.index(frame_id)
             for key in SLOTS:
                 s[key].pop(idx)
@@ -100,8 +100,8 @@ PANEL = '''<style>
 #station-review[hidden]{display:none}#enroll-thumbs{display:none!important}.station-pair{display:grid;grid-template-columns:1.4fr 1fr auto;gap:8px;align-items:center;margin:8px 0}
 .station-pair button{margin:0;padding:6px;font-size:.86rem}.station-pair img{width:100%;height:68px;object-fit:contain;display:block}
 #station-zoom{border:0;border-radius:12px;max-width:92vw;padding:10px}#station-zoom img{display:block;max-width:86vw;max-height:75vh;object-fit:contain}
-</style><section id="station-review" hidden aria-label="本次登记照片"><strong id="station-review-count"></strong> <button type="button" id="station-stop" class="secondary" hidden>停止并保留现有</button><div id="station-review-items"></div></section>
-<dialog id="station-zoom"><form method="dialog"><button>关闭放大</button></form><img id="station-zoom-img" alt=""></dialog>
+</style><section id="station-review" hidden aria-label="Photos for this enrollment"><strong id="station-review-count"></strong> <button type="button" id="station-stop" class="secondary" hidden>Stop and keep selected photos</button><div id="station-review-items"></div></section>
+<dialog id="station-zoom"><form method="dialog"><button>Close enlarged view</button></form><img id="station-zoom-img" alt=""></dialog>
 <script>
 (()=>{const panel=document.getElementById('station-review'),list=document.getElementById('station-review-items'),heading=document.getElementById('station-review-count');
 const zoom=document.getElementById('station-zoom'),zoomImage=document.getElementById('station-zoom-img'),stop=document.getElementById('station-stop');
@@ -115,20 +115,20 @@ function draw(d,t){const items=Array.isArray(d.items)?d.items:[];const key=items
 if(d.status!=='REVIEW'){reload();return}panel.hidden=false;
 const partial=d.state==='partial';stationResumeAllowed=d.resumeAllowed!==false;stop.hidden=d.state!=='collecting';
 if(partial&&!stationPartial){stationPartial=true;enrollmentPaused=true;enrollmentSawNotReady=false;
-notice.textContent=d.kept?'本轮已停止，已选照片已保留；可只补缺额。':'没选到可用掌区：请把一只手的掌心放完整并稳一下；若画面不动，检查摄像头。';controls()}
-heading.textContent='已选 '+d.kept+'/5 张'+(d.kept<5?(d.state==='collecting'?'，正在挑选':'，还差 '+(5-d.kept)+' 张'):'，点击原图或 ROI 可放大');
-if(partial&&!stationResumeAllowed)heading.textContent+='；已达本次 60 秒上限';
+notice.textContent=d.kept?'Capture stopped. Your selection is retained; you can retake only the missing photos.':'No usable palm region. Hold one palm fully in frame. If the preview is frozen, check the camera connection.';controls()}
+heading.textContent='Selected '+d.kept+'/5 photos'+(d.kept<5?(d.state==='collecting'?' · Selecting photos':' · Still needed: '+(5-d.kept)):' · Click an original or ROI to enlarge');
+if(partial&&!stationResumeAllowed)heading.textContent+=' · 60-second capture limit reached';
 const locked=d.inFlight||d.state==='collecting';
 enrollmentThumbnails=items.map(i=>i.roi).filter(Boolean);document.getElementById('enroll-thumbs').replaceChildren();
 if(d.state==='ready'&&!d.inFlight&&!busy&&!enrollmentStopping){document.getElementById('enroll-commit').hidden=false;enrollmentPaused=false;controls()}
 if(key===signature){for(const b of list.querySelectorAll('.station-remove'))b.disabled=!!locked;return}signature=key;list.replaceChildren();
-for(const i of items){const row=document.createElement('div');row.className='station-pair';const remove=document.createElement('button');remove.type='button';remove.className='secondary station-remove';remove.textContent='删掉并补拍';remove.disabled=locked;
-remove.onclick=async()=>{if(pending||busy||enrollmentToken!==t||!confirm('只删这次尚未保存的这张原图和 ROI，然后补拍一张？'))return;
+for(const i of items){const row=document.createElement('div');row.className='station-pair';const remove=document.createElement('button');remove.type='button';remove.className='secondary station-remove';remove.textContent='Remove and retake';remove.disabled=locked;
+remove.onclick=async()=>{if(pending||busy||enrollmentToken!==t||!confirm('Remove this unsaved original and ROI pair and retake it?'))return;
 epoch++;pending=true;remove.disabled=true;try{const next=await post('/api/station/enroll-remove',{token:t,frame:i.frame});
-if(enrollmentToken!==t)return;if(next.status!=='REVIEW')throw Error('本次会话已结束');zoom.close();document.getElementById('enroll-commit').hidden=true;
-enrollmentPaused=true;enrollmentSawNotReady=false;stationPartial=true;draw(next,t);notice.textContent='已移除这一组。保持同一只手，准备补拍一张。';controls()
+if(enrollmentToken!==t)return;if(next.status!=='REVIEW')throw Error('This session has ended.');zoom.close();document.getElementById('enroll-commit').hidden=true;
+enrollmentPaused=true;enrollmentSawNotReady=false;stationPartial=true;draw(next,t);notice.textContent='Pair removed. Keep the same hand ready to retake one photo.';controls()
 }catch(e){if(enrollmentToken===t)notice.textContent=e.message}finally{pending=false;remove.disabled=false}};
-row.append(thumb(i.rgb,'原图','image/jpeg'),thumb(i.roi,'ROI','image/png'),remove);list.append(row)}}
+row.append(thumb(i.rgb,'Original','image/jpeg'),thumb(i.roi,'ROI','image/png'),remove);list.append(row)}}
 stop.onclick=async()=>{const t=enrollmentToken;if(!t||pending)return;epoch++;pending=true;stop.disabled=true;
 try{const d=await post('/api/station/enroll-stop',{token:t});if(t===enrollmentToken)draw(d,t)}
 catch(e){if(t===enrollmentToken)notice.textContent=e.message}

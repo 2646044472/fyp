@@ -1,15 +1,15 @@
-# 树莓派 60 秒掌纹登记
+# Legacy Raspberry Pi Station: 60-Second Palm Enrollment
 
-- 在树莓派本机打开已有的采集站 /enroll，点击开始，一次登记的服务端取帧窗口从开始算起，不超过 59 秒，留出约 1 秒给页面轮询。相机、网络或浏览器异常不保证页面时延；迟到的结果不会计入本轮。
-- 新版区分“裁出了掌区”与“可以进入登记候选”。前者可能仍被旧绝对锐度或对比度门槛阻挡，现在登记从几何有效、像素非空、时间新鲜的同帧裁剪中排行挑片。不松动验证的相机和质量门槛。
-- 系统通常先从约十几张的有效候选选，满足质量和差异性后可以提前结束；不必一直等倒计时。始终只摆同一只手，可稍微改变距离或角度。没有 5 张不重复的有效候选时保留已有的，不复制凑数。
-- 预览每组都显示同一次曝光的原图与 ROI，点击任一张放大，可在本次会话内删掉重拍或只补缺额。只有手动确认 5 张同掌才写入登记。未录整段视频，也不提交未选图。
-- 原因能在旧程序中合成复现，但不能据此断定某次实拍的 21 张全部因同一项被拒。仓库代码和模拟回归可用；这次未连接现场树莓派，须在下一轮上板实拍测首张、终选与耗时。此版本同时改了基础相机模块与采集站覆盖文件，不要只覆盖旧版的采集站脚本。
+- Open `/enroll` on the Raspberry Pi's legacy station and click **Start capture**. The server collects frames for at most 59 seconds from that point, leaving about one second for the page to poll. Camera, network, or browser problems can delay the page. Late results are not added to the current session.
+- The current legacy implementation distinguishes a successfully cropped palm ROI from an ROI that qualifies as an enrollment candidate. A crop may still fail the old absolute sharpness or contrast checks. Enrollment now ranks geometrically valid, nonempty, fresh crops from their original exposure. Verification camera and quality requirements are unchanged.
+- The station usually picks from roughly a dozen usable candidates and may stop once it has enough high-quality, complementary shots. You do not have to wait out the timer. Present only one hand throughout; slight changes in distance or angle are fine. If fewer than five distinct usable photos are available, the station keeps what it captured instead of filling the set with duplicates.
+- Each review pair shows the original image and ROI from the same exposure. Click either to enlarge it. Remove and recapture a pair or fill only the remaining slots during the current session. Click **Confirm and save** only after reviewing five photos of the same palm. The station does not record the full video or submit unselected images.
+- The old failure mode can be reproduced with synthetic inputs. That does not establish that all 21 candidates in a particular live run were rejected for the same reason. The repository includes the code and simulated regression checks; the field Pi was not connected for this revision. Use the next hardware trial to check the first candidate, the final selection, and timing. This revision updates both the base camera module and the capture station files, so do not replace only the old station script.
 
 ```sh
 python verify_best_frame.py
 python verify_ranked_window.py
 python verify_review.py
 python verify_adapter.py
-python verify_render.py  # 需要 Node.js
+python verify_render.py  # Requires Node.js
 ```

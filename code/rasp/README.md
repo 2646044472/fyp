@@ -1,22 +1,22 @@
-# 树莓派掌纹采集站（rasp）
+# Raspberry Pi Palmprint Capture Station
 
-如需了解当前登记取帧时限、候选排行与双图复核，请看 [60 秒登记与排查](capture-60s.md)。
+This page documents the **legacy Pi 5 capture station on port 8088**. See [60-second enrollment and troubleshooting](capture-60s.md) for capture timing, candidate ranking, and original/ROI review.
 
-这是 FYP 的 **Pi 5 本地采集界面与部署代码**，不是独立识别模型。它使用已有的 **PKLNet + FastCC v6**，不包含 X 上的 FPN+C E10，不修改验证阈值。照片、ROI、登记模板、采集记录和模型文件均不随此目录分发。
+The legacy station provides a local capture interface and deployment code; it is not a standalone recognition model. It uses the existing **PKLNet + FastCC v6** engine rather than the **FPN + C E10** build on X. It does not change verification thresholds. Photos, ROIs, enrollment templates, capture records, and models are not distributed in this directory.
 
-| 页面 | 能做什么 |
+| Page | What it does |
 | --- | --- |
-| `/enroll` | 连续预览，从有效 ROI 中挑出清楚、互补的五张；可放大原图和 ROI、删掉某一对及其候选特征、只补缺额。点击「确认同一只手并保存」才提交。 |
-| `/gate` | 放掌后自动试一次；移开后再开始下一轮。 |
-| `/collect` | 在 Pi 本机管理采集记录。 |
+| `/enroll` | Continuously previews the camera and selects five sharp, complementary photos from valid ROIs. You can enlarge an original image or ROI, remove a pair and its candidate features, and recapture only what is missing. Enrollment is submitted only after you click **Confirm and save** for the same hand. |
+| `/gate` | Tries verification once when a palm is presented. Remove the hand to start another attempt. |
+| `/collect` | Manages capture records locally on the Pi. |
 
-每次登记从按下「开始」起最多 60 秒（服务端 59 秒取帧上限，含补拍）。凑齐五张后也会短暂浏览已有候选，正常可提前结束；不足五张时可预览已有的。确认保存后，最终五组原图和对应 ROI 写入 Pi 的 `runtime/enrollment_pairs/<登记归档 ID>/`，每组分别为 JPEG 和 PNG。程序不保存整段视频。
+Legacy enrollment lasts at most 60 seconds after you click **Start capture**. The server's 59-second capture limit includes replacement frames. Once five photos are available, the station briefly checks the existing candidates and can normally finish early. If fewer than five are available, you can review what it captured. After you confirm, the five final original/ROI pairs are written to `runtime/enrollment_pairs/<archive-id>/` on the Pi as a JPEG and PNG per pair. The station does not save the entire video.
 
-开发新基线：另有以原生 PyTorch 运行的 [FPN + C E10 60 秒独立采集站](fpn-c-e10-station.md)（8080）。它使用 V3 登记和复核、另存原图、ROI 与模板，匹配时只显示分数。也可先用 [独立命令行](fpn-c-e10-shadow.md) 做本机预检。以下是原 8088 服务的部署和回退步骤；两个站不要同时使用同一相机。
+To try the new baseline, use the [standalone FPN + C E10 capture station](fpn-c-e10-station.md) on **port 8080**. It runs native PyTorch, uses V3 enrollment and review, stores originals, ROIs, and templates separately, and displays matching scores for demonstration. Use the [standalone command-line tool](fpn-c-e10-shadow.md) for a local preflight. The deployment and rollback instructions below apply to the legacy station on port 8088. Do not let the two stations use the same camera at the same time.
 
-## 换一台电脑开发
+## Develop on another computer
 
-如果尚未克隆，可以只检出应用代码，跳过仓库历史数据目录：
+If you have not cloned the repository, you can check out only the app code and skip the repository's historical data directory:
 
 ```sh
 GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --filter=blob:none --sparse https://github.com/2646044472/fyp.git
@@ -25,7 +25,7 @@ GIT_LFS_SKIP_SMUDGE=1 git sparse-checkout set code/rasp
 cd code/rasp
 ```
 
-在已有克隆中更新 `main` 即可。逻辑和回归测试在普通电脑用 Python 3 运行，不需要 Pi、模型、相机或真实样本：
+If you already have a clone, update `main`. The logic and regression checks run on a regular computer with Python 3; they do not need a Pi, model files, a camera, or real samples:
 
 ```sh
 python3 verify_best_frame.py
@@ -35,26 +35,26 @@ python3 verify_adapter.py
 bash -n install-on-pi.sh && bash -n rollback-on-pi.sh
 ```
 
-- `capture_station.py` 提供三页、用户服务的入口和采集站请求处理。
-- `enrollment_best_frame.py` 连接基础识别程序；`ranked_window.py` 选帧；`enrollment_window_adapter.py` 管开始、超时、停止与补拍；`enrollment_review.py` 管本次待确认的原图和 ROI。
-- `palm-capture-station.service` 是 **用户** systemd 单元；`palm-capture-station.env.example` 是无机器信息的相机配置模板。
+- `capture_station.py` serves the three pages, provides the user service entry point, and handles capture station requests.
+- `enrollment_best_frame.py` connects to the base recognition engine; `ranked_window.py` selects frames; `enrollment_window_adapter.py` manages starting, stopping, timeouts, and recapture; `enrollment_review.py` manages originals and ROIs pending confirmation.
+- `palm-capture-station.service` is a **user** systemd unit. `palm-capture-station.env.example` is a camera configuration template without machine-specific settings.
 
-## 部署到 Pi 5
+## Deploy to Pi 5
 
-基础应用的配置、依赖、回退方法见 [识别引擎说明](ENGINE-README.md)。采集站服务假定 Pi 上已有 `${HOME}/palm_demo`、该目录可用的 `.venv/bin/python`，以及可用的 PKLNet/FastCC v6 本地模型。基础引擎源码也在本目录。新建 Pi 基础环境时，把本目录中的源码部署至运行目录，不要覆盖已有的本机模型、设置与采集数据。采集站本身不安装基础模型或系统依赖。部署前先在 Pi 上用基础应用的虚拟环境验证导入（此命令不开摄像头）：
+See the [recognition engine guide](ENGINE-README.md) for the base app's configuration, dependencies, and rollback steps. The legacy station expects `${HOME}/palm_demo`, a working `.venv/bin/python` in that directory, and local PKLNet/FastCC v6 models. The base engine source is also in this directory. When preparing a new Pi, deploy the source here to the runtime directory without overwriting any local models, settings, or capture data. The capture station does not install the base models or system dependencies. Before deploying, verify imports in the Pi's base app virtual environment. This command does not open the camera:
 
 ```sh
 (cd "$HOME/palm_demo" && .venv/bin/python -c 'from palm_app import debug_ui; from demo_flow import enrollment_quality_issue; assert "enrollment_quad" in debug_ui.ProcessedFrame.__dataclass_fields__, "sync compatible camera module before v3 install"')
 ```
 
-**更新已装采集站**：旧的基础运行目录必须先更新相机代码。先备份本机基础应用和采集站代码，按上面的基础应用说明更新到兼容的完整源码，并确认上面的导入检查成功；不要用单个基础模块强行覆盖异版。保存或结束所有进行中的登记，然后在 Pi 上进入本目录运行 `bash install-on-pi.sh`。脚本先测试，再备份代码并重启用户服务；页面未恢复时还原。页面响应不等同摄像头就绪，下面仍要实机检查。它不会修改登记或模型；重启会丢失尚未保存的候选。手动回退：`bash rollback-on-pi.sh <安装时打印的备份目录>`。
+**Updating an installed station:** The base runtime directory needs compatible camera code first. Back up the local base app and capture station, update the complete base app from a compatible source revision as described above, and verify the import check. Do not overwrite a single base module with one from another version. Save or finish any enrollment in progress, then run `bash install-on-pi.sh` from this directory on the Pi. The script runs checks, backs up the code, and restarts the user service. It rolls back if the page does not recover. A responsive page does not prove that the camera is ready; do the hardware checks below. The script does not modify enrollment data or models. Restarting discards unsaved candidates. To roll back manually, run `bash rollback-on-pi.sh <backup-directory-printed-by-the-installer>`.
 
-**全新 Pi（仅克隆仓库不能直接运行）**：先准备基础引擎、相机依赖和已获准的模型。确认以下两项，再把采集站装为用户服务：
+**Fresh Pi (cloning alone is not enough):** Set up the base engine, camera dependencies, and authorized models first. Confirm the following before installing the station as a user service:
 
-1. 服务实际运行的是 `$HOME/palm_demo/.venv/bin/python`，不是 `.venv-pklnet`。该环境需要能导入 `onnxruntime`，以及基础引擎所需的 OpenCV、NumPy、Pillow 和相机依赖。旧 `deploy/install_pi.sh --with-pklnet` 只给另一个环境安装 PKLNet 依赖，不能代替这项检查。
-2. 从已获准的本地来源准备匹配的三件套：`net_params_500.pth`、`pklnet-keypoints-diagnostics.onnx` 和 `pklnet-keypoints-diagnostics.json`。三件套放在与 `$HOME/palm_demo` 并列的 `pklnet/`（若该目录存在会优先使用），或放在应用目录内的 `pklnet/`。引擎会校验 JSON 中的原始权重及 ONNX 摘要。旧导出教程中的 `pklnet-keypoints.onnx` 不是当前默认裁掌策略所用的诊断版，不能替代。未经许可不要通过 Git 或共享附件转发模型文件。
+1. The service uses `$HOME/palm_demo/.venv/bin/python`, not `.venv-pklnet`. The environment must be able to import `onnxruntime` and the base engine's OpenCV, NumPy, Pillow, and camera dependencies. The old `deploy/install_pi.sh --with-pklnet` command installs PKLNet dependencies into a different environment and does not replace this check.
+2. Obtain the matching three files from an authorized local source: `net_params_500.pth`, `pklnet-keypoints-diagnostics.onnx`, and `pklnet-keypoints-diagnostics.json`. Put them in the `pklnet/` directory next to `$HOME/palm_demo` (preferred if present) or in `pklnet/` inside the app directory. The engine checks the original weights and ONNX hashes listed in the JSON file. The older export guide's `pklnet-keypoints.onnx` is not the diagnostic version used by the current default crop policy. Do not distribute model files through Git or shared attachments without permission.
 
-基础应用和上述依赖就绪后，在 Pi 上从本目录放入代码及服务（用户权限即可）：
+Once the base app and dependencies are ready, install the code and service from this directory on the Pi. User permissions are sufficient:
 
 ```sh
 install -d -m 700 "$HOME/.local/share/palm-capture-station" "$HOME/.config/systemd/user"
@@ -63,14 +63,16 @@ install -m 644 palm-capture-station.service "$HOME/.config/systemd/user/"
 systemctl --user daemon-reload
 ```
 
-USB 相机用 `v4l2-ctl --list-devices` 核对真实 Video Capture 节点，把稳定的设备路径写入 Pi 本机 `~/.config/palm-capture-station.env`，可参考随附模板；不要把其他机器的设备路径复制进去。可用 `v4l2-ctl --list-formats-ext` 核对 MJPEG 模式，再设置 `PALM_STATION_UVC_NATIVE_SIZE=1600x1200` 等实际支持的尺寸。预览和识别在小图上运行，归档保留相机原始 JPEG；切换相机格式或分辨率后，旧格式模板可能需要重新登记。CSI 排线应关机后接入，默认走已有高清采集路径；可选连续 CSI 实验模式仅在实机验证过后启用。若以前的 `palm-debug-ui.service` 正在占用同一相机，先在 Pi 上停止旧应用再启动新服务；避免两个服务同时抢占相机。准备好后运行 `systemctl --user start palm-capture-station.service`。开机要不要启动及启动顺序由实际部署决定；本目录不自动修改旧服务或用户登录策略。
+For a USB camera, use `v4l2-ctl --list-devices` to find the actual Video Capture node. Set its stable device path in `~/.config/palm-capture-station.env` on the Pi using the provided template. Do not copy a device path from a different machine. Check supported MJPEG modes with `v4l2-ctl --list-formats-ext`, then set a supported size such as `PALM_STATION_UVC_NATIVE_SIZE=1600x1200`. Preview and matching use smaller images, while the archive keeps the camera's original JPEG. Changing format or resolution may require re-enrolling legacy templates.
 
-旧版 Pi 基础应用可能缺 `enrollment_quality_issue` 或使用不同状态字段。如果导入报错或页面正常但候选一直不能保留，先检查基础应用/采集站版本，不要放宽验证阈值。现场 Pi 的 USB 本机配置与临时兼容补丁未同步，这个目录不能当作现场 Pi 文件系统的逐字备份。
+Power off before connecting a CSI ribbon cable. The existing high-resolution capture path is the default; enable the optional continuous CSI mode only after validating it on the device. If the old `palm-debug-ui.service` is using the same camera, stop it on the Pi before starting the station. The two services must not compete for the camera. When ready, run `systemctl --user start palm-capture-station.service`. Boot behavior and startup order depend on the deployment; this directory does not change old services or user login policies automatically.
 
-## 现场验收与访问
+An older base app may lack `enrollment_quality_issue` or use different status fields. If the import fails, or the page loads but never keeps candidates, check the compatibility of the base app and capture station first. Do not relax verification thresholds. Local USB camera settings and temporary compatibility patches on the field Pi are not synchronized here. This directory is not an exact backup of that Pi.
 
-Pi 本机打开 [登记页](http://127.0.0.1:8088/enroll)。新电脑如果可以通过自己的 SSH 连接访问 Pi，可在新电脑运行 `ssh -N -L 127.0.0.1:8089:127.0.0.1:8088 <用户>@<Pi地址>`，再打开 [本机 8089](http://127.0.0.1:8089/enroll)，不要改成公网监听。站点只监听回环地址。
+## On-site validation and access
 
-先确认 `systemctl --user is-active palm-capture-station.service` 返回 `active`，且画面实时更新、不停在等待页。用同意参加的测试编号走一轮：登记预览 → 比对原图与 ROI → 删除一对并补齐 → 手动保存 → 移开手 → 同掌验证 → 再用未登记的掌确认不误通过。浏览器显示的请求时间不含把手举进画面和等到合格 ROI 的时间，不能当作全程响应时间。仓库里的测试只验证软件流程，不证明实际采集、识别准确率或硬件速度。
+On the Pi, open the [enrollment page](http://127.0.0.1:8088/enroll). If your computer can reach the Pi over SSH, run `ssh -N -L 127.0.0.1:8089:127.0.0.1:8088 <user>@<pi-host>` and open [local port 8089](http://127.0.0.1:8089/enroll). Leave the station bound to the loopback interface; do not expose it to the public internet.
 
-请勿提交原图、ROI、模板、运行日志、模型、私钥或相机本机配置。
+Check that `systemctl --user is-active palm-capture-station.service` returns `active` and that the preview updates rather than staying on the waiting screen. With a consenting participant's test ID, preview an enrollment, inspect the original and ROI, remove and replace one pair, save manually, and remove the hand. Verify the same palm, then confirm that an unenrolled palm is not accepted. The request time shown in the browser excludes the time to present the hand and obtain a usable ROI, so it is not end-to-end latency. Repository tests cover software flow; they do not prove live capture, recognition accuracy, or hardware speed.
+
+Do not commit original images, ROIs, templates, runtime logs, models, private keys, or device-specific camera settings.

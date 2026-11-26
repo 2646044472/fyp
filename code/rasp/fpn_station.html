@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FYP 掌纹采集站</title>
+<title>FYP Palmprint Station</title>
 <style>
 :root{color-scheme:light;--ink:#142b3f;--muted:#48627a;--edge:#d5e0e9;--blue:#135e96}
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:var(--ink);font:16px/1.55 system-ui,"Microsoft YaHei",sans-serif}
@@ -76,91 +76,91 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 <main>
 <header class="intro"><h1 id="title"></h1><p id="subtitle" class="hint"></p></header>
 <div class="split" id="camera-page" hidden>
-  <section class="card" aria-label="实时画面">
-    <div class="row between"><h2>实时画面</h2><span class="hint" id="camera-status" role="status">相机待机</span></div>
-    <div class="preview"><span id="camera-placeholder">开始后打开相机</span><img id="live" alt="相机实时预览" hidden></div>
-    <p class="hint">掌心朝向镜头。绿色四边形标出模型检测到的掌区。</p>
+  <section class="card" aria-label="Live preview">
+    <div class="row between"><h2>Live preview</h2><span class="hint" id="camera-status" role="status">Camera in standby</span></div>
+    <div class="preview"><span id="camera-placeholder">Start to open the camera</span><img id="live" alt="Live camera preview" hidden></div>
+    <p class="hint">Face your palm toward the camera. The green outline marks the detected palm region.</p>
     <section class="diagnostics" id="capture-reference" hidden aria-labelledby="reference-title">
-      <div class="row between"><h2 id="reference-title">掌区实时参考</h2><span class="hint" id="model-status"></span></div>
+      <div class="row between"><h2 id="reference-title">Live ROI guidance</h2><span class="hint" id="model-status"></span></div>
       <dl class="measurements">
-        <div><dt>ROI 占画面</dt><dd id="roi-area">—</dd><small>起步约 8–12%，用来调距离</small></div>
-        <div><dt>掌区亮度 / 255</dt><dd id="roi-brightness">—</dd><small>起步约 110–185，留意亮斑</small></div>
-        <div><dt>相对清晰度</dt><dd id="roi-sharpness">—</dd><small>同一只手、同样光线下比较</small></div>
-        <div><dt>掌区对比度</dt><dd id="roi-contrast">—</dd><small>表示灰度差，结合掌纹看</small></div>
+        <div><dt>ROI share of frame</dt><dd id="roi-area">—</dd><small>Start around 8–12% to adjust distance</small></div>
+        <div><dt>ROI brightness / 255</dt><dd id="roi-brightness">—</dd><small>Start around 110–185; check for glare</small></div>
+        <div><dt>Relative sharpness</dt><dd id="roi-sharpness">—</dd><small>Compare the same hand under the same lighting</small></div>
+        <div><dt>ROI contrast</dt><dd id="roi-contrast">—</dd><small>Gray-level variation; inspect the creases as well</small></div>
       </dl>
-      <p class="status" id="capture-advice">掌心放在画面中间，等绿色框稳定。</p>
-      <details class="hint"><summary>参数怎么读 · 相机设置</summary>
+      <p class="status" id="capture-advice">Center your palm and wait for the green outline to settle.</p>
+      <details class="hint"><summary>Reading the metrics and camera settings</summary>
         <ul class="reference-help">
-          <li><strong>ROI 占画面</strong>是绿色掌区框占整帧的面积比例。用它复现拍摄距离，同时给手掌四周留空。</li>
-          <li><strong>掌区亮度</strong>是 128 × 128 掌区灰度的中间值。0 是黑，255 是白。中间值合适时，仍可以检查局部亮斑。</li>
-          <li><strong>相对清晰度</strong>衡量掌区里边缘强度的差异。对准同一只手、光线和姿势后，比较不同距离下的细纹与读数。</li>
-          <li><strong>掌区对比度</strong>是灰度的标准差。细纹、亮斑、大块阴影都能抬高读数，放大看掌纹才能判断是哪一种。</li>
+          <li><strong>ROI share of frame</strong> is the proportion of the frame covered by the green ROI. Use it to reproduce distance while leaving space around the palm.</li>
+          <li><strong>ROI brightness</strong> is the median gray level of the 128 × 128 ROI. Zero is black and 255 is white. Check for local glare even when the median is in range.</li>
+          <li><strong>Relative sharpness</strong> measures variation in edge strength. Compare the reading and the fine creases at different distances while keeping the hand, lighting and pose fixed.</li>
+          <li><strong>ROI contrast</strong> is the standard deviation of gray levels. Fine creases, glare and broad shadows all raise it; zoom in to tell them apart.</li>
         </ul>
         <p id="camera-format"></p><p id="camera-controls"></p><p id="camera-timing"></p>
-        <p>占比和亮度范围用来调机，最后以原图里的掌纹细节为准。</p>
-        <p>掌心若出现亮斑，先把补光移到侧面或打散，再观察细纹。</p>
-        <p>固定相机与手掌的距离，短暂停稳让镜头对焦。轻微调整同一只手的角度，每次移动后再停稳。</p>
+        <p>Use the size and brightness ranges to adjust the setup, then inspect the actual creases in the original image.</p>
+        <p>If the palm has a bright spot, move the light to one side or diffuse it, then check the fine creases.</p>
+        <p>Keep the camera-to-palm distance steady and pause for focus. Tilt the same hand slightly, then hold it still after each movement.</p>
       </details>
     </section>
   </section>
   <section id="capture" class="card" hidden>
-    <div class="row between"><h2>本轮采集</h2><span class="clock" id="clock" aria-label="采集剩余时间">01:00</span></div>
+    <div class="row between"><h2>Capture session</h2><span class="clock" id="clock" aria-label="Remaining capture time">01:00</span></div>
     <form id="form">
       <div class="fields">
-        <label>编号<input name="user_id" placeholder="例如 p01_left" required maxlength="40" pattern="[A-Za-z0-9_\-]+"></label>
-        <label>显示名<input name="display_name" placeholder="输入显示名" required maxlength="60"></label>
-        <label>采集手<select name="hand" required><option value="">选择左右手</option><option value="left">左手</option><option value="right">右手</option></select></label>
+        <label>ID<input name="user_id" placeholder="e.g. p01_left" required maxlength="40" pattern="[A-Za-z0-9_\-]+"></label>
+        <label>Display name<input name="display_name" placeholder="Enter display name" required maxlength="60"></label>
+        <label>Capture hand<select name="hand" required><option value="">Choose left or right hand</option><option value="left">left hand</option><option value="right">right hand</option></select></label>
       </div>
       <div class="row">
-        <button id="start" disabled>开始采集</button>
-        <button type="button" id="select-photos" hidden>挑选 10 张</button>
-        <button type="button" id="save" hidden>保存已选照片</button>
-        <button type="button" class="secondary" id="stop" hidden>暂停采集</button>
-        <button type="button" class="secondary" id="refill" hidden>继续采集</button>
-        <button type="button" class="secondary" id="cancel" hidden>取消本轮</button>
-        <button type="button" class="secondary" id="recover" hidden>恢复状态</button>
+        <button id="start" disabled>Start capture</button>
+        <button type="button" id="select-photos" hidden>Select 10 photos</button>
+        <button type="button" id="save" hidden>Save selected photos</button>
+        <button type="button" class="secondary" id="stop" hidden>Pause capture</button>
+        <button type="button" class="secondary" id="refill" hidden>Resume capture</button>
+        <button type="button" class="secondary" id="cancel" hidden>Cancel session</button>
+        <button type="button" class="secondary" id="recover" hidden>Recover session</button>
       </div>
     </form>
-    <p class="status" id="capture-status" role="status">选择一只手，至少采集 60 秒再挑选照片。</p>
-    <section class="diagnostics" id="capture-feedback" hidden aria-label="采集诊断">
-      <h2>当前画面</h2><p id="frame-feedback" class="hint"></p>
-      <h2 style="margin-top:10px">最近一次取帧</h2><p id="attempt-feedback" class="hint"></p>
+    <p class="status" id="capture-status" role="status">Choose a hand and capture for at least 60 seconds before selecting photos.</p>
+    <section class="diagnostics" id="capture-feedback" hidden aria-label="Capture diagnostics">
+      <h2>Current frame</h2><p id="frame-feedback" class="hint"></p>
+      <h2 style="margin-top:10px">Last capture attempt</h2><p id="attempt-feedback" class="hint"></p>
       <p id="capture-counts" class="hint" style="margin-top:8px"></p>
     </section>
   </section>
   <section id="verification" class="card" hidden>
-    <div class="row between"><h2>放掌比对</h2><span class="hint" id="verify-run-state">相机待机</span></div>
-    <div class="row" style="margin-top:12px"><button id="verify-start">开始验证</button>
-      <button id="verify-stop" class="secondary" hidden>停止验证</button></div>
+    <div class="row between"><h2>Palm comparison</h2><span class="hint" id="verify-run-state">Camera in standby</span></div>
+    <div class="row" style="margin-top:12px"><button id="verify-start">Start verification</button>
+      <button id="verify-stop" class="secondary" hidden>Stop verification</button></div>
     <div class="verification-values">
-      <p class="hint">最近一帧最高分</p>
+      <p class="hint">Highest score on the latest frame</p>
       <div class="row between"><strong id="score-value">—</strong><span id="score-gap" class="hint"></span></div>
       <div class="score-track" aria-hidden="true"><span id="threshold-mark"></span><span id="score-mark" hidden></span></div>
     </div>
-    <div class="row between"><label for="threshold-slider">演示阈值</label>
-      <button type="button" class="secondary small-button" id="reset-threshold">恢复默认</button></div>
+    <div class="row between"><label for="threshold-slider">Demo threshold</label>
+      <button type="button" class="secondary small-button" id="reset-threshold">Reset</button></div>
     <div class="threshold-controls">
       <input id="threshold-slider" type="range" min="0" max="1" step="0.01" value="0.8">
-      <input id="threshold-number" type="number" min="0" max="1" step="any" inputmode="decimal" value="0.8" aria-label="阈值数值">
+      <input id="threshold-number" type="number" min="0" max="1" step="any" inputmode="decimal" value="0.8" aria-label="Threshold value">
     </div>
-    <p class="hint">可在 0–1 间调整，设置记在当前浏览器。最高分达到阈值且无并列时显示「匹配」。</p>
-    <p class="status" id="score-status" role="status">点击开始验证打开相机。</p>
+    <p class="hint">Adjust from 0 to 1. The setting is saved in this browser. Match is shown when the highest score reaches the threshold and is not tied.</p>
+    <p class="status" id="score-status" role="status">Select Start verification to open the camera.</p>
     <div class="verification-match" id="best-match" hidden>
-      <small class="hint">最高候选</small><p><strong id="match-name"></strong></p>
+      <small class="hint">Best candidate</small><p><strong id="match-name"></strong></p>
       <p id="match-detail" class="hint"></p>
-      <img id="match-photo" alt="最高候选的登记掌区" hidden>
+      <img id="match-photo" alt="Enrolled palm ROI of the best candidate" hidden>
     </div>
   </section>
 </div>
 <section class="card review" id="station-review" hidden>
-  <div class="row between"><div><h2 id="review-title">所选照片</h2><p class="hint">原 ROI 是按绿框裁出并拉正的彩色掌区。处理后 ROI 是模型读取的 128 × 128 灰度图。</p></div>
+  <div class="row between"><div><h2 id="review-title">Selected photos</h2><p class="hint">Color ROI is the rectified crop inside the green outline. Model ROI is the 128 × 128 grayscale image used by the recognizer.</p></div>
   </div>
   <div class="groups" id="photos"></div>
 </section>
 <section class="card" id="library" hidden>
-  <div class="row between library-header"><h2>已保存的照片组</h2>
-    <input type="search" id="search" placeholder="按姓名或编号筛选" aria-label="按姓名或编号筛选照片"></div>
-  <p id="library-status" class="hint" role="status">正在读取照片库</p>
+  <div class="row between library-header"><h2>Saved photo groups</h2>
+    <input type="search" id="search" placeholder="Filter by name or ID" aria-label="Filter photos by name or ID"></div>
+  <p id="library-status" class="hint" role="status">Loading the photo library</p>
   <p id="library-feedback" class="status" role="status" hidden></p>
   <div id="archives"></div>
 </section>
@@ -168,33 +168,33 @@ dialog::backdrop{background:#102334b8}.viewport{height:min(68vh,780px);display:f
 <dialog id="viewer" aria-labelledby="photo-title">
   <div class="row between"><div><h2 id="photo-title"></h2><p class="hint" id="dimensions"></p></div>
   <div class="row">
-    <button class="secondary small-button" id="box" hidden aria-pressed="true">隐藏 ROI 框</button>
-    <button class="secondary small-button" id="zoom" disabled aria-label="放大" aria-pressed="false"><span aria-hidden="true">🔍</span> <span id="zoom-label">放大</span></button>
-    <form method="dialog"><button class="secondary small-button">关闭</button></form>
+    <button class="secondary small-button" id="box" hidden aria-pressed="true">Hide ROI outline</button>
+    <button class="secondary small-button" id="zoom" disabled aria-label="Zoom in" aria-pressed="false"><span aria-hidden="true">🔍</span> <span id="zoom-label">Zoom in</span></button>
+    <form method="dialog"><button class="secondary small-button">Close</button></form>
   </div></div>
-  <div class="row viewer-switch" aria-label="切换同一次拍摄的图片">
-    <button type="button" class="secondary small-button" data-view-kind="original">相机原图</button>
-    <button type="button" class="secondary small-button" data-view-kind="detail">原 ROI</button>
-    <button type="button" class="secondary small-button" data-view-kind="model">处理后 ROI</button>
+  <div class="row viewer-switch" aria-label="Switch between views of the same capture">
+    <button type="button" class="secondary small-button" data-view-kind="original">Original camera image</button>
+    <button type="button" class="secondary small-button" data-view-kind="detail">Color ROI</button>
+    <button type="button" class="secondary small-button" data-view-kind="model">Model ROI</button>
   </div>
-  <div class="viewport" id="viewport" tabindex="0" aria-label="照片，放大后可滚动">
+  <div class="viewport" id="viewport" tabindex="0" aria-label="Photo; scroll when zoomed">
     <p id="image-status" role="status"></p>
     <div class="photo" id="full-photo"><img id="full-image" alt=""></div>
   </div>
 </dialog>
 <dialog id="archive-editor" aria-labelledby="archive-edit-title">
-  <h2 id="archive-edit-title">编辑照片组信息</h2>
+  <h2 id="archive-edit-title">Edit photo group details</h2>
   <form id="archive-edit-form">
     <div class="fields">
-      <label>显示名<input name="display_name" required maxlength="60" autofocus></label>
-      <label>参与者编号<input name="participant" required maxlength="40"></label>
-      <label>采集手<select name="hand" required><option value="left">左手</option><option value="right">右手</option></select></label>
+      <label>Display name<input name="display_name" required maxlength="60" autofocus></label>
+      <label>Participant ID<input name="participant" required maxlength="40"></label>
+      <label>Capture hand<select name="hand" required><option value="left">left hand</option><option value="right">right hand</option></select></label>
     </div>
-    <p class="hint">这些标签用于照片库。验证时仍显示登记模板的资料。</p>
+    <p class="hint">These labels apply to the photo library. Verification still shows the enrollment template details.</p>
     <p class="status" id="archive-edit-error" role="alert" hidden></p>
     <div class="row" style="margin-top:12px">
-      <button id="archive-edit-save" type="submit">保存修改</button>
-      <button id="archive-edit-cancel" type="button" class="secondary">取消</button>
+      <button id="archive-edit-save" type="submit">Save changes</button>
+      <button id="archive-edit-cancel" type="button" class="secondary">Cancel</button>
     </div>
   </form>
 </dialog>
@@ -215,7 +215,7 @@ async function request(path, body, binary = false) {
   });
   if (!reply.ok) {
     const data = await reply.json().catch(() => ({}));
-    throw Object.assign(new Error(data.message || '请求失败，请重试。'), {status:reply.status});
+    throw Object.assign(new Error(data.message || 'Request failed. Try again.'), {status:reply.status});
   }
   return binary ? reply.blob() : reply.json();
 }
@@ -229,7 +229,7 @@ async function preview() {
       $('live').removeAttribute('src');
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       previewUrl = null;
-      $('camera-placeholder').textContent = '开始后打开相机';
+      $('camera-placeholder').textContent = 'Start to open the camera';
       $('camera-placeholder').hidden = false;
       return;
     }
@@ -243,7 +243,7 @@ async function preview() {
     previewUrl = next;
   } catch (_) {
     $('live').hidden = true;
-    $('camera-placeholder').textContent = cameraOpen ? '等待画面' : '开始后打开相机';
+    $('camera-placeholder').textContent = cameraOpen ? 'Waiting for preview' : 'Start to open the camera';
     $('camera-placeholder').hidden = false;
   } finally {
     setTimeout(preview, 240);
@@ -260,8 +260,8 @@ async function cameraStatus() {
       state.camera_mode === 'verify' && !!gateToken);
     liveReady = cameraOpen && state.camera_ready && state.processing_thread_alive;
     palmReady = liveReady && state.roi_status_fresh && state.enrollment_geometry_valid;
-    $('camera-status').textContent = palmReady ? '已检测到掌区' :
-      liveReady ? '等待稳定掌区' : cameraOpen ? '相机正在启动' : '相机待机';
+    $('camera-status').textContent = palmReady ? 'Palm detected' :
+      liveReady ? 'Waiting for a stable ROI' : cameraOpen ? 'Starting camera' : 'Camera in standby';
     if (page === '/enroll') {
       renderReference(state);
       captureCameraState = state;
@@ -270,7 +270,7 @@ async function cameraStatus() {
     else if (page === '/gate') updateVerification(state);
   } catch (_) {
     liveReady = palmReady = cameraOpen = false;
-    $('camera-status').textContent = '相机连接中断';
+    $('camera-status').textContent = 'Camera disconnected';
     if (page === '/enroll') {
       renderReference();
       captureCameraState = null;
@@ -287,45 +287,45 @@ function renderReference(state) {
   const metrics = palmReady ? state.capture_reference : null;
   const value = (n, digits = 1) => Number.isFinite(n) ? n.toFixed(digits) : '—';
   const size = values => values?.join(' × ') || '—';
-  $('model-status').textContent = state?.backend === 'fpn-c-e10-frozen' ? 'FPN + C E10 在线' : '';
+  $('model-status').textContent = state?.backend === 'fpn-c-e10-frozen' ? 'FPN + C E10 online' : '';
   $('roi-area').textContent = metrics ? value(metrics.roi_area_pct) + '%' : '—';
   $('roi-brightness').textContent = value(metrics?.median_gray, 0);
   $('roi-sharpness').textContent = value(metrics && state.quality.sharpness, 0);
   $('roi-contrast').textContent = value(metrics && state.quality.contrast);
-  $('camera-format').textContent = state ? '相机原图 ' + size(state.original_capture_size) +
-    (state.capture_format ? ' ' + state.capture_format : '') + ' · 分析 ' + size(state.analysis_size) + ' · 识别 ROI 128 × 128' : '';
+  $('camera-format').textContent = state ? 'Original camera image ' + size(state.original_capture_size) +
+    (state.capture_format ? ' ' + state.capture_format : '') + ' · Analysis: ' + size(state.analysis_size) + ' · Model ROI 128 × 128' : '';
   const settings = state?.camera_controls_at_start;
   const cameraControls = [];
-  if (settings?.focus_automatic_continuous !== undefined) cameraControls.push(settings.focus_automatic_continuous ? '连续自动对焦' : '连续自动对焦关闭');
+  if (settings?.focus_automatic_continuous !== undefined) cameraControls.push(settings.focus_automatic_continuous ? 'Continuous autofocus' : 'Continuous autofocus off');
   if (settings?.auto_exposure !== undefined) {
-    const modes = ['自动曝光','手动曝光','快门优先','光圈优先自动曝光'];
-    cameraControls.push(modes[settings.auto_exposure] || '曝光模式 ' + settings.auto_exposure);
+    const modes = ['Auto exposure','Manual exposure','Shutter priority','Aperture-priority exposure'];
+    cameraControls.push(modes[settings.auto_exposure] || 'Exposure mode: ' + settings.auto_exposure);
   }
-  for (const [key, label] of [['brightness','亮度'],['contrast','对比度'],['sharpness','锐度']]) {
+  for (const [key, label] of [['brightness','Brightness'],['contrast','Contrast'],['sharpness','Sharpness']]) {
     if (settings?.[key] !== undefined) cameraControls.push(label + ' ' + settings[key]);
   }
-  $('camera-controls').textContent = cameraControls.length ? '启动时相机设置 · ' + cameraControls.join(' · ') : '';
+  $('camera-controls').textContent = cameraControls.length ? 'Camera settings at startup ·' + cameraControls.join(' · ') : '';
   const latency = state?.processed_monotonic_ms - state?.captured_monotonic_ms;
   $('camera-timing').textContent = Number.isFinite(latency) && state.roi_status_fresh ?
-    '最近一帧掌区处理耗时 ' + Math.round(latency) + ' ms' : '';
+    'Latest ROI processing time: ' + Math.round(latency) + ' ms' : '';
 
-  let advice = '掌心入镜，手指自然张开，等绿色框稳定后停一会儿。';
-  if (!cameraOpen) advice = '相机待机。开始采集后会显示掌区参考。';
-  else if (!liveReady) advice = '相机正在启动，等实时画面恢复。';
-  else if (!state.roi_status_fresh || state.roi_reason === 'fpn_frame_stale') advice = '正在等新鲜掌区帧，先停稳手掌。';
-  else if (state.roi_reason === 'invalid_original_geometry') advice = '把掌心往画面中间移动，给掌区四周留出空隙。';
+  let advice = 'Open your fingers naturally, put your palm in view, and hold still once the green outline settles.';
+  if (!cameraOpen) advice = 'Camera in standby. Start capture to see ROI guidance.';
+  else if (!liveReady) advice = 'The camera is starting. Wait for the live preview.';
+  else if (!state.roi_status_fresh || state.roi_reason === 'fpn_frame_stale') advice = 'Waiting for a fresh ROI frame. Hold your palm still.';
+  else if (state.roi_reason === 'invalid_original_geometry') advice = 'Move your palm toward the center and leave space around it.';
   else if (metrics) {
-    if (metrics.median_gray >= 195 || metrics.bright_pct >= 2) advice = '掌区偏亮。把补光略移到侧面或减弱，检查亮斑内的细纹。';
-    else if (metrics.median_gray < 65 || metrics.dark_pct >= 8) advice = '掌区偏暗。补一点均匀的光，减少深阴影。';
-    else if (metrics.roi_area_pct < 4) advice = '掌区在画面里较小。稍靠近镜头，停稳后观察清晰度。';
-    else advice = '掌区已定位。停稳让镜头对焦，保存前放大检查主纹和细纹。';
+    if (metrics.median_gray >= 195 || metrics.bright_pct >= 2) advice = 'The ROI is bright. Move or dim the light and check the fine creases in bright areas.';
+    else if (metrics.median_gray < 65 || metrics.dark_pct >= 8) advice = 'The ROI is dark. Add even light to reduce deep shadows.';
+    else if (metrics.roi_area_pct < 4) advice = 'The ROI is small. Move a little closer, then hold still and check sharpness.';
+    else advice = 'Palm located. Hold still for focus, then zoom in to inspect major and fine creases before saving.';
   }
   $('capture-advice').textContent = advice;
 }
 
-const handing = hand => hand === 'left' ? '左手' : '右手';
-const names = {original:'相机原图', detail:'原 ROI', model:'处理后 ROI'};
-const photoNotes = {original:'相机 JPEG', detail:'彩色 · 原尺寸', model:'灰度 · 128 × 128'};
+const handing = hand => hand === 'left' ? 'left hand' : 'right hand';
+const names = {original:'Original camera image', detail:'Color ROI', model:'Model ROI'};
+const photoNotes = {original:'Camera JPEG', detail:'Color · Original size', model:'Grayscale · 128 × 128'};
 const previewKinds = {original:'preview', detail:'detail-preview', model:'model'};
 const viewer = $('viewer'), full = $('full-image'), fullPhoto = $('full-photo');
 const viewSwitches = Array.from(viewer.querySelectorAll('[data-view-kind]'));
@@ -359,8 +359,8 @@ function sizePhoto() {
   const scale = magnified ? Math.max(1, fit * 2, width <= 128 ? 3 : 1) : fit;
   fullPhoto.style.width = Math.floor(width * scale) + 'px';
   fullPhoto.style.height = Math.floor(height * scale) + 'px';
-  $('dimensions').textContent = width + ' × ' + height + ' 像素 · ' + Math.round(scale*100) + '%';
-  $('zoom-label').textContent = magnified ? '缩小' : '放大';
+  $('dimensions').textContent = width + ' × ' + height + ' px · ' + Math.round(scale*100) + '%';
+  $('zoom-label').textContent = magnified ? 'Zoom out' : 'Zoom in';
   $('zoom').setAttribute('aria-label', $('zoom-label').textContent);
   $('zoom').setAttribute('aria-pressed', String(magnified));
 }
@@ -386,7 +386,7 @@ $('box').onclick = () => {
   if (!mark) return;
   mark.style.display = mark.style.display ? '' : 'none';
   $('box').setAttribute('aria-pressed', String(!mark.style.display));
-  $('box').textContent = mark.style.display ? '显示 ROI 框' : '隐藏 ROI 框';
+  $('box').textContent = mark.style.display ? 'Show ROI outline' : 'Hide ROI outline';
 };
 async function showPhoto(sample, kind, load, index) {
   clearViewer();
@@ -394,12 +394,12 @@ async function showPhoto(sample, kind, load, index) {
   viewedSample = {sample, kind, load, index};
   for (const button of viewSwitches) button.setAttribute('aria-pressed', String(button.dataset.viewKind === kind));
   magnified = false;
-  $('zoom-label').textContent = '放大';
-  $('zoom').setAttribute('aria-label', '放大');
+  $('zoom-label').textContent = 'Zoom in';
+  $('zoom').setAttribute('aria-label', 'Zoom in');
   $('zoom').setAttribute('aria-pressed', 'false');
-  $('photo-title').textContent = '第 ' + index + ' 组 · ' + names[kind];
+  $('photo-title').textContent = 'Group ' + index + ' · ' + names[kind];
   $('dimensions').textContent = '';
-  $('image-status').textContent = '正在读取图片';
+  $('image-status').textContent = 'Loading image';
   $('image-status').hidden = false;
   $('box').hidden = true;
   $('zoom').disabled = true;
@@ -415,7 +415,7 @@ async function showPhoto(sample, kind, load, index) {
     fullPhoto.classList.toggle('pixel', kind === 'model');
     if (kind === 'original' && outline(fullPhoto, sample)) {
       $('box').hidden = false;
-      $('box').textContent = '隐藏 ROI 框';
+      $('box').textContent = 'Hide ROI outline';
       $('box').setAttribute('aria-pressed', 'true');
     }
     $('image-status').hidden = true;
@@ -424,7 +424,7 @@ async function showPhoto(sample, kind, load, index) {
     sizePhoto();
     $('viewport').scrollTop = $('viewport').scrollLeft = 0;
   } catch (_) {
-    if (version === viewerVersion) $('image-status').textContent = '图片暂时无法打开，请关闭后重试。';
+    if (version === viewerVersion) $('image-status').textContent = 'The image could not be opened. Close the viewer and try again.';
   }
 }
 const png = data => 'data:image/png;base64,' + data;
@@ -432,7 +432,7 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
   const card = document.createElement('article');
   card.className = 'group';
   const heading = document.createElement('strong');
-  heading.textContent = '第 ' + index + ' 组';
+  heading.textContent = 'Group ' + index;
   const previews = document.createElement('div');
   previews.className = 'photo-types';
   for (const kind of Object.keys(names)) {
@@ -442,7 +442,7 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
     photo.className = 'photo' + (kind === 'model' ? ' roi' : '');
     image.alt = '';
     loadState.className = 'thumb-state';
-    loadState.textContent = '读取中';
+    loadState.textContent = 'Loading';
     photo.append(image, loadState);
     if (kind === 'original') outline(photo, sample);
     caption.className = 'photo-caption';
@@ -460,16 +460,16 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
       };
       image.onerror = () => {
         if (blob) URL.revokeObjectURL(url);
-        loadState.textContent = '点开重试';
+        loadState.textContent = 'Open to retry';
       };
       image.src = url;
-    }).catch(() => { loadState.textContent = '点开重试'; });
+    }).catch(() => { loadState.textContent = 'Open to retry'; });
   }
   card.append(heading, previews);
   if (remove) {
     const drop = document.createElement('button');
     drop.className = saved ? 'danger small-button library-delete' : 'secondary small-button drop';
-    drop.textContent = saved ? '删除这张' : '移除';
+    drop.textContent = saved ? 'Delete this photo' : 'Remove';
     drop.onclick = remove;
     card.append(drop);
   }
@@ -479,48 +479,48 @@ function photoCard(sample, index, load, thumbnail, remove, saved = false) {
 let session, review, deadline = null, previewDeadline = null, captureCameraState;
 let busy = false, step = null, paused = false, timer, signature = '', revision = 0;
 const attemptReasons = {
-  NEAR_DUPLICATE: '这帧和已有候选太像。保持同一只手，轻转手掌或横移一点，再停稳。',
-  SHARPER_DUPLICATE: '覆盖范围和已有候选接近，已取更清楚的一帧。可稍转手掌或横移后再拍。',
-  DUPLICATE_FRAME: '相机回传了已经处理过的帧，正在等下一帧。',
-  POSITION_OUTSIDE_SET: '掌区离本轮其他照片的位置太远。把掌心移回原来的位置附近。',
-  TOO_CLOSE_TO_CAMERA: '掌区比本轮的参考帧大太多。手掌稍微往回收，距离镜头远一点。',
-  TOO_FAR_FROM_CAMERA: '掌区比本轮的参考帧小太多。手掌稍微靠近镜头。',
-  ANGLE_OUTSIDE_SET: '手掌偏转太大。转回一半，掌心尽量朝着镜头。',
-  LOWER_RANK: '这帧进入候选池，当前排序还没选中它。可再换一点角度或等焦点稳定。',
-  LOW_QUALITY: '这一帧缺少可用的纹理对比。先停稳，检查焦点和补光。',
-  NO_HAND: '未获得可用掌区。请把掌心完整放在画面中间。',
-  ROI_NOT_READY: '本次等待结束时没有取得新的有效掌区。结合上面的当前画面提示调整。',
-  ROI_UNSTABLE: '掌区在取帧时不稳定。移动后停一下再拍。',
-  CAMERA_UNAVAILABLE: '本次取帧时相机未就绪。等预览恢复后重试。',
-  FEATURE_ERROR: '这一帧的掌纹特征提取失败，系统会用新帧重试。',
-  CAPTURE_ERROR: '这一帧读取或处理失败，系统会重试。'
+  NEAR_DUPLICATE: 'This frame is too similar to an existing candidate. Tilt or shift the same hand slightly, then hold still.',
+  SHARPER_DUPLICATE: 'The frame covers nearly the same area as another candidate, so the sharper frame was kept. Try a slight tilt or shift.',
+  DUPLICATE_FRAME: 'The camera returned a duplicate frame. Waiting for the next frame.',
+  POSITION_OUTSIDE_SET: 'The ROI is too far from the other session photos. Move your palm back toward its previous position.',
+  TOO_CLOSE_TO_CAMERA: 'The ROI is much larger than the reference. Move your hand a little farther from the camera.',
+  TOO_FAR_FROM_CAMERA: 'The ROI is much smaller than the reference. Move your hand a little closer.',
+  ANGLE_OUTSIDE_SET: 'The palm is tilted too far. Tilt it back until it faces the camera more directly.',
+  LOWER_RANK: 'The frame entered the pool but is not in the current shortlist. Try a small change of angle or wait for focus.',
+  LOW_QUALITY: 'This frame has insufficient texture contrast. Hold still and check focus and lighting.',
+  NO_HAND: 'No usable ROI. Center your whole palm in the frame.',
+  ROI_NOT_READY: 'No fresh usable ROI arrived. Adjust your hand using the live guidance above.',
+  ROI_UNSTABLE: 'The ROI was unstable at capture. Pause after moving before trying again.',
+  CAMERA_UNAVAILABLE: 'The camera was not ready. Wait for the preview and try again.',
+  FEATURE_ERROR: 'Feature extraction failed for this frame. The station will retry with a new frame.',
+  CAPTURE_ERROR: 'The frame could not be read or processed. The station will retry.'
 };
 function liveCaptureReason(state) {
-  if (!state) return '状态连接中断，正在重连。';
-  if (!cameraOpen) return '相机待机。';
-  if (!liveReady) return '相机还没输出可用画面。';
+  if (!state) return 'Status connection lost. Reconnecting.';
+  if (!cameraOpen) return 'Camera in standby.';
+  if (!liveReady) return 'Waiting for a usable camera frame.';
   if (state.roi_reason === 'fpn_frame_stale' || (state.roi_status_age_ms && !state.roi_status_fresh)) {
     const age = state.roi_status_age_ms;
-    return '定位结果来得太晚' + (Number.isFinite(age) ? '（帧龄 ' + Math.round(age) + ' ms）' : '') +
-      '。系统正在等新帧，先保持当前位置。';
+    return 'The localization result arrived too late' + (Number.isFinite(age) ? ' (frame age: ' + Math.round(age) + ' ms)' : '') +
+      '. Waiting for a fresh frame. Hold your current position.';
   }
-  if (state.roi_reason === 'low_chart_confidence') return '掌区定位置信度低。把掌心朝向镜头，放到中间，并避开桌面亮斑。';
-  if (state.roi_reason === 'invalid_original_geometry') return '掌区框不完整或越界。往画面中间移，给掌心四周留空。';
-  if (['constant_native_gray','fpn_crop_unusable'].includes(state.roi_reason)) return '框内纹理变化太少。检查对焦和补光，避免反光。';
-  if (state.roi_reason === 'fpn_processing_error' || state.roi_reason === 'fpn_output_mismatch') return '这一帧的定位处理异常，正在等待下一帧。';
-  if (!palmReady) return '正在等待新的掌区定位结果。';
-  return '已定位 ROI，接下来还会检查重复、位置、角度和图像质量。';
+  if (state.roi_reason === 'low_chart_confidence') return 'Low localization confidence. Face the camera, center your palm and avoid bright reflections.';
+  if (state.roi_reason === 'invalid_original_geometry') return 'The ROI is incomplete or outside the frame. Move toward the center and leave room around your palm.';
+  if (['constant_native_gray','fpn_crop_unusable'].includes(state.roi_reason)) return 'There is too little texture variation inside the ROI. Check focus and lighting and avoid glare.';
+  if (state.roi_reason === 'fpn_processing_error' || state.roi_reason === 'fpn_output_mismatch') return 'Localization failed for this frame. Waiting for the next one.';
+  if (!palmReady) return 'Waiting for a fresh localization result.';
+  return 'ROI found. The frame must still pass duplicate, position, angle and image-quality checks.';
 }
 function renderCaptureFeedback() {
   $('capture-feedback').hidden = !session || !review || review.state !== 'collecting';
   if ($('capture-feedback').hidden) return;
   $('frame-feedback').textContent = liveCaptureReason(captureCameraState);
-  if (review.preview_ms_remaining > 0) $('attempt-feedback').textContent = '预览阶段，先调整手掌位置和光线。';
-  else if (review.last_rejection) $('attempt-feedback').textContent = attemptReasons[review.last_rejection] || '这次未加入候选，系统会继续检查新帧。';
-  else if (review.attempts) $('attempt-feedback').textContent = '最近一帧已加入候选。';
-  else $('attempt-feedback').textContent = '正在等第一张可用候选。';
-  $('capture-counts').textContent = '候选池 ' + review.candidate_count + ' 张 · 取帧 ' + review.attempts +
-    ' 次 · 重复 ' + review.duplicates + ' 次';
+  if (review.preview_ms_remaining > 0) $('attempt-feedback').textContent = 'Preview phase. Adjust palm position and lighting.';
+  else if (review.last_rejection) $('attempt-feedback').textContent = attemptReasons[review.last_rejection] || 'This frame was not added. New frames will still be checked.';
+  else if (review.attempts) $('attempt-feedback').textContent = 'The latest frame was added to the pool.';
+  else $('attempt-feedback').textContent = 'Waiting for the first usable candidate.';
+  $('capture-counts').textContent = 'Pool: ' + review.candidate_count + ' photos · Attempts: ' + review.attempts +
+    ' · Duplicates: ' + review.duplicates;
 }
 const fields = Array.from($('form').querySelectorAll('input,select'));
 function remember(value) {
@@ -542,7 +542,7 @@ function controls() {
     !review?.minimumComplete || review.eligible_count < review.required;
   $('select-photos').disabled = busy;
   $('save').hidden = !session || review?.state !== 'ready';
-  if (review?.state === 'ready') $('save').textContent = '保存 ' + review.kept + ' 张';
+  if (review?.state === 'ready') $('save').textContent = 'Save ' + review.kept + ' photos';
   $('stop').disabled = $('cancel').disabled = $('recover').disabled = busy;
   $('refill').disabled = $('save').disabled = !!locked || paused;
   for (const b of $('photos').querySelectorAll('.drop')) b.disabled = !!locked || collecting || paused;
@@ -550,7 +550,7 @@ function controls() {
 function clock() {
   if (review?.preview_ms_remaining > 0 && review.state === 'collecting') {
     const seconds = review.preview_waiting_camera ? 5 : Math.max(0, Math.ceil((previewDeadline - performance.now()) / 1000));
-    $('clock').textContent = seconds ? '预览 ' + seconds + ' 秒' : '01:00';
+    $('clock').textContent = seconds ? 'Preview: ' + seconds + ' s' : '01:00';
     return;
   }
   const seconds = deadline === null ? 60 : Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
@@ -563,25 +563,25 @@ function applyReview(data) {
   previewDeadline = performance.now() + data.preview_ms_remaining;
   clock();
   $('station-review').hidden = !data.items.length;
-  $('review-title').textContent = '所选照片 · ' + data.kept + ' / ' + data.required;
+  $('review-title').textContent = 'Selected photos · ' + data.kept + ' / ' + data.required;
   let msg;
   const enough = data.eligible_count >= data.required;
   if (collecting) {
     if (data.preview_ms_remaining > 0) {
-      msg = data.preview_waiting_camera ? '正在打开相机，预览画面出现后开始倒数。' : '先预览 5 秒调整位置，随后开始正式采集。';
+      msg = data.preview_waiting_camera ? 'Opening the camera. The countdown starts when the preview appears.' : 'Use the five-second preview to settle your position, then capture begins.';
     } else if (data.minimumComplete && enough) {
-      msg = '已采满 60 秒，候选池有 ' + data.candidate_count + ' 张。可以继续拍，也可以挑选 10 张。';
+      msg = '60 seconds captured. Candidate pool: ' + data.candidate_count + ' photos. Keep capturing or select 10 photos.';
     } else {
-      msg = (data.minimumComplete ? '继续补拍' : '正在采集') + ' · 可选 ' +
-        data.eligible_count + ' / ' + data.required + ' 张。轻微转动手掌，每次移动后停稳。';
+      msg = (data.minimumComplete ? 'Continue capturing' : 'Capturing') + ' · Eligible: ' +
+        data.eligible_count + ' / ' + data.required + ' photos. Tilt your palm slightly and hold it still after moving.';
     }
   } else if (data.state === 'ready') {
-    msg = '已选齐 ' + data.required + ' 张，确认后保存。';
+    msg = 'Selected all ' + data.required + ' photos. Confirm to save.';
   } else {
-    msg = '已暂停 · 可选 ' + data.eligible_count + ' / ' + data.required + ' 张。';
-    msg += data.minimumComplete && enough ? ' 可以继续拍或挑选 10 张。' : ' 点击继续采集。';
+    msg = 'Paused · Eligible: ' + data.eligible_count + ' / ' + data.required + ' photos.';
+    msg += data.minimumComplete && enough ? ' Keep capturing or select 10 photos.' : ' Select Resume capture to continue.';
   }
-  if (data.archive_only) msg += ' 本轮追加照片，沿用已有验证模板。';
+  if (data.archive_only) msg += ' This session adds photos and keeps the existing verification template.';
   $('capture-status').textContent = msg;
   const key = data.items.map(s => s.frame).join(',');
   if (key !== signature) {
@@ -595,7 +595,7 @@ function applyReview(data) {
         return Promise.resolve(kind === 'original' ? 'data:image/jpeg;base64,' + sample.rgb : png(sample.roi));
       };
       return photoCard(sample, i+1, load, thumbnail,
-        () => { if (confirm('移除这一组未保存照片？')) void action(station+'remove',{frame:sample.frame}); });
+        () => { if (confirm('Remove this unsaved photo group?')) void action(station+'remove',{frame:sample.frame}); });
     }));
   }
   controls();
@@ -624,8 +624,8 @@ async function sync(token) {
   else {
     const status = await request(enroll+'status',{token});
     if (session?.token !== token || requested !== revision) return;
-    const message = status.status === 'COMPLETED' ? '照片已保存，可在照片库打开。' :
-      session.saving && status.status === 'LOST' ? '服务已重启，请到照片库检查保存结果。' : '本轮已结束，可以开始新一轮。';
+    const message = status.status === 'COMPLETED' ? 'Photos saved. Open them in the library.' :
+      session.saving && status.status === 'LOST' ? 'The service restarted. Check the photo library to see what was saved.' : 'This session has ended. You can start a new one.';
     finish(message);
   }
 }
@@ -649,7 +649,7 @@ async function tick() {
       try { await sync(token); }
       catch (error) {
         paused = true;
-        $('capture-status').textContent = '连接中断。恢复状态后可继续。';
+        $('capture-status').textContent = 'Connection lost. Recover session status to continue.';
       }
     }
   } finally {
@@ -667,16 +667,16 @@ async function action(path, extra={}) {
   const token = session.token;
   try {
     if (path === station+'select' && step) {
-      $('capture-status').textContent = '等待当前帧处理完成，再挑选 10 张。';
+      $('capture-status').textContent = 'Wait for the current frame to finish before selecting 10 photos.';
       await step.catch(() => {});
     }
-    if (path === station+'select') $('capture-status').textContent = '正在比较候选的清晰度、光照和角度，挑选 10 张。';
+    if (path === station+'select') $('capture-status').textContent = 'Selecting 10 photos based on sharpness, lighting and angle.';
     if (path === enroll+'commit') remember({...session,saving:true});
     const data = await request(path,{token,...extra});
-    if (path === enroll+'cancel') finish('本轮已结束，可以重新采集。');
+    if (path === enroll+'cancel') finish('This session has ended. You can capture again.');
     else if (path === enroll+'commit') {
-      const prefix = data.archive_only ? '已追加 ' : '已保存 ';
-      finish(prefix + captureTarget + ' 张照片，可在照片库打开。');
+      const prefix = data.archive_only ? 'Added ' : 'Saved ';
+      finish(prefix + captureTarget + ' photos. Open them in the library.');
     }
     else if (data.status === 'REVIEW') applyReview(data);
     else await sync(token);
@@ -708,7 +708,7 @@ async function restore(start = false) {
     if (start && error.status === 400) finish(error.message);
     else {
       paused = true;
-      $('capture-status').textContent = '暂时无法确认本轮状态。' + error.message;
+      $('capture-status').textContent = 'Could not confirm session status. ' + error.message;
     }
   } finally {
     busy = false;
@@ -721,17 +721,17 @@ $('form').onsubmit = event => {
   if (session || busy) return;
   const token = newToken();
   try { remember({token,start:Object.fromEntries(new FormData($('form')))}); }
-  catch (_) { $('capture-status').textContent = '浏览器无法保存本轮会话。'; return; }
+  catch (_) { $('capture-status').textContent = 'The browser cannot save this session.'; return; }
   void restore(true);
 };
 $('recover').onclick = () => void restore();
 $('stop').onclick = () => void action(station+'stop');
 $('select-photos').onclick = () => void action(station+'select');
 $('refill').onclick = () => void action(station+'refill');
-$('cancel').onclick = () => { if (confirm('取消本轮并丢弃这些未保存的照片？')) void action(enroll+'cancel'); };
+$('cancel').onclick = () => { if (confirm('Cancel this session and discard the unsaved photos?')) void action(enroll+'cancel'); };
 $('save').onclick = () => {
   const hand = $('form').elements.hand.value;
-  if (review?.kept && confirm('确认这 ' + review.kept + ' 张照片都来自同一人的' + handing(hand) + '，并保存？')) {
+  if (review?.kept && confirm('Confirm that all ' + review.kept + ' photos show the same person’s ' + handing(hand) + ', then save?')) {
     void action(enroll+'commit',{confirm_hand:hand});
   }
 };
@@ -772,7 +772,7 @@ $('threshold-number').onchange = event => {
   if (n >= 0 && n <= 1) applyThreshold(n);
   else {
     event.target.value = String(thresholdValue());
-    event.target.setCustomValidity('请输入 0 到 1 的阈值。');
+    event.target.setCustomValidity('Enter a threshold between 0 and 1.');
     event.target.reportValidity();
     event.target.setCustomValidity('');
   }
@@ -783,8 +783,8 @@ function gateControls() {
   $('verify-start').hidden = !!gateToken && !gateStarting;
   $('verify-start').disabled = gateStarting;
   $('verify-stop').hidden = !gateToken || gateStarting;
-  $('verify-start').textContent = gateStarting ? '相机正在启动' : '开始验证';
-  $('verify-run-state').textContent = gateStarting ? '正在打开相机' : gateToken ? '等待放掌' : '相机待机';
+  $('verify-start').textContent = gateStarting ? 'Starting camera' : 'Start verification';
+  $('verify-run-state').textContent = gateStarting ? 'Opening camera' : gateToken ? 'Place your palm' : 'Camera in standby';
 }
 function closeGateCamera() {
   const token = gateToken;
@@ -821,17 +821,17 @@ function renderScore(data) {
   if (!Number.isFinite(top)) {
     $('score-value').textContent = '—';
     $('score-gap').textContent = '';
-    scoreStatus('照片库还没有已登记的掌纹');
+    scoreStatus('No enrolled palms in the library');
     return;
   }
   const gap = top - thresholdValue();
   $('score-value').textContent = top.toFixed(5);
   $('score-mark').style.left = (top + 1) * 50 + '%';
-  $('score-gap').textContent = gap === 0 ? '达到阈值' :
-    (gap > 0 ? '高于阈值 ' : '低于阈值 ') + Math.abs(gap).toFixed(4);
-  if (data.tied_top) scoreStatus('最高分并列 · 可调整手掌后重试', 'below');
-  else if (gap >= 0) scoreStatus('匹配', 'match');
-  else scoreStatus('未匹配', 'below');
+  $('score-gap').textContent = gap === 0 ? 'At threshold' :
+    (gap > 0 ? 'Above threshold by ' : 'Below threshold by ') + Math.abs(gap).toFixed(4);
+  if (data.tied_top) scoreStatus('Tied highest score · Reposition your palm and try again', 'below');
+  else if (gap >= 0) scoreStatus('Match', 'match');
+  else scoreStatus('No match', 'below');
 }
 function renderVerification(data, version) {
   lastVerification = data;
@@ -861,7 +861,7 @@ function renderVerification(data, version) {
 async function verifyPalm() {
   verifying = true;
   const version = verificationVersion;
-  if ($('score-value').textContent === '—') scoreStatus('正在比对掌纹');
+  if ($('score-value').textContent === '—') scoreStatus('Comparing palms');
   try {
     const body = {token:gateToken};
     if (thresholdOverride !== null) body.threshold = thresholdOverride;
@@ -872,7 +872,7 @@ async function verifyPalm() {
   } catch (error) {
     if (version !== verificationVersion) return;
     nextProbeAt = performance.now() + 1800;
-    scoreStatus((error.status ? error.message : '暂时无法完成比对。') + ' 稍后自动重试。');
+    scoreStatus((error.status ? error.message : 'Could not complete the comparison. ') + ' Retrying automatically.');
   } finally { verifying = false; }
 }
 function updateVerification(state) {
@@ -885,7 +885,7 @@ function updateVerification(state) {
   if (state?.enrollment_active) {
     absentSince = null;
     closeGateCamera();
-    resetVerification('采集进行中，保存或取消采集后可验证。');
+    resetVerification('Capture is in progress. Save or cancel it to start verification.');
     return;
   }
   const now = performance.now();
@@ -895,21 +895,21 @@ function updateVerification(state) {
     request(gateCamera,{token,action:'keepalive'}).then(result => {
       if (gateToken === token && !result.camera_open) {
         closeGateCamera();
-        resetVerification('相机已待机，请重新开始验证。');
+        resetVerification('The camera is in standby. Start verification again.');
       }
     }).catch(() => {});
   }
   if (!liveReady) {
-    $('verify-run-state').textContent = '等待相机';
+    $('verify-run-state').textContent = 'Waiting for camera';
     return;
   }
-  $('verify-run-state').textContent = palmReady ? '持续比对中' : '等待放掌';
+  $('verify-run-state').textContent = palmReady ? 'Comparing continuously' : 'Place your palm';
   if (!palmReady) {
     absentSince ??= now;
     if (lastProbeFrame !== null && now - absentSince >= 750) {
       lastProbeFrame = null;
       verificationVersion++;
-      if (!lastVerification) scoreStatus('等待放掌');
+      if (!lastVerification) scoreStatus('Place your palm');
     }
     return;
   }
@@ -919,7 +919,7 @@ function updateVerification(state) {
   if (!Number.isInteger(frame)) return;
   if (lastProbeFrame === null) {
     lastProbeFrame = frame;
-    if (!lastVerification) scoreStatus('已检测到掌区，请停稳');
+    if (!lastVerification) scoreStatus('Palm detected. Hold still');
   } else if (frame > lastProbeFrame) {
     lastProbeFrame = frame;
     void verifyPalm();
@@ -931,13 +931,13 @@ $('verify-start').onclick = async () => {
   gateToken = token;
   gateStarting = true;
   absentSince = null;
-  resetVerification('正在打开相机');
+  resetVerification('Opening camera');
   gateControls();
   try {
     const result = await request(gateCamera,{token,action:'start'});
-    if (!result.camera_open) throw Error('相机未能启动。');
+    if (!result.camera_open) throw Error('The camera could not start.');
     nextKeepalive = performance.now() + 4000;
-    scoreStatus('等待放掌');
+    scoreStatus('Place your palm');
   } catch (error) {
     closeGateCamera();
     scoreStatus(error.message);
@@ -949,7 +949,7 @@ $('verify-start').onclick = async () => {
 $('verify-stop').onclick = () => {
   closeGateCamera();
   verificationVersion++;
-  scoreStatus('验证已停止，相机已关闭。');
+  scoreStatus('Verification stopped and the camera was closed.');
 };
 function sleepOnLeave() {
   const captureToken = page === '/enroll' && session?.token;
@@ -995,7 +995,7 @@ archiveEditForm.onsubmit = async event => {
     const search = $('search');
     if (!archiveSearchText(fields).includes(search.value.trim().toLocaleLowerCase())) search.value = '';
     const feedback = $('library-feedback');
-    feedback.textContent = '照片组信息已更新。';
+    feedback.textContent = 'Photo group details updated.';
     feedback.hidden = false;
     await library();
   } catch (error) {
@@ -1009,19 +1009,19 @@ archiveEditForm.onsubmit = async event => {
 async function removeSavedPhotos(archive, index) {
   if (libraryBusy) return;
   const whole = index === undefined;
-  const action = whole ? '删除整组 ' + archive.samples.length + ' 张' : '删除第 ' + index + ' 张';
-  if (!confirm(action + '？同次拍摄的原图和两种 ROI 会一起移出照片库，验证模板会保留。')) return;
+  const action = whole ? 'Delete all ' + archive.samples.length + ' photos' : 'Delete photo ' + index;
+  if (!confirm(action + '? This removes the original and both ROI images from the library, but keeps the verification template.')) return;
   libraryBusy = true;
   const buttons = $('archives').querySelectorAll('.library-delete');
   for (const button of buttons) button.disabled = true;
   const feedback = $('library-feedback');
   feedback.hidden = false;
-  feedback.textContent = '正在删除…';
+  feedback.textContent = 'Deleting…';
   try {
     const body = whole ? {archive:archive.id} : {archive:archive.id,index};
     const {remaining} = await request('/api/library/delete', body);
     await library();
-    feedback.textContent = remaining ? '已删除，当前这组剩余 ' + remaining + ' 张。' : '已移出照片库。';
+    feedback.textContent = remaining ? 'Deleted. This group has ' + remaining + ' photos.' : 'Removed from the library.';
   } catch (error) {
     feedback.textContent = error.message;
   } finally {
@@ -1040,17 +1040,17 @@ async function library() {
       const identity = archive.display_name === archive.participant ? archive.participant :
         archive.display_name + ' · ' + archive.participant;
       label.textContent = identity + ' · ' + handing(archive.hand) + ' · ' +
-        new Date(archive.saved).toLocaleString() + ' · ' + archive.samples.length + ' 组';
+        new Date(archive.saved).toLocaleString() + ' · ' + archive.samples.length + ' photos';
       details.append(label);
       details.ontoggle = () => {
         if (!details.open || details.children.length > 1) return;
         const toolbar = document.createElement('div'), edit = document.createElement('button'), remove = document.createElement('button');
         toolbar.className = 'row archive-toolbar';
         edit.className = 'secondary small-button';
-        edit.textContent = '编辑信息';
+        edit.textContent = 'Edit details';
         edit.onclick = () => openArchiveEditor(archive);
         remove.className = 'danger small-button library-delete';
-        remove.textContent = '删除整组';
+        remove.textContent = 'Delete group';
         remove.onclick = () => void removeSavedPhotos(archive);
         toolbar.append(edit, remove);
         const photos = document.createElement('div');
@@ -1073,7 +1073,7 @@ async function library() {
         row.details.hidden = !row.key.includes(query);
         if (!row.details.hidden) count++;
       }
-      $('library-status').textContent = count ? count + ' 条采集记录' : query ? '没有匹配的姓名或编号。' : '还没有已保存的照片。';
+      $('library-status').textContent = count ? count + ' capture records' : query ? 'No matching names or IDs.' : 'No photos have been saved.';
     }
     $('search').oninput = filter;
     filter();
@@ -1081,20 +1081,20 @@ async function library() {
 }
 
 if (page === '/enroll') {
-  $('title').textContent = '掌纹采集';
-  $('subtitle').textContent = 'FPN + C E10 · 至少采集 60 秒，结束时挑选 10 张。';
+  $('title').textContent = 'Palmprint capture';
+  $('subtitle').textContent = 'FPN + C E10 · Capture for at least 60 seconds, then select 10 photos.';
   $('camera-page').hidden = $('capture').hidden = $('capture-reference').hidden = false;
   setInterval(() => { if (review?.state === 'collecting') clock(); }, 200);
   try { session = JSON.parse(sessionStorage.getItem(storage) || 'null'); } catch (_) {}
   if (session) void restore();
 } else if (page === '/gate') {
-  $('title').textContent = '放掌验证';
-  $('subtitle').textContent = 'FPN + C E10 · 自动比对当前掌区与本机登记掌纹。';
+  $('title').textContent = 'Palm verification';
+  $('subtitle').textContent = 'FPN + C E10 · Compare the live palm ROI with local enrollment templates.';
   $('camera-page').hidden = $('verification').hidden = false;
   renderThreshold();
 } else {
-  $('title').textContent = '照片库';
-  $('subtitle').textContent = '按姓名或编号查找，展开后可查看照片和编辑组信息。';
+  $('title').textContent = 'Photo library';
+  $('subtitle').textContent = 'Search by name or ID, then expand a group to view photos and edit its details.';
   $('library').hidden = false;
   void library();
 }

@@ -31,14 +31,14 @@ TEMPLATE_COUNT = 5
 PORT = 8080
 CAPTURE_SOURCE = "fpn-c-e10-v3-video-native"
 START_ERRORS = {
-    "Enter a name and choose left or right hand.": "请输入显示名并选择左右手。",
-    "user must contain a letter or number": "请输入有效编号。",
-    "Invalid enrollment request ID. Start again.": "登记会话无效，请重新开始。",
-    "The hand suffix in the ID does not match the selected hand.": "编号末尾的左右手与选择不一致。",
-    "An enrollment is already in progress. Cancel it first.": "已有一轮采集在进行，请先保存或取消。",
-    "This enrollment request has ended. Start again.": "这一轮采集已结束，请重新开始。",
-    "This ID is already enrolled. Choose another ID.": "这个编号已登记。新一轮采集请使用另一个编号。",
-    "The hand in the original ID differs from the selected hand.": "这个编号已有另一只手的登记。",
+    "Enter a name and choose left or right hand.": "Enter a display name and choose the left or right hand.",
+    "user must contain a letter or number": "Enter a valid ID.",
+    "Invalid enrollment request ID. Start again.": "Invalid enrollment session. Start again.",
+    "The hand suffix in the ID does not match the selected hand.": "The hand suffix in the ID does not match the selected hand.",
+    "An enrollment is already in progress. Cancel it first.": "A capture session is already in progress. Save or cancel it first.",
+    "This enrollment request has ended. Start again.": "This capture session has ended. Start again.",
+    "This ID is already enrolled. Choose another ID.": "This ID is already enrolled. Use a different ID for a new session.",
+    "The hand in the original ID differs from the selected hand.": "The other hand is already enrolled under this ID.",
 }
 
 
@@ -134,22 +134,22 @@ def read_uvc_controls(camera):
 
 def require_template(np, features, metadata, required):
     if any(metadata.get(key) != value for key, value in required.items()):
-        raise ValueError("FPN+C 模板版本不符；请用独立目录重新登记。")
+        raise ValueError("FPN+C template version mismatch. Re-enroll in a separate directory.")
     if (features.shape != (TEMPLATE_COUNT, 512) or features.dtype != np.float32 or not np.isfinite(features).all()
             or np.any(np.linalg.norm(features.astype(np.float64), axis=1) <= 0)):
-        raise ValueError("FPN+C 模板损坏或不完整。")
+        raise ValueError("The FPN+C template is corrupt or incomplete.")
 
 
 def score_gallery(np, probe, store, required, *, threshold=None):
     vector = np.asarray(probe, dtype=np.float64)
     length = np.linalg.norm(vector)
     if vector.shape != (512,) or not np.isfinite(vector).all() or not math.isfinite(length) or length <= 0:
-        raise ValueError("查询特征无效。")
+        raise ValueError("Invalid query embedding.")
     vector /= length
     scores = []
     for name in store.list_template_ids():
         if not store.exists(name):
-            raise ValueError("影子模板不完整。")
+            raise ValueError("The station template is incomplete.")
         features, metadata = store.load(name)
         require_template(np, features, metadata, required)
         template = features.astype(np.float64)
@@ -158,7 +158,7 @@ def score_gallery(np, probe, store, required, *, threshold=None):
         sample_index = int(np.argmax(similarities))
         a = similarities[sample_index]
         if not np.isfinite(a) or abs(float(a)) > 1 + 1e-12:
-            raise ValueError("分数无效。")
+            raise ValueError("Invalid match scores.")
         scores.append((float(np.clip(a, -1., 1.)), name, metadata, sample_index + 1))
     scores.sort(key=lambda item: item[0], reverse=True)
     top = [item[0] for item in scores[:2]]
@@ -260,7 +260,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
             return self.store.read_metadata(user_id)["display_name"]
         def create_account(self, user_id, display_name, _amount):
             if display_name != self.display_name_for(user_id):
-                raise ValueError("影子模板不一致。")
+                raise ValueError("The station templates are inconsistent.")
         def balance_for(self, _name):
             return 0
         def list_users(self):
@@ -301,7 +301,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                 require_template(np, *self.store.load(user_id), required)
             return super().enrollment_start(user_id, display_name, hand, request_token)
         def identify(self):
-            raise ValueError("没有可用的通行判定。")
+            raise ValueError("No verification decision is available.")
 
     class ShadowApp:
         def __init__(self, feed=None, *, create_feed=None, native_size=None):
@@ -366,11 +366,11 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     return {"camera_open": False}
                 with self.demo.lock:
                     if active_enrollment(self.demo):
-                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
+                        raise VerificationUnavailable("Capture is in progress. Save or cancel the current session first.")
                 if action == "keepalive" and self.power.owner != owner:
                     return {"camera_open": False}
                 if self.power.owner not in (None, owner):
-                    raise VerificationUnavailable("相机在另一个页签中使用。")
+                    raise VerificationUnavailable("The camera is in use in another tab.")
                 if self.managed_camera:
                     self.use_camera(owner)
                 return {"camera_open": self.camera is not None}
@@ -401,7 +401,7 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
             with self.encode_lock:
                 feature = np.asarray(backend.encode_c(c_model, crop[None], device="cpu"))
             if feature.shape != (1, 512) or feature.dtype != np.float32 or not np.isfinite(feature).all():
-                raise ValueError("FPN+C 未生成有效特征。")
+                raise ValueError("FPN+C did not produce a usable embedding.")
             return feature[0].copy()
         def capture_demo_feature(self, *, enrollment, include_candidate):
             camera = self.camera
@@ -422,16 +422,16 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                     PIPELINE, snapshot["processed_roi_quality"], crop, tags)
         def check_score(self, *, verify=False, token=None, threshold=None):
             if not self.score_lock.acquire(blocking=False):
-                raise VerificationUnavailable("上一次比对还在计算，请稍候。")
+                raise VerificationUnavailable("The previous check is still running. Please wait.")
             try:
                 with self.demo.lock:
                     if active_enrollment(self.demo):
-                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
+                        raise VerificationUnavailable("Capture is in progress. Save or cancel the current session first.")
                 # Read a current processed exposure once, no second localization.
                 with self.power.lock:
                     camera = self.camera
                     if (camera is None or (self.managed_camera and verify and self.power.owner != ("verify", token))):
-                        raise VerificationUnavailable("请先点开始验证打开相机。")
+                        raise VerificationUnavailable("Select Start verification to open the camera.")
                 with camera.lock:
                     frame = camera.latest_processed
                     now = time.monotonic()
@@ -439,13 +439,13 @@ def station_stack(base, backend, localizer, c_model, root, identity, np, cv, *, 
                             or not 0 <= now - frame.captured.captured_monotonic <= SCORE_AGE_LIMIT
                             or frame.roi_status.get("roi_mode") != PIPELINE or frame.enrollment_quad is None
                             or not camera._camera_frame_state()["camera_ready"]):
-                        raise VerificationUnavailable("还没有新的有效掌区。掌心朝向镜头并停稳。")
+                        raise VerificationUnavailable("No new usable palm region yet. Face your palm toward the camera and hold still.")
                     self.last_probe_frame = frame.captured.frame_id
                     roi = frame.roi.copy()
                 feature = self.encode(roi)
                 with self.demo.lock:
                     if active_enrollment(self.demo):
-                        raise VerificationUnavailable("采集进行中，请先保存或取消本轮采集。")
+                        raise VerificationUnavailable("Capture is in progress. Save or cancel the current session first.")
                     return score_gallery(np, feature, self.demo.store, required,
                                          threshold=(match_threshold if threshold is None else threshold) if verify else None)
             finally:
@@ -494,7 +494,7 @@ def build_handler(application, enrollment_html):
 
         def do_GET(self):
             if not self.local_request():
-                return self.respond({"message": "仅限本站。"}, 403)
+                return self.respond({"message": "This request is only available from this station."}, 403)
             route = urlsplit(self.path).path
             if route in ("/", "/enroll"):
                 return send(self, enrollment_html)
@@ -517,16 +517,16 @@ def build_handler(application, enrollment_html):
                 try:
                     camera = application.camera
                     if camera is None:
-                        return self.respond({"message": "相机待机。"}, 503)
+                        return self.respond({"message": "Camera on standby."}, 503)
                     data = camera.jpeg_frame()
                 except (OSError, RuntimeError, ValueError):
-                    return self.respond({"message": "等待本机摄像头。"}, 503)
+                    return self.respond({"message": "Waiting for the local camera."}, 503)
                 return self.image(data, "image/jpeg")
-            return self.respond({"message": "影子服务不提供此路由。"}, 404)
+            return self.respond({"message": "This route is not available on this station."}, 404)
 
         def do_POST(self):
             if not self.local_request():
-                return self.respond({"message": "仅限本站。"}, 403)
+                return self.respond({"message": "This request is only available from this station."}, 403)
             route = urlsplit(self.path).path
             allow = {
                 "/api/demo/enroll/start", "/api/demo/enroll/status", "/api/demo/enroll/step",
@@ -537,22 +537,22 @@ def build_handler(application, enrollment_html):
                 "/api/library/list", "/api/library/image", "/api/library/delete", "/api/library/edit",
             }
             if route not in allow:
-                return self.respond({"message": "影子服务没有通行、支付或旧模板写入。"}, 404)
+                return self.respond({"message": "This station does not support access actions, payments, or writes to legacy templates."}, 404)
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if not 1 <= length <= 4096 or self.headers.get_content_type() != "application/json":
-                    raise ValueError("请求格式不正确。")
+                    raise ValueError("Invalid request format.")
                 data = json.loads(self.rfile.read(length))
                 if not isinstance(data, dict):
-                    raise ValueError("请求格式不正确。")
+                    raise ValueError("Invalid request format.")
                 if route == "/api/fpn/score":
                     if data:
-                        raise ValueError("只可使用当前镜头帧。")
+                        raise ValueError("Only the current camera frame can be used.")
                     return self.respond(application.check_score())
                 if route == "/api/fpn/verify":
                     threshold = data.get("threshold")
                     if "threshold" in data and (type(threshold) not in (int, float) or not 0 <= threshold <= 1):
-                        return self.respond({"message": "请输入 0 到 1 的阈值。"}, 400)
+                        return self.respond({"message": "Enter a threshold between 0 and 1."}, 400)
                     return self.respond(application.check_score(verify=True, token=data.get("token"), threshold=threshold))
                 flow = application.demo
                 if route.startswith("/api/library/"):
@@ -571,11 +571,11 @@ def build_handler(application, enrollment_html):
                     return self.respond(result)
                 token = data.get("token")
                 if not isinstance(token, str) or len(token) != 32:
-                    raise ValueError("本次登记已失效。")
+                    raise ValueError("This enrollment session is no longer valid.")
                 if route == "/api/fpn/camera":
                     action = data.get("action")
                     if action not in ("start", "stop", "keepalive"):
-                        raise ValueError("无效相机指令。")
+                        raise ValueError("Invalid camera command.")
                     return self.respond(application.verify_camera(token, action))
                 if route == "/api/station/camera-sleep":
                     owner = ("capture", token)
@@ -594,7 +594,7 @@ def build_handler(application, enrollment_html):
                     if kind == "detail-preview" and candidate.payload.get("station_review_rgb"):
                         jpeg = base64.b64decode(candidate.payload["station_review_rgb"])
                         return self.image(rectified_roi_png(candidate, jpeg)[0], "image/png")
-                    raise ValueError("未知图片类型。")
+                    raise ValueError("Unknown image type.")
                 if route.endswith("/start"):
                     result = flow.enrollment_start(str(data.get("user_id", "")),
                                                    str(data.get("display_name", "")), str(data.get("hand", "")), token)
@@ -612,7 +612,7 @@ def build_handler(application, enrollment_html):
                 else:
                     frame = data.get("frame") if route.endswith("-remove") else None
                     if route.endswith("-remove") and type(frame) is not int:
-                        raise ValueError("请选择本次登记的一张照片。")
+                        raise ValueError("Select a photo from this enrollment session.")
                     result = mutate(flow, token, frame, stop=route.endswith("-stop"),
                                     select=route.endswith("-select"), geometry=True)
                 application.reconcile_capture(token)
@@ -621,21 +621,21 @@ def build_handler(application, enrollment_html):
                 return self.respond({"message": str(error)}, 400)
             except FileNotFoundError:
                 if route.startswith("/api/library/"):
-                    return self.respond({"message": "照片已移出照片库，请刷新。"}, 404)
-                return self.respond({"message": "所需文件暂时不可用。"}, 503)
+                    return self.respond({"message": "This photo has been removed from the library. Refresh to continue."}, 404)
+                return self.respond({"message": "A required file is temporarily unavailable."}, 503)
             except VerificationUnavailable as error:
                 return self.respond({"message": str(error)}, 400 if route == "/api/fpn/score" else 409)
             except (ValueError, TypeError, CaptureProcessingFailure) as error:
                 message = START_ERRORS.get(str(error)) if route.endswith("/start") else None
                 if route.endswith("/commit"):
-                    message = "暂时无法保存。请确认已选齐 10 张，且左右手正确。"
+                    message = "Could not save. Make sure all 10 photos are selected and the hand is correct."
                 elif route.endswith("-select"):
-                    message = "请先采满 60 秒并累积 10 张候选，等当前帧处理完成后再挑选。"
+                    message = "Capture for at least 60 seconds, collect 10 candidates, and wait for the current frame to finish processing before selecting."
                 elif route == "/api/fpn/verify":
-                    message = "无法比对已登记模板，请刷新后重试。"
-                return self.respond({"message": message or "这项操作暂时不可用，请刷新当前页面后重试。"}, 400)
+                    message = "Could not match the enrolled templates. Refresh and try again."
+                return self.respond({"message": message or "This operation is temporarily unavailable. Refresh and try again."}, 400)
             except (OSError, RuntimeError):
-                return self.respond({"message": "本机相机或影子模板不可用。"}, 503)
+                return self.respond({"message": "The local camera or station templates are unavailable."}, 503)
 
     return Handler
 
@@ -643,7 +643,7 @@ def build_handler(application, enrollment_html):
 def render_enrollment(active="/enroll"):
     from capture_station import nav
     page = Path(__file__).with_name("fpn_station.html").read_text("utf-8")
-    navigation = nav(active).replace("③ 数据管理", "③ 照片库")
+    navigation = nav(active).replace("③ Data management", "③ Photo library")
     return page.replace("<!--station-nav-->", navigation).replace("__ACTIVE_PAGE__", active)
 
 

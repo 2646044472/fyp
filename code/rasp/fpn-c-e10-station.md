@@ -1,12 +1,12 @@
-# FPN + C E10｜60 秒独立采集站
+# FPN + C E10: Standalone 60-Second Capture Station
 
-这是 **原生 PyTorch** 采集与验证入口，使用冻结 FPN 裁掌和 C E10 特征。8080 展示本机照片库、最高匹配候选和演示判断。真实相机上的识别阈值仍待校准。
+This **native PyTorch** capture and verification demo uses frozen FPN palm cropping and C E10 features. Port **8080** serves the local photo library, the top match candidate, and a demo decision. The recognition threshold for live camera images still needs calibration.
 
-## 启动前
+## Before starting
 
-1. 跟 [原生依赖与本机清单](fpn-c-e10-shadow.md) 准备独立 Python 环境，运行预检。两份模型均须来自获准的本机来源且 SHA-256 与可信的原版清单一致。代码库不含模型、填写后的清单、数据或模板。
-2. 腾出相机。确认旧 8088 服务没有登记正在进行、也不再占用要测的相机，再在 Pi 上或连接该相机的 Linux 开发机运行。此入口不会擅自终止其他程序，也不要让两个进程同时控制一台相机。
-3. 选一个**新的 0700 私有目录**，不得使用旧采集或模板目录。服务运行时用模型摘要锁定这套模板；换了模型，使用新的目录重新登记。不要把模板或清单提交到 Git。
+1. Follow the [native dependency and manifest instructions](fpn-c-e10-shadow.md) to prepare a separate Python environment and run preflight. Both models must come from an authorized local source, and their SHA-256 hashes must match the trusted release manifest. The repository does not include models, completed manifests, data, or templates.
+2. Free the camera. Make sure the legacy 8088 station is not in the middle of an enrollment and has released the camera. Then run the new station on the Pi or on the Linux development computer connected to the camera. This entry point does not stop other programs. Do not let two processes control the same camera.
+3. Choose a **new private directory with mode 0700**. Do not reuse an old capture or template directory. The station binds templates to the model hashes. If you change models, use a new directory and enroll again. Do not commit templates or manifests to Git.
 
 ```sh
 mkdir -m 700 -p "$HOME/.local/share/fpn-c-e10-v3-local"
@@ -17,22 +17,22 @@ python fpn_c_e10_station.py \
   --uvc-native-size 2592 1944
 ```
 
-以上在 `code/rasp/` 内运行。UVC 参数必须指向本机真实 Video Capture 设备，`--uvc-native-size` 必须是 `v4l2-ctl --list-formats-ext` 列出的 MJPEG 尺寸。指定后保留相机原始 JPEG，实时预览与识别使用 640×480。用 CSI 时省略两个 UVC 参数，如需要可加 `--csi-tuning /PATH/TO/LOCAL/tuning.json`。主进程首次加载依赖/模型，然后开相机；设备不适配时非零退出，不默默换回旧模型。服务只绑定 `127.0.0.1:8080`，不要暴露到 LAN/公网。
+Run the commands from `code/rasp/`. The UVC options must point to an actual local Video Capture device, and `--uvc-native-size` must match an MJPEG size listed by `v4l2-ctl --list-formats-ext`. With those options set, the station preserves the original JPEG and uses 640×480 for preview and recognition. For CSI, omit both UVC options; if needed, use `--csi-tuning /PATH/TO/LOCAL/tuning.json`. The process loads dependencies and models before opening the camera. It exits with a nonzero status if the device is incompatible; it does not silently fall back to the old models. The station binds only to `127.0.0.1:8080`. Do not expose it to the LAN or public internet.
 
-## 登记与分数验收
+## Validate enrollment and scoring
 
-- 打开 [8080 登记界面](http://127.0.0.1:8080/enroll)，页面标明 **FPN + C E10**。[`/station-health`](http://127.0.0.1:8080/station-health) 显示 `backend: fpn-c-e10-frozen`、`mode: scores_only` 和设备就绪；`ready: true` 不代表任意一帧可用于登记。相机预览独立运行，FPN 只处理最新待用帧；过时不复用（如状态出现 `fpn_frame_stale`，要查 Pi 实际推理耗时）。
-- 从 Yesand 连接时，本机和 Pi 都用 8080。运行 `ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8080:127.0.0.1:8080 PI_SSH_ALIAS`，把 `PI_SSH_ALIAS` 换成自己的 Pi SSH 别名。用 `/station-health` 确认后端后，打开同一个登记地址。
-- 按「开始采集」打开相机。画面就绪后先预览 5 秒，再开始至少 60 秒的正式采集。预览帧和暂停时间不计入。采集区分别提示当前掌区定位状态和最近一次取帧结果。到时可以继续拍，累积 10 张可选候选后再点「挑选 10 张」。最终选帧复核候选池的清晰度、对比度和曝光，并比较替换个别照片后整组的质量和角度差异。完成挑选、暂停或取消时释放相机。确认后，选出的 10 组进入照片库。首次登记用排序前 5 组建验证模板。相同编号、同一只手再次采集时，新增照片记录并沿用已有验证模板。
-- 采集页和[照片库](http://127.0.0.1:8080/collect)每组显示相机原图、按同帧四边形裁出并拉正的彩色原 ROI，以及模型实际读取的 128×128 灰度 ROI。弹窗中可切换三张图，也可缩放或隐藏原图上的四边形。移除待确认候选后可补拍缺额。确认保存后，图像位于 `--runtime` 目录下的 `enrollment_pairs/<归档 ID>/`，每组带尺寸和配对清单。
-- 在照片库可按显示名或参与者编号搜索，展开一组后可以编辑显示名、编号和采集手。编辑应用于这条照片记录，验证页使用模板的登记信息。在照片库也可删除一整轮或一张照片及其两种 ROI，文件移至设备本地回收目录。
-- [放掌验证](http://127.0.0.1:8080/gate) 按「开始验证」打开相机。只要有新鲜有效掌区就持续比对，按「停止验证」关闭相机。每个掌模板取 5 个样本中的最大余弦作为分数。最高分达到演示阈值且无并列时，页面显示「匹配」。服务默认值为 **0.80**，可用 `--match-threshold` 设置。验证页滑杆和数字框可覆盖本浏览器的阈值，同时重新显示最近一帧的判断。实拍阈值仍待校准。
-- 在授权实拍中检查登记、复核、删除补拍、刷新状态、明确保存以及移开手后新鲜分数。测试 CPU 内存、连续帧和处理时延。这个分数路线还不能加载旧模板，也不能拿旧系统的阈值上线。
+- Open the [8080 enrollment page](http://127.0.0.1:8080/enroll) and check for **FPN + C E10**. [`/station-health`](http://127.0.0.1:8080/station-health) reports `backend: fpn-c-e10-frozen`, `mode: scores_only`, and device readiness. A `ready: true` result does not mean just any frame is suitable for enrollment. The camera preview runs independently, and FPN processes only the most recent pending frame. Stale frames are not reused. If you see `fpn_frame_stale`, check actual inference time on the Pi.
+- From Yesand, use port 8080 on both the local computer and the Pi. Run `ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:8080:127.0.0.1:8080 PI_SSH_ALIAS`, replacing `PI_SSH_ALIAS` with your Pi SSH alias. Verify the backend at `/station-health`, then open the same enrollment URL.
+- Click **Start capture** to open the camera. Once it is ready, preview for five seconds before starting at least 60 seconds of active capture. Preview and pause time do not count. The capture section shows separate statuses for the current palm crop and the latest frame attempt. You can continue after the timer ends. Once you have 10 usable candidates, click **Select 10 photos**. The final selector checks sharpness, contrast, and exposure. It also compares overall quality and angle diversity when individual photos are replaced. The camera is released when selection is complete, paused, or canceled. Click **Confirm and save** to add the 10 selected groups to the photo library. For first-time enrollment, the five highest-ranked groups build the template. Capturing again with the same participant ID and hand adds photo records and keeps the existing verification template.
+- On the capture page and in the [photo library](http://127.0.0.1:8080/collect), each group shows the original camera image, the rectified color ROI cropped from the quadrilateral in that same frame, and the 128×128 grayscale ROI read by the model. In the review dialog you can switch among the three views, zoom, or hide the quadrilateral overlay on the original image. Remove pending candidates and recapture only the missing slots. Once saved, the images are under `enrollment_pairs/<archive-id>/` within the `--runtime` directory, with dimensions and a pairing manifest for each group.
+- In the library, search by display name or participant ID. Expand a group to edit its display name, participant ID, or captured hand. These edits apply to the photo record; the verification page still uses the enrollment template information. You can delete a whole session or one photo and both of its ROIs. Deleted files are moved to the device's local trash directory.
+- On the [verification page](http://127.0.0.1:8080/gate), click **Start verification** to open the camera. The station compares each fresh, valid palm crop until you click **Stop verification**. Each template's score is the maximum cosine similarity across its five enrollment samples. A unique top score at or above the demo threshold displays **Match**. The service default is **0.80**, configurable with `--match-threshold`. The page's slider and number field override the threshold in that browser and update the decision for the most recent frame. The threshold for real camera use still needs calibration.
+- With authorized live samples, validate enrollment, review, deletion and recapture, status refresh, explicit saving, and fresh scores after removing the hand. Measure CPU memory use, sustained frame processing, and latency. The new scoring path cannot load legacy templates, and the old system's threshold must not be reused for deployment.
 
-合成测试（无真实相机、模型、掌纹）：
+Synthetic test (no physical camera, checkpoints, or real palmprints):
 
 ```sh
 python verify_fpn_c_e10_station.py
 ```
 
-用程序生成的像素和替代模型，跑实际 V3 HTTP 登记、同帧两图、删除补拍、手动确认、异版本模板拒绝和地址／路由边界。真实 PyTorch 模型结构的合成测试是单独的 `verify_fpn_c_e10_native.py`。
+This exercises the actual V3 HTTP enrollment flow with synthetic pixels and replacement models. It checks original/ROI pairs from the same frame, deletion and recapture, manual confirmation, rejection of templates from a different model version, and address and route boundaries. The separate `verify_fpn_c_e10_native.py` test exercises the real PyTorch model architecture with synthetic inputs.

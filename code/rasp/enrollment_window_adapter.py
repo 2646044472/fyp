@@ -42,15 +42,15 @@ def response(s, state, base=None):
     d["station_capture_ms_remaining"] = remaining
     d["preview_ms_remaining"] = math.ceil(1000 * preview_remaining(s))
     if state == "ready":
-        d["reason"] = f"所选照片已就绪。确认后会保存 {target} 组原图与 ROI，以及登记模板。"
+        d["reason"] = f"Review the selection. Confirm to save {target} original/ROI pairs and the enrollment templates."
     elif state == "partial" and not d["kept"]:
-        d["reason"] = ("这轮没有可用掌区。请让一只手的掌心完整进入画面，稳一下再开始；"
-                       "如预览不动，请检查相机连接。")
+        d["reason"] = ("No usable palm region this time. Hold one palm fully in view and steady before starting again. "
+                       "If the preview is frozen, check the camera connection.")
     elif state == "partial":
-        d["reason"] = ("采集已停止，已选照片可查看；需要时只补齐缺额。" if remaining else
-                       f"已达本次采集上限；已有照片可查看，若不足 {target} 张可重新开始。")
+        d["reason"] = ("Capture stopped. Review the selected photos or retake only what is missing." if remaining else
+                       f"The capture limit has been reached. Review the selected photos. Start again if you have fewer than {target}.")
     else:
-        d["reason"] = d.get("reason") or "正在从可用掌区里挑选；请保持同一只手。"
+        d["reason"] = d.get("reason") or "Selecting usable palm photos. Keep the same hand in view."
     return d
 
 
@@ -122,7 +122,7 @@ def sync_selection(s, *, stop=False, select=False):
     now=time.monotonic()
     if preview_remaining(s):
         if select:
-            raise ValueError("请先完成预览和正式采集。")
+            raise ValueError("Open the preview and complete the capture first.")
         if stop and s.get("station_paused_at") is None:
             s["station_paused_at"] = now
         state = "partial" if s.get("station_paused_at") is not None else "collecting"
@@ -148,7 +148,7 @@ def sync_continuous(s, window, now, *, stop, select):
         s["station_minimum_complete"] = True
     if select:
         if not s.get("station_minimum_complete") or len(chosen) != window.target_count:
-            raise ValueError("请至少采集 60 秒并累积 10 张不同的候选照片。")
+            raise ValueError("Capture for at least 60 seconds and collect 10 distinct candidates.")
         from enrollment_final_rank import rank_final
 
         chosen = rank_final(window, chosen, s["station_payloads"])
@@ -190,7 +190,7 @@ def start_refill(flow, token):
         s = flow._active_enrollment(token)
         target = s.get("station_target_count", 5)
         if s["capture_in_flight"] or s.get("station_step_in_flight") or len(s["features"]) >= target:
-            raise ValueError("本次照片仍在处理，或已选齐。")
+            raise ValueError("The photos are still processing or the selection is already full.")
         state=sync_selection(s)
         if state!="partial":
             return {"status":"CONTINUING" if state=="collecting" else "READY","kept":len(s["features"])}
@@ -214,7 +214,7 @@ def start_refill(flow, token):
         else:
             cap = capture_remaining(s)
         if cap<=0:
-            raise ValueError("本次已达60 秒采集上限。已有照片仍可查看；请取消后重新开始。")
+            raise ValueError("The 60-second capture limit has been reached. You can still review the photos; cancel to start again.")
         begin_next_window(s, now, cap, last_frame, pool=pool)
         s["last_activity"]=now
         return {"status":"CONTINUING","kept":len(s["features"])}

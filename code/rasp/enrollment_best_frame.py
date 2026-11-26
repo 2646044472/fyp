@@ -67,7 +67,7 @@ def select_frame(feed, is_ready, failure_class, *, clock=time.monotonic,
         # Removal/invalid geometry in subsequent frames does not make a frame
         # taken inside this bounded window stale, but device loss does.
         if best is None or not feed.running or not feed._camera_frame_state().get("camera_ready"):
-            raise failure_class("ROI_NOT_READY", "没等到可用的新掌区；请把手掌放入画面。")
+            raise failure_class("ROI_NOT_READY", "No new usable palm region. Place your whole palm in the frame.")
         _, p, quad = best
         c = p.captured
         feed.station_enroll_last = after
@@ -104,7 +104,7 @@ def install(app):
 
     def quality(value):
         if getattr(local, "enrollment", False):
-            return None if finite_roi_quality(value) is not None else "掌区质量数据不可用，请重新放掌。"
+            return None if finite_roi_quality(value) is not None else "Palm image quality could not be checked. Remove your hand and try again."
         return strict_quality(value)
 
     app._capture_readiness_gate_failure = ready
