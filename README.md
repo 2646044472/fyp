@@ -25,6 +25,7 @@ For a quicker check without PyTorch, install **only** `code/requirements-test.tx
 
 | Task | Entry point |
 | --- | --- |
+| Run the PC enrollment/payment and phone wallet demo | [PalmPay demo](demo/palmpay/README.md) |
 | Train the FPN cropper, C recognizer or PalmBridge comparison; supply authorized local training inputs | [Training guide](code/training/README.md) |
 | Change the station model definitions or the pixel-to-feature path | [Native FPN and C definitions](code/rasp/frozen_fpn_c_e10.py) |
 | Load a trusted release and score a query against five enrollment photos of one palm | [Offline inference](code/rasp/fpn-c-e10-shadow.md) |

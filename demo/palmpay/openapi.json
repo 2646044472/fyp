@@ -1,0 +1,1748 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PalmPay",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register",
+        "operationId": "register_api_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Credentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/session": {
+      "get": {
+        "summary": "Operator Status",
+        "operationId": "operator_status_api_merchant_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Operator",
+        "operationId": "operator_api_merchant_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Operator"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet-qr": {
+      "get": {
+        "summary": "Wallet Qr",
+        "operationId": "wallet_qr_api_wallet_qr_get",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout/{role}": {
+      "post": {
+        "summary": "Logout",
+        "operationId": "logout_api_auth_logout__role__post",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "wallet",
+                "merchant"
+              ],
+              "type": "string",
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet": {
+      "get": {
+        "summary": "Wallet View",
+        "operationId": "wallet_view_api_wallet_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/preferences": {
+      "patch": {
+        "summary": "Preferences",
+        "operationId": "preferences_api_wallet_preferences_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Preferences"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/demo-topup": {
+      "post": {
+        "summary": "Topup",
+        "operationId": "topup_api_wallet_demo_topup_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/transactions": {
+      "get": {
+        "summary": "Transactions",
+        "operationId": "transactions_api_wallet_transactions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentView"
+                  },
+                  "type": "array",
+                  "title": "Response Transactions Api Wallet Transactions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/palm/status": {
+      "get": {
+        "summary": "Palm Status",
+        "operationId": "palm_status_api_palm_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PalmView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/palm/pairing": {
+      "post": {
+        "summary": "Pairing",
+        "operationId": "pairing_api_palm_pairing_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PalmView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/enroll": {
+      "post": {
+        "summary": "Enroll",
+        "operationId": "enroll_api_dev_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/station/status": {
+      "get": {
+        "summary": "Station Status",
+        "operationId": "station_status_api_station_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/station/pairing": {
+      "post": {
+        "summary": "Station Pairing",
+        "operationId": "station_pairing_api_station_pairing_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StationPairing"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/station/enroll": {
+      "post": {
+        "summary": "Station Enroll",
+        "operationId": "station_enroll_api_station_enroll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/products": {
+      "get": {
+        "summary": "Products",
+        "operationId": "products_api_merchant_products_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductView"
+                  },
+                  "type": "array",
+                  "title": "Response Products Api Merchant Products Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add Product",
+        "operationId": "add_product_api_merchant_products_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/products/{product_id}": {
+      "put": {
+        "summary": "Update Product",
+        "operationId": "update_product_api_merchant_products__product_id__put",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/orders": {
+      "post": {
+        "summary": "Create Order",
+        "operationId": "create_order_api_merchant_orders_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Orders",
+        "operationId": "orders_api_merchant_orders_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderView"
+                  },
+                  "title": "Response Orders Api Merchant Orders Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payments": {
+      "post": {
+        "summary": "Create Payment",
+        "operationId": "create_payment_api_payments_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payments/{intent_id}": {
+      "get": {
+        "summary": "Payment",
+        "operationId": "payment_api_payments__intent_id__get",
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Intent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payments/{intent_id}/cancel": {
+      "post": {
+        "summary": "Cancel",
+        "operationId": "cancel_api_payments__intent_id__cancel_post",
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Intent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/payments/{intent_id}/simulate": {
+      "post": {
+        "summary": "Simulate",
+        "operationId": "simulate_api_dev_payments__intent_id__simulate_post",
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Intent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Simulation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/station/payments/{intent_id}/authorize": {
+      "post": {
+        "summary": "Station Authorize",
+        "operationId": "station_authorize_api_station_payments__intent_id__authorize_post",
+        "parameters": [
+          {
+            "name": "intent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Intent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/enrollments/customers": {
+      "post": {
+        "summary": "Create Customer",
+        "operationId": "create_customer_api_merchant_enrollments_customers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/enrollments": {
+      "post": {
+        "summary": "Prepare",
+        "operationId": "prepare_api_merchant_enrollments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrollmentStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/enrollments/{uid}/simulate": {
+      "post": {
+        "summary": "Simulated Counter Enrollment",
+        "operationId": "simulated_counter_enrollment_api_merchant_enrollments__uid__simulate_post",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Uid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/merchant/enrollments/{uid}": {
+      "get": {
+        "summary": "Enrollment Status",
+        "operationId": "enrollment_status_api_merchant_enrollments__uid__get",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Uid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Credentials": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "Credentials"
+      },
+      "EnrollmentInput": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "EnrollmentInput"
+      },
+      "EnrollmentStart": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "hand": {
+            "type": "string",
+            "title": "Hand"
+          },
+          "capture_consent": {
+            "type": "boolean",
+            "title": "Capture Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "hand",
+          "capture_consent"
+        ],
+        "title": "EnrollmentStart"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntentInput": {
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "title": "Order Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id"
+        ],
+        "title": "IntentInput"
+      },
+      "Item": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "title": "Product Id"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity"
+        ],
+        "title": "Item"
+      },
+      "Line": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "title": "Product Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price": {
+            "type": "integer",
+            "title": "Price"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "name",
+          "price",
+          "quantity"
+        ],
+        "title": "Line"
+      },
+      "Operator": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "title": "Operator"
+      },
+      "OrderInput": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "OrderInput"
+      },
+      "OrderView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Line"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "payment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaymentView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "total",
+          "status",
+          "created_at",
+          "items",
+          "payment"
+        ],
+        "title": "OrderView"
+      },
+      "PairingInput": {
+        "properties": {
+          "hand": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ],
+            "title": "Hand"
+          },
+          "allow_station_capture": {
+            "type": "boolean",
+            "title": "Allow Station Capture",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "hand"
+        ],
+        "title": "PairingInput"
+      },
+      "PalmView": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "fpn"
+            ],
+            "title": "Method",
+            "default": "mock"
+          },
+          "hand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hand"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "PalmView"
+      },
+      "PaymentView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "order_id": {
+            "type": "string",
+            "title": "Order Id"
+          },
+          "merchant": {
+            "type": "string",
+            "title": "Merchant"
+          },
+          "amount": {
+            "type": "integer",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "expires_at": {
+            "type": "integer",
+            "title": "Expires At"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "paid_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Line"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "merchant",
+          "amount",
+          "currency",
+          "status",
+          "reason",
+          "expires_at",
+          "reference",
+          "paid_at",
+          "items"
+        ],
+        "title": "PaymentView"
+      },
+      "Preferences": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "zh-Hant"
+            ],
+            "title": "Locale"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "locale",
+          "consent"
+        ],
+        "title": "Preferences"
+      },
+      "ProductInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Coffee",
+              "Non-coffee"
+            ],
+            "title": "Category"
+          },
+          "price": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Price"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "category",
+          "price"
+        ],
+        "title": "ProductInput"
+      },
+      "ProductView": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Coffee",
+              "Non-coffee"
+            ],
+            "title": "Category"
+          },
+          "price": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Price"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "image": {
+            "type": "string",
+            "title": "Image"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "category",
+          "price",
+          "id",
+          "image"
+        ],
+        "title": "ProductView"
+      },
+      "RegisterView": {
+        "properties": {
+          "merchant": {
+            "type": "string",
+            "title": "Merchant"
+          },
+          "terminal": {
+            "type": "string",
+            "title": "Terminal"
+          },
+          "demo": {
+            "type": "boolean",
+            "title": "Demo"
+          },
+          "station": {
+            "type": "boolean",
+            "title": "Station"
+          }
+        },
+        "type": "object",
+        "required": [
+          "merchant",
+          "terminal",
+          "demo",
+          "station"
+        ],
+        "title": "RegisterView"
+      },
+      "Registration": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 3,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "name",
+          "consent"
+        ],
+        "title": "Registration"
+      },
+      "Simulation": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "title": "Email",
+            "default": ""
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "decline"
+            ],
+            "title": "Outcome",
+            "default": "approve"
+          }
+        },
+        "type": "object",
+        "title": "Simulation"
+      },
+      "StationPairing": {
+        "properties": {
+          "identity": {
+            "type": "string",
+            "title": "Identity"
+          },
+          "hand": {
+            "type": "string",
+            "title": "Hand"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity",
+          "hand"
+        ],
+        "title": "StationPairing"
+      },
+      "StationStatus": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "camera_open": {
+            "type": "boolean",
+            "title": "Camera Open",
+            "default": false
+          },
+          "camera_ready": {
+            "type": "boolean",
+            "title": "Camera Ready",
+            "default": false
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connected",
+          "message"
+        ],
+        "title": "StationStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WalletView": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "balance": {
+            "type": "integer",
+            "title": "Balance"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "balance",
+          "consent",
+          "locale"
+        ],
+        "title": "WalletView"
+      }
+    }
+  }
+}

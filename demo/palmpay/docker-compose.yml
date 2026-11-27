@@ -1,0 +1,15 @@
+services:
+  palmpay:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      PALMPAY_DATABASE_URL: sqlite:////data/palmpay.db
+      PALMPAY_OPERATOR_KEY: ${PALMPAY_OPERATOR_KEY:?Set PALMPAY_OPERATOR_KEY}
+      PALMPAY_DEMO: ${PALMPAY_DEMO:-0}
+      PALMPAY_SECURE_COOKIES: ${PALMPAY_SECURE_COOKIES:-0}
+    volumes:
+      - palm-data:/data
+volumes:
+  palm-data:
+

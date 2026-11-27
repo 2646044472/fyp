@@ -96,3 +96,13 @@ code/rasp/noir-focus-test*.jpg
 *.pth
 /code/training/runs/
 /code/training/local/
+
+# PalmPay demo local state (source is under demo/palmpay).
+/demo/palmpay/node_modules/
+/demo/palmpay/.venv*/
+/demo/palmpay/dist/
+/demo/palmpay/test-results/
+/demo/palmpay/playwright-report/
+/demo/palmpay/*.db*
+/demo/palmpay/.env*
+!/demo/palmpay/.env.example
