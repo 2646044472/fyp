@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palm / Interaction prototype</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to station</a>
+<header class="topbar"><a class="brand" href="./">palm<span class="brand-mark">/</span></a><span class="prototype">Interaction prototype · synthetic inputs</span><button id="presenter-toggle" class="quiet" aria-expanded="false" aria-controls="presenter">Presenter controls</button></header>
+<main id="main">
+<div class="heading"><div><p class="eyebrow">PALM RECOGNITION STATION</p><h1>Palm verification</h1><p class="intro">Place your palm in the frame and follow the guidance.</p></div><nav class="tabs" aria-label="Station mode"><button id="verify-tab" class="tab active" aria-current="page">Verify a hand</button><button id="enroll-tab" class="tab">Enroll a hand</button></nav></div>
+<aside id="presenter" class="presenter" hidden>
+<div><h2>Rehearse the interaction</h2><p>All frames, identities and results are simulated. Reload clears this session.</p></div>
+<div class="presenter-fields"><label>Next result<select id="scenario"><option value="match">Enrolled hand</option><option value="unknown">Unrecognized hand</option><option value="position">Needs repositioning</option></select></label><label class="check"><input id="speed" type="checkbox">6× enrollment rehearsal</label><button id="camera-error" class="quiet">Simulate camera issue</button></div>
+</aside>
+<div id="accelerated" class="notice" hidden>6× rehearsal speed · the 60-second capture clock is accelerated.</div>
+<section class="station">
+<div class="view-column"><div class="camera" id="camera"><div class="camera-top"><span id="feed-label">SIMULATED CAMERA</span><span id="frame-state">Camera off</span></div><canvas id="palm-canvas" width="900" height="700" aria-label="Synthetic hand placement preview"></canvas><div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="camera-caption"><span id="camera-instruction">Your palm goes here</span><small>Synthetic illustration · no camera access</small></div></div><div class="simulation"><span>Try the participant’s movement</span><button id="hand-toggle" class="quiet" disabled>Place hand in frame</button></div></div>
+<div class="guidance"><div class="step-label" id="mode-label">VERIFY A HAND</div><div id="status-symbol" class="status-symbol" aria-hidden="true">○</div><div role="status" aria-live="polite" aria-atomic="true"><h2 id="status-title">Ready when you are</h2><p id="status-copy">Start the station, then place your palm inside the frame.</p></div><div id="capture-progress" hidden><div class="progress-meta"><span id="progress-label">Active capture</span><strong id="timer">00:00 / 01:00</strong></div><progress id="progress" value="0" max="60" aria-label="Active capture progress"></progress><p id="photo-count">0 of 10 candidate groups</p></div><div id="identity-fields" hidden><label>Demo name<input id="demo-name" maxlength="32" value="Alex" autocomplete="off"></label><label>Hand<select id="demo-hand"><option>Right hand</option><option>Left hand</option></select></label></div><div id="match-card" class="match-card" hidden><span>FICTIONAL ENROLLMENT</span><strong id="matched-name">Alex · Right hand</strong><small>Simulated result for interaction review</small></div><div class="actions"><button id="primary" class="primary">Start verification</button><button id="secondary" class="quiet" hidden>Stop verification</button></div><p id="session-note" class="session-note">One presentation, one result. Remove your hand to begin again.</p><details class="research"><summary>What this prototype shows</summary><p>Simulated interaction only. No similarity score, real identity decision, camera stream or station API is used.</p><p>Timing and result presentation are design proposals awaiting review.</p></details></div>
+</section>
+<section id="review" class="review" hidden aria-labelledby="review-title"><div class="review-heading"><div><p class="eyebrow">REVIEW BEFORE SAVING</p><h2 id="review-title">Review your photo groups</h2><p>Open a group to compare the original, color crop and model crop.</p></div><button id="replace" class="quiet" hidden>Replace missing groups</button></div><div id="photo-grid" class="photo-grid"></div><div class="review-footer"><label class="check"><input id="consent" type="checkbox">I checked that every group shows the same hand.</label><button id="save" class="primary" disabled>Confirm and save demo</button></div></section>
+<footer><span>Interaction review</span><span>FPN + C E10 · proposed participant experience</span></footer>
+</main>
+<dialog id="photo-dialog"><div class="dialog-heading"><h2 id="dialog-title">Photo group</h2><button id="close-dialog" class="quiet">Close</button></div><div class="photo-views" id="photo-views"></div><p>Procedural illustrations. No participant images are stored.</p><button id="delete-photo" class="danger">Remove this group</button></dialog>
+<script type="module" src="app.mjs"></script>
+</body></html>
